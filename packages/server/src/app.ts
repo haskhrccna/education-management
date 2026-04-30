@@ -10,6 +10,7 @@ import reportRoutes from './routes/report.routes';
 import adminRoutes from './routes/admin.routes';
 import messageRoutes from './routes/message.routes';
 import fileRoutes from './routes/file.routes';
+import exportRoutes from './routes/export.routes';
 import docsRoutes from './routes/docs.routes';
 import metricsRoutes from './routes/metrics.routes';
 import { errorHandler } from './middleware/error.middleware';
@@ -71,6 +72,7 @@ app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/admin', adminLimiter, adminRoutes);
 app.use('/api/v1/messages', messageRoutes);
 app.use('/api/v1/files', fileRoutes);
+app.use('/api/v1/exports', exportRoutes);
 
 // Legacy redirects (optional - remove after mobile update)
 app.use('/api/auth', authLimiter, authRoutes);
@@ -82,6 +84,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/files', fileRoutes);
+app.use('/api/exports', exportRoutes);
 
 // 404 handler
 app.use('*', (_req, res) => {
