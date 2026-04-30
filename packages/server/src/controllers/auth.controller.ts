@@ -15,6 +15,11 @@ export const register = async (req: Request, res: Response, next: NextFunction):
       data: { email, passwordHash, role: role.toUpperCase(), firstName, lastName },
       select: { id: true, email: true, role: true, firstName: true, lastName: true, status: true },
     });
+    
+    // Send welcome email asynchronously
+    const { sendWelcomeEmail } = await import('../services/email.service');
+    sendWelcomeEmail(user.email, user.firstName).catch(() => {});
+    
     res.status(201).json({ message: 'Registration successful. Awaiting admin approval.', user });
   } catch (err) {
     next(err);
@@ -53,7 +58,11 @@ export const verifyEmail = async (req: Request, res: Response, next: NextFunctio
 
 export const resendVerification = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // TODO: Implement email sending via nodemailer
+    const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { email: true, firstName: true } });
+    if (!user) throw new AppError(404, 'User not found');
+    
+    const { sendWelcomeEmail } = await import('../services/email.service');
+    await sendWelcomeEmail(user.email, user.firstName);
     res.json({ message: 'Verification email resent' });
   } catch (err) {
     next(err);

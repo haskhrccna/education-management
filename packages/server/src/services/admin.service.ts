@@ -11,6 +11,21 @@ export const listUsers = async (roleFilter?: string) => {
   });
 };
 
+export const listUsersPaginated = async (roleFilter?: string, skip = 0, take = 20) => {
+  const where = roleFilter ? { role: roleFilter.toUpperCase() as 'STUDENT' | 'TEACHER' | 'ADMIN' } : undefined;
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      select: { id: true, email: true, firstName: true, lastName: true, role: true, status: true, createdAt: true },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take,
+    }),
+    prisma.user.count({ where }),
+  ]);
+  return { users, total };
+};
+
 export const createTeacher = async (email: string, password: string, firstName: string, lastName: string) => {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) throw new AppError(409, 'Email already registered');
@@ -27,11 +42,17 @@ export const approveStudent = async (studentId: string) => {
   if (!student) throw new AppError(404, 'Student not found');
   if (student.role !== 'STUDENT') throw new AppError(400, 'User is not a student');
 
-  return await prisma.user.update({
+  const updated = await prisma.user.update({
     where: { id: studentId },
     data: { status: 'ACTIVE' },
     select: { id: true, email: true, firstName: true, lastName: true, role: true, status: true },
   });
+
+  // Send approval email
+  const { sendAccountApprovedEmail } = await import('./email.service');
+  await sendAccountApprovedEmail(updated.email, updated.firstName);
+
+  return updated;
 };
 
 export const deactivateUser = async (userId: string) => {

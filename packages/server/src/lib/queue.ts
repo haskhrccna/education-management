@@ -20,6 +20,8 @@ function createQueue<T>(name: string) {
 
 export const broadcastQueue = createQueue<{ message: string; targetRole?: string }>('broadcast');
 export const reportQueue = createQueue<{ teacherId: string; studentId: string; summary: string }>('report');
+export const emailQueue = createQueue<{ to: string; subject: string; html: string; text?: string }>('email');
+export const notificationQueue = createQueue<{ userId: string; event: string; data: Record<string, any> }>('notification');
 
 export async function addBroadcastJob(message: string, targetRole?: string) {
   if (!broadcastQueue) return null;
@@ -29,6 +31,11 @@ export async function addBroadcastJob(message: string, targetRole?: string) {
 export async function addReportJob(teacherId: string, studentId: string, summary: string) {
   if (!reportQueue) return null;
   return reportQueue.add('generate-report', { teacherId, studentId, summary });
+}
+
+export async function addEmailJob(to: string, subject: string, html: string, text?: string) {
+  if (!emailQueue) return null;
+  return emailQueue.add('send-email', { to, subject, html, text });
 }
 
 // Workers only initialize if explicitly enabled (avoid in test env)
@@ -44,6 +51,23 @@ if (process.env.ENABLE_WORKERS === 'true') {
         sendToUser(user.id, 'broadcast', { message, sentAt: new Date().toISOString() });
       }
       logger.info({ recipients: users.length }, 'Broadcast job completed');
+    }, { connection });
+  }
+
+  if (emailQueue) {
+    new Worker('email', async (job) => {
+      const { sendEmail } = await import('../services/email.service');
+      const { to, subject, html, text } = job.data;
+      await sendEmail({ to, subject, html, text });
+      logger.info({ to, subject }, 'Email job completed');
+    }, { connection });
+  }
+
+  if (notificationQueue) {
+    new Worker('notification', async (job) => {
+      const { notifyUser } = await import('../services/notification.service');
+      await notifyUser(job.data);
+      logger.info({ userId: job.data.userId, event: job.data.event }, 'Notification job completed');
     }, { connection });
   }
 }

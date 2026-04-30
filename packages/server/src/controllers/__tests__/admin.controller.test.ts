@@ -12,6 +12,10 @@ jest.mock('../../services/socket.service', () => ({
   sendToUser: jest.fn(),
 }));
 
+jest.mock('../../services/email.service', () => ({
+  sendAccountApprovedEmail: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock('../../services/auth.service', () => ({
   hashPassword: jest.fn().mockResolvedValue('hashed'),
 }));
@@ -30,6 +34,10 @@ const mockedPrisma = prisma as unknown as DeepMockProxy<PrismaClient>;
 function createTestApp() {
   const app = express();
   app.use(express.json());
+  app.use((req: any, _res: any, next: any) => {
+    req.pagination = { page: 1, limit: 20, skip: 0 };
+    next();
+  });
   app.get('/users', listUsers);
   app.post('/teachers', createTeacher);
   app.put('/users/:id/approve', approveStudent);
@@ -46,10 +54,12 @@ describe('admin.controller', () => {
   describe('GET /users', () => {
     it('should list users', async () => {
       mockedPrisma.user.findMany.mockResolvedValue([{ id: 'user-1' }] as any);
+      mockedPrisma.user.count.mockResolvedValue(1);
 
       const res = await request(createTestApp()).get('/users');
       expect(res.status).toBe(200);
-      expect(res.body).toHaveLength(1);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.data).toHaveLength(1);
     });
   });
 
@@ -63,7 +73,8 @@ describe('admin.controller', () => {
         .send({ email: 'teacher@test.com', password: 'Password123!', firstName: 'John', lastName: 'Doe' });
 
       expect(res.status).toBe(201);
-      expect(res.body.status).toBe('ACTIVE');
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.status).toBe('ACTIVE');
     });
 
     it('should reject short password', async () => {
@@ -90,7 +101,8 @@ describe('admin.controller', () => {
 
       const res = await request(createTestApp()).put('/users/student-1/approve');
       expect(res.status).toBe(200);
-      expect(res.body.status).toBe('ACTIVE');
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.status).toBe('ACTIVE');
     });
   });
 
@@ -101,7 +113,8 @@ describe('admin.controller', () => {
 
       const res = await request(createTestApp()).put('/users/user-1/deactivate');
       expect(res.status).toBe(200);
-      expect(res.body.status).toBe('BANNED');
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.status).toBe('BANNED');
     });
   });
 
@@ -114,7 +127,8 @@ describe('admin.controller', () => {
         .send({ message: 'Hello all' });
 
       expect(res.status).toBe(200);
-      expect(res.body.recipients).toBe(1);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.recipients).toBe(1);
     });
 
     it('should reject empty message', async () => {

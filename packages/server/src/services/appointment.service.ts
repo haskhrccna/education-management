@@ -82,8 +82,8 @@ export const manageAppointment = async (appointmentId: string, userId: string, u
   const updated = await prisma.appointment.update({ where: { id: appointmentId }, data: updateData });
 
   // Notify student of schedule change
-  const { notifyScheduleChange } = await import('./socket.service');
-  notifyScheduleChange(appointment.studentId, updated);
+  const { notifyAppointmentUpdate } = await import('./notification.service');
+  await notifyAppointmentUpdate(appointment.studentId, updated);
 
   return updated;
 };

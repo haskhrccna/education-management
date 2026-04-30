@@ -29,9 +29,9 @@ export const sendMessage = async (senderId: string, receiverId: string, type: Ms
     include: { sender: { select: { id: true, firstName: true, lastName: true } } },
   });
 
-  // Emit real-time via Socket.io
-  const { notifyNewMessage } = await import('./socket.service');
-  notifyNewMessage(receiverId, message);
+  // Notify receiver via unified notification service
+  const { notifyNewMessage } = await import('./notification.service');
+  await notifyNewMessage(receiverId, message);
 
   return message;
 };
