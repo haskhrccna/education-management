@@ -1,0 +1,8 @@
+{
+  "name": "education-management",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "mobile"
+  ]
+}

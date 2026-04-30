@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  ACTIVE
+  BANNED
+}
+
+enum AppointmentStatus {
+  REQUESTED
+  ACCEPTED
+  AMENDED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+enum GradeType {
+  QUIZ
+  ASSIGNMENT
+  EXAM
+  ORAL
+  PARTICIPATION
+}
+
+enum MessageType {
+  TEXT
+  FILE
+  SYSTEM
+}
+
+model User {
+  id            String     @id @default(uuid())
+  email         String     @unique
+  passwordHash  String
+  role          Role
+  firstName     String
+  lastName      String
+  status        UserStatus @default(PENDING)
+  emailVerifiedAt DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  appointmentsAsStudent Appointment[] @relation("StudentAppointments")
+  appointmentsAsTeacher Appointment[] @relation("TeacherAppointments")
+  gradesGiven           Grade[]         @relation("TeacherGrades")
+  gradesReceived        Grade[]         @relation("StudentGrades")
+  recordings          Recording[]         @relation("StudentRecordings")
+  messagesSent        Message[]         @relation("MessageSender")
+  messagesReceived    Message[]         @relation("MessageReceiver")
+  reportsGenerated    Report[]          @relation("TeacherReports")
+  reportsReceived     Report[]          @relation("StudentReports")
+  reviewedRecordings  Recording[]       @relation("ReviewedRecordings")
+  progressLogs        TeacherProgressLog[]
+
+  @@map("users")
+}
+
+model Appointment {
+  id              String            @id @default(uuid())
+  studentId       String
+  teacherId       String
+  requestedDate   DateTime
+  requestedTime   String
+  durationMinutes Int               @default(60)
+  status          AppointmentStatus @default(REQUESTED)
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  amendedNote     String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  student         User              @relation("StudentAppointments", fields: [studentId], references: [id])
+  teacher         User              @relation("TeacherAppointments", fields: [teacherId], references: [id])
+
+  @@map("appointments")
+}
+
+model Grade {
+  id        String     @id @default(uuid())
+  studentId String
+  teacherId String
+  subject   String
+  grade     String
+  type      GradeType
+  notes     String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  student User @relation("StudentGrades", fields: [studentId], references: [id])
+  teacher User @relation("TeacherGrades", fields: [teacherId], references: [id])
+
+  @@map("grades")
+}
+
+model Recording {
+  id               String    @id @default(uuid())
+  studentId        String
+  url              String
+  fileName         String
+  fileSizeBytes    Int
+  contentType      String
+  previewImageUrl  String?
+  reviewNotes      String?
+  approvedAt       DateTime?
+  rejectedAt       DateTime?
+  reviewedBy       String?
+  createdAt        DateTime  @default(now())
+
+  student          User      @relation("StudentRecordings", fields: [studentId], references: [id])
+  reviewer         User?     @relation("ReviewedRecordings", fields: [reviewedBy], references: [id])
+
+  @@map("recordings")
+}
+
+model Message {
+  id           String       @id @default(uuid())
+  senderId     String
+  receiverId   String
+  type         MessageType   @default(TEXT)
+  content      String
+  attachmentUrl String?
+  readAt       DateTime?
+  createdAt    DateTime      @default(now())
+
+  sender       User          @relation("MessageSender", fields: [senderId], references: [id])
+  receiver     User          @relation("MessageReceiver", fields: [receiverId], references: [id])
+
+  @@map("messages")
+}
+
+model Report {
+  id          String    @id @default(uuid())
+  teacherId   String
+  studentId   String
+  pdfUrl      String
+  generatedAt DateTime @default(now())
+  summary     String
+
+  teacher User @relation("TeacherReports", fields: [teacherId], references: [id])
+  student User @relation("StudentReports", fields: [studentId], references: [id])
+
+  @@map("reports")
+}
+
+model TeacherProgressLog {
+  id                String   @id @default(uuid())
+  teacherId         String
+  period            String
+  studentsTeaching  Int      @default(0)
+  sessionsCompleted Int      @default(0)
+  averageGrade      Float    @default(0)
+  notes             String?
+  createdAt         DateTime @default(now())
+
+  teacher User @relation(fields: [teacherId], references: [id])
+
+  @@map("teacher_progress_logs")
+}

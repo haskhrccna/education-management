@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.local
+*.log
+dist/
+build/
+expo/
+ios/Pods/
+android/app/build/
+.claude/
