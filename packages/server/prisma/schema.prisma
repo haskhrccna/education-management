@@ -127,12 +127,14 @@ model Recording {
   rejectedAt       DateTime?
   reviewedBy       String?
   createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   student          User      @relation("StudentRecordings", fields: [studentId], references: [id], onDelete: Cascade)
-  reviewer         User?     @relation("ReviewedRecordings", fields: [reviewedBy], references: [id])
+  reviewer         User?     @relation("ReviewedRecordings", fields: [reviewedBy], references: [id], onDelete: SetNull)
 
   @@index([studentId])
   @@index([reviewedBy])
+  @@index([createdAt])
   @@map("recordings")
 }
 
@@ -185,6 +187,7 @@ model TeacherProgressLog {
 
   teacher User @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
+  @@unique([teacherId, period])
   @@index([teacherId])
   @@index([period])
   @@map("teacher_progress_logs")
