@@ -8,18 +8,15 @@ export class AppError extends Error {
   }
 }
 
-export const errorHandler = (
-  err: Error,
-  req: Request,
-  res: Response,
-  _next: NextFunction
-): void => {
+export const errorHandler = (err: Error, req: Request, res: Response, _next: NextFunction): void => {
+  const reqId = (req as any).reqId;
+
   if (err instanceof AppError) {
-    logger.warn({ reqId: (req as any).reqId, statusCode: err.statusCode, err: err.message }, 'AppError');
-    res.status(err.statusCode).json({ error: err.message });
+    logger.warn({ reqId, statusCode: err.statusCode, message: err.message }, 'AppError');
+    res.status(err.statusCode).json({ success: false, error: err.message });
     return;
   }
 
-  logger.error({ reqId: (req as any).reqId, err: err.message, stack: err.stack }, 'Unhandled error');
-  res.status(500).json({ error: 'Internal server error' });
+  logger.error({ reqId, err: err.message, stack: err.stack }, 'Unhandled error');
+  res.status(500).json({ success: false, error: 'Internal server error' });
 };
