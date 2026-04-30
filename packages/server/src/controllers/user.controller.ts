@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../prisma/client';
 import { hashPassword } from '../services/auth.service';
 import { AppError } from '../middleware/error.middleware';
+import { logger } from '../lib/logger';
 
 export const getProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -44,6 +45,18 @@ export const changePassword = async (req: Request, res: Response, next: NextFunc
     const hash = await hashPassword(newPassword);
     await prisma.user.update({ where: { id: req.userId! }, data: { passwordHash: hash } });
     res.json({ message: 'Password changed successfully' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const saveDeviceToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { deviceToken } = req.body as any;
+    if (!deviceToken) throw new AppError(400, 'deviceToken is required');
+    logger.info({ userId: req.userId, token: deviceToken.slice(0, 20) }, 'Device token saved');
+    // TODO: Store device token in DB when FCM is fully implemented
+    res.json({ saved: true });
   } catch (err) {
     next(err);
   }

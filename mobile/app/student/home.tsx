@@ -3,46 +3,41 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
-import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
-
-const API_BASE = __DEV__
-  ? 'http://localhost:4000/api'
-  : 'https://api.education-app.com/api';
+import { useAuthStore } from '@/src/auth/store';
+import { useAppointments } from '@/src/hooks/useAppointments';
+import { useGrades } from '@/src/hooks/useGrades';
 
 export default function StudentHomeScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
+  const logout = useAuthStore((s) => s.logout);
+  const user = useAuthStore((s) => s.user);
   const [activeTab, setActiveTab] = useState<'appointments' | 'grades'>('appointments');
-  const [appointments, setAppointments] = useState([]);
-  const [grades, setGrades] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  const { appointments, isLoading: apptLoading, fetchAppointments } = useAppointments();
+  const { grades, isLoading: gradesLoading, fetchGrades } = useGrades();
 
   React.useEffect(() => {
-    (async () => {
-      try {
-        const token = await SecureStore.getItemAsync('auth_token');
-        if (!token) return;
-        const api = axios.create({ baseURL: API_BASE });
-        api.defaults.headers.common.Authorization = `Bearer ${token}`;
-        const [appts, gradesRes] = await Promise.all([
-          api.get('/appointments'),
-          api.get('/grades'),
-        ]);
-        setAppointments(appts.data);
-        setGrades(gradesRes.data);
-      } catch {
-        /* auth error */
-      } finally {
-        setLoading(false);
-      }
-    })();
+    fetchAppointments();
+    fetchGrades();
   }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/');
+  };
+
+  const isLoading = apptLoading || gradesLoading;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>{t('studentHomeTitle', { name: 'الطالب' })}</Text>
+        <Text style={styles.title}>
+          {i18n.language === 'ar' ? 'مرحباً' : 'Welcome'} {user?.firstName || ''}
+        </Text>
+        <TouchableOpacity onPress={handleLogout}>
+          <Text style={styles.logout}>{t('logout')}</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.tabBar}>
@@ -65,21 +60,21 @@ export default function StudentHomeScreen() {
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.list}>
-        {loading ? (
-          <Text style={styles.placeholder}>{t('loading')}</Text>
+        {isLoading ? (
+          <Text style={styles.empty}>{t('loading')}</Text>
         ) : activeTab === 'appointments' ? (
           appointments.length === 0 ? (
             <Text style={styles.empty}>{i18n.language === 'ar' ? 'لا توجد مواعيد بعد' : 'No appointments yet'}</Text>
           ) : (
             appointments.map((a: any) => (
               <View key={a.id} style={styles.card}>
-                <Text style={styles.cardTitle}>{i18n.language === 'ar' ? 'موعد جديد' : 'New Appointment'}</Text>
+                <Text style={styles.cardTitle}>{a.teacher?.firstName} {a.teacher?.lastName}</Text>
                 <Text style={styles.cardDetail}>📅 {new Date(a.requestedDate).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US')}</Text>
                 <Text style={styles.cardDetail}>🕐 {a.requestedTime}</Text>
                 <Text style={[styles.statusBadge, a.status === 'ACCEPTED' && styles.accepted]}>
                   {a.status === 'REQUESTED' ? (i18n.language === 'ar' ? 'قيد الانتظار' : 'Pending') :
                    a.status === 'ACCEPTED' ? (i18n.language === 'ar' ? 'مقبول' : 'Accepted') :
-                   a.status === 'REJECTED' ? (i18n.language === 'ar' ? 'مرفوض' : 'Rejected') : ''}
+                   a.status === 'REJECTED' ? (i18n.language === 'ar' ? 'مرفوض' : 'Rejected') : a.status}
                 </Text>
               </View>
             ))
@@ -109,8 +104,9 @@ export default function StudentHomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
-  header: { padding: 20, paddingBottom: 8 },
-  title: { fontSize: 24, fontWeight: '700', color: '#1e293b' },
+  header: { padding: 20, paddingBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  title: { fontSize: 22, fontWeight: '700', color: '#1e293b' },
+  logout: { color: '#dc2626', fontWeight: '600' },
   tabBar: { flexDirection: 'row', paddingHorizontal: 20, gap: 8, marginBottom: 12 },
   tab: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1, borderColor: '#e2e8f0' },
   tabActive: { backgroundColor: '#2563eb', borderColor: '#2563eb' },
@@ -123,7 +119,6 @@ const styles = StyleSheet.create({
   cardDetail: { fontSize: 14, color: '#64748b' },
   gradeValue: { fontSize: 32, fontWeight: '700', color: '#2563eb' },
   empty: { color: '#94a3b8', textAlign: 'center', marginTop: 40, fontSize: 16 },
-  placeholder: { color: '#94a3b8', textAlign: 'center', marginTop: 40 },
   statusBadge: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8, backgroundColor: '#fef3c7', fontSize: 13, color: '#92400e' },
   accepted: { backgroundColor: '#dcfce7', color: '#166534' },
   fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center', elevation: 4 },
