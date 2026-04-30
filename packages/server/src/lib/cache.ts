@@ -29,7 +29,7 @@ class LRUCache<T> {
     if (this.cache.size >= this.maxSize && !this.cache.has(key)) {
       // Evict least recently used (first item)
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey) this.cache.delete(firstKey);
     }
     this.cache.set(key, { value, expiresAt: Date.now() + ttlMs });
   }
