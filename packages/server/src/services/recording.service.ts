@@ -23,7 +23,14 @@ export const uploadRecording = async (
   const finalPath = path.join(UPLOAD_DIR, uniqueName);
 
   if (tempFilePath) {
-    await fs.rename(tempFilePath, finalPath);
+    try {
+      await fs.copyFile(tempFilePath, finalPath);
+      await fs.unlink(tempFilePath);
+    } catch (err) {
+      // Clean up temp file if final copy failed
+      try { await fs.unlink(tempFilePath); } catch { /* ignore */ }
+      throw new AppError(500, 'Failed to process uploaded file');
+    }
   }
 
   return await prisma.recording.create({
@@ -32,10 +39,6 @@ export const uploadRecording = async (
 };
 
 export const listRecordings = async (userId: string, userRole?: string) => {
-  await ensureUploadDir();
-  let files: string[] = [];
-  try { files = await fs.readdir(UPLOAD_DIR); } catch { /* dir doesn't exist yet */ }
-
   const where = userRole === 'TEACHER' || userRole === 'ADMIN' ? {} : { studentId: userId };
   const recordings = await prisma.recording.findMany({
     where,
@@ -43,10 +46,7 @@ export const listRecordings = async (userId: string, userRole?: string) => {
     include: { student: { select: { id: true, firstName: true, lastName: true, email: true } } },
   });
 
-  return recordings.map(r => {
-    const file = r.url.split('/').pop() || '';
-    return { ...r, localFileExists: files.includes(file) };
-  });
+  return recordings;
 };
 
 export const reviewRecording = async (recordingId: string, reviewerId: string, approved: boolean, notes?: string) => {

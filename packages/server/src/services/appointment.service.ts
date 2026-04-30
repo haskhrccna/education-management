@@ -3,23 +3,51 @@ import { AppError } from '../middleware/error.middleware';
 
 type UserRoleInput = 'STUDENT' | 'TEACHER' | 'ADMIN';
 
+function toDateOnly(dateInput: string | Date): Date {
+  const d = typeof dateInput === 'string' ? new Date(dateInput) : new Date(dateInput);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
 export const createAppointment = async (studentId: string, teacherId: string, requestedDate: string, requestedTime: string, durationMinutes: number) => {
   const teacherUser = await prisma.user.findUnique({ where: { id: teacherId } });
   if (!teacherUser || teacherUser.role !== 'TEACHER') throw new AppError(400, 'Invalid teacher');
 
-  const conflict = await prisma.appointment.findFirst({
+  const dateOnly = toDateOnly(requestedDate);
+  const nextDay = new Date(dateOnly);
+  nextDay.setDate(nextDay.getDate() + 1);
+
+  const conflicts = await prisma.appointment.findMany({
     where: {
       teacherId,
-      requestedDate: new Date(requestedDate),
+      requestedDate: { gte: dateOnly, lt: nextDay },
       status: { in: ['REQUESTED', 'ACCEPTED'] },
     },
   });
-  if (conflict) throw new AppError(409, 'Teacher already has an appointment at this time');
+
+  const newStart = timeToMinutes(requestedTime);
+  const newEnd = newStart + (durationMinutes || 60);
+
+  for (const existing of conflicts) {
+    const existingStart = timeToMinutes(existing.requestedTime);
+    const existingEnd = existingStart + (existing.durationMinutes || 60);
+    if (timesOverlap(newStart, newEnd, existingStart, existingEnd)) {
+      throw new AppError(409, 'Teacher already has an appointment overlapping this time');
+    }
+  }
 
   return await prisma.appointment.create({
-    data: { studentId, teacherId, requestedDate: new Date(requestedDate), requestedTime, durationMinutes },
+    data: { studentId, teacherId, requestedDate: dateOnly, requestedTime, durationMinutes: durationMinutes || 60 },
   });
 };
+
+function timeToMinutes(time: string): number {
+  const [h, m] = time.split(':').map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
+function timesOverlap(aStart: number, aEnd: number, bStart: number, bEnd: number): boolean {
+  return aStart < bEnd && bStart < aEnd;
+}
 
 export const getMyAppointments = async (userId: string, userRole: UserRoleInput) => {
   if (userRole === 'STUDENT') {

@@ -26,12 +26,6 @@ export const setupSocketIO = (server: http.Server) => {
     console.log(`[Socket] User connected: ${socket.id} (userId: ${userId})`);
     if (userId) socket.join(userId);
 
-    socket.on('send_message', async (data: { receiverId: string; content: string; type: 'text' }) => {
-      // Only allow sending as authenticated user
-      if (data.receiverId === userId) return;
-      io.to(data.receiverId).emit('receive_message', { ...data, senderId: userId });
-    });
-
     socket.on('disconnect', () => {
       console.log(`[Socket] User disconnected: ${socket.id} (userId: ${userId})`);
     });
@@ -45,12 +39,12 @@ export const sendToUser = (userId: string, event: string, data: unknown) => {
 };
 
 export const notifyNewMessage = (receiverId: string, messageData: unknown) => {
-   sendToUser(receiverId, 'new_message', messageData);
- };
+  sendToUser(receiverId, 'new_message', messageData);
+};
 
- export const notifyScheduleChange = (userId: string, appointmentUpdate: unknown) => {
-   sendToUser(userId, 'appointment_update', appointmentUpdate);
- };
+export const notifyScheduleChange = (userId: string, appointmentUpdate: unknown) => {
+  sendToUser(userId, 'appointment_update', appointmentUpdate);
+};
 
 // Re-export FCM for push notifications
 export { sendPushNotification } from './fcm.service';

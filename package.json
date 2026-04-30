@@ -4,5 +4,29 @@
   "workspaces": [
     "packages/*",
     "mobile"
-  ]
+  ],
+  "scripts": {
+    "prepare": "husky",
+    "test:server": "npm run test --workspace=@edu/server"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.3"
+  },
+  "lint-staged": {
+    "packages/server/src/**/*.ts": [
+      "prettier --write",
+      "cd packages/server && npx tsc --noEmit"
+    ],
+    "packages/shared/src/**/*.ts": [
+      "prettier --write"
+    ],
+    "mobile/src/**/*.{ts,tsx}": [
+      "prettier --write"
+    ],
+    "mobile/app/**/*.{ts,tsx}": [
+      "prettier --write"
+    ]
+  }
 }

@@ -16,7 +16,7 @@ export const createTeacher = async (email: string, password: string, firstName: 
 
   const passwordHash = await hashPassword(password);
   return await prisma.user.create({
-    data: { email, passwordHash, role: 'TEACHER', firstName, lastName, status: 'APPROVED' },
+    data: { email, passwordHash, role: 'TEACHER', firstName, lastName, status: 'ACTIVE' },
     select: { id: true, email: true, firstName: true, lastName: true, role: true, status: true },
   });
 };
