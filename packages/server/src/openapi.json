@@ -1,0 +1,169 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Education Management API",
+    "version": "1.0.0",
+    "description": "API for the Electronic Education Management System"
+  },
+  "servers": [
+    { "url": "/api/v1", "description": "Version 1" }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "summary": "Register a new student",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "minLength": 8 },
+                  "role": { "type": "string", "enum": ["student", "teacher"] },
+                  "firstName": { "type": "string" },
+                  "lastName": { "type": "string" }
+                },
+                "required": ["email", "password", "role", "firstName", "lastName"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User registered successfully" },
+          "409": { "description": "Email already registered" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Login",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login successful" },
+          "401": { "description": "Invalid credentials" },
+          "403": { "description": "Account not active" }
+        }
+      }
+    },
+    "/appointments": {
+      "get": {
+        "summary": "List my appointments",
+        "tags": ["Appointments"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "List of appointments" }
+        }
+      },
+      "post": {
+        "summary": "Create appointment",
+        "tags": ["Appointments"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "teacherId": { "type": "string" },
+                  "requestedDate": { "type": "string", "format": "date" },
+                  "requestedTime": { "type": "string" },
+                  "durationMinutes": { "type": "integer", "default": 60 }
+                },
+                "required": ["teacherId", "requestedDate", "requestedTime"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Appointment created" },
+          "409": { "description": "Time conflict" }
+        }
+      }
+    },
+    "/grades": {
+      "get": {
+        "summary": "Get my grades",
+        "tags": ["Grades"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "List of grades" }
+        }
+      }
+    },
+    "/messages": {
+      "get": {
+        "summary": "Get conversations",
+        "tags": ["Messages"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "List of messages" }
+        }
+      },
+      "post": {
+        "summary": "Send message",
+        "tags": ["Messages"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "receiverId": { "type": "string" },
+                  "content": { "type": "string" },
+                  "type": { "type": "string", "enum": ["TEXT", "FILE", "SYSTEM"], "default": "TEXT" }
+                },
+                "required": ["receiverId", "content"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Message sent" }
+        }
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "summary": "List all users",
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "role", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "List of users" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

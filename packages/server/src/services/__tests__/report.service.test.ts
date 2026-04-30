@@ -28,6 +28,9 @@ const mockedFs = fs as jest.Mocked<typeof fs>;
 describe('report.service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedPrisma.$transaction.mockImplementation(async (fn: any) => {
+      return fn(mockedPrisma);
+    });
   });
 
   describe('generatePDFReport', () => {

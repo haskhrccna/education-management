@@ -1,6 +1,7 @@
 import { prisma } from '../prisma/client';
 import { hashPassword } from './auth.service';
 import { AppError } from '../middleware/error.middleware';
+import { addBroadcastJob } from '../lib/queue';
 
 export const listUsers = async (roleFilter?: string) => {
   return await prisma.user.findMany({
@@ -109,6 +110,13 @@ function safeAverage(grades: string[]): number {
 }
 
 export const broadcastMessage = async (message: string, targetRole?: string) => {
+  // Add to background queue if Redis is available
+  const job = await addBroadcastJob(message, targetRole);
+  if (job) {
+    return { sent: true, queued: true, message };
+  }
+
+  // Fallback: synchronous broadcast (for dev without Redis)
   const where = targetRole ? { role: targetRole.toUpperCase() as 'STUDENT' | 'TEACHER' | 'ADMIN' } : {};
   const users = await prisma.user.findMany({ where, select: { id: true } });
 

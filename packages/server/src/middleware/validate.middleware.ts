@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodSchema, ZodError } from 'zod';
+import { AppError } from './error.middleware';
 
 export const validate = (schema: ZodSchema) => {
   return (req: Request, res: Response, next: NextFunction): void => {
@@ -9,10 +10,10 @@ export const validate = (schema: ZodSchema) => {
     } catch (err) {
       if (err instanceof ZodError) {
         const messages = err.issues.map((e) => `${e.path.join('.')}: ${e.message}`);
-        res.status(400).json({ error: 'Validation failed', details: messages });
+        next(new AppError(400, `Validation failed: ${messages.join(', ')}`));
         return;
       }
-      res.status(400).json({ error: 'Invalid input' });
+      next(new AppError(400, 'Invalid input'));
     }
   };
 };

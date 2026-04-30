@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
 import { UserRole } from '@edu/shared';
+import { AppError } from './error.middleware';
 
 export interface AuthRequest extends Request {
   userId?: string;
@@ -11,7 +12,7 @@ export interface AuthRequest extends Request {
 export const authenticate = (req: AuthRequest, res: Response, next: NextFunction): void => {
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) {
-    res.status(401).json({ error: 'Authentication required' });
+    next(new AppError(401, 'Authentication required'));
     return;
   }
   const token = header.slice(7);
@@ -21,14 +22,14 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
     req.userRole = payload.role;
     next();
   } catch {
-    res.status(401).json({ error: 'Invalid or expired token' });
+    next(new AppError(401, 'Invalid or expired token'));
   }
 };
 
 export const authorize = (...roles: UserRole[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.userRole || !roles.includes(req.userRole)) {
-      res.status(403).json({ error: 'Insufficient permissions' });
+      next(new AppError(403, 'Insufficient permissions'));
       return;
     }
     next();
