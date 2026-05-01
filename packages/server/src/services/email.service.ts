@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import { config } from '../config';
 import { logger } from '../lib/logger';
+import { templates } from './email-templates';
 
 const transporter = nodemailer.createTransport({
   host: config.emailHost,
@@ -53,49 +54,49 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
   }
 };
 
-// Email templates
-export const sendWelcomeEmail = async (to: string, name: string) => {
+// Bilingual email helpers
+export const sendWelcomeEmail = async (to: string, name: string, lang: 'ar' | 'en' = 'ar') => {
   await sendEmail({
     to,
-    subject: 'Welcome to Electronic Education Platform',
-    html: `<h1>Welcome, ${name}!</h1><p>Your account has been created and is pending admin approval.</p>`,
-    text: `Welcome, ${name}! Your account has been created and is pending admin approval.`,
+    subject: lang === 'ar' ? 'مرحباً بك في منصة التعليم الإلكتروني' : 'Welcome to Electronic Education Platform',
+    html: templates.welcome({ name }, lang),
+    text: lang === 'ar' ? `مرحباً ${name}! تم إنشاء حسابك وهو قيد انتظار الموافقة.` : `Welcome, ${name}! Your account is pending approval.`,
   });
 };
 
-export const sendAccountApprovedEmail = async (to: string, name: string) => {
+export const sendAccountApprovedEmail = async (to: string, name: string, lang: 'ar' | 'en' = 'ar') => {
   await sendEmail({
     to,
-    subject: 'Your account has been approved',
-    html: `<h1>Congratulations, ${name}!</h1><p>Your account has been approved by the admin. You can now log in.</p>`,
-    text: `Congratulations, ${name}! Your account has been approved. You can now log in.`,
+    subject: lang === 'ar' ? 'تمت الموافقة على حسابك' : 'Your account has been approved',
+    html: templates.accountApproved({ name }, lang),
+    text: lang === 'ar' ? `تهانينا ${name}! تمت الموافقة على حسابك.` : `Congratulations, ${name}! Your account has been approved.`,
   });
 };
 
-export const sendAppointmentNotification = async (to: string, status: string, date: string, time: string) => {
-  const statusText = status === 'ACCEPTED' ? 'accepted' : status === 'REJECTED' ? 'rejected' : 'updated';
+export const sendAppointmentNotification = async (to: string, name: string, status: string, date: string, time: string, lang: 'ar' | 'en' = 'ar') => {
+  const subject = lang === 'ar' ? `تحديث الموعد — ${status === 'ACCEPTED' ? 'مقبول' : status === 'REJECTED' ? 'مرفوض' : 'محدث'}` : `Appointment ${status.toLowerCase()}`;
   await sendEmail({
     to,
-    subject: `Appointment ${statusText}`,
-    html: `<p>Your appointment on ${date} at ${time} has been ${statusText}.</p>`,
-    text: `Your appointment on ${date} at ${time} has been ${statusText}.`,
+    subject,
+    html: templates.appointmentUpdate({ name, date, time, status }, lang),
+    text: `Your appointment on ${date} at ${time} has been ${status.toLowerCase()}.`,
   });
 };
 
-export const sendNewGradeEmail = async (to: string, subject: string, grade: string) => {
+export const sendNewGradeEmail = async (to: string, name: string, subject: string, grade: string, lang: 'ar' | 'en' = 'ar') => {
   await sendEmail({
     to,
-    subject: `New grade posted: ${subject}`,
-    html: `<p>A new grade has been posted for ${subject}: <strong>${grade}</strong></p>`,
-    text: `A new grade has been posted for ${subject}: ${grade}`,
+    subject: lang === 'ar' ? `درجة جديدة: ${subject}` : `New grade: ${subject}`,
+    html: templates.newGrade({ name, subject, grade }, lang),
+    text: `Hi ${name}, a new grade has been posted for ${subject}: ${grade}`,
   });
 };
 
-export const sendPasswordChangedEmail = async (to: string) => {
+export const sendPasswordChangedEmail = async (to: string, name: string, lang: 'ar' | 'en' = 'ar') => {
   await sendEmail({
     to,
-    subject: 'Password changed successfully',
-    html: `<p>Your password has been changed. If you did not make this change, please contact support immediately.</p>`,
-    text: `Your password has been changed. If you did not make this change, please contact support immediately.`,
+    subject: lang === 'ar' ? 'تم تغيير كلمة المرور' : 'Password changed successfully',
+    html: templates.passwordChanged({ name }, lang),
+    text: `Hi ${name}, your password has been changed.`,
   });
 };

@@ -17,5 +17,7 @@ router.put('/users/:id/deactivate', adminController.deactivateUser);
 router.get('/progress/teachers', adminController.getTeacherProgress);
 router.get('/progress/students', adminController.getStudentProgress);
 router.post('/broadcast', validate(BroadcastMessageSchema), adminController.broadcastMessage);
+router.post('/bulk/approve', adminController.bulkApprove);
+router.post('/bulk/deactivate', adminController.bulkDeactivate);
 
 export default router;

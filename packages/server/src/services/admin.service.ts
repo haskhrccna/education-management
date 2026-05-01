@@ -150,3 +150,41 @@ export const broadcastMessage = async (message: string, targetRole?: string) => 
 
   return { sent: true, recipients: sentCount, message };
 };
+
+export const bulkApproveStudents = async (studentIds: string[]) => {
+  const results = [];
+  for (const id of studentIds) {
+    try {
+      const student = await prisma.user.findUnique({ where: { id } });
+      if (student && student.role === 'STUDENT' && student.status !== 'ACTIVE') {
+        const updated = await prisma.user.update({ where: { id }, data: { status: 'ACTIVE' }, select: { id: true, email: true, firstName: true, status: true } });
+        const { sendAccountApprovedEmail } = await import('./email.service');
+        await sendAccountApprovedEmail(updated.email, updated.firstName);
+        results.push({ id, success: true });
+      } else {
+        results.push({ id, success: false, reason: 'Not a pending student' });
+      }
+    } catch (err) {
+      results.push({ id, success: false, reason: 'Error' });
+    }
+  }
+  return results;
+};
+
+export const bulkDeactivateUsers = async (userIds: string[]) => {
+  const results = [];
+  for (const id of userIds) {
+    try {
+      const user = await prisma.user.findUnique({ where: { id } });
+      if (user) {
+        await prisma.user.update({ where: { id }, data: { status: 'BANNED' } });
+        results.push({ id, success: true });
+      } else {
+        results.push({ id, success: false, reason: 'User not found' });
+      }
+    } catch (err) {
+      results.push({ id, success: false, reason: 'Error' });
+    }
+  }
+  return results;
+};

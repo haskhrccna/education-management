@@ -22,7 +22,7 @@ export const notifyUser = async (options: {
   // 2. Email notification
   if (email) {
     try {
-      const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
+      const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, firstName: true } });
       if (user?.email) {
         const { sendEmail } = await import('./email.service');
         await sendEmail({ to: user.email, subject: email.subject, html: email.body });
@@ -48,6 +48,9 @@ export const notifyAppointmentUpdate = async (studentId: string, appointment: an
                      appointment.status === 'REJECTED' ? 'rejected' : 'updated';
   const date = new Date(appointment.requestedDate).toLocaleDateString('en-US');
 
+  const user = await prisma.user.findUnique({ where: { id: studentId }, select: { firstName: true, email: true } });
+  const name = user?.firstName || '';
+
   await notifyUser({
     userId: studentId,
     event: 'appointment_update',
@@ -64,6 +67,9 @@ export const notifyAppointmentUpdate = async (studentId: string, appointment: an
 };
 
 export const notifyNewGrade = async (studentId: string, grade: any) => {
+  const user = await prisma.user.findUnique({ where: { id: studentId }, select: { firstName: true, email: true } });
+  const name = user?.firstName || '';
+
   await notifyUser({
     userId: studentId,
     event: 'new_grade',
