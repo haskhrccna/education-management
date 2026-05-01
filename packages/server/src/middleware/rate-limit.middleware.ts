@@ -1,12 +1,11 @@
 import rateLimit from 'express-rate-limit';
-import { AuthRequest } from './auth.middleware';
 
 export const standardLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => (req as AuthRequest).userId || req.ip || 'unknown',
+  keyGenerator: (req) => req.userId || req.ip || 'unknown',
 });
 
 export const authLimiter = rateLimit({

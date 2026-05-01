@@ -1,8 +1,10 @@
-import type { UserRole } from '@edu/shared';
+import { Request } from 'express';
 
 declare module 'express' {
   interface Request {
     userId?: string;
-    userRole?: UserRole;
-   }
+    userRole?: string;
+  }
 }
+
+export {};

@@ -1,5 +1,5 @@
-import { Router } from 'express';
-import { authenticate, authorize, AuthRequest } from '../middleware/auth.middleware';
+import { Router, Request, Response, NextFunction } from 'express';
+import { authenticate, authorize } from '../middleware/auth.middleware';
 import { UserRole } from '@edu/shared';
 import * as exportService from '../services/export.service';
 import { AppError } from '../middleware/error.middleware';
@@ -7,7 +7,7 @@ import { AppError } from '../middleware/error.middleware';
 const router = Router();
 router.use(authenticate);
 
-router.get('/grades', async (req, res, next) => {
+router.get('/grades', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const studentId = req.query.studentId as string | undefined;
     const teacherId = req.query.teacherId as string | undefined;
@@ -20,7 +20,7 @@ router.get('/grades', async (req, res, next) => {
   }
 });
 
-router.get('/appointments', async (req: AuthRequest, res, next) => {
+router.get('/appointments', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const csv = await exportService.exportAppointmentsCsv(req.userId, req.userRole);
     res.setHeader('Content-Type', 'text/csv');
@@ -31,7 +31,7 @@ router.get('/appointments', async (req: AuthRequest, res, next) => {
   }
 });
 
-router.get('/users', authorize(UserRole.ADMIN), async (req, res, next) => {
+router.get('/users', authorize(UserRole.ADMIN), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const role = req.query.role as string | undefined;
     const csv = await exportService.exportUsersCsv(role);

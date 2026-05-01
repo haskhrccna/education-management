@@ -4,12 +4,7 @@ import { config } from '../config';
 import { UserRole } from '@edu/shared';
 import { AppError } from './error.middleware';
 
-export interface AuthRequest extends Request {
-  userId?: string;
-  userRole?: UserRole;
-}
-
-export const authenticate = (req: AuthRequest, res: Response, next: NextFunction): void => {
+export const authenticate = (req: Request, res: Response, next: NextFunction): void => {
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) {
     next(new AppError(401, 'Authentication required'));
@@ -27,8 +22,8 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
 };
 
 export const authorize = (...roles: UserRole[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction): void => {
-    if (!req.userRole || !roles.includes(req.userRole)) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.userRole || !roles.includes(req.userRole as UserRole)) {
       next(new AppError(403, 'Insufficient permissions'));
       return;
     }
