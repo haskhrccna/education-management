@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../prisma/client';
-import { hashPassword, comparePassword, generateToken, generateRefreshToken, verifyRefreshToken } from '../services/auth.service';
+import { hashPassword, comparePassword, generateToken, generateRefreshToken } from '../services/auth.service';
 import { AppError } from '../middleware/error.middleware';
+import { AuthRequest } from '../middleware/auth.middleware';
 import { sendWelcomeEmail } from '../services/email.service';
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -67,8 +68,9 @@ export const refresh = async (req: Request, res: Response, next: NextFunction): 
 
 export const verifyEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    const userId = (req as AuthRequest).userId!;
     const user = await prisma.user.update({
-      where: { id: req.userId! },
+      where: { id: userId },
       data: { emailVerifiedAt: new Date() },
     });
     res.json({ message: 'Email verified', status: user.status });
@@ -79,7 +81,8 @@ export const verifyEmail = async (req: Request, res: Response, next: NextFunctio
 
 export const resendVerification = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { email: true, firstName: true } });
+    const userId = (req as AuthRequest).userId!;
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, firstName: true } });
     if (!user) throw new AppError(404, 'User not found');
     
     await sendWelcomeEmail(user.email, user.firstName);
