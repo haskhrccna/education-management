@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate, authorize } from '../middleware/auth.middleware';
+import { authenticate, authorize, AuthRequest } from '../middleware/auth.middleware';
 import { UserRole } from '@edu/shared';
 import * as exportService from '../services/export.service';
 import { AppError } from '../middleware/error.middleware';
@@ -20,7 +20,7 @@ router.get('/grades', async (req, res, next) => {
   }
 });
 
-router.get('/appointments', async (req, res, next) => {
+router.get('/appointments', async (req: AuthRequest, res, next) => {
   try {
     const csv = await exportService.exportAppointmentsCsv(req.userId, req.userRole);
     res.setHeader('Content-Type', 'text/csv');
