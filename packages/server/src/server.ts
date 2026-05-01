@@ -1,3 +1,4 @@
+import './types/express';
 import app from './app';
 import { config } from './config';
 import { setupSocketIO } from './services/socket.service';
