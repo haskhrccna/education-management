@@ -2,6 +2,7 @@ import { Server as SocketIOServer, Socket } from 'socket.io';
 import http from 'http';
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
+import { logger } from '../lib/logger';
 
 let io: SocketIOServer;
 
@@ -23,11 +24,11 @@ export const setupSocketIO = (server: http.Server) => {
 
   io.on('connection', (socket: Socket) => {
     const userId = socket.data.userId as string;
-    console.log(`[Socket] User connected: ${socket.id} (userId: ${userId})`);
+    logger.info({ socketId: socket.id, userId }, 'Socket connected');
     if (userId) socket.join(userId);
 
     socket.on('disconnect', () => {
-      console.log(`[Socket] User disconnected: ${socket.id} (userId: ${userId})`);
+      logger.info({ socketId: socket.id, userId }, 'Socket disconnected');
     });
   });
 

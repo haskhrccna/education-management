@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { config } from '../config';
 
 export const hashPassword = async (password: string): Promise<string> => {
@@ -22,4 +23,16 @@ export const verifyToken = (token: string): { userId: string; role: string } | n
   } catch {
     return null;
   }
+};
+
+export const generateRefreshToken = (): string => {
+  return crypto.randomBytes(64).toString('hex');
+};
+
+export const verifyRefreshToken = (token: string, storedHash: string | null): boolean => {
+  if (!storedHash) return false;
+  return crypto.timingSafeEqual(
+    Buffer.from(token, 'hex'),
+    Buffer.from(storedHash, 'hex')
+  );
 };

@@ -5,12 +5,9 @@ const connection = process.env.REDIS_URL
   ? { url: process.env.REDIS_URL }
   : { host: process.env.REDIS_HOST || 'localhost', port: parseInt(process.env.REDIS_PORT || '6379', 10) };
 
-let isRedisAvailable = false;
-
 function createQueue<T>(name: string) {
   try {
     const queue = new Queue<T>(name, { connection });
-    isRedisAvailable = true;
     return queue;
   } catch {
     logger.warn(`Redis not available — ${name} queue disabled`);

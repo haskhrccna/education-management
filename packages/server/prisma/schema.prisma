@@ -15,7 +15,6 @@ enum Role {
 
 enum UserStatus {
   PENDING
-  APPROVED
   ACTIVE
   BANNED
 }
@@ -52,6 +51,8 @@ model User {
   lastName      String
   status        UserStatus @default(PENDING)
   emailVerifiedAt DateTime?
+  deviceToken   String?
+  refreshToken  String?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
@@ -65,7 +66,7 @@ model User {
   reportsGenerated    Report[]          @relation("TeacherReports")
   reportsReceived     Report[]          @relation("StudentReports")
   reviewedRecordings  Recording[]       @relation("ReviewedRecordings")
-  progressLogs        TeacherProgressLog[]
+  auditLogs           AuditLog[]
 
   @@index([email])
   @@index([role, status])
@@ -174,21 +175,21 @@ model Report {
   @@map("reports")
 }
 
-model TeacherProgressLog {
-  id                String   @id @default(uuid())
-  teacherId         String
-  period            String
-  studentsTeaching  Int      @default(0)
-  sessionsCompleted Int      @default(0)
-  averageGrade      Float    @default(0)
-  notes             String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+model AuditLog {
+  id           String   @id @default(uuid())
+  userId       String
+  action       String
+  resourceType String
+  resourceId   String?
+  details      Json?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
 
-  teacher User @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([teacherId, period])
-  @@index([teacherId])
-  @@index([period])
-  @@map("teacher_progress_logs")
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
 }

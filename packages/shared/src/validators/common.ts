@@ -70,6 +70,15 @@ export const CreateTeacherSchema = z.object({
   lastName: nameSchema,
 });
 
+export const UpdateProfileSchema = z.object({
+  firstName: nameSchema.optional(),
+  lastName: nameSchema.optional(),
+});
+
+export const RefreshTokenSchema = z.object({
+  refreshToken: z.string().min(1),
+});
+
 export type ZodLoginInput = z.infer<typeof LoginSchema>;
 export type ZodRegisterInput = z.infer<typeof RegisterSchema>;
 export type ZodCreateAppointmentInput = z.infer<typeof CreateAppointmentSchema>;
@@ -80,3 +89,5 @@ export type ZodCreateRecordingInput = z.infer<typeof CreateRecordingSchema>;
 export type ZodGenerateReportInput = z.infer<typeof GenerateReportSchema>;
 export type ZodBroadcastMessageInput = z.infer<typeof BroadcastMessageSchema>;
 export type ZodCreateTeacherInput = z.infer<typeof CreateTeacherSchema>;
+export type ZodUpdateProfileInput = z.infer<typeof UpdateProfileSchema>;
+export type ZodRefreshTokenInput = z.infer<typeof RefreshTokenSchema>;

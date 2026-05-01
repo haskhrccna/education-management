@@ -13,16 +13,26 @@ export interface AuditLogEntry {
 
 export async function auditLog(entry: AuditLogEntry): Promise<void> {
   try {
-    // For high-volume systems, this could be queued via BullMQ
-    // For now, we log to Pino and optionally to DB
+    // Write to DB for compliance trail
+    await prisma.auditLog.create({
+      data: {
+        userId: entry.userId,
+        action: entry.action,
+        resourceType: entry.resourceType,
+        resourceId: entry.resourceId,
+        details: entry.details || {},
+        ipAddress: entry.ipAddress,
+        userAgent: entry.userAgent,
+      },
+    });
+
+    // Also log to Pino for real-time monitoring
     logger.info({
       audit: true,
       userId: entry.userId,
       action: entry.action,
       resourceType: entry.resourceType,
       resourceId: entry.resourceId,
-      details: entry.details,
-      ip: entry.ipAddress,
     }, `AUDIT: ${entry.action} ${entry.resourceType}`);
   } catch (err) {
     logger.error({ err }, 'Failed to write audit log');

@@ -1,11 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
 import * as messageService from '../services/message.service';
 import { AppError } from '../middleware/error.middleware';
+import { PaginatedRequest } from '../middleware/pagination.middleware';
 
-export const getMessages = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getMessages = async (req: PaginatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const messages = await messageService.getConversations(req.userId!);
-    res.json(messages);
+    const { page = 1, limit = 20, skip = 0 } = req.pagination || {};
+    const partnerId = req.query.partnerId as string | undefined;
+
+    if (partnerId) {
+      // Get message thread with specific user
+      const messages = await messageService.getMessagesWithUser(req.userId!, partnerId, skip, limit);
+      res.json(messages);
+    } else {
+      // Get conversation list (grouped by partner)
+      const conversations = await messageService.getConversations(req.userId!);
+      res.json(conversations);
+    }
   } catch (err) {
     next(err);
   }

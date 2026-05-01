@@ -12,19 +12,21 @@ export default function RegisterPage() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const register = useAuthStore((s) => s.register);
   const isLoading = useAuthStore((s) => s.isLoading);
 
   const handleRegister = async () => {
+    setError(null);
     if (!firstName || !lastName || !email || !password) {
-      alert('يرجى ملء جميع الحقول / Please fill all fields');
+      setError('يرجى ملء جميع الحقول / Please fill all fields');
       return;
     }
     try {
       await register(email.trim(), password, 'student', firstName, lastName);
       router.replace('/pending-approval');
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Registration failed');
+      setError(err instanceof Error ? err.message : 'Registration failed');
     }
   };
 
@@ -35,6 +37,11 @@ export default function RegisterPage() {
         <Text style={styles.title}>{t('register')}</Text>
       </View>
       <View style={styles.form}>
+        {error && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
         <TextInput style={styles.input} placeholder={t('firstName')} value={firstName} onChangeText={setFirstName} />
         <TextInput style={styles.input} placeholder={t('lastName')} value={lastName} onChangeText={setLastName} />
         <TextInput style={styles.input} placeholder={t('email')} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
@@ -59,6 +66,8 @@ const styles = StyleSheet.create({
   logoText: { fontSize: 56 },
   title: { fontSize: 24, fontWeight: '700', color: '#1e293b' },
   form: { padding: 24, gap: 16 },
+  errorBox: { backgroundColor: '#fee2e2', padding: 12, borderRadius: 8 },
+  errorText: { color: '#dc2626', fontSize: 14 },
   input: { backgroundColor: '#fff', borderRadius: 12, padding: 16, fontSize: 16, borderWidth: 1, borderColor: '#e2e8f0' },
   button: { backgroundColor: '#2563eb', borderRadius: 12, padding: 16, alignItems: 'center' },
   buttonDisabled: { opacity: 0.6 },

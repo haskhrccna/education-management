@@ -19,10 +19,14 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
 
 export const updateProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { firstName, lastName } = req.body as any;
+    const { firstName, lastName } = req.body;
+    const data: Record<string, string> = {};
+    if (firstName) data.firstName = firstName;
+    if (lastName) data.lastName = lastName;
+
     const user = await prisma.user.update({
       where: { id: req.userId! },
-      data: { ...(firstName && { firstName }), ...(lastName && { lastName }) },
+      data,
     });
     res.json(user);
   } catch (err) {
@@ -54,8 +58,13 @@ export const saveDeviceToken = async (req: Request, res: Response, next: NextFun
   try {
     const { deviceToken } = req.body as any;
     if (!deviceToken) throw new AppError(400, 'deviceToken is required');
-    logger.info({ userId: req.userId, token: deviceToken.slice(0, 20) }, 'Device token saved');
-    // TODO: Store device token in DB when FCM is fully implemented
+
+    await prisma.user.update({
+      where: { id: req.userId! },
+      data: { deviceToken },
+    });
+
+    logger.info({ userId: req.userId, token: deviceToken.slice(0, 20) }, 'Device token saved to DB');
     res.json({ saved: true });
   } catch (err) {
     next(err);

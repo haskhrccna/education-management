@@ -18,17 +18,17 @@ describe('message.service', () => {
   });
 
   describe('getConversations', () => {
-    it('should return messages for user', async () => {
+    it('should return conversations grouped by partner', async () => {
       mockedPrisma.message.findMany.mockResolvedValue([
         { id: 'msg-1', content: 'Hello', senderId: 'user-a', receiverId: 'user-b' },
       ] as any);
+      mockedPrisma.message.count.mockResolvedValue(0);
 
       const result = await getConversations('user-a');
       expect(result).toHaveLength(1);
       expect(mockedPrisma.message.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { OR: [{ senderId: 'user-a' }, { receiverId: 'user-a' }] },
-          take: 50,
         })
       );
     });

@@ -40,14 +40,14 @@ app.use(helmet({
   },
 }));
 app.use(cors({
-  origin: config.env === 'production' ? process.env.CLIENT_URL || false : '*',
+  origin: config.env === 'production' ? config.clientUrl : '*',
   credentials: true,
 }));
 
 // Rate limiting
 app.use(standardLimiter);
 app.use(requestLogger);
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '512kb' }));
 app.use(sanitizeRequestBody);
 app.use(sanitizeResponse);
 
@@ -75,13 +75,14 @@ app.use('/api/v1/files', fileRoutes);
 app.use('/api/v1/exports', exportRoutes);
 
 // Legacy redirects (optional - remove after mobile update)
+// Mirroring exact same middleware stack as v1 for consistent protection
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/grades', gradeRoutes);
-app.use('/api/recordings', recordingRoutes);
+app.use('/api/recordings', uploadLimiter, recordingRoutes);
 app.use('/api/reports', reportRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/admin', adminLimiter, adminRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/exports', exportRoutes);

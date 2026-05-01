@@ -11,29 +11,37 @@ export default function LoginPage() {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const login = useAuthStore((s) => s.login);
   const isLoading = useAuthStore((s) => s.isLoading);
 
   const handleLogin = async () => {
+    setError(null);
     try {
       const user = await login(email.trim(), password);
       router.replace(`/${user.role}/home`);
-      } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Login failed');
-     }
-    };
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    }
+  };
 
   return (
-     <SafeAreaView style={styles.container} edges={['top']}>
-       <StatusBar style="auto" />
-       <View style={styles.header}>
-         <Text style={styles.logoText}>📚</Text>
-         <Text style={styles.title}>التعليم الإلكتروني</Text>
-         <Text style={styles.subtitle}>Electronic Education</Text>
-        </View>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar style="auto" />
+      <View style={styles.header}>
+        <Text style={styles.logoText}>📚</Text>
+        <Text style={styles.title}>التعليم الإلكتروني</Text>
+        <Text style={styles.subtitle}>Electronic Education</Text>
+      </View>
 
-        <View style={styles.form}>
-          <TextInput
+      <View style={styles.form}>
+        {error && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
+
+        <TextInput
           style={styles.input}
           placeholder={t('email')}
           value={email}
@@ -41,9 +49,9 @@ export default function LoginPage() {
           autoCapitalize="none"
           keyboardType="email-address"
           returnKeyType="next"
-          />
+        />
 
-          <TextInput
+        <TextInput
           style={styles.input}
           placeholder={t('password')}
           value={password}
@@ -51,28 +59,28 @@ export default function LoginPage() {
           secureTextEntry
           returnKeyType="send"
           onSubmitEditing={handleLogin}
-          />
+        />
 
-          <TouchableOpacity
+        <TouchableOpacity
           style={[styles.button, isLoading && styles.buttonDisabled]}
           onPress={handleLogin}
           disabled={isLoading}
           activeOpacity={0.7}
-          >
-            <Text style={styles.buttonText}>
-              {isLoading ? t('loading') : t('login')}
-            </Text>
-          </TouchableOpacity>
+        >
+          <Text style={styles.buttonText}>
+            {isLoading ? t('loading') : t('login')}
+          </Text>
+        </TouchableOpacity>
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>{t('noAccount')} </Text>
-            <TouchableOpacity onPress={() => router.push('/register')}>
-              <Text style={styles.linkText}>{t('signUp')}</Text>
-            </TouchableOpacity>
-          </View>
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>{t('noAccount')} </Text>
+          <TouchableOpacity onPress={() => router.push('/register')}>
+            <Text style={styles.linkText}>{t('signUp')}</Text>
+          </TouchableOpacity>
         </View>
-      </SafeAreaView>
-    );
+      </View>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -82,6 +90,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: '700', color: '#1e293b', fontFamily: 'System' },
   subtitle: { fontSize: 14, color: '#94a3b8' },
   form: { padding: 24, gap: 16 },
+  errorBox: { backgroundColor: '#fee2e2', padding: 12, borderRadius: 8 },
+  errorText: { color: '#dc2626', fontSize: 14 },
   input: { backgroundColor: '#fff', borderRadius: 12, padding: 16, fontSize: 16, borderWidth: 1, borderColor: '#e2e8f0' },
   button: { backgroundColor: '#2563eb', borderRadius: 12, padding: 16, alignItems: 'center' },
   buttonDisabled: { opacity: 0.6 },
@@ -90,5 +100,3 @@ const styles = StyleSheet.create({
   footerText: { color: '#64748b' },
   linkText: { color: '#2563eb', fontWeight: '600' },
 });
-
-export { LoginPage };

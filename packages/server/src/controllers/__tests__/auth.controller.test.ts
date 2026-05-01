@@ -12,6 +12,7 @@ jest.mock('../../services/auth.service', () => ({
   hashPassword: jest.fn().mockResolvedValue('hashed-password'),
   comparePassword: jest.fn().mockResolvedValue(true),
   generateToken: jest.fn().mockReturnValue('test-token'),
+  generateRefreshToken: jest.fn().mockReturnValue('test-refresh-token'),
 }));
 
 import { prisma } from '../../prisma/client';
@@ -75,6 +76,7 @@ describe('auth.controller', () => {
         firstName: 'Active',
         lastName: 'User',
       } as any);
+      mockedPrisma.user.update.mockResolvedValue({ id: 'user-1' } as any);
 
       const res = await request(app)
         .post('/login')
