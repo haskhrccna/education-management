@@ -1,28 +1,29 @@
 {
   "expo": {
-    "name": "التعليم الإلكتروني",
-    "slug": "education-management",
+    "name": "مراجعة القرآن",
+    "slug": "quran-review",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchitecture": true,
-    "scheme": "education-app",
+    "scheme": "quran-review",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#2563eb"
+      "backgroundColor": "#065f46"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.education.app"
+      "bundleIdentifier": "com.quranreview.app"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#2563eb"
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "backgroundColor": "#065f46"
       },
-      "package": "com.education.app"
+      "package": "com.quranreview.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"

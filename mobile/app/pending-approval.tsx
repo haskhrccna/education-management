@@ -2,30 +2,150 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
+import { COLORS, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 
-export default function PendingApprovalScreen() {
+export default function PendingApprovalPage() {
   const router = useRouter();
   const { t } = useTranslation();
+
   return (
-     <SafeAreaView style={styles.container} edges={['top']}>
-       <View style={styles.content}>
-         <Text style={styles.icon}>📨</Text>
-         <Text style={styles.title}>{t('pendingApproval')}</Text>
-         <Text style={styles.description}>{t('pendingDesc')}</Text>
-         <TouchableOpacity style={styles.button} onPress={() => router.push('/')}>
-           <Text style={styles.buttonText}>{t('backToLogin')}</Text>
-         </TouchableOpacity>
-       </View>
-     </SafeAreaView>
-   );
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.content}>
+        <Animated.View entering={FadeInUp.duration(600)} style={styles.card}>
+          <View style={styles.iconContainer}>
+            <Text style={styles.hourglass}>⏳</Text>
+            <Animated.View entering={FadeIn.delay(400).duration(800)} style={styles.pulseRing} />
+          </View>
+
+          <Text style={styles.title}>{t('pendingApproval')}</Text>
+          <Text style={styles.description}>{t('pendingDesc')}</Text>
+
+          <View style={styles.steps}>
+            <View style={styles.step}>
+              <View style={[styles.stepDot, styles.stepActive]} />
+              <Text style={styles.stepText}>✓ {t('submitted')}</Text>
+            </View>
+            <View style={styles.stepLine} />
+            <View style={styles.step}>
+              <View style={styles.stepDot} />
+              <Text style={styles.stepText}>{t('pendingApproval')}</Text>
+            </View>
+            <View style={styles.stepLine} />
+            <View style={styles.step}>
+              <View style={styles.stepDot} />
+              <Text style={styles.stepText}>{t('teacherNotes')}</Text>
+            </View>
+          </View>
+        </Animated.View>
+
+        <Animated.View entering={FadeInUp.duration(600).delay(300)} style={styles.footer}>
+          <TouchableOpacity style={styles.button} onPress={() => router.push('/')} activeOpacity={0.8}>
+            <Text style={styles.buttonText}>{t('backToLogin')}</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
-  content: { flex: 1, alignItems: 'center', padding: 24, gap: 16, justifyContent: 'center' },
-  icon: { fontSize: 64 },
-  title: { fontSize: 22, fontWeight: '700', color: '#1e293b', textAlign: 'center' },
-  description: { fontSize: 16, color: '#64748b', textAlign: 'center', lineHeight: 24 },
-  button: { backgroundColor: '#2563eb', borderRadius: 12, padding: 16, marginTop: 24 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: SPACING['2xl'],
+  },
+  card: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS['2xl'],
+    padding: SPACING['3xl'],
+    alignItems: 'center',
+    ...SHADOWS.lg,
+    borderTopWidth: 4,
+    borderTopColor: COLORS.gold,
+  },
+  iconContainer: {
+    position: 'relative',
+    marginBottom: SPACING.lg,
+  },
+  hourglass: {
+    fontSize: 56,
+    zIndex: 2,
+  },
+  pulseRing: {
+    position: 'absolute',
+    top: -12,
+    left: -12,
+    right: -12,
+    bottom: -12,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.goldMuted,
+    opacity: 0.4,
+    zIndex: 1,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: COLORS.primaryDark,
+    marginBottom: SPACING.sm,
+    textAlign: 'center',
+  },
+  description: {
+    fontSize: 15,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: SPACING['2xl'],
+  },
+  steps: {
+    width: '100%',
+    alignItems: 'flex-end',
+    gap: SPACING.xs,
+    paddingHorizontal: SPACING.xl,
+  },
+  step: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  stepDot: {
+    width: 10,
+    height: 10,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.textMuted,
+  },
+  stepActive: {
+    backgroundColor: COLORS.success,
+  },
+  stepLine: {
+    width: 2,
+    height: 24,
+    backgroundColor: '#e7e5e4',
+    marginRight: 4,
+  },
+  stepText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+  },
+  footer: {
+    marginTop: SPACING['3xl'],
+    alignItems: 'center',
+  },
+  button: {
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.lg,
+    paddingVertical: SPACING.lg,
+    paddingHorizontal: SPACING['3xl'],
+    ...SHADOWS.md,
+  },
+  buttonText: {
+    color: COLORS.textOnPrimary,
+    fontSize: 16,
+    fontWeight: '700',
+  },
 });

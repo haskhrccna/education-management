@@ -1,9 +1,8 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-const API_BASE = __DEV__
-  ? 'http://192.168.1.135:4000/api/v1'
-  : 'https://api.education-app.com/api/v1';
+// Use host IP — iOS Simulator can reach host via local network
+const API_BASE = 'http://192.168.1.143:4000/api/v1';
 
 export const apiClient = axios.create({
   baseURL: API_BASE,

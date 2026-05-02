@@ -3,7 +3,6 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-
 import i18n from '@/src/i18n';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -21,7 +20,7 @@ export default function RootLayout() {
         <Stack.Screen name="teacher/home" />
         <Stack.Screen name="admin/home" />
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar style="dark" />
     </ThemeProvider>
   );
 }

@@ -2,6 +2,11 @@ import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 const arTranslations: Record<string, string> = {
+  // App
+  appName: 'مراجعة القرآن',
+  appTagline: 'حفظ كتاب الله وتجويده',
+
+  // Auth
   login: 'تسجيل الدخول',
   email: 'البريد الإلكتروني',
   password: 'كلمة المرور',
@@ -33,18 +38,76 @@ const arTranslations: Record<string, string> = {
   continue: 'متابعة',
   loading: 'جاري التحميل...',
   logout: 'تسجيل الخروج',
+
+  // Navigation
   home: 'الرئيسية',
   profile: 'الملف الشخصي',
   settings: 'الإعدادات',
+  backToLogin: 'العودة لصفحة الدخول',
+
+  // Quran-specific
+  surah: 'سورة',
+  juz: 'جزء',
+  page: 'صفحة',
+  memorization: 'الحفظ',
+  review: 'المراجعة',
+  revisionSchedule: 'جدول المراجعة',
+  myReview: 'مراجعتي',
+  schedule: 'الجدول',
+  progress: 'التقدم',
+  lastReviewed: 'آخر مراجعة',
+  teacherNotes: 'ملاحظات المعلم',
+  currentSurah: 'السورة الحالية',
+  completed: 'مكتمل',
+  inProgress: 'قيد المراجعة',
+  pending: 'معلق',
+  assigned: 'مُعين',
+  weeklyStreak: 'السجل الأسبوعي',
+  days: 'أيام',
+  totalMemorized: 'مجموع المحفوظ',
+  myStudents: 'طلابي',
+  assignments: 'التعيينات',
+  assignReview: 'تعيين مراجعة',
+  newAssignment: 'تعيين جديد',
+  addReviewTask: 'إضافة مهمة مراجعة',
+  studentProgress: 'تقدم الطالب',
+  surahsCompleted: 'السور المكتملة',
+  pagesMemorized: 'الصفحات المحفوظة',
+  activeStudents: 'الطلاب النشطون',
+  totalTeachers: 'المعلمون',
+  overview: 'نظرة عامة',
+  users: 'المستخدمون',
+  broadcast: 'رسالة جماعية',
+  sendBroadcast: 'إرسال رسالة جماعية',
+  noStudentsYet: 'لا يوجد طلاب بعد',
+  noAssignmentsYet: 'لا توجد تعيينات بعد',
+  noScheduleYet: 'لا يوجد جدول بعد',
+  noProgressYet: 'لا يوجد تقدم بعد',
+  noUsersYet: 'لا يوجد مستخدمون',
+  awaitingApproval: 'في انتظار الموافقة',
+  approved: 'تمت الموافقة',
+  rejected: 'مرفوض',
+  noEmailYet: 'لم يتم إرسال البريد بعد',
+  verifyLater: 'التحقق لاحقاً',
+
+  // Greetings
   studentHomeTitle: 'مرحباً، {{name}}',
   teacherHomeTitle: 'أهلاً بك، الأستاذ/ة {{name}}',
   adminHomeTitle: 'لوحة التحكم',
-  backToLogin: 'العودة لصفحة الدخول',
-  noEmailYet: 'لم يتم إرسال البريد بعد',
-  verifyLater: 'التحقق لاحقاً',
+
+  // Validation
+  fillAllFields: 'يرجى ملء جميع الحقول',
+  passwordTooShort: 'يجب أن تكون كلمة المرور 8 أحرف على الأقل',
+  passwordsDoNotMatch: 'كلمتا المرور غير متطابقتين',
+  passwordChangeFailed: 'فشل تغيير كلمة المرور',
 };
 
 const enTranslations: Record<string, string> = {
+  // App
+  appName: 'Quran Review',
+  appTagline: 'Memorize & Review the Book of Allah',
+
+  // Auth
   login: 'Login',
   email: 'Email',
   password: 'Password',
@@ -76,15 +139,68 @@ const enTranslations: Record<string, string> = {
   continue: 'Continue',
   loading: 'Loading...',
   logout: 'Log Out',
+
+  // Navigation
   home: 'Home',
   profile: 'Profile',
   settings: 'Settings',
+  backToLogin: 'Back to Login',
+
+  // Quran-specific
+  surah: 'Surah',
+  juz: 'Juz',
+  page: 'Page',
+  memorization: 'Memorization',
+  review: 'Review',
+  revisionSchedule: 'Revision Schedule',
+  myReview: 'My Review',
+  schedule: 'Schedule',
+  progress: 'Progress',
+  lastReviewed: 'Last Reviewed',
+  teacherNotes: "Teacher's Notes",
+  currentSurah: 'Current Surah',
+  completed: 'Completed',
+  inProgress: 'In Progress',
+  pending: 'Pending',
+  assigned: 'Assigned',
+  weeklyStreak: 'Weekly Streak',
+  days: 'days',
+  totalMemorized: 'Total Memorized',
+  myStudents: 'My Students',
+  assignments: 'Assignments',
+  assignReview: 'Assign Review',
+  newAssignment: 'New Assignment',
+  addReviewTask: 'Add Review Task',
+  studentProgress: 'Student Progress',
+  surahsCompleted: 'Surahs Completed',
+  pagesMemorized: 'Pages Memorized',
+  activeStudents: 'Active Students',
+  totalTeachers: 'Teachers',
+  overview: 'Overview',
+  users: 'Users',
+  broadcast: 'Broadcast',
+  sendBroadcast: 'Send Broadcast Message',
+  noStudentsYet: 'No students yet',
+  noAssignmentsYet: 'No assignments yet',
+  noScheduleYet: 'No schedule yet',
+  noProgressYet: 'No progress yet',
+  noUsersYet: 'No users yet',
+  awaitingApproval: 'Awaiting Approval',
+  approved: 'Approved',
+  rejected: 'Rejected',
+  noEmailYet: 'Email not yet sent',
+  verifyLater: 'Verify Later',
+
+  // Greetings
   studentHomeTitle: 'Welcome, {{name}}',
   teacherHomeTitle: 'Welcome, Prof. {{name}}',
   adminHomeTitle: 'Admin Dashboard',
-  backToLogin: 'Back to Login',
-  noEmailYet: 'Email not yet sent',
-  verifyLater: 'Verify Later',
+
+  // Validation
+  fillAllFields: 'Please fill in all fields',
+  passwordTooShort: 'Password must be at least 8 characters',
+  passwordsDoNotMatch: 'Passwords do not match',
+  passwordChangeFailed: 'Password change failed',
 };
 
 i18next.use(initReactI18next).init({
