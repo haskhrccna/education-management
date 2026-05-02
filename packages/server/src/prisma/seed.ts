@@ -77,6 +77,19 @@ async function main() {
       emailVerifiedAt: new Date(),
     },
   });
+  const student3 = await prisma.user.upsert({
+    where: { email: 'student@education.com' },
+    update: {},
+    create: {
+      email: 'student@education.com',
+      passwordHash: studentPass,
+      role: 'STUDENT',
+      firstName: 'Student',
+      lastName: 'Demo',
+      status: 'ACTIVE',
+      emailVerifiedAt: new Date(),
+    },
+  });
 
   // Appointments
   await prisma.appointment.createMany({
@@ -90,7 +103,7 @@ async function main() {
         status: 'ACCEPTED',
       },
       {
-        studentId: student1.id,
+        studentId: student3.id,
         teacherId: teacher2.id,
         requestedDate: new Date('2026-05-02T00:00:00Z'),
         requestedTime: '14:00',
