@@ -197,8 +197,18 @@ export const getUserById = async (userId: string) => {
       id: true, email: true, firstName: true, lastName: true,
       role: true, status: true, createdAt: true, updatedAt: true,
       emailVerifiedAt: true, deviceToken: true,
-      appointmentsAsStudent: { select: { id: true, status: true, requestedDate: true } },
-      appointmentsAsTeacher: { select: { id: true, status: true, requestedDate: true } },
+      appointmentsAsStudent: {
+        select: {
+          id: true, status: true, requestedDate: true, createdAt: true,
+          teacher: { select: { id: true, firstName: true, lastName: true, email: true } },
+        },
+      },
+      appointmentsAsTeacher: {
+        select: {
+          id: true, status: true, requestedDate: true, createdAt: true,
+          student: { select: { id: true, firstName: true, lastName: true, email: true } },
+        },
+      },
       gradesReceived: { select: { id: true, grade: true, subject: true, type: true, createdAt: true } },
       gradesGiven: { select: { id: true, grade: true, subject: true, type: true, createdAt: true } },
       messagesSent: { select: { id: true } },
@@ -207,9 +217,30 @@ export const getUserById = async (userId: string) => {
   });
   if (!user) throw new AppError(404, 'User not found');
 
-  // Build analytics
   const isStudent = user.role === 'STUDENT';
   const isTeacher = user.role === 'TEACHER';
+
+  // Get unique teachers for students
+  const teachers = isStudent
+    ? Array.from(
+        user.appointmentsAsStudent.reduce((map: Map<string, any>, a: any) => {
+          if (!map.has(a.teacher.id)) map.set(a.teacher.id, a.teacher);
+          return map;
+        }, new Map<string, any>()).values()
+      )
+    : [];
+
+  // Get unique students for teachers with joining date (first appointment)
+  const students = isTeacher
+    ? Array.from(
+        user.appointmentsAsTeacher.reduce((map: Map<string, any>, a: any) => {
+          if (!map.has(a.student.id)) {
+            map.set(a.student.id, { ...a.student, joinedAt: a.createdAt });
+          }
+          return map;
+        }, new Map<string, any>()).values()
+      )
+    : [];
 
   const analytics = {
     totalAppointments: isStudent ? user.appointmentsAsStudent.length : isTeacher ? user.appointmentsAsTeacher.length : 0,
@@ -223,6 +254,8 @@ export const getUserById = async (userId: string) => {
     totalMessages: user.messagesSent.length + user.messagesReceived.length,
     memberSince: user.createdAt,
     lastActive: user.updatedAt,
+    teachers,
+    students,
   };
 
   return { user, analytics };

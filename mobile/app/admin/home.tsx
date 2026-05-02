@@ -28,7 +28,6 @@ export default function AdminHomeScreen() {
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [stats, setStats] = useState({ students: 0, teachers: 0, pending: 0 });
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'users' | 'overview'>('users');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
   React.useEffect(() => {
@@ -89,8 +88,6 @@ export default function AdminHomeScreen() {
   const navigateToSettings = () => {
     router.push('/admin/settings');
   };
-
-  const filteredUsers = users;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -159,40 +156,19 @@ export default function AdminHomeScreen() {
         </View>
       )}
 
-      {/* Tabs */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'users' && styles.tabActive]}
-          onPress={() => setActiveTab('users')}
-        >
-          <Text style={[styles.tabText, activeTab === 'users' && styles.tabTextActive]}>
-            {t('users')}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'overview' && styles.tabActive]}
-          onPress={() => setActiveTab('overview')}
-        >
-          <Text style={[styles.tabText, activeTab === 'overview' && styles.tabTextActive]}>
-            {t('overview')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
+      {/* Users List */}
       <ScrollView style={styles.content} contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
         {isLoading ? (
           <Text style={styles.empty}>{t('loading')}</Text>
-        ) : activeTab === 'users' ? (
-          <UsersTab users={filteredUsers} onUserPress={navigateToUserDetail} onApprove={approveStudent} />
         ) : (
-          <OverviewTab />
+          <UsersList users={users} onUserPress={navigateToUserDetail} onApprove={approveStudent} />
         )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function UsersTab({ users, onUserPress, onApprove }: { users: User[], onUserPress: (id: string) => void, onApprove: (id: string) => void }) {
+function UsersList({ users, onUserPress, onApprove }: { users: User[], onUserPress: (id: string) => void, onApprove: (id: string) => void }) {
   const { t, i18n } = useTranslation();
 
   if (users.length === 0) {
@@ -205,7 +181,7 @@ function UsersTab({ users, onUserPress, onApprove }: { users: User[], onUserPres
   }
 
   return (
-    <View style={styles.tabContent}>
+    <View style={styles.usersContainer}>
       {users.map((u, index) => (
         <TouchableOpacity
           key={u.id}
@@ -247,47 +223,6 @@ function UsersTab({ users, onUserPress, onApprove }: { users: User[], onUserPres
           </Animated.View>
         </TouchableOpacity>
       ))}
-    </View>
-  );
-}
-
-function OverviewTab() {
-  const { t, i18n } = useTranslation();
-  const router = useRouter();
-
-  const overviewStats = [
-    { icon: '📖', value: '604', label: i18n.language === 'ar' ? 'صفحة القرآن' : 'Quran Pages' },
-    { icon: '🎯', value: '30', label: i18n.language === 'ar' ? 'جزء' : 'Juz' },
-    { icon: '✨', value: '114', label: i18n.language === 'ar' ? 'سورة' : 'Surahs' },
-    { icon: '👥', value: '24', label: i18n.language === 'ar' ? 'مستخدم نشط' : 'Active Users' },
-  ];
-
-  return (
-    <View style={styles.tabContent}>
-      <Animated.View entering={FadeInUp.duration(400)} style={styles.overviewGrid}>
-        {overviewStats.map((stat, index) => (
-          <Animated.View
-            key={stat.label}
-            entering={FadeInUp.duration(400).delay(index * 100)}
-            style={styles.overviewCard}
-          >
-            <Text style={styles.overviewIcon}>{stat.icon}</Text>
-            <Text style={styles.overviewValue}>{stat.value}</Text>
-            <Text style={styles.overviewLabel}>{stat.label}</Text>
-          </Animated.View>
-        ))}
-      </Animated.View>
-
-      <Animated.View entering={FadeInUp.duration(400).delay(400)} style={styles.actionSection}>
-        <TouchableOpacity
-          style={styles.broadcastBtn}
-          onPress={() => router.push('/admin/broadcast')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.broadcastIcon}>📢</Text>
-          <Text style={styles.broadcastText}>{t('sendBroadcast')}</Text>
-        </TouchableOpacity>
-      </Animated.View>
     </View>
   );
 }
@@ -425,43 +360,16 @@ const styles = StyleSheet.create({
     padding: SPACING.xs,
   },
 
-  // Tabs
-  tabBar: {
-    flexDirection: 'row',
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.lg,
-    gap: SPACING.sm,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: SPACING.md,
-    borderRadius: RADIUS.lg,
-    backgroundColor: COLORS.surface,
-    alignItems: 'center',
-    ...SHADOWS.sm,
-  },
-  tabActive: {
-    backgroundColor: COLORS.primary,
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-  },
-  tabTextActive: {
-    color: '#fff',
-  },
-
   // Content
   content: {
     flex: 1,
     paddingHorizontal: SPACING.xl,
   },
   list: {
-    gap: SPACING.md,
+    paddingVertical: SPACING.lg,
     paddingBottom: SPACING['4xl'],
   },
-  tabContent: {
+  usersContainer: {
     gap: SPACING.md,
   },
 
@@ -496,7 +404,6 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.xl,
     padding: SPACING.lg,
     ...SHADOWS.md,
-    marginBottom: SPACING.md,
   },
   userRow: {
     flexDirection: 'row',
@@ -591,61 +498,5 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: COLORS.textMuted,
     fontWeight: '700',
-  },
-
-  // Overview grid
-  overviewGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.md,
-    marginTop: SPACING.xl,
-  },
-  overviewCard: {
-    width: '47%',
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.xl,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    ...SHADOWS.md,
-  },
-  overviewIcon: {
-    fontSize: 32,
-    marginBottom: SPACING.sm,
-  },
-  overviewValue: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: COLORS.primary,
-    marginBottom: SPACING.xs,
-  },
-  overviewLabel: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-
-  // Action section
-  actionSection: {
-    marginTop: SPACING.lg,
-  },
-  broadcastBtn: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS['2xl'],
-    padding: SPACING['2xl'],
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.lg,
-    ...SHADOWS.md,
-    borderWidth: 2,
-    borderColor: COLORS.primaryMuted,
-  },
-  broadcastIcon: {
-    fontSize: 28,
-  },
-  broadcastText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.primaryDark,
   },
 });

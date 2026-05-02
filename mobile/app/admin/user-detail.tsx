@@ -94,6 +94,11 @@ export default function UserDetailScreen() {
 
   const isStudent = user.role === 'STUDENT';
   const isTeacher = user.role === 'TEACHER';
+  const joinDate = new Date(user.createdAt).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -186,13 +191,65 @@ export default function UserDetailScreen() {
                   <Text style={[styles.statusText, user.status === 'ACTIVE' && styles.activeText]}>{user.status}</Text>
                 </View>
               </View>
+              {/* Joining Date */}
+              <View style={styles.joinDateRow}>
+                <Text style={styles.joinDateIcon}>📅</Text>
+                <Text style={styles.joinDateLabel}>
+                  {i18n.language === 'ar' ? 'تاريخ الانضمام:' : 'Join Date:'}
+                </Text>
+                <Text style={styles.joinDateValue}>{joinDate}</Text>
+              </View>
             </View>
           )}
         </Animated.View>
 
+        {/* Student's Teachers */}
+        {isStudent && analytics?.teachers && analytics.teachers.length > 0 && (
+          <Animated.View entering={FadeInUp.duration(400).delay(100)} style={styles.relationsCard}>
+            <Text style={styles.relationsTitle}>
+              {i18n.language === 'ar' ? '👨‍🏫 المعلمون' : '👨‍🏫 Teachers'}
+            </Text>
+            {analytics.teachers.map((teacher: any) => (
+              <View key={teacher.id} style={styles.relationItem}>
+                <View style={styles.relationAvatar}>
+                  <Text style={styles.relationAvatarText}>{teacher.firstName[0]}</Text>
+                </View>
+                <View style={styles.relationInfo}>
+                  <Text style={styles.relationName}>{teacher.firstName} {teacher.lastName}</Text>
+                  <Text style={styles.relationEmail}>{teacher.email}</Text>
+                </View>
+              </View>
+            ))}
+          </Animated.View>
+        )}
+
+        {/* Teacher's Students */}
+        {isTeacher && analytics?.students && analytics.students.length > 0 && (
+          <Animated.View entering={FadeInUp.duration(400).delay(100)} style={styles.relationsCard}>
+            <Text style={styles.relationsTitle}>
+              {i18n.language === 'ar' ? '👨‍🎓 الطلاب' : '👨‍🎓 Students'}
+            </Text>
+            {analytics.students.map((student: any) => (
+              <View key={student.id} style={styles.relationItem}>
+                <View style={styles.relationAvatar}>
+                  <Text style={styles.relationAvatarText}>{student.firstName[0]}</Text>
+                </View>
+                <View style={styles.relationInfo}>
+                  <Text style={styles.relationName}>{student.firstName} {student.lastName}</Text>
+                  <Text style={styles.relationEmail}>{student.email}</Text>
+                  <Text style={styles.relationDate}>
+                    {i18n.language === 'ar' ? 'انضم:' : 'Joined:'}{' '}
+                    {new Date(student.joinedAt).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US')}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </Animated.View>
+        )}
+
         {/* Analytics */}
         {(isStudent || isTeacher) && analytics && (
-          <Animated.View entering={FadeInUp.duration(400).delay(100)} style={styles.analyticsCard}>
+          <Animated.View entering={FadeInUp.duration(400).delay(150)} style={styles.analyticsCard}>
             <Text style={styles.analyticsTitle}>
               {i18n.language === 'ar' ? 'التحليلات والإحصائيات' : 'Analytics & Statistics'}
             </Text>
@@ -220,9 +277,9 @@ export default function UserDetailScreen() {
                 <Text style={styles.analyticsRowValue}>{analytics.totalMessages}</Text>
               </View>
               <View style={styles.analyticsRowItem}>
-                <Text style={styles.analyticsRowLabel}>{i18n.language === 'ar' ? 'عضو منذ' : 'Member Since'}</Text>
+                <Text style={styles.analyticsRowLabel}>{i18n.language === 'ar' ? 'آخر نشاط' : 'Last Active'}</Text>
                 <Text style={styles.analyticsRowValue}>
-                  {new Date(analytics.memberSince).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US')}
+                  {new Date(analytics.lastActive).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US')}
                 </Text>
               </View>
             </View>
@@ -281,7 +338,7 @@ export default function UserDetailScreen() {
 
         {/* Delete Button */}
         {!isEditing && (
-          <Animated.View entering={FadeInUp.duration(400).delay(300)}>
+          <Animated.View entering={FadeInUp.duration(400).delay(250)}>
             <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
               <Text style={styles.deleteText}>
                 {i18n.language === 'ar' ? '🗑️ حذف المستخدم' : '🗑️ Delete User'}
@@ -401,6 +458,7 @@ const styles = StyleSheet.create({
   profileMeta: {
     flexDirection: 'row',
     gap: SPACING.sm,
+    marginBottom: SPACING.md,
   },
   roleBadge: {
     paddingHorizontal: SPACING.md,
@@ -435,6 +493,28 @@ const styles = StyleSheet.create({
   },
   activeText: {
     color: COLORS.success,
+  },
+  joinDateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    marginTop: SPACING.sm,
+    backgroundColor: COLORS.background,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
+    borderRadius: RADIUS.md,
+  },
+  joinDateIcon: {
+    fontSize: 14,
+  },
+  joinDateLabel: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+  },
+  joinDateValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.primary,
   },
 
   // Edit Form
@@ -481,6 +561,61 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+
+  // Relations Card (Teachers/Students)
+  relationsCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS['2xl'],
+    padding: SPACING['2xl'],
+    ...SHADOWS.md,
+  },
+  relationsTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.lg,
+    textAlign: 'right',
+  },
+  relationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+    paddingVertical: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  relationAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.primaryMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  relationAvatarText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  relationInfo: {
+    flex: 1,
+  },
+  relationName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  relationEmail: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  relationDate: {
+    fontSize: 12,
+    color: COLORS.primary,
+    fontWeight: '600',
+    marginTop: 2,
   },
 
   // Analytics
