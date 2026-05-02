@@ -12,7 +12,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
   }
   const token = header.slice(7);
   try {
-    const payload = jwt.verify(token, config.jwtSecret) as { userId: string; role: UserRole };
+    const payload = jwt.verify(token, config.jwtSecret) as { userId: string; role: string };
     req.userId = payload.userId;
     req.userRole = payload.role;
     next();

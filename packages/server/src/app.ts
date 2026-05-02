@@ -17,7 +17,7 @@ import metricsRoutes from './routes/metrics.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { requestId } from './middleware/request-id.middleware';
 import { timeout } from './middleware/timeout.middleware';
-import { sanitizeRequestBody, sanitizeResponse } from './middleware/sanitize.middleware';
+import { sanitizeRequestBody } from './middleware/sanitize.middleware';
 import { standardLimiter, authLimiter, adminLimiter, uploadLimiter } from './middleware/rate-limit.middleware';
 import { requestLogger } from './lib/logger';
 import { config } from './config';
@@ -50,7 +50,6 @@ app.use(standardLimiter);
 app.use(requestLogger);
 app.use(express.json({ limit: '512kb' }));
 app.use(sanitizeRequestBody);
-app.use(sanitizeResponse);
 
 // API Docs & Metrics
 app.use('/api/docs', docsRoutes);

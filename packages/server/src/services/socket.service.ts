@@ -39,6 +39,15 @@ export const sendToUser = (userId: string, event: string, data: unknown) => {
   io?.to(userId).emit(event, data);
 };
 
+export const closeSocketIO = async (): Promise<void> => {
+  if (io) {
+    await new Promise<void>((resolve) => {
+      io.close(() => resolve());
+    });
+    logger.info('Socket.IO server closed');
+  }
+};
+
 export const notifyNewMessage = (receiverId: string, messageData: unknown) => {
   sendToUser(receiverId, 'new_message', messageData);
 };

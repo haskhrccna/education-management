@@ -15,6 +15,7 @@ enum Role {
 
 enum UserStatus {
   PENDING
+  APPROVED
   ACTIVE
   BANNED
 }
@@ -52,7 +53,7 @@ model User {
   status        UserStatus @default(PENDING)
   emailVerifiedAt DateTime?
   deviceToken   String?
-  refreshToken  String?
+  refreshTokenHash String?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
@@ -70,6 +71,7 @@ model User {
 
   @@index([email])
   @@index([role, status])
+  @@index([refreshTokenHash])
   @@map("users")
 }
 
@@ -90,7 +92,7 @@ model Appointment {
   student         User              @relation("StudentAppointments", fields: [studentId], references: [id], onDelete: Cascade)
   teacher         User              @relation("TeacherAppointments", fields: [teacherId], references: [id], onDelete: Cascade)
 
-  @@index([teacherId, requestedDate])
+  @@index([teacherId, requestedDate, status])
   @@index([studentId])
   @@index([status])
   @@map("appointments")
@@ -134,6 +136,7 @@ model Recording {
   reviewer         User?     @relation("ReviewedRecordings", fields: [reviewedBy], references: [id], onDelete: SetNull)
 
   @@index([studentId])
+  @@index([studentId, createdAt])
   @@index([reviewedBy])
   @@index([createdAt])
   @@map("recordings")
@@ -154,6 +157,7 @@ model Message {
 
   @@index([senderId, createdAt])
   @@index([receiverId, createdAt])
+  @@index([receiverId, readAt, createdAt])
   @@index([createdAt])
   @@map("messages")
 }

@@ -30,6 +30,9 @@ function createTestApp(userId: string, userRole: string) {
 describe('appointment.controller', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedPrisma.$transaction.mockImplementation(async (fn: any) => {
+      return fn(mockedPrisma);
+    });
   });
 
   describe('POST /', () => {

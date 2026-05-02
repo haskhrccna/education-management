@@ -5,6 +5,8 @@ const connection = process.env.REDIS_URL
   ? { url: process.env.REDIS_URL }
   : { host: process.env.REDIS_HOST || 'localhost', port: parseInt(process.env.REDIS_PORT || '6379', 10) };
 
+const workers: Worker[] = [];
+
 function createQueue<T>(name: string) {
   try {
     const queue = new Queue<T>(name, { connection });
@@ -35,10 +37,20 @@ export async function addEmailJob(to: string, subject: string, html: string, tex
   return emailQueue.add('send-email', { to, subject, html, text });
 }
 
+export const closeQueues = async (): Promise<void> => {
+  const allQueues = [broadcastQueue, reportQueue, emailQueue, notificationQueue].filter(Boolean) as Queue[];
+  await Promise.all(allQueues.map((q) => q.close()));
+
+  for (const worker of workers) {
+    await worker.close();
+  }
+  logger.info('BullMQ queues and workers closed');
+};
+
 // Workers only initialize if explicitly enabled (avoid in test env)
 if (process.env.ENABLE_WORKERS === 'true') {
   if (broadcastQueue) {
-    new Worker('broadcast', async (job) => {
+    workers.push(new Worker('broadcast', async (job) => {
       const { sendToUser } = await import('../services/socket.service');
       const { prisma } = await import('../prisma/client');
       const { message, targetRole } = job.data;
@@ -48,23 +60,23 @@ if (process.env.ENABLE_WORKERS === 'true') {
         sendToUser(user.id, 'broadcast', { message, sentAt: new Date().toISOString() });
       }
       logger.info({ recipients: users.length }, 'Broadcast job completed');
-    }, { connection });
+    }, { connection }));
   }
 
   if (emailQueue) {
-    new Worker('email', async (job) => {
+    workers.push(new Worker('email', async (job) => {
       const { sendEmail } = await import('../services/email.service');
       const { to, subject, html, text } = job.data;
       await sendEmail({ to, subject, html, text });
       logger.info({ to, subject }, 'Email job completed');
-    }, { connection });
+    }, { connection }));
   }
 
   if (notificationQueue) {
-    new Worker('notification', async (job) => {
+    workers.push(new Worker('notification', async (job) => {
       const { notifyUser } = await import('../services/notification.service');
       await notifyUser(job.data);
       logger.info({ userId: job.data.userId, event: job.data.event }, 'Notification job completed');
-    }, { connection });
+    }, { connection }));
   }
 }

@@ -13,6 +13,7 @@ jest.mock('../../services/auth.service', () => ({
   comparePassword: jest.fn().mockResolvedValue(true),
   generateToken: jest.fn().mockReturnValue('test-token'),
   generateRefreshToken: jest.fn().mockReturnValue('test-refresh-token'),
+  hashRefreshToken: jest.fn().mockReturnValue('hashed-refresh-token'),
 }));
 
 import { prisma } from '../../prisma/client';

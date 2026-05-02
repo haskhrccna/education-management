@@ -19,7 +19,7 @@ export default function LoginPage() {
     setError(null);
     try {
       const user = await login(email.trim(), password);
-      router.replace(`/${user.role}/home`);
+      router.replace(`/${user.role.toLowerCase()}/home`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');
     }

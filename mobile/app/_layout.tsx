@@ -12,10 +12,16 @@ export default function RootLayout() {
   useEffect(() => { i18n.init(); }, []);
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-       </Stack>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="register" />
+        <Stack.Screen name="first-login" />
+        <Stack.Screen name="pending-approval" />
+        <Stack.Screen name="student/home" />
+        <Stack.Screen name="teacher/home" />
+        <Stack.Screen name="admin/home" />
+      </Stack>
       <StatusBar style="auto" />
-     </ThemeProvider>
-   );
+    </ThemeProvider>
+  );
 }

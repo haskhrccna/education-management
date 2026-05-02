@@ -22,7 +22,7 @@ describe('message.service', () => {
       mockedPrisma.message.findMany.mockResolvedValue([
         { id: 'msg-1', content: 'Hello', senderId: 'user-a', receiverId: 'user-b' },
       ] as any);
-      mockedPrisma.message.count.mockResolvedValue(0);
+      (mockedPrisma.message.groupBy as any).mockResolvedValue([]);
 
       const result = await getConversations('user-a');
       expect(result).toHaveLength(1);

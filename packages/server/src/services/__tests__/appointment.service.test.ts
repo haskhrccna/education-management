@@ -15,6 +15,9 @@ const mockedPrisma = prisma as unknown as DeepMockProxy<PrismaClient>;
 describe('appointment.service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedPrisma.$transaction.mockImplementation(async (fn: any) => {
+      return fn(mockedPrisma);
+    });
   });
 
   describe('createAppointment', () => {

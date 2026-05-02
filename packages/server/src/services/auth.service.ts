@@ -12,9 +12,7 @@ export const comparePassword = async (password: string, hash: string): Promise<b
 };
 
 export const generateToken = (userId: string, role: string): string => {
-   // Prisma returns uppercase ('STUDENT'), JWT stores lowercase for @edu/shared UserRole compat
-  const lowerRole = role.toLowerCase();
-  return jwt.sign({ userId, role: lowerRole }, config.jwtSecret, { expiresIn: config.jwtExpiresIn as jwt.SignOptions['expiresIn'] });
+  return jwt.sign({ userId, role }, config.jwtSecret, { expiresIn: config.jwtExpiresIn as jwt.SignOptions['expiresIn'] });
 };
 
 export const verifyToken = (token: string): { userId: string; role: string } | null => {
@@ -29,10 +27,19 @@ export const generateRefreshToken = (): string => {
   return crypto.randomBytes(64).toString('hex');
 };
 
+export const hashRefreshToken = (token: string): string => {
+  return crypto.createHash('sha256').update(token).digest('hex');
+};
+
 export const verifyRefreshToken = (token: string, storedHash: string | null): boolean => {
   if (!storedHash) return false;
-  return crypto.timingSafeEqual(
-    Buffer.from(token, 'hex'),
-    Buffer.from(storedHash, 'hex')
-  );
+  const computedHash = hashRefreshToken(token);
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(computedHash, 'hex'),
+      Buffer.from(storedHash, 'hex')
+    );
+  } catch {
+    return false;
+  }
 };

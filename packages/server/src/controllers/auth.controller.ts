@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../prisma/client';
-import { hashPassword, comparePassword, generateToken, generateRefreshToken } from '../services/auth.service';
+import { hashPassword, comparePassword, generateToken, generateRefreshToken, hashRefreshToken, verifyRefreshToken } from '../services/auth.service';
 import { AppError } from '../middleware/error.middleware';
 import { sendWelcomeEmail } from '../services/email.service';
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { email, password, role, firstName, lastName } = req.body as any;
+    const { email, password, role, firstName, lastName } = req.body;
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       throw new AppError(409, 'Email already registered');
@@ -28,7 +28,7 @@ export const register = async (req: Request, res: Response, next: NextFunction):
 
 export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { email, password } = req.body as any;
+    const { email, password } = req.body;
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !(await comparePassword(password, user.passwordHash))) {
       throw new AppError(401, 'Invalid credentials');
@@ -38,7 +38,8 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     }
     const token = generateToken(user.id, user.role);
     const refreshToken = generateRefreshToken();
-    await prisma.user.update({ where: { id: user.id }, data: { refreshToken } });
+    const refreshTokenHash = hashRefreshToken(refreshToken);
+    await prisma.user.update({ where: { id: user.id }, data: { refreshTokenHash } });
 
     const userInfo = { id: user.id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName, status: user.status };
     res.json({ message: 'Login successful', user: userInfo, token, refreshToken });
@@ -49,15 +50,19 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
 
 export const refresh = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { refreshToken } = req.body as any;
+    const { refreshToken } = req.body;
     if (!refreshToken) throw new AppError(400, 'refreshToken is required');
 
-    const user = await prisma.user.findFirst({ where: { refreshToken } });
-    if (!user) throw new AppError(401, 'Invalid refresh token');
+    const refreshTokenHash = hashRefreshToken(refreshToken);
+    const user = await prisma.user.findFirst({ where: { refreshTokenHash } });
+    if (!user || !verifyRefreshToken(refreshToken, user.refreshTokenHash)) {
+      throw new AppError(401, 'Invalid refresh token');
+    }
 
     const token = generateToken(user.id, user.role);
     const newRefreshToken = generateRefreshToken();
-    await prisma.user.update({ where: { id: user.id }, data: { refreshToken: newRefreshToken } });
+    const newRefreshTokenHash = hashRefreshToken(newRefreshToken);
+    await prisma.user.update({ where: { id: user.id }, data: { refreshTokenHash: newRefreshTokenHash } });
 
     res.json({ token, refreshToken: newRefreshToken });
   } catch (err) {

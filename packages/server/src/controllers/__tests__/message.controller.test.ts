@@ -33,6 +33,7 @@ function createTestApp(userId: string) {
 describe('message.controller', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (mockedPrisma.message.groupBy as any).mockResolvedValue([]);
   });
 
   describe('GET /', () => {

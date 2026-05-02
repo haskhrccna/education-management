@@ -26,11 +26,11 @@ describe('auth.service', () => {
   });
 
   describe('generateToken', () => {
-    it('should encode userId and lowercase role', () => {
+    it('should encode userId and uppercase role', () => {
       const token = generateToken('user-123', 'STUDENT');
       const decoded = jwt.verify(token, config.jwtSecret) as { userId: string; role: string };
       expect(decoded.userId).toBe('user-123');
-      expect(decoded.role).toBe('student');
+      expect(decoded.role).toBe('STUDENT');
     });
 
     it('should expire based on config', () => {
@@ -44,7 +44,7 @@ describe('auth.service', () => {
     it('should return payload for valid token', () => {
       const token = generateToken('user-123', 'STUDENT');
       const result = verifyToken(token);
-      expect(result).toMatchObject({ userId: 'user-123', role: 'student' });
+      expect(result).toMatchObject({ userId: 'user-123', role: 'STUDENT' });
       expect(result).toHaveProperty('exp');
       expect(result).toHaveProperty('iat');
     });

@@ -2,6 +2,10 @@ import { prisma } from '../prisma/client';
 import { hashPassword } from './auth.service';
 import { AppError } from '../middleware/error.middleware';
 import { addBroadcastJob } from '../lib/queue';
+import { sendAccountApprovedEmail } from './email.service';
+import { sendToUser } from './socket.service';
+
+const MAX_BULK_IDS = 1000;
 
 export const listUsers = async (roleFilter?: string) => {
   return await prisma.user.findMany({
@@ -141,7 +145,6 @@ export const broadcastMessage = async (message: string, targetRole?: string) => 
   const where = targetRole ? { role: targetRole.toUpperCase() as 'STUDENT' | 'TEACHER' | 'ADMIN' } : {};
   const users = await prisma.user.findMany({ where, select: { id: true } });
 
-  const { sendToUser } = await import('./socket.service');
   let sentCount = 0;
   for (const user of users) {
     sendToUser(user.id, 'broadcast', { message, sentAt: new Date().toISOString() });
@@ -152,39 +155,68 @@ export const broadcastMessage = async (message: string, targetRole?: string) => 
 };
 
 export const bulkApproveStudents = async (studentIds: string[]) => {
-  const results = [];
-  for (const id of studentIds) {
-    try {
-      const student = await prisma.user.findUnique({ where: { id } });
-      if (student && student.role === 'STUDENT' && student.status !== 'ACTIVE') {
-        const updated = await prisma.user.update({ where: { id }, data: { status: 'ACTIVE' }, select: { id: true, email: true, firstName: true, status: true } });
-        const { sendAccountApprovedEmail } = await import('./email.service');
-        await sendAccountApprovedEmail(updated.email, updated.firstName);
-        results.push({ id, success: true });
-      } else {
-        results.push({ id, success: false, reason: 'Not a pending student' });
-      }
-    } catch (err) {
-      results.push({ id, success: false, reason: 'Error' });
-    }
+  if (!Array.isArray(studentIds) || studentIds.length === 0) {
+    throw new AppError(400, 'studentIds array is required');
   }
-  return results;
+  if (studentIds.length > MAX_BULK_IDS) {
+    throw new AppError(400, `Maximum ${MAX_BULK_IDS} students per request`);
+  }
+
+  return await prisma.$transaction(async (tx) => {
+    const students = await tx.user.findMany({
+      where: { id: { in: studentIds }, role: 'STUDENT' },
+      select: { id: true, email: true, firstName: true, status: true },
+    });
+
+    const studentMap = new Map(students.map((s) => [s.id, s]));
+    const results: { id: string; success: boolean; reason?: string }[] = [];
+
+    for (const id of studentIds) {
+      const student = studentMap.get(id);
+      if (!student) {
+        results.push({ id, success: false, reason: 'Student not found' });
+        continue;
+      }
+      if (student.status === 'ACTIVE') {
+        results.push({ id, success: false, reason: 'Already active' });
+        continue;
+      }
+
+      await tx.user.update({ where: { id }, data: { status: 'ACTIVE' } });
+      results.push({ id, success: true });
+    }
+
+    return results;
+  });
 };
 
 export const bulkDeactivateUsers = async (userIds: string[]) => {
-  const results = [];
-  for (const id of userIds) {
-    try {
-      const user = await prisma.user.findUnique({ where: { id } });
-      if (user) {
-        await prisma.user.update({ where: { id }, data: { status: 'BANNED' } });
-        results.push({ id, success: true });
-      } else {
-        results.push({ id, success: false, reason: 'User not found' });
-      }
-    } catch (err) {
-      results.push({ id, success: false, reason: 'Error' });
-    }
+  if (!Array.isArray(userIds) || userIds.length === 0) {
+    throw new AppError(400, 'userIds array is required');
   }
-  return results;
+  if (userIds.length > MAX_BULK_IDS) {
+    throw new AppError(400, `Maximum ${MAX_BULK_IDS} users per request`);
+  }
+
+  return await prisma.$transaction(async (tx) => {
+    const users = await tx.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true },
+    });
+
+    const userSet = new Set(users.map((u) => u.id));
+    const results: { id: string; success: boolean; reason?: string }[] = [];
+
+    for (const id of userIds) {
+      if (!userSet.has(id)) {
+        results.push({ id, success: false, reason: 'User not found' });
+        continue;
+      }
+
+      await tx.user.update({ where: { id }, data: { status: 'BANNED' } });
+      results.push({ id, success: true });
+    }
+
+    return results;
+  });
 };

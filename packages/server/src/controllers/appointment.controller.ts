@@ -19,7 +19,7 @@ export const createAppointment = async (req: Request, res: Response, next: NextF
 
 export const getMyAppointments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const role = String(req.userRole).toUpperCase() as 'STUDENT' | 'TEACHER' | 'ADMIN';
+    const role = req.userRole as 'STUDENT' | 'TEACHER' | 'ADMIN';
     const appointments = await appointmentService.getMyAppointments(req.userId!, role);
     res.json(appointments);
   } catch (err) {

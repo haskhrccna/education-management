@@ -1,7 +1,8 @@
 import './types/express';
 import app from './app';
 import { config } from './config';
-import { setupSocketIO } from './services/socket.service';
+import { setupSocketIO, closeSocketIO } from './services/socket.service';
+import { closeQueues } from './lib/queue';
 import { initFCM } from './services/fcm.service';
 import { prisma } from './prisma/client';
 import { logger } from './lib/logger';
@@ -25,6 +26,20 @@ const shutdown = async (signal: string) => {
   httpServer.close(() => {
     logger.info('HTTP server closed');
   });
+
+  // Close Socket.IO connections
+  try {
+    await closeSocketIO();
+  } catch (err) {
+    logger.error({ err }, 'Socket.IO close failed');
+  }
+
+  // Close BullMQ queues and workers
+  try {
+    await closeQueues();
+  } catch (err) {
+    logger.error({ err }, 'BullMQ close failed');
+  }
 
   // Close database connection
   try {

@@ -2,7 +2,7 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
 const API_BASE = __DEV__
-  ? 'http://localhost:4000/api/v1'
+  ? 'http://192.168.1.135:4000/api/v1'
   : 'https://api.education-app.com/api/v1';
 
 export const apiClient = axios.create({

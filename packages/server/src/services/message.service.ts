@@ -1,5 +1,6 @@
 import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
+import { notifyNewMessage } from './notification.service';
 
 type MsgType = 'TEXT' | 'FILE' | 'SYSTEM';
 
@@ -16,6 +17,18 @@ export const getConversations = async (userId: string) => {
     },
   });
 
+  // Single query for all unread counts grouped by sender
+  const unreadCounts = await prisma.message.groupBy({
+    by: ['senderId'],
+    where: {
+      receiverId: userId,
+      readAt: null,
+    },
+    _count: { id: true },
+  });
+
+  const unreadMap = new Map(unreadCounts.map((u) => [u.senderId, u._count.id]));
+
   // Group by conversation partner (the OTHER person in each message)
   const conversationsMap = new Map<string, any>();
 
@@ -24,15 +37,6 @@ export const getConversations = async (userId: string) => {
     const partner = msg.senderId === userId ? msg.receiver : msg.sender;
 
     if (!conversationsMap.has(partnerId)) {
-      // Count unread messages from this partner
-      const unreadCount = await prisma.message.count({
-        where: {
-          senderId: partnerId,
-          receiverId: userId,
-          readAt: null,
-        },
-      });
-
       conversationsMap.set(partnerId, {
         partner,
         lastMessage: {
@@ -43,7 +47,7 @@ export const getConversations = async (userId: string) => {
           readAt: msg.readAt,
           sentByMe: msg.senderId === userId,
         },
-        unreadCount,
+        unreadCount: unreadMap.get(partnerId) || 0,
       });
     }
   }
@@ -81,7 +85,6 @@ export const sendMessage = async (senderId: string, receiverId: string, type: Ms
   });
 
   // Notify receiver via unified notification service
-  const { notifyNewMessage } = await import('./notification.service');
   await notifyNewMessage(receiverId, message);
 
   return message;
