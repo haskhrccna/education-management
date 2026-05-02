@@ -130,6 +130,52 @@ export const bulkApprove = async (req: Request, res: Response, next: NextFunctio
   }
 };
 
+export const getUserById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const userId = String(req.params.id);
+    const result = await adminService.getUserById(userId);
+    res.json(successResponse(result));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const userId = String(req.params.id);
+    const { firstName, lastName, email, status, role } = req.body;
+    const user = await adminService.updateUser(userId, { firstName, lastName, email, status, role });
+    await auditLog({
+      userId: req.userId!,
+      action: 'UPDATE_USER',
+      resourceType: 'USER',
+      resourceId: userId,
+      details: { firstName, lastName, email, status, role },
+      ipAddress: req.ip,
+    });
+    res.json(successResponse(user));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deleteUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const userId = String(req.params.id);
+    const result = await adminService.deleteUser(userId);
+    await auditLog({
+      userId: req.userId!,
+      action: 'DELETE_USER',
+      resourceType: 'USER',
+      resourceId: userId,
+      ipAddress: req.ip,
+    });
+    res.json(successResponse(result));
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const bulkDeactivate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { ids }: any = req.body;

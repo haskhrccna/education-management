@@ -19,6 +19,8 @@ export default function RootLayout() {
         <Stack.Screen name="student/home" />
         <Stack.Screen name="teacher/home" />
         <Stack.Screen name="admin/home" />
+        <Stack.Screen name="admin/user-detail" />
+        <Stack.Screen name="admin/settings" />
       </Stack>
       <StatusBar style="dark" />
     </ThemeProvider>

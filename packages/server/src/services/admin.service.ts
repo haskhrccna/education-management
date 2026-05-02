@@ -190,6 +190,70 @@ export const bulkApproveStudents = async (studentIds: string[]) => {
   });
 };
 
+export const getUserById = async (userId: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true, email: true, firstName: true, lastName: true,
+      role: true, status: true, createdAt: true, updatedAt: true,
+      emailVerifiedAt: true, deviceToken: true,
+      appointmentsAsStudent: { select: { id: true, status: true, requestedDate: true } },
+      appointmentsAsTeacher: { select: { id: true, status: true, requestedDate: true } },
+      gradesReceived: { select: { id: true, grade: true, subject: true, type: true, createdAt: true } },
+      gradesGiven: { select: { id: true, grade: true, subject: true, type: true, createdAt: true } },
+      messagesSent: { select: { id: true } },
+      messagesReceived: { select: { id: true } },
+    },
+  });
+  if (!user) throw new AppError(404, 'User not found');
+
+  // Build analytics
+  const isStudent = user.role === 'STUDENT';
+  const isTeacher = user.role === 'TEACHER';
+
+  const analytics = {
+    totalAppointments: isStudent ? user.appointmentsAsStudent.length : isTeacher ? user.appointmentsAsTeacher.length : 0,
+    acceptedAppointments: isStudent
+      ? user.appointmentsAsStudent.filter((a: any) => a.status === 'ACCEPTED').length
+      : isTeacher
+        ? user.appointmentsAsTeacher.filter((a: any) => a.status === 'ACCEPTED').length
+        : 0,
+    totalGrades: isStudent ? user.gradesReceived.length : isTeacher ? user.gradesGiven.length : 0,
+    averageGrade: safeAverage(isStudent ? user.gradesReceived.map((g: any) => g.grade) : isTeacher ? user.gradesGiven.map((g: any) => g.grade) : []),
+    totalMessages: user.messagesSent.length + user.messagesReceived.length,
+    memberSince: user.createdAt,
+    lastActive: user.updatedAt,
+  };
+
+  return { user, analytics };
+};
+
+export const updateUser = async (userId: string, data: { firstName?: string; lastName?: string; email?: string; status?: string; role?: string }) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new AppError(404, 'User not found');
+
+  const updateData: any = {};
+  if (data.firstName) updateData.firstName = data.firstName;
+  if (data.lastName) updateData.lastName = data.lastName;
+  if (data.email) updateData.email = data.email;
+  if (data.status) updateData.status = data.status;
+  if (data.role) updateData.role = data.role;
+
+  return await prisma.user.update({
+    where: { id: userId },
+    data: updateData,
+    select: { id: true, email: true, firstName: true, lastName: true, role: true, status: true, createdAt: true },
+  });
+};
+
+export const deleteUser = async (userId: string) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new AppError(404, 'User not found');
+
+  await prisma.user.delete({ where: { id: userId } });
+  return { id: userId, deleted: true };
+};
+
 export const bulkDeactivateUsers = async (userIds: string[]) => {
   if (!Array.isArray(userIds) || userIds.length === 0) {
     throw new AppError(400, 'userIds array is required');
