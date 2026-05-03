@@ -5,12 +5,19 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import i18n from '@/src/i18n';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useSettingsStore } from '@/src/settings/store';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const { loadSettings, darkMode, isLoaded } = useSettingsStore();
+
   useEffect(() => { i18n.init(); }, []);
+  useEffect(() => { loadSettings(); }, []);
+
+  if (!isLoaded) return null;
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={darkMode ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="register" />
@@ -22,7 +29,7 @@ export default function RootLayout() {
         <Stack.Screen name="admin/user-detail" />
         <Stack.Screen name="admin/settings" />
       </Stack>
-      <StatusBar style="dark" />
+      <StatusBar style={darkMode ? 'light' : 'dark'} />
     </ThemeProvider>
   );
 }

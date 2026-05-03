@@ -3,11 +3,15 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
-import { COLORS, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { useSettingsStore } from '@/src/settings/store';
 
 export default function PendingApprovalPage() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { theme, darkMode } = useSettingsStore();
+  const COLORS = getColors(theme, darkMode);
+  const styles = createStyles(COLORS);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -49,7 +53,7 @@ export default function PendingApprovalPage() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,

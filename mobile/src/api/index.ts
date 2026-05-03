@@ -1,7 +1,11 @@
 export { apiClient } from './client';
 export { authApi } from './auth';
+export type { AuthUser } from './auth';
 export { appointmentsApi } from './appointments';
+export type { Appointment } from './appointments';
 export { gradesApi } from './grades';
+export type { Grade } from './grades';
 export { messagesApi } from './messages';
+export type { Message } from './messages';
 export { recordingsApi } from './recordings';
 export { usersApi } from './users';

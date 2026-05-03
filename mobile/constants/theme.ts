@@ -1,46 +1,106 @@
-// Quran Review — Islamic Premium Design System
+// Quran Review — Dynamic Islamic Premium Design System
 
-export const COLORS = {
-  // Primary — Emerald (Islamic green)
-  primary: '#047857',
-  primaryLight: '#10b981',
-  primaryDark: '#064e3b',
-  primaryMuted: '#d1fae5',
+export type ThemeColor = 'green' | 'blue' | 'purple' | 'dark';
 
-  // Accent — Gold (traditional Islamic art)
-  gold: '#d97706',
-  goldLight: '#fbbf24',
-  goldMuted: '#fef3c7',
-
-  // Backgrounds
-  background: '#fafaf9',
-  surface: '#ffffff',
-  surfaceAlt: '#fef3c7',
-  surfaceGreen: '#ecfdf5',
-
-  // Text
-  textPrimary: '#1c1917',
-  textSecondary: '#78716c',
-  textMuted: '#a8a29e',
-  textOnPrimary: '#ffffff',
-  textOnGold: '#78350f',
-
-  // Semantic
-  success: '#059669',
-  successLight: '#d1fae5',
-  warning: '#d97706',
-  warningLight: '#fef3c7',
-  error: '#dc2626',
-  errorLight: '#fee2e2',
-  info: '#2563eb',
-  infoLight: '#dbeafe',
-
-  // Islamic decorative
-  deepGreen: '#065f46',
-  cream: '#fffbeb',
-  parchment: '#fefce8',
-  midnight: '#0f172a',
+// Theme color palettes
+const THEME_PALETTES: Record<ThemeColor, { primary: string; primaryLight: string; primaryDark: string; primaryMuted: string }> = {
+  green: {
+    primary: '#047857',
+    primaryLight: '#10b981',
+    primaryDark: '#064e3b',
+    primaryMuted: '#d1fae5',
+  },
+  blue: {
+    primary: '#2563eb',
+    primaryLight: '#3b82f6',
+    primaryDark: '#1e40af',
+    primaryMuted: '#dbeafe',
+  },
+  purple: {
+    primary: '#7c3aed',
+    primaryLight: '#a78bfa',
+    primaryDark: '#5b21b6',
+    primaryMuted: '#ede9fe',
+  },
+  dark: {
+    primary: '#0f172a',
+    primaryLight: '#334155',
+    primaryDark: '#020617',
+    primaryMuted: '#1e293b',
+  },
 };
+
+// Get colors based on theme
+export const getColors = (theme: ThemeColor = 'green', isDark: boolean = false) => {
+  const palette = THEME_PALETTES[theme];
+
+  if (isDark) {
+    return {
+      primary: palette.primaryLight,
+      primaryLight: palette.primary,
+      primaryDark: '#0f172a',
+      primaryMuted: palette.primaryMuted,
+      gold: '#fbbf24',
+      goldLight: '#fde68a',
+      goldMuted: '#451a03',
+      background: '#0f172a',
+      surface: '#1e293b',
+      surfaceAlt: '#334155',
+      surfaceGreen: '#064e3b',
+      textPrimary: '#f8fafc',
+      textSecondary: '#94a3b8',
+      textMuted: '#64748b',
+      textOnPrimary: '#ffffff',
+      textOnGold: '#451a03',
+      success: '#10b981',
+      successLight: '#064e3b',
+      warning: '#f59e0b',
+      warningLight: '#451a03',
+      error: '#ef4444',
+      errorLight: '#450a0a',
+      info: '#3b82f6',
+      infoLight: '#1e3a8a',
+      deepGreen: '#065f46',
+      cream: '#1e293b',
+      parchment: '#334155',
+      midnight: '#020617',
+    };
+  }
+
+  return {
+    primary: palette.primary,
+    primaryLight: palette.primaryLight,
+    primaryDark: palette.primaryDark,
+    primaryMuted: palette.primaryMuted,
+    gold: '#d97706',
+    goldLight: '#fbbf24',
+    goldMuted: '#fef3c7',
+    background: '#fafaf9',
+    surface: '#ffffff',
+    surfaceAlt: '#fef3c7',
+    surfaceGreen: '#ecfdf5',
+    textPrimary: '#1c1917',
+    textSecondary: '#78716c',
+    textMuted: '#a8a29e',
+    textOnPrimary: '#ffffff',
+    textOnGold: '#78350f',
+    success: '#059669',
+    successLight: '#d1fae5',
+    warning: '#d97706',
+    warningLight: '#fef3c7',
+    error: '#dc2626',
+    errorLight: '#fee2e2',
+    info: '#2563eb',
+    infoLight: '#dbeafe',
+    deepGreen: '#065f46',
+    cream: '#fffbeb',
+    parchment: '#fefce8',
+    midnight: '#0f172a',
+  };
+};
+
+// Static export for backward compatibility (green theme, light mode)
+export const COLORS = getColors('green', false);
 
 export const SHADOWS = {
   sm: {
@@ -101,22 +161,36 @@ export const SPACING = {
   '5xl': 48,
 };
 
-export const FONTS = {
-  // Platform-selective Arabic-friendly stacks
-  ios: {
-    arabic: 'System',
-    body: 'System',
-    heading: 'System',
+// Font size scale factors
+export const FONT_SCALE = {
+  small: 0.85,
+  medium: 1.0,
+  large: 1.15,
+};
+
+// Spacing scale for compact view
+export const SPACING_SCALE = {
+  normal: 1.0,
+  compact: 0.7,
+};
+
+// Backward-compatible Colors export for legacy template components
+export const Colors = {
+  light: {
+    text: '#1c1917',
+    background: '#fafaf9',
+    tint: '#047857',
+    icon: '#78716c',
+    tabIconDefault: '#a8a29e',
+    tabIconSelected: '#047857',
   },
-  android: {
-    arabic: 'Roboto',
-    body: 'Roboto',
-    heading: 'Roboto',
-  },
-  default: {
-    arabic: 'System',
-    body: 'System',
-    heading: 'System',
+  dark: {
+    text: '#f8fafc',
+    background: '#0f172a',
+    tint: '#10b981',
+    icon: '#94a3b8',
+    tabIconDefault: '#64748b',
+    tabIconSelected: '#10b981',
   },
 };
 

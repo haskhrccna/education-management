@@ -6,7 +6,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/src/auth/store';
 import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
-import { COLORS, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { useSettingsStore } from '@/src/settings/store';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,6 +17,9 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const login = useAuthStore((s) => s.login);
   const isLoading = useAuthStore((s) => s.isLoading);
+  const { theme, darkMode } = useSettingsStore();
+  const COLORS = getColors(theme, darkMode);
+  const styles = createStyles(COLORS);
 
   const handleLogin = async () => {
     setError(null);
@@ -133,7 +137,7 @@ export default function LoginPage() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
@@ -147,8 +151,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING['2xl'],
     paddingVertical: SPACING['3xl'],
   },
-
-  // Decorative elements
   topDecoration: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -189,8 +191,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     opacity: 0.3,
   },
-
-  // Header
   header: {
     alignItems: 'center',
     marginBottom: SPACING['3xl'],
@@ -226,8 +226,6 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontWeight: '500',
   },
-
-  // Form
   form: {
     gap: SPACING.lg,
   },
@@ -298,8 +296,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
-
-  // Footer
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',

@@ -1,19 +1,25 @@
 import { useEffect } from 'react';
 import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { apiClient } from '../api/client';
+
+let Device: any = null;
+try {
+  Device = require('expo-device');
+} catch {
+  // expo-device not installed
+}
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
-  }),
+  } as any),
 });
 
 async function registerForPushNotificationsAsync(): Promise<string | null> {
-  if (!Device.isDevice) {
+  if (Device && !Device.isDevice) {
     console.log('Push notifications require a physical device');
     return null;
   }
@@ -65,8 +71,8 @@ export function usePushNotifications() {
     });
 
     return () => {
-      Notifications.removeNotificationSubscription(notificationListener);
-      Notifications.removeNotificationSubscription(responseListener);
+      notificationListener.remove();
+      responseListener.remove();
     };
   }, []);
 }

@@ -3,10 +3,10 @@ import apiClient from './client';
 export interface AuthUser {
   id: string;
   email: string;
-  role: string;
+  role: 'student' | 'teacher' | 'admin';
   firstName: string;
   lastName: string;
-  status: string;
+  status: 'pending' | 'approved' | 'active' | 'banned';
 }
 
 export const authApi = {

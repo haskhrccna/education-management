@@ -5,12 +5,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
 import { apiClient } from '@/src/api';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { COLORS, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { useSettingsStore } from '@/src/settings/store';
 
 export default function UserDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const { t, i18n } = useTranslation();
+  const { theme, darkMode } = useSettingsStore();
+  const COLORS = getColors(theme, darkMode);
+  const styles = createStyles(COLORS);
   const [user, setUser] = useState<any>(null);
   const [analytics, setAnalytics] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -351,7 +355,7 @@ export default function UserDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,

@@ -2,79 +2,86 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Switch } from 're
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState } from 'react';
+import { useSettingsStore, ThemeColor, FontSize } from '@/src/settings/store';
+import { getColors, FONT_SCALE, SPACING_SCALE } from '@/constants/theme';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { COLORS, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
-
-type ThemeOption = 'green' | 'blue' | 'purple' | 'dark';
-type FontSizeOption = 'small' | 'medium' | 'large';
 
 export default function AdminSettingsScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
-  const [selectedTheme, setSelectedTheme] = useState<ThemeOption>('green');
-  const [selectedFontSize, setSelectedFontSize] = useState<FontSizeOption>('medium');
-  const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [compactView, setCompactView] = useState(false);
+  const settings = useSettingsStore();
+  const COLORS = getColors(settings.theme, settings.darkMode);
+  const fontScale = FONT_SCALE[settings.fontSize];
+  const spacingScale = settings.compactView ? SPACING_SCALE.compact : SPACING_SCALE.normal;
 
-  const themes: { key: ThemeOption; label: string; color: string }[] = [
-    { key: 'green', label: i18n.language === 'ar' ? 'أخضر' : 'Green', color: '#047857' },
-    { key: 'blue', label: i18n.language === 'ar' ? 'أزرق' : 'Blue', color: '#2563eb' },
-    { key: 'purple', label: i18n.language === 'ar' ? 'بنفسجي' : 'Purple', color: '#7c3aed' },
-    { key: 'dark', label: i18n.language === 'ar' ? 'داكن' : 'Dark', color: '#1c1917' },
+  const themes: { key: ThemeColor; label: string }[] = [
+    { key: 'green', label: i18n.language === 'ar' ? 'أخضر' : 'Green' },
+    { key: 'blue', label: i18n.language === 'ar' ? 'أزرق' : 'Blue' },
+    { key: 'purple', label: i18n.language === 'ar' ? 'بنفسجي' : 'Purple' },
+    { key: 'dark', label: i18n.language === 'ar' ? 'داكن' : 'Dark' },
   ];
 
-  const fontSizes: { key: FontSizeOption; label: string; size: number }[] = [
-    { key: 'small', label: i18n.language === 'ar' ? 'صغير' : 'Small', size: 14 },
-    { key: 'medium', label: i18n.language === 'ar' ? 'متوسط' : 'Medium', size: 16 },
-    { key: 'large', label: i18n.language === 'ar' ? 'كبير' : 'Large', size: 18 },
+  const fontSizes: { key: FontSize; label: string }[] = [
+    { key: 'small', label: i18n.language === 'ar' ? 'صغير' : 'Small' },
+    { key: 'medium', label: i18n.language === 'ar' ? 'متوسط' : 'Medium' },
+    { key: 'large', label: i18n.language === 'ar' ? 'كبير' : 'Large' },
   ];
+
+  const getThemeColor = (key: ThemeColor) => {
+    switch (key) {
+      case 'green': return '#047857';
+      case 'blue': return '#2563eb';
+      case 'purple': return '#7c3aed';
+      case 'dark': return '#1c1917';
+    }
+  };
+
+  const dynamicStyles = createStyles(COLORS, fontScale, spacingScale);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={dynamicStyles.container} edges={['top']}>
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Text style={styles.backText}>←</Text>
+      <View style={dynamicStyles.header}>
+        <View style={dynamicStyles.headerTop}>
+          <TouchableOpacity onPress={() => router.back()} style={dynamicStyles.backBtn}>
+            <Text style={dynamicStyles.backText}>←</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>
+          <Text style={[dynamicStyles.headerTitle, { fontSize: 18 * fontScale }]}>
             {i18n.language === 'ar' ? 'إعدادات المشرف' : 'Admin Settings'}
           </Text>
-          <View style={styles.backBtn} />
+          <View style={dynamicStyles.backBtn} />
         </View>
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+      <ScrollView style={dynamicStyles.content} contentContainerStyle={dynamicStyles.list} showsVerticalScrollIndicator={false}>
         {/* Theme Selection */}
-        <Animated.View entering={FadeInUp.duration(400)} style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>
+        <Animated.View entering={FadeInUp.duration(400)} style={dynamicStyles.sectionCard}>
+          <Text style={[dynamicStyles.sectionTitle, { fontSize: 16 * fontScale }]}>
             {i18n.language === 'ar' ? '🎨 المظهر والألوان' : '🎨 Theme & Colors'}
           </Text>
-          <Text style={styles.sectionDesc}>
+          <Text style={[dynamicStyles.sectionDesc, { fontSize: 13 * fontScale }]}>
             {i18n.language === 'ar' ? 'اختر لون التطبيق المفضل' : 'Choose your preferred app color'}
           </Text>
-          <View style={styles.themeGrid}>
+          <View style={dynamicStyles.themeGrid}>
             {themes.map((theme) => (
               <TouchableOpacity
                 key={theme.key}
                 style={[
-                  styles.themeOption,
-                  selectedTheme === theme.key && styles.themeOptionActive,
+                  dynamicStyles.themeOption,
+                  settings.theme === theme.key && { borderColor: COLORS.primary, borderWidth: 2 },
                 ]}
-                onPress={() => setSelectedTheme(theme.key)}
+                onPress={() => settings.setTheme(theme.key)}
               >
-                <View style={[styles.themeColor, { backgroundColor: theme.color }]} />
+                <View style={[dynamicStyles.themeColor, { backgroundColor: getThemeColor(theme.key) }]} />
                 <Text style={[
-                  styles.themeLabel,
-                  selectedTheme === theme.key && styles.themeLabelActive,
+                  dynamicStyles.themeLabel,
+                  settings.theme === theme.key && { color: COLORS.primary, fontWeight: '700' },
                 ]}>
                   {theme.label}
                 </Text>
-                {selectedTheme === theme.key && (
-                  <View style={styles.themeCheck}>
-                    <Text style={styles.themeCheckText}>✓</Text>
+                {settings.theme === theme.key && (
+                  <View style={[dynamicStyles.themeCheck, { backgroundColor: COLORS.primary }]}>
+                    <Text style={dynamicStyles.themeCheckText}>✓</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -83,30 +90,30 @@ export default function AdminSettingsScreen() {
         </Animated.View>
 
         {/* Font Size */}
-        <Animated.View entering={FadeInUp.duration(400).delay(100)} style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>
+        <Animated.View entering={FadeInUp.duration(400).delay(100)} style={dynamicStyles.sectionCard}>
+          <Text style={[dynamicStyles.sectionTitle, { fontSize: 16 * fontScale }]}>
             {i18n.language === 'ar' ? '🔤 حجم الخط' : '🔤 Font Size'}
           </Text>
-          <View style={styles.fontSizeRow}>
+          <View style={dynamicStyles.fontSizeRow}>
             {fontSizes.map((fs) => (
               <TouchableOpacity
                 key={fs.key}
                 style={[
-                  styles.fontSizeOption,
-                  selectedFontSize === fs.key && styles.fontSizeOptionActive,
+                  dynamicStyles.fontSizeOption,
+                  settings.fontSize === fs.key && { borderColor: COLORS.primary, borderWidth: 2 },
                 ]}
-                onPress={() => setSelectedFontSize(fs.key)}
+                onPress={() => settings.setFontSize(fs.key)}
               >
                 <Text style={[
-                  styles.fontSizeSample,
-                  { fontSize: fs.size },
-                  selectedFontSize === fs.key && styles.fontSizeSampleActive,
+                  dynamicStyles.fontSizeSample,
+                  { fontSize: 16 * FONT_SCALE[fs.key] },
+                  settings.fontSize === fs.key && { color: COLORS.primary },
                 ]}>
                   أب
                 </Text>
                 <Text style={[
-                  styles.fontSizeLabel,
-                  selectedFontSize === fs.key && styles.fontSizeLabelActive,
+                  dynamicStyles.fontSizeLabel,
+                  settings.fontSize === fs.key && { color: COLORS.primary, fontWeight: '700' },
                 ]}>
                   {fs.label}
                 </Text>
@@ -116,88 +123,88 @@ export default function AdminSettingsScreen() {
         </Animated.View>
 
         {/* Toggle Options */}
-        <Animated.View entering={FadeInUp.duration(400).delay(200)} style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>
+        <Animated.View entering={FadeInUp.duration(400).delay(200)} style={dynamicStyles.sectionCard}>
+          <Text style={[dynamicStyles.sectionTitle, { fontSize: 16 * fontScale }]}>
             {i18n.language === 'ar' ? '⚙️ الخيارات العامة' : '⚙️ General Options'}
           </Text>
 
-          <View style={styles.toggleItem}>
-            <View style={styles.toggleInfo}>
-              <Text style={styles.toggleLabel}>
+          <View style={dynamicStyles.toggleItem}>
+            <View style={dynamicStyles.toggleInfo}>
+              <Text style={[dynamicStyles.toggleLabel, { fontSize: 15 * fontScale }]}>
                 {i18n.language === 'ar' ? 'الوضع الليلي' : 'Dark Mode'}
               </Text>
-              <Text style={styles.toggleDesc}>
+              <Text style={[dynamicStyles.toggleDesc, { fontSize: 12 * fontScale }]}>
                 {i18n.language === 'ar' ? 'تفعيل المظهر الداكن' : 'Enable dark theme'}
               </Text>
             </View>
             <Switch
-              value={darkMode}
-              onValueChange={setDarkMode}
+              value={settings.darkMode}
+              onValueChange={(v) => settings.setDarkMode(v)}
               trackColor={{ false: '#e7e5e4', true: COLORS.primary }}
-              thumbColor={darkMode ? '#fff' : '#fff'}
+              thumbColor={settings.darkMode ? '#fff' : '#fff'}
             />
           </View>
 
-          <View style={styles.toggleItem}>
-            <View style={styles.toggleInfo}>
-              <Text style={styles.toggleLabel}>
+          <View style={dynamicStyles.toggleItem}>
+            <View style={dynamicStyles.toggleInfo}>
+              <Text style={[dynamicStyles.toggleLabel, { fontSize: 15 * fontScale }]}>
                 {i18n.language === 'ar' ? 'الإشعارات' : 'Notifications'}
               </Text>
-              <Text style={styles.toggleDesc}>
+              <Text style={[dynamicStyles.toggleDesc, { fontSize: 12 * fontScale }]}>
                 {i18n.language === 'ar' ? 'تلقي إشعارات النظام' : 'Receive system notifications'}
               </Text>
             </View>
             <Switch
-              value={notifications}
-              onValueChange={setNotifications}
+              value={settings.notifications}
+              onValueChange={(v) => settings.setNotifications(v)}
               trackColor={{ false: '#e7e5e4', true: COLORS.primary }}
-              thumbColor={notifications ? '#fff' : '#fff'}
+              thumbColor={settings.notifications ? '#fff' : '#fff'}
             />
           </View>
 
-          <View style={styles.toggleItem}>
-            <View style={styles.toggleInfo}>
-              <Text style={styles.toggleLabel}>
+          <View style={dynamicStyles.toggleItem}>
+            <View style={dynamicStyles.toggleInfo}>
+              <Text style={[dynamicStyles.toggleLabel, { fontSize: 15 * fontScale }]}>
                 {i18n.language === 'ar' ? 'عرض مضغوط' : 'Compact View'}
               </Text>
-              <Text style={styles.toggleDesc}>
+              <Text style={[dynamicStyles.toggleDesc, { fontSize: 12 * fontScale }]}>
                 {i18n.language === 'ar' ? 'تقليل المسافات في القوائم' : 'Reduce spacing in lists'}
               </Text>
             </View>
             <Switch
-              value={compactView}
-              onValueChange={setCompactView}
+              value={settings.compactView}
+              onValueChange={(v) => settings.setCompactView(v)}
               trackColor={{ false: '#e7e5e4', true: COLORS.primary }}
-              thumbColor={compactView ? '#fff' : '#fff'}
+              thumbColor={settings.compactView ? '#fff' : '#fff'}
             />
           </View>
         </Animated.View>
 
         {/* Language */}
-        <Animated.View entering={FadeInUp.duration(400).delay(300)} style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>
+        <Animated.View entering={FadeInUp.duration(400).delay(300)} style={dynamicStyles.sectionCard}>
+          <Text style={[dynamicStyles.sectionTitle, { fontSize: 16 * fontScale }]}>
             {i18n.language === 'ar' ? '🌐 اللغة' : '🌐 Language'}
           </Text>
-          <View style={styles.langRow}>
+          <View style={dynamicStyles.langRow}>
             <TouchableOpacity
-              style={[styles.langBtn, i18n.language === 'ar' && styles.langBtnActive]}
+              style={[dynamicStyles.langBtn, i18n.language === 'ar' && { borderColor: COLORS.primary, borderWidth: 2 }]}
               onPress={() => i18n.changeLanguage('ar')}
             >
-              <Text style={[styles.langText, i18n.language === 'ar' && styles.langTextActive]}>العربية</Text>
+              <Text style={[dynamicStyles.langText, i18n.language === 'ar' && { color: COLORS.primary, fontWeight: '700' }]}>العربية</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.langBtn, i18n.language === 'en' && styles.langBtnActive]}
+              style={[dynamicStyles.langBtn, i18n.language === 'en' && { borderColor: COLORS.primary, borderWidth: 2 }]}
               onPress={() => i18n.changeLanguage('en')}
             >
-              <Text style={[styles.langText, i18n.language === 'en' && styles.langTextActive]}>English</Text>
+              <Text style={[dynamicStyles.langText, i18n.language === 'en' && { color: COLORS.primary, fontWeight: '700' }]}>English</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
 
         {/* Save Button */}
         <Animated.View entering={FadeInUp.duration(400).delay(400)}>
-          <TouchableOpacity style={styles.saveBtn} onPress={() => router.back()}>
-            <Text style={styles.saveBtnText}>
+          <TouchableOpacity style={[dynamicStyles.saveBtn, { backgroundColor: COLORS.primary }]} onPress={() => router.back()}>
+            <Text style={dynamicStyles.saveBtnText}>
               {i18n.language === 'ar' ? 'حفظ الإعدادات' : 'Save Settings'}
             </Text>
           </TouchableOpacity>
@@ -207,225 +214,188 @@ export default function AdminSettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-
-  // Header
-  header: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.xl,
-    paddingTop: SPACING.lg,
-    paddingBottom: SPACING.lg,
-    borderBottomLeftRadius: RADIUS['2xl'],
-    borderBottomRightRadius: RADIUS['2xl'],
-    ...SHADOWS.lg,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.full,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#fff',
-  },
-
-  // Content
-  content: {
-    flex: 1,
-    paddingHorizontal: SPACING.xl,
-  },
-  list: {
-    gap: SPACING.md,
-    paddingVertical: SPACING.lg,
-    paddingBottom: SPACING['4xl'],
-  },
-
-  // Section Card
-  sectionCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS['2xl'],
-    padding: SPACING['2xl'],
-    ...SHADOWS.md,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.xs,
-    textAlign: 'right',
-  },
-  sectionDesc: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.lg,
-    textAlign: 'right',
-  },
-
-  // Theme Grid
-  themeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.md,
-  },
-  themeOption: {
-    width: '47%',
-    backgroundColor: COLORS.background,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  themeOptionActive: {
-    borderColor: COLORS.primary,
-  },
-  themeColor: {
-    width: 40,
-    height: 40,
-    borderRadius: RADIUS.full,
-    marginBottom: SPACING.sm,
-  },
-  themeLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-  },
-  themeLabelActive: {
-    color: COLORS.primary,
-    fontWeight: '700',
-  },
-  themeCheck: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 20,
-    height: 20,
-    borderRadius: RADIUS.full,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  themeCheckText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-
-  // Font Size
-  fontSizeRow: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-  },
-  fontSizeOption: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  fontSizeOptionActive: {
-    borderColor: COLORS.primary,
-  },
-  fontSizeSample: {
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.xs,
-  },
-  fontSizeSampleActive: {
-    color: COLORS.primary,
-  },
-  fontSizeLabel: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  fontSizeLabelActive: {
-    color: COLORS.primary,
-    fontWeight: '700',
-  },
-
-  // Toggle
-  toggleItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  toggleInfo: {
-    flex: 1,
-    alignItems: 'flex-end',
-  },
-  toggleLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  toggleDesc: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-
-  // Language
-  langRow: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-  },
-  langBtn: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  langBtnActive: {
-    borderColor: COLORS.primary,
-  },
-  langText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-  },
-  langTextActive: {
-    color: COLORS.primary,
-    fontWeight: '700',
-  },
-
-  // Save
-  saveBtn: {
-    backgroundColor: COLORS.primary,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    marginTop: SPACING.md,
-    ...SHADOWS.md,
-  },
-  saveBtnText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-});
+function createStyles(COLORS: any, fontScale: number, spacingScale: number) {
+  const s = (val: number) => val * spacingScale;
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+    },
+    header: {
+      backgroundColor: COLORS.primary,
+      paddingHorizontal: s(20),
+      paddingTop: s(16),
+      paddingBottom: s(16),
+      borderBottomLeftRadius: 24,
+      borderBottomRightRadius: 24,
+    },
+    headerTop: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 9999,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    backText: {
+      color: '#fff',
+      fontSize: 18,
+      fontWeight: '700',
+    },
+    headerTitle: {
+      fontWeight: '800',
+      color: '#fff',
+    },
+    content: {
+      flex: 1,
+      paddingHorizontal: s(20),
+    },
+    list: {
+      gap: s(12),
+      paddingVertical: s(16),
+      paddingBottom: s(40),
+    },
+    sectionCard: {
+      backgroundColor: COLORS.surface,
+      borderRadius: 24,
+      padding: s(24),
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.07,
+      shadowRadius: 6,
+      elevation: 3,
+    },
+    sectionTitle: {
+      fontWeight: '700',
+      color: COLORS.textPrimary,
+      marginBottom: 4,
+      textAlign: 'right',
+    },
+    sectionDesc: {
+      color: COLORS.textSecondary,
+      marginBottom: s(16),
+      textAlign: 'right',
+    },
+    themeGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: s(12),
+    },
+    themeOption: {
+      width: '47%',
+      backgroundColor: COLORS.background,
+      borderRadius: 16,
+      padding: s(16),
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    themeColor: {
+      width: 40,
+      height: 40,
+      borderRadius: 9999,
+      marginBottom: s(8),
+    },
+    themeLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: COLORS.textSecondary,
+    },
+    themeCheck: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      width: 20,
+      height: 20,
+      borderRadius: 9999,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    themeCheckText: {
+      color: '#fff',
+      fontSize: 12,
+      fontWeight: '700',
+    },
+    fontSizeRow: {
+      flexDirection: 'row',
+      gap: s(12),
+    },
+    fontSizeOption: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+      borderRadius: 16,
+      padding: s(16),
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    fontSizeSample: {
+      fontWeight: '700',
+      color: COLORS.textPrimary,
+      marginBottom: 4,
+    },
+    fontSizeLabel: {
+      fontSize: 12,
+      color: COLORS.textSecondary,
+    },
+    toggleItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: s(12),
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.darkMode ? '#334155' : '#f1f5f9',
+    },
+    toggleInfo: {
+      flex: 1,
+      alignItems: 'flex-end',
+    },
+    toggleLabel: {
+      fontWeight: '600',
+      color: COLORS.textPrimary,
+    },
+    toggleDesc: {
+      color: COLORS.textSecondary,
+      marginTop: 2,
+    },
+    langRow: {
+      flexDirection: 'row',
+      gap: s(12),
+    },
+    langBtn: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+      borderRadius: 16,
+      padding: s(16),
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    langText: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: COLORS.textSecondary,
+    },
+    saveBtn: {
+      borderRadius: 16,
+      padding: s(16),
+      alignItems: 'center',
+      marginTop: s(12),
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.07,
+      shadowRadius: 6,
+      elevation: 3,
+    },
+    saveBtnText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '700',
+    },
+  });
+}

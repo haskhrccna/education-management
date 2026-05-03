@@ -6,7 +6,8 @@ import React, { useState } from 'react';
 import { useAuthStore } from '@/src/auth/store';
 import { apiClient } from '@/src/api';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { COLORS, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { useSettingsStore } from '@/src/settings/store';
 
 interface User {
   id: string;
@@ -24,6 +25,9 @@ export default function AdminHomeScreen() {
   const { t, i18n } = useTranslation();
   const logout = useAuthStore((s) => s.logout);
   const user = useAuthStore((s) => s.user);
+  const { theme, darkMode, compactView } = useSettingsStore();
+  const COLORS = getColors(theme, darkMode);
+  const styles = createStyles(COLORS);
   const [users, setUsers] = useState<User[]>([]);
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [stats, setStats] = useState({ students: 0, teachers: 0, pending: 0 });
@@ -161,14 +165,14 @@ export default function AdminHomeScreen() {
         {isLoading ? (
           <Text style={styles.empty}>{t('loading')}</Text>
         ) : (
-          <UsersList users={users} onUserPress={navigateToUserDetail} onApprove={approveStudent} />
+          <UsersList users={users} onUserPress={navigateToUserDetail} onApprove={approveStudent} styles={styles} />
         )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function UsersList({ users, onUserPress, onApprove }: { users: User[], onUserPress: (id: string) => void, onApprove: (id: string) => void }) {
+function UsersList({ users, onUserPress, onApprove, styles }: { users: User[], onUserPress: (id: string) => void, onApprove: (id: string) => void, styles: any }) {
   const { t, i18n } = useTranslation();
 
   if (users.length === 0) {
@@ -227,7 +231,7 @@ function UsersList({ users, onUserPress, onApprove }: { users: User[], onUserPre
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,

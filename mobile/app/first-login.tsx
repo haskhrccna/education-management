@@ -5,7 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import { useAuthStore } from '@/src/auth/store';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { COLORS, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { useSettingsStore } from '@/src/settings/store';
 
 export default function FirstLoginPage() {
   const router = useRouter();
@@ -16,6 +17,9 @@ export default function FirstLoginPage() {
   const user = useAuthStore((s) => s.user);
   const changePassword = useAuthStore((s) => s.changePassword);
   const isLoading = useAuthStore((s) => s.isLoading);
+  const { theme, darkMode } = useSettingsStore();
+  const COLORS = getColors(theme, darkMode);
+  const styles = createStyles(COLORS);
 
   const handleChange = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -111,7 +115,7 @@ export default function FirstLoginPage() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: any) => StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   keyboardView: { flex: 1 },
   scrollContent: {

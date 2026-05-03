@@ -5,7 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import { useAuthStore } from '@/src/auth/store';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { COLORS, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { useSettingsStore } from '@/src/settings/store';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -17,6 +18,9 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const register = useAuthStore((s) => s.register);
   const isLoading = useAuthStore((s) => s.isLoading);
+  const { theme, darkMode } = useSettingsStore();
+  const COLORS = getColors(theme, darkMode);
+  const styles = createStyles(COLORS);
 
   const handleRegister = async () => {
     setError(null);
@@ -25,7 +29,7 @@ export default function RegisterPage() {
       return;
     }
     try {
-      await register({ email: email.trim(), password, role: 'student', firstName, lastName });
+      await register(email.trim(), password, 'student', firstName, lastName);
       router.replace('/pending-approval');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Registration failed');
@@ -130,7 +134,7 @@ export default function RegisterPage() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (COLORS: any) => StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   keyboardView: { flex: 1 },
   scrollContent: {
