@@ -34,13 +34,17 @@ describe('admin.service', () => {
       mockedPrisma.user.findMany.mockResolvedValue([{ id: 'user-1' }] as any);
       const result = await listUsers();
       expect(result).toHaveLength(1);
-      expect(mockedPrisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: undefined }));
+      expect(mockedPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { deletedAt: null } })
+      );
     });
 
     it('should filter by role', async () => {
       mockedPrisma.user.findMany.mockResolvedValue([{ id: 'user-1', role: 'STUDENT' }] as any);
       await listUsers('student');
-      expect(mockedPrisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { role: 'STUDENT' } }));
+      expect(mockedPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { deletedAt: null, role: 'STUDENT' } })
+      );
     });
   });
 
