@@ -83,7 +83,7 @@ export const sendMessage = async (
   if (senderId === receiverId) throw new AppError(400, 'Cannot message yourself');
 
   const receiver = await prisma.user.findUnique({ where: { id: receiverId } });
-  if (!receiver) throw new AppError(404, 'Receiver not found');
+  if (!receiver || receiver.deletedAt) throw new AppError(404, 'Receiver not found');
 
   const message = await prisma.message.create({
     data: { senderId, receiverId, type: type as MsgType, content, attachmentUrl: attachmentUrl || null },

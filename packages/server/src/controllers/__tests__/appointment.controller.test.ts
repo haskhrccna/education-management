@@ -50,9 +50,14 @@ describe('appointment.controller', () => {
       expect(res.body.id).toBe('appt-1');
     });
 
-    it('should reject missing fields', async () => {
-      const app = createTestApp('student-1', 'student');
-      const res = await request(app).post('/').send({ teacherId: 'teacher-1' });
+    it('should return 400 for invalid teacher', async () => {
+      mockedPrisma.user.findUnique.mockResolvedValue({ id: 'teacher-1', role: 'STUDENT' } as any);
+      mockedPrisma.appointment.findMany.mockResolvedValue([]);
+
+      const app = createTestApp('student-1', 'STUDENT');
+      const res = await request(app)
+        .post('/')
+        .send({ teacherId: 'teacher-1', requestedDate: '2025-06-01', requestedTime: '10:00' });
 
       expect(res.status).toBe(400);
     });
