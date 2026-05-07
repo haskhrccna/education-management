@@ -93,21 +93,6 @@ export const generatePDFReport = async (teacherId: string, studentId: string, su
     });
   });
 
-  // Step 3: Persist report record in DB
-  try {
-    await prisma.report.create({
-      data: { teacherId, studentId, pdfUrl, summary },
-    });
-  } catch (err) {
-    // Transaction failed — clean up orphaned PDF
-    try {
-      fs.unlinkSync(docPath);
-    } catch {
-      /* ignore */
-    }
-    throw err;
-  }
-
   return pdfUrl;
 };
 

@@ -95,7 +95,7 @@ describe('recording.controller', () => {
       mockedFs.unlink.mockResolvedValue(undefined as any);
       mockedPrisma.recording.delete.mockResolvedValue({ id: 'rec-1' } as any);
 
-      const app = createTestApp('teacher-1', 'teacher');
+      const app = createTestApp('teacher-1', 'TEACHER');
       const res = await request(app).delete('/rec-1');
 
       expect(res.status).toBe(200);

@@ -23,14 +23,23 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "backgroundColor": "#065f46"
       },
-      "package": "com.quranreview.app"
+      "package": "com.quranreview.app",
+      "usesCleartextTraffic": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-localization",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#065f46",
+          "defaultChannel": "default"
+        }
+      ]
     ]
   }
 }
