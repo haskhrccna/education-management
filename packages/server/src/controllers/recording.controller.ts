@@ -47,7 +47,7 @@ export const reviewRecording = async (req: Request, res: Response, next: NextFun
 export const deleteRecording = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const recordingId = String(req.params.id);
-    const isTeacherOrAdmin = ['teacher', 'admin'].includes(String(req.userRole));
+    const isTeacherOrAdmin = ['TEACHER', 'ADMIN'].includes(String(req.userRole));
     await recordingService.deleteRecording(recordingId, req.userId!, isTeacherOrAdmin);
     res.json({ message: 'Recording deleted' });
   } catch (err) {

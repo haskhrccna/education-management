@@ -24,7 +24,7 @@ export const auditExtension = Prisma.defineExtension({
       async update({ model, operation, args, query }) {
         const result = await query(args);
         if (AUDIT_MODELS.includes(model)) {
-          logAudit(model, AUDIT_ACTIONS[operation] || operation, args.where?.id, args.data);
+          logAudit(model, AUDIT_ACTIONS[operation] || operation, String(args.where?.id ?? ''), args.data);
         }
         return result;
       },

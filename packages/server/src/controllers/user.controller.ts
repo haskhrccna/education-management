@@ -47,9 +47,6 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
 export const changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { currentPassword, newPassword } = req.body;
-    if (!newPassword || newPassword.length < 8) {
-      throw new AppError(400, 'New password must be at least 8 characters');
-    }
     const user = await prisma.user.findUnique({ where: { id: req.userId! } });
     if (!user) throw new AppError(404, 'User not found');
 

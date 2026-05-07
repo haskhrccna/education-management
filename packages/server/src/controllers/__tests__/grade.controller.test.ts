@@ -46,11 +46,15 @@ describe('grade.controller', () => {
       expect(res.body.id).toBe('grade-1');
     });
 
-    it('should reject missing fields', async () => {
-      const app = createTestApp('teacher-1', 'teacher');
-      const res = await request(app).post('/').send({ studentId: 'student-1' });
+    it('should return 404 for deleted student', async () => {
+      mockedPrisma.user.findUnique.mockResolvedValue({ id: 'student-1', role: 'STUDENT', deletedAt: new Date() } as any);
 
-      expect(res.status).toBe(400);
+      const app = createTestApp('teacher-1', 'TEACHER');
+      const res = await request(app)
+        .post('/')
+        .send({ studentId: 'student-1', subject: 'Math', grade: '95', type: 'EXAM' });
+
+      expect(res.status).toBe(404);
     });
   });
 

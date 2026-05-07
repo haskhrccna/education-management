@@ -116,15 +116,13 @@ export const broadcastMessage = async (req: Request, res: Response, next: NextFu
 
 export const bulkApprove = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const body = req.body as { ids?: string[] };
-    const { ids } = body;
-    if (!Array.isArray(ids) || ids.length === 0) throw new AppError(400, 'ids array is required');
-    const results = await adminService.bulkApproveStudents(ids);
+    const { studentIds } = req.body as { studentIds: string[] };
+    const results = await adminService.bulkApproveStudents(studentIds);
     await auditLog({
       userId: req.userId!,
       action: 'BULK_APPROVE',
       resourceType: 'USER',
-      details: { count: ids.length },
+      details: { count: studentIds.length },
       ipAddress: req.ip,
     });
     res.json(successResponse(results));
@@ -181,15 +179,13 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
 
 export const bulkDeactivate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const body = req.body as { ids?: string[] };
-    const { ids } = body;
-    if (!Array.isArray(ids) || ids.length === 0) throw new AppError(400, 'ids array is required');
-    const results = await adminService.bulkDeactivateUsers(ids);
+    const { userIds } = req.body as { userIds: string[] };
+    const results = await adminService.bulkDeactivateUsers(userIds);
     await auditLog({
       userId: req.userId!,
       action: 'BULK_DEACTIVATE',
       resourceType: 'USER',
-      details: { count: ids.length },
+      details: { count: userIds.length },
       ipAddress: req.ip,
     });
     res.json(successResponse(results));

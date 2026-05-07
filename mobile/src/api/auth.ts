@@ -6,7 +6,7 @@ export interface AuthUser {
   role: 'student' | 'teacher' | 'admin';
   firstName: string;
   lastName: string;
-  status: 'pending' | 'approved' | 'active' | 'banned';
+  status: 'pending' | 'active' | 'banned';
 }
 
 export const authApi = {
@@ -23,5 +23,9 @@ export const authApi = {
   refresh: async (refreshToken: string): Promise<{ token: string; refreshToken: string }> => {
     const res = await apiClient.post('/auth/refresh', { refreshToken });
     return res.data;
+  },
+
+  logout: async (): Promise<void> => {
+    await apiClient.post('/auth/logout');
   },
 };

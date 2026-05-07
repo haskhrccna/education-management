@@ -86,6 +86,27 @@ export const RefreshTokenSchema = z.object({
   refreshToken: z.string().min(32, 'Refresh token must be at least 32 characters'),
 });
 
+export const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: passwordSchema,
+});
+
+export const UpdateUserSchema = z.object({
+  firstName: nameSchema.optional(),
+  lastName: nameSchema.optional(),
+  email: emailSchema.optional(),
+  status: z.enum(['ACTIVE', 'PENDING', 'BANNED']).optional(),
+  role: z.enum(['STUDENT', 'TEACHER', 'ADMIN']).optional(),
+});
+
+export const BulkApproveSchema = z.object({
+  studentIds: z.array(uuidSchema).min(1).max(1000),
+});
+
+export const BulkDeactivateSchema = z.object({
+  userIds: z.array(uuidSchema).min(1).max(1000),
+});
+
 export type ZodLoginInput = z.infer<typeof LoginSchema>;
 export type ZodRegisterInput = z.infer<typeof RegisterSchema>;
 export type ZodCreateAppointmentInput = z.infer<typeof CreateAppointmentSchema>;
@@ -98,3 +119,5 @@ export type ZodBroadcastMessageInput = z.infer<typeof BroadcastMessageSchema>;
 export type ZodCreateTeacherInput = z.infer<typeof CreateTeacherSchema>;
 export type ZodUpdateProfileInput = z.infer<typeof UpdateProfileSchema>;
 export type ZodRefreshTokenInput = z.infer<typeof RefreshTokenSchema>;
+export type ZodChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
+export type ZodUpdateUserInput = z.infer<typeof UpdateUserSchema>;

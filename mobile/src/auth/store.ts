@@ -2,15 +2,8 @@ import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 import { apiClient } from '../api/client';
 import { authApi } from '../api';
-
-export interface AuthUser {
-  id: string;
-  email: string;
-  role: 'student' | 'teacher' | 'admin';
-  firstName: string;
-  lastName: string;
-  status: 'pending' | 'approved' | 'active' | 'banned';
-}
+import type { AuthUser } from '../api/auth';
+export type { AuthUser } from '../api/auth';
 
 interface AuthState {
   user: AuthUser | null;
@@ -63,6 +56,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: async () => {
+    // Best-effort server revocation — always clear locally regardless of network
+    try { await authApi.logout(); } catch { /* ignore */ }
     await SecureStore.deleteItemAsync('auth_token');
     await SecureStore.deleteItemAsync('refresh_token');
     delete apiClient.defaults.headers.common.Authorization;
@@ -75,7 +70,15 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (token) {
         apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
         const res = await apiClient.get('/users/profile');
-        set({ user: res.data, token });
+        const profile = res.data;
+        set({
+          user: {
+            ...profile,
+            role: profile.role?.toLowerCase() as AuthUser['role'],
+            status: profile.status?.toLowerCase() as AuthUser['status'],
+          },
+          token,
+        });
       }
     } catch {
       await SecureStore.deleteItemAsync('auth_token');
@@ -90,27 +93,46 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 }));
 
-// 401 interceptor — attempt token refresh before failing
+// Track in-flight refresh to prevent concurrent refresh races
+let refreshPromise: Promise<{ token: string; refreshToken: string }> | null = null;
+
+// 401 interceptor — single-flight token refresh before failing
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+
+    // Never retry the refresh endpoint itself — prevents infinite loop
+    if (originalRequest?.url?.includes('/auth/refresh')) {
+      return Promise.reject(error);
+    }
+
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const refreshToken = await SecureStore.getItemAsync('refresh_token');
-        if (!refreshToken) throw new Error('No refresh token');
-        const res = await apiClient.post('/auth/refresh', { refreshToken });
-        const { token: newToken, refreshToken: newRefreshToken } = res.data;
+        // Single-flight: share one refresh call across concurrent 401s
+        if (!refreshPromise) {
+          refreshPromise = (async () => {
+            const refreshToken = await SecureStore.getItemAsync('refresh_token');
+            if (!refreshToken) throw new Error('No refresh token');
+            const res = await apiClient.post('/auth/refresh', { refreshToken });
+            return res.data as { token: string; refreshToken: string };
+          })();
+        }
+        const { token: newToken, refreshToken: newRefreshToken } = await refreshPromise;
+        refreshPromise = null;
         await SecureStore.setItemAsync('auth_token', newToken);
         await SecureStore.setItemAsync('refresh_token', newRefreshToken);
         apiClient.defaults.headers.common.Authorization = `Bearer ${newToken}`;
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return apiClient(originalRequest);
       } catch {
+        refreshPromise = null;
         await SecureStore.deleteItemAsync('auth_token');
         await SecureStore.deleteItemAsync('refresh_token');
         delete apiClient.defaults.headers.common.Authorization;
+        // Clear in-memory state so UI redirects to login
+        useAuthStore.setState({ user: null, token: null });
       }
     }
     return Promise.reject(error);

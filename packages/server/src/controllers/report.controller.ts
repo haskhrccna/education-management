@@ -24,7 +24,7 @@ export const generateReport = async (req: Request, res: Response, next: NextFunc
 
 export const getMyReports = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const where = req.userRole === 'student' ? { studentId: req.userId! } : { teacherId: req.userId! };
+    const where = req.userRole === 'STUDENT' ? { studentId: req.userId! } : { teacherId: req.userId! };
     const reports = await prisma.report.findMany({
       where,
       orderBy: { generatedAt: 'desc' },

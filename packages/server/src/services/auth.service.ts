@@ -12,8 +12,7 @@ export const comparePassword = async (password: string, hash: string): Promise<b
 };
 
 export const generateToken = (userId: string, role: string): string => {
-     // Prisma returns uppercase ('STUDENT') — normalize to lowercase for frontend UserRole compat
-  return jwt.sign({ userId, role: role.toLowerCase() }, config.jwtSecret, {
+  return jwt.sign({ userId, role }, config.jwtSecret, {
     expiresIn: config.jwtExpiresIn as jwt.SignOptions['expiresIn'],
   });
 };

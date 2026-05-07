@@ -7,7 +7,7 @@ import { AppError } from '../middleware/error.middleware';
 const router = Router();
 router.use(authenticate);
 
-router.get('/grades', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/grades', authorize(UserRole.TEACHER, UserRole.ADMIN), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const studentId = req.query.studentId as string | undefined;
     const teacherId = req.query.teacherId as string | undefined;
@@ -20,7 +20,7 @@ router.get('/grades', async (req: Request, res: Response, next: NextFunction) =>
   }
 });
 
-router.get('/appointments', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/appointments', authorize(UserRole.TEACHER, UserRole.ADMIN), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const csv = await exportService.exportAppointmentsCsv(req.userId, req.userRole);
     res.setHeader('Content-Type', 'text/csv');

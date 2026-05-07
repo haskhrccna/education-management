@@ -198,7 +198,7 @@ model Report {
 
 model AuditLog {
   id           String   @id @default(uuid())
-  userId       String
+  userId       String?
   action       String
   resourceType String
   resourceId   String?
@@ -207,7 +207,7 @@ model AuditLog {
   userAgent    String?
   createdAt    DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([action])

@@ -12,7 +12,7 @@ export const createGrade = async (
   notes?: string
 ) => {
   const student = await prisma.user.findUnique({ where: { id: studentId } });
-  if (!student) throw new AppError(404, 'Student not found');
+  if (!student || student.deletedAt) throw new AppError(404, 'Student not found');
   if (student.role !== 'STUDENT') throw new AppError(400, 'Target user is not a student');
 
   const grade = await prisma.grade.create({

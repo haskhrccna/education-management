@@ -15,6 +15,8 @@ import exportRoutes from './routes/export.routes';
 import docsRoutes from './routes/docs.routes';
 import metricsRoutes from './routes/metrics.routes';
 import { errorHandler } from './middleware/error.middleware';
+import { authenticate, authorize } from './middleware/auth.middleware';
+import { UserRole } from '@quran-review/shared';
 import { requestId } from './middleware/request-id.middleware';
 import { timeout } from './middleware/timeout.middleware';
 import { sanitizeRequestBody } from './middleware/sanitize.middleware';
@@ -55,8 +57,12 @@ app.use(requestLogger);
 app.use(express.json({ limit: '512kb' }));
 app.use(sanitizeRequestBody);
 
-// API Docs & Metrics
-app.use('/api/docs', docsRoutes);
+// API Docs — admin-only outside development
+if (config.env !== 'development') {
+  app.use('/api/docs', authenticate, authorize(UserRole.ADMIN), docsRoutes);
+} else {
+  app.use('/api/docs', docsRoutes);
+}
 app.use('/metrics', metricsRoutes);
 
 // Health check

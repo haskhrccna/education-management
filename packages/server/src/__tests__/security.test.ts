@@ -91,7 +91,7 @@ describe('Security', () => {
       app.use(express.json());
       app.use((req: any, _res: any, next: any) => {
         req.userId = 'teacher-1';
-        req.userRole = 'teacher';
+        req.userRole = 'TEACHER';
         next();
       });
       const { manageAppointment } = require('../controllers/appointment.controller');
@@ -133,13 +133,71 @@ describe('Security', () => {
       const app = express();
       app.use((req: any, _res: any, next: any) => {
         req.userId = 'student-1';
-        req.userRole = 'student';
+        req.userRole = 'STUDENT';
         next();
       });
       const { deleteRecording } = require('../controllers/recording.controller');
       app.delete('/:id', deleteRecording);
 
       const res = await request(app).delete('/rec-1');
+      expect(res.status).toBe(403);
+    });
+  });
+
+  describe('P0 regression: export IDOR', () => {
+    it('student is blocked by authorize(TEACHER, ADMIN) guard', async () => {
+      const app = express();
+      app.use((req: any, _res: any, next: any) => {
+        req.userId = 'student-1';
+        req.userRole = UserRole.STUDENT;
+        next();
+      });
+      app.use(authorize(UserRole.TEACHER, UserRole.ADMIN));
+      app.get('/grades', (_req, res) => res.json({ data: [] }));
+
+      const res = await request(app).get('/grades');
+      expect(res.status).toBe(403);
+    });
+
+    it('teacher passes authorize(TEACHER, ADMIN) guard', async () => {
+      const app = express();
+      app.use((req: any, _res: any, next: any) => {
+        req.userId = 'teacher-1';
+        req.userRole = UserRole.TEACHER;
+        next();
+      });
+      app.use(authorize(UserRole.TEACHER, UserRole.ADMIN));
+      app.get('/grades', (_req, res) => res.json({ data: [] }));
+
+      const res = await request(app).get('/grades');
+      expect(res.status).toBe(200);
+    });
+  });
+
+  describe('P0 regression: JWT role case', () => {
+    it('authorize passes for uppercase TEACHER role', async () => {
+      const app = express();
+      app.use((req: any, _res: any, next: any) => {
+        req.userRole = UserRole.TEACHER;
+        next();
+      });
+      app.use(authorize(UserRole.TEACHER));
+      app.get('/', (_req, res) => res.json({ ok: true }));
+
+      const res = await request(app).get('/');
+      expect(res.status).toBe(200);
+    });
+
+    it('authorize rejects lowercase teacher role', async () => {
+      const app = express();
+      app.use((req: any, _res: any, next: any) => {
+        req.userRole = 'teacher';
+        next();
+      });
+      app.use(authorize(UserRole.TEACHER));
+      app.get('/', (_req, res) => res.json({ ok: true }));
+
+      const res = await request(app).get('/');
       expect(res.status).toBe(403);
     });
   });

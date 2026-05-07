@@ -10,6 +10,7 @@ import {
 } from '../services/auth.service';
 import { AppError } from '../middleware/error.middleware';
 import { sendWelcomeEmail } from '../services/email.service';
+import { logger } from '../lib/logger';
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -23,12 +24,12 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     }
     const passwordHash = await hashPassword(password);
     const user = await prisma.user.create({
-      data: { email, passwordHash, role: role.toUpperCase(), firstName, lastName },
+      data: { email, passwordHash, role: 'STUDENT', firstName, lastName },
       select: { id: true, email: true, role: true, firstName: true, lastName: true, status: true },
     });
 
     // Send welcome email asynchronously
-    sendWelcomeEmail(user.email, user.firstName).catch(() => {});
+    sendWelcomeEmail(user.email, user.firstName).catch((err) => logger.error({ err }, 'Welcome email failed'));
 
     res.status(201).json({ message: 'Registration successful. Awaiting admin approval.', user });
   } catch (err) {
@@ -80,6 +81,9 @@ export const refresh = async (req: Request, res: Response, next: NextFunction): 
     if (!user || !verifyRefreshToken(refreshToken, user.refreshTokenHash)) {
       throw new AppError(401, 'Invalid refresh token');
     }
+    if (user.status !== 'ACTIVE') {
+      throw new AppError(401, 'Account is not active');
+    }
 
     const token = generateToken(user.id, user.role);
     const newRefreshToken = generateRefreshToken();
@@ -113,6 +117,18 @@ export const resendVerification = async (req: Request, res: Response, next: Next
 
     await sendWelcomeEmail(user.email, user.firstName);
     res.json({ message: 'Verification email resent' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const logout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    await prisma.user.update({
+      where: { id: req.userId! },
+      data: { refreshTokenHash: null },
+    });
+    res.status(204).send();
   } catch (err) {
     next(err);
   }

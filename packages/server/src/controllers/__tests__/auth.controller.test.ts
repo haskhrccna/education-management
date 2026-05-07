@@ -99,7 +99,8 @@ describe('auth.controller', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.token).toBe('test-token');
-      expect(res.body.user.status).toBe('ACTIVE');
+      // Login lowercases role/status for mobile client compatibility
+      expect(res.body.user.status).toBe('active');
     });
 
     it('should reject PENDING user', async () => {

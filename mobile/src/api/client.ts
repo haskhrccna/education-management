@@ -1,8 +1,7 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-// Use host IP — iOS Simulator can reach host via local network
-const API_BASE = 'http://192.168.1.143:4000/api/v1';
+const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 export const apiClient = axios.create({
   baseURL: API_BASE,
@@ -16,13 +15,5 @@ apiClient.interceptors.request.use(async (config) => {
   }
   return config;
 });
-
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const message = error.response?.data?.error || 'Network error';
-    return Promise.reject(new Error(message));
-  }
-);
 
 export default apiClient;

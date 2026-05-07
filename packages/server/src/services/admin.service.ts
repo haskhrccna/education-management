@@ -338,9 +338,13 @@ export const deleteUser = async (userId: string) => {
       status: 'BANNED',
       firstName: 'Deleted User',
       lastName: '',
+      email: `deleted-${userId}@deleted.local`,
+      passwordHash: 'DELETED',
+      refreshTokenHash: null,
+      deviceToken: null,
       deletedAt: new Date(),
-     },
-   });
+    },
+  });
 
   return { id: userId, deleted: true };
 };

@@ -15,7 +15,7 @@ export const downloadRecording = async (req: Request, res: Response, next: NextF
     }
 
     const isOwner = recording.studentId === req.userId;
-    const isTeacherOrAdmin = req.userRole === 'teacher' || req.userRole === 'admin';
+    const isTeacherOrAdmin = req.userRole === 'TEACHER' || req.userRole === 'ADMIN';
     if (!isOwner && !isTeacherOrAdmin) {
       next(new AppError(403, 'Permission denied'));
       return;
@@ -45,7 +45,7 @@ export const downloadReport = async (req: Request, res: Response, next: NextFunc
     }
 
     const isOwner = report.studentId === req.userId;
-    const isTeacherOrAdmin = req.userRole === 'teacher' || req.userRole === 'admin';
+    const isTeacherOrAdmin = req.userRole === 'TEACHER' || req.userRole === 'ADMIN';
     if (!isOwner && !isTeacherOrAdmin) {
       next(new AppError(403, 'Permission denied'));
       return;

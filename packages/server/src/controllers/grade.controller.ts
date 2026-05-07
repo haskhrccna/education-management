@@ -1,21 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import * as gradeService from '../services/grade.service';
-import { AppError } from '../middleware/error.middleware';
 
 export const createGrade = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const body = req.body as any;
-    if (!body.studentId || !body.subject || !body.grade || !body.type) {
-      throw new AppError(400, 'studentId, subject, grade, and type are required');
-    }
-    const created = await gradeService.createGrade(
-      req.userId!,
-      body.studentId,
-      body.subject,
-      body.grade,
-      body.type,
-      body.notes
-    );
+    const { studentId, subject, grade, type, notes } = req.body;
+    const created = await gradeService.createGrade(req.userId!, studentId, subject, grade, type, notes);
     res.status(201).json(created);
   } catch (err) {
     next(err);

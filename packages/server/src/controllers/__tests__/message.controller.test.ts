@@ -65,11 +65,13 @@ describe('message.controller', () => {
       expect(res.body.content).toBe('Hello');
     });
 
-    it('should reject missing receiverId', async () => {
-      const app = createTestApp('user-1');
-      const res = await request(app).post('/').send({ content: 'Hello' });
+    it('should return 404 when messaging a deleted user', async () => {
+      mockedPrisma.user.findUnique.mockResolvedValue({ id: 'receiver-1', deletedAt: new Date() } as any);
 
-      expect(res.status).toBe(400);
+      const app = createTestApp('user-1');
+      const res = await request(app).post('/').send({ receiverId: 'receiver-1', content: 'Hello', type: 'TEXT' });
+
+      expect(res.status).toBe(404);
     });
   });
 
