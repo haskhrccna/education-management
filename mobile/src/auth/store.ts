@@ -2,15 +2,8 @@ import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 import { apiClient } from '../api/client';
 import { authApi } from '../api';
-
-export interface AuthUser {
-  id: string;
-  email: string;
-  role: 'student' | 'teacher' | 'admin';
-  firstName: string;
-  lastName: string;
-  status: 'pending' | 'approved' | 'active' | 'banned';
-}
+import type { AuthUser } from '../api/auth';
+export type { AuthUser } from '../api/auth';
 
 interface AuthState {
   user: AuthUser | null;
@@ -63,6 +56,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: async () => {
+    // Best-effort server revocation — always clear locally regardless of network
+    try { await authApi.logout(); } catch { /* ignore */ }
     await SecureStore.deleteItemAsync('auth_token');
     await SecureStore.deleteItemAsync('refresh_token');
     delete apiClient.defaults.headers.common.Authorization;
