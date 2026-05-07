@@ -73,7 +73,13 @@ export const getMessagesWithUser = async (userId: string, partnerId: string, ski
   });
 };
 
-export const sendMessage = async (senderId: string, receiverId: string, type: MsgType, content: string, attachmentUrl?: string) => {
+export const sendMessage = async (
+  senderId: string,
+  receiverId: string,
+  type: MsgType,
+  content: string,
+  attachmentUrl?: string
+) => {
   if (senderId === receiverId) throw new AppError(400, 'Cannot message yourself');
 
   const receiver = await prisma.user.findUnique({ where: { id: receiverId } });

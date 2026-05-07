@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload, JsonWebTokenError } from 'jsonwebtoken';
+import { prisma } from '../prisma/client';
 import { config } from '../config';
-import { UserRole } from '@edu/shared';
+import { UserRole } from '@quran-review/shared';
 import { AppError } from './error.middleware';
 
-export const authenticate = (req: Request, res: Response, next: NextFunction): void => {
+export const authenticate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) {
     next(new AppError(401, 'Authentication required'));
@@ -12,12 +13,25 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
   }
   const token = header.slice(7);
   try {
-    const payload = jwt.verify(token, config.jwtSecret) as { userId: string; role: string };
-    req.userId = payload.userId;
+    const payload = jwt.verify(token, config.jwtSecret) as JwtPayload;
+    req.userId = payload.sub || payload.userId;
     req.userRole = payload.role;
+
+    // Invalidate tokens issued before last password change
+    if (payload.iat) {
+      const user = await prisma.user.findUnique({
+        where: { id: req.userId },
+        select: { passwordChangedAt: true },
+      });
+      if (user?.passwordChangedAt && new Date(payload.iat * 1000) < user.passwordChangedAt) {
+        next(new AppError(401, 'Token invalidated by password change'));
+        return;
+      }
+    }
+
     next();
-  } catch {
-    next(new AppError(401, 'Invalid or expired token'));
+  } catch (err) {
+    next(err instanceof JsonWebTokenError ? new AppError(401, 'Invalid or expired token') : err);
   }
 };
 

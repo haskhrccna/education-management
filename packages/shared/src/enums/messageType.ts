@@ -1,5 +1,5 @@
 export enum MessageType {
-  TEXT = 'text',
-  FILE = 'file',
-  SYSTEM = 'system',
+  TEXT = 'TEXT',
+  FILE = 'FILE',
+  SYSTEM = 'SYSTEM',
 }

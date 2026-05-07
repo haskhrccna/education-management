@@ -22,13 +22,7 @@ export const gradesApi = {
     return res.data;
   },
 
-  create: async (data: {
-    studentId: string;
-    subject: string;
-    grade: string;
-    type: string;
-    notes?: string;
-  }) => {
+  create: async (data: { studentId: string; subject: string; grade: string; type: string; notes?: string }) => {
     const res = await apiClient.post('/grades', data);
     return res.data;
   },

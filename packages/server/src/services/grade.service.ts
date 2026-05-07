@@ -3,7 +3,14 @@ import { AppError } from '../middleware/error.middleware';
 
 type GradeTypeInput = 'QUIZ' | 'ASSIGNMENT' | 'EXAM' | 'ORAL' | 'PARTICIPATION';
 
-export const createGrade = async (teacherId: string, studentId: string, subject: string, gradeValue: string, type: GradeTypeInput, notes?: string) => {
+export const createGrade = async (
+  teacherId: string,
+  studentId: string,
+  subject: string,
+  gradeValue: string,
+  type: GradeTypeInput,
+  notes?: string
+) => {
   const student = await prisma.user.findUnique({ where: { id: studentId } });
   if (!student) throw new AppError(404, 'Student not found');
   if (student.role !== 'STUDENT') throw new AppError(400, 'Target user is not a student');

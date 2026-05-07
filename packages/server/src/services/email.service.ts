@@ -60,7 +60,10 @@ export const sendWelcomeEmail = async (to: string, name: string, lang: 'ar' | 'e
     to,
     subject: lang === 'ar' ? 'مرحباً بك في منصة التعليم الإلكتروني' : 'Welcome to Electronic Education Platform',
     html: templates.welcome({ name }, lang),
-    text: lang === 'ar' ? `مرحباً ${name}! تم إنشاء حسابك وهو قيد انتظار الموافقة.` : `Welcome, ${name}! Your account is pending approval.`,
+    text:
+      lang === 'ar'
+        ? `مرحباً ${name}! تم إنشاء حسابك وهو قيد انتظار الموافقة.`
+        : `Welcome, ${name}! Your account is pending approval.`,
   });
 };
 
@@ -69,12 +72,25 @@ export const sendAccountApprovedEmail = async (to: string, name: string, lang: '
     to,
     subject: lang === 'ar' ? 'تمت الموافقة على حسابك' : 'Your account has been approved',
     html: templates.accountApproved({ name }, lang),
-    text: lang === 'ar' ? `تهانينا ${name}! تمت الموافقة على حسابك.` : `Congratulations, ${name}! Your account has been approved.`,
+    text:
+      lang === 'ar'
+        ? `تهانينا ${name}! تمت الموافقة على حسابك.`
+        : `Congratulations, ${name}! Your account has been approved.`,
   });
 };
 
-export const sendAppointmentNotification = async (to: string, name: string, status: string, date: string, time: string, lang: 'ar' | 'en' = 'ar') => {
-  const subject = lang === 'ar' ? `تحديث الموعد — ${status === 'ACCEPTED' ? 'مقبول' : status === 'REJECTED' ? 'مرفوض' : 'محدث'}` : `Appointment ${status.toLowerCase()}`;
+export const sendAppointmentNotification = async (
+  to: string,
+  name: string,
+  status: string,
+  date: string,
+  time: string,
+  lang: 'ar' | 'en' = 'ar'
+) => {
+  const subject =
+    lang === 'ar'
+      ? `تحديث الموعد — ${status === 'ACCEPTED' ? 'مقبول' : status === 'REJECTED' ? 'مرفوض' : 'محدث'}`
+      : `Appointment ${status.toLowerCase()}`;
   await sendEmail({
     to,
     subject,
@@ -83,7 +99,13 @@ export const sendAppointmentNotification = async (to: string, name: string, stat
   });
 };
 
-export const sendNewGradeEmail = async (to: string, name: string, subject: string, grade: string, lang: 'ar' | 'en' = 'ar') => {
+export const sendNewGradeEmail = async (
+  to: string,
+  name: string,
+  subject: string,
+  grade: string,
+  lang: 'ar' | 'en' = 'ar'
+) => {
   await sendEmail({
     to,
     subject: lang === 'ar' ? `درجة جديدة: ${subject}` : `New grade: ${subject}`,

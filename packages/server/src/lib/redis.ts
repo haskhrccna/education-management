@@ -36,7 +36,7 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
   }
 }
 
-export async function cacheSet(key: string, value: any, ttlSeconds: number = 300): Promise<void> {
+export async function cacheSet<T>(key: string, value: T, ttlSeconds: number = 300): Promise<void> {
   const client = getRedis();
   if (!client) return;
   try {

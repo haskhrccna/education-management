@@ -2,8 +2,8 @@ import { Router } from 'express';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validate.middleware';
 import { paginate } from '../middleware/pagination.middleware';
-import { UserRole } from '@edu/shared';
-import { CreateTeacherSchema, BroadcastMessageSchema } from '@edu/shared';
+import { UserRole } from '@quran-review/shared'
+import { CreateTeacherSchema, BroadcastMessageSchema } from '@quran-review/shared'
 import * as adminController from '../controllers/admin.controller';
 const router = Router();
 

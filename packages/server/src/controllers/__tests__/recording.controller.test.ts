@@ -79,9 +79,7 @@ describe('recording.controller', () => {
       mockedPrisma.recording.update.mockResolvedValue({ id: 'rec-1', approvedAt: new Date() } as any);
 
       const app = createTestApp('teacher-1', 'teacher');
-      const res = await request(app)
-        .put('/rec-1')
-        .send({ approved: true, notes: 'Good' });
+      const res = await request(app).put('/rec-1').send({ approved: true, notes: 'Good' });
 
       expect(res.status).toBe(200);
     });

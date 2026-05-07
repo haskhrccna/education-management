@@ -18,7 +18,8 @@ export const listUsers = async (req: PaginatedRequest, res: Response, next: Next
 
 export const createTeacher = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { email, password, firstName, lastName } = req.body as any;
+    const body = req.body as { email?: string; password?: string; firstName?: string; lastName?: string };
+    const { email, password, firstName, lastName } = body;
     if (!email || !password || !firstName || !lastName) {
       throw new AppError(400, 'email, password, firstName, and lastName are required');
     }
@@ -96,7 +97,8 @@ export const getStudentProgress = async (req: Request, res: Response, next: Next
 
 export const broadcastMessage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { message, targetRole }: any = req.body;
+    const body = req.body as { message?: string; targetRole?: string };
+    const { message, targetRole } = body;
     if (!message) throw new AppError(400, 'message is required');
     const result = await adminService.broadcastMessage(message, targetRole);
     await auditLog({
@@ -114,7 +116,8 @@ export const broadcastMessage = async (req: Request, res: Response, next: NextFu
 
 export const bulkApprove = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { ids }: any = req.body;
+    const body = req.body as { ids?: string[] };
+    const { ids } = body;
     if (!Array.isArray(ids) || ids.length === 0) throw new AppError(400, 'ids array is required');
     const results = await adminService.bulkApproveStudents(ids);
     await auditLog({
@@ -178,7 +181,8 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
 
 export const bulkDeactivate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { ids }: any = req.body;
+    const body = req.body as { ids?: string[] };
+    const { ids } = body;
     if (!Array.isArray(ids) || ids.length === 0) throw new AppError(400, 'ids array is required');
     const results = await adminService.bulkDeactivateUsers(ids);
     await auditLog({

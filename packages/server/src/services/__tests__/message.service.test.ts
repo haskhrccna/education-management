@@ -50,14 +50,12 @@ describe('message.service', () => {
     });
 
     it('should reject self-messaging', async () => {
-      await expect(sendMessage('user-1', 'user-1', 'TEXT', 'Hello'))
-        .rejects.toThrow('Cannot message yourself');
+      await expect(sendMessage('user-1', 'user-1', 'TEXT', 'Hello')).rejects.toThrow('Cannot message yourself');
     });
 
     it('should reject unknown receiver', async () => {
       mockedPrisma.user.findUnique.mockResolvedValue(null);
-      await expect(sendMessage('sender-1', 'unknown', 'TEXT', 'Hello'))
-        .rejects.toThrow('Receiver not found');
+      await expect(sendMessage('sender-1', 'unknown', 'TEXT', 'Hello')).rejects.toThrow('Receiver not found');
     });
   });
 
@@ -79,14 +77,12 @@ describe('message.service', () => {
         receiverId: 'user-2',
       } as any);
 
-      await expect(markAsRead('msg-1', 'user-1'))
-        .rejects.toThrow('Permission denied');
+      await expect(markAsRead('msg-1', 'user-1')).rejects.toThrow('Permission denied');
     });
 
     it('should reject unknown message', async () => {
       mockedPrisma.message.findUnique.mockResolvedValue(null);
-      await expect(markAsRead('msg-1', 'user-1'))
-        .rejects.toThrow('Message not found');
+      await expect(markAsRead('msg-1', 'user-1')).rejects.toThrow('Message not found');
     });
   });
 });

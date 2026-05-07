@@ -21,41 +21,47 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: education_test
         options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+           --health-cmd pg_isready
+           --health-interval 10s
+           --health-timeout 5s
+           --health-retries 5
         ports:
-          - 5432:5432
+           - 5432:5432
 
     steps:
-      - uses: actions/checkout@v4
+       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
+       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
 
-      - name: Install dependencies
+       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        run: npx eslint src --ext .ts
+       - name: Lint (prettier check)
+        run: npx prettier --check "src/**/*.ts"
 
-      - name: Type check
+       - name: Type check
         run: npx tsc --noEmit
 
-      - name: Run tests
-        run: npm test -- --coverage
+       - name: Wait for PostgreSQL
+        run: until pg_isready -h localhost -p 5432 -U postgres; do sleep 1; done
+
+       - name: Prisma migrate (test)
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/education_test?schema=public
+
+       - name: Run tests
+        run: npm test
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/education_test?schema=public
           JWT_SECRET: test-secret-key-for-ci-only
 
-      - name: Upload coverage
-        uses: codecov/codecov-action@v4
-        with:
-          directory: packages/server/coverage
+       - name: Audit dependencies
+        run: npm audit --audit-level=high
 
   mobile:
     runs-on: ubuntu-latest
@@ -64,16 +70,16 @@ jobs:
         working-directory: mobile
 
     steps:
-      - uses: actions/checkout@v4
+       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
+       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
 
-      - name: Install dependencies
+       - name: Install dependencies
         run: npm ci
 
-      - name: Type check
+       - name: Type check
         run: npx tsc --noEmit

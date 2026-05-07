@@ -1,4 +1,13 @@
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -34,10 +43,7 @@ export default function LoginPage() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="dark" />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
@@ -107,12 +113,8 @@ export default function LoginPage() {
               activeOpacity={0.8}
             >
               <View style={styles.buttonInner}>
-                <Text style={styles.buttonText}>
-                  {isLoading ? t('loading') : t('login')}
-                </Text>
-                {!isLoading && (
-                  <Text style={styles.buttonIcon}>→</Text>
-                )}
+                <Text style={styles.buttonText}>{isLoading ? t('loading') : t('login')}</Text>
+                {!isLoading && <Text style={styles.buttonIcon}>→</Text>}
               </View>
             </TouchableOpacity>
           </Animated.View>
@@ -137,178 +139,179 @@ export default function LoginPage() {
   );
 }
 
-const createStyles = (COLORS: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: SPACING['2xl'],
-    paddingVertical: SPACING['3xl'],
-  },
-  topDecoration: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: SPACING.xl,
-    gap: SPACING.sm,
-  },
-  patternLine: {
-    width: 40,
-    height: 2,
-    backgroundColor: COLORS.gold,
-    opacity: 0.4,
-  },
-  patternDiamond: {
-    width: 8,
-    height: 8,
-    backgroundColor: COLORS.gold,
-    transform: [{ rotate: '45deg' }],
-    opacity: 0.5,
-  },
-  bottomDecoration: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: SPACING['2xl'],
-    gap: SPACING.sm,
-  },
-  patternLineSmall: {
-    width: 24,
-    height: 1,
-    backgroundColor: COLORS.primary,
-    opacity: 0.3,
-  },
-  patternDot: {
-    width: 4,
-    height: 4,
-    borderRadius: RADIUS.full,
-    backgroundColor: COLORS.primary,
-    opacity: 0.3,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: SPACING['3xl'],
-  },
-  iconContainer: {
-    position: 'relative',
-    marginBottom: SPACING.lg,
-  },
-  quranIcon: {
-    fontSize: 72,
-    zIndex: 2,
-  },
-  iconGlow: {
-    position: 'absolute',
-    top: -8,
-    left: -8,
-    right: -8,
-    bottom: -8,
-    borderRadius: RADIUS.full,
-    backgroundColor: COLORS.primaryMuted,
-    opacity: 0.4,
-    zIndex: 1,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: COLORS.primaryDark,
-    letterSpacing: -0.5,
-    marginBottom: SPACING.xs,
-  },
-  tagline: {
-    fontSize: 15,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
-  },
-  form: {
-    gap: SPACING.lg,
-  },
-  errorBox: {
-    backgroundColor: COLORS.errorLight,
-    padding: SPACING.lg,
-    borderRadius: RADIUS.md,
-    borderRightWidth: 3,
-    borderRightColor: COLORS.error,
-  },
-  errorText: {
-    color: COLORS.error,
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'right',
-  },
-  inputContainer: {
-    gap: SPACING.xs,
-  },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.xs,
-    textAlign: 'right',
-  },
-  input: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
-    fontSize: 16,
-    color: COLORS.textPrimary,
-    borderWidth: 1,
-    borderColor: '#e7e5e4',
-    textAlign: 'right',
-  },
-  inputUnderline: {
-    height: 2,
-    backgroundColor: COLORS.primary,
-    opacity: 0.15,
-    marginTop: -2,
-    borderBottomLeftRadius: RADIUS.lg,
-    borderBottomRightRadius: RADIUS.lg,
-  },
-  button: {
-    backgroundColor: COLORS.primary,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    marginTop: SPACING.sm,
-    ...SHADOWS.md,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.sm,
-  },
-  buttonText: {
-    color: COLORS.textOnPrimary,
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  buttonIcon: {
-    color: COLORS.goldLight,
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: SPACING['2xl'],
-    gap: SPACING.xs,
-  },
-  footerText: {
-    color: COLORS.textSecondary,
-    fontSize: 15,
-  },
-  linkText: {
-    color: COLORS.primary,
-    fontWeight: '700',
-    fontSize: 15,
-  },
-});
+const createStyles = (COLORS: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+    },
+    keyboardView: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      paddingHorizontal: SPACING['2xl'],
+      paddingVertical: SPACING['3xl'],
+    },
+    topDecoration: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: SPACING.xl,
+      gap: SPACING.sm,
+    },
+    patternLine: {
+      width: 40,
+      height: 2,
+      backgroundColor: COLORS.gold,
+      opacity: 0.4,
+    },
+    patternDiamond: {
+      width: 8,
+      height: 8,
+      backgroundColor: COLORS.gold,
+      transform: [{ rotate: '45deg' }],
+      opacity: 0.5,
+    },
+    bottomDecoration: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: SPACING['2xl'],
+      gap: SPACING.sm,
+    },
+    patternLineSmall: {
+      width: 24,
+      height: 1,
+      backgroundColor: COLORS.primary,
+      opacity: 0.3,
+    },
+    patternDot: {
+      width: 4,
+      height: 4,
+      borderRadius: RADIUS.full,
+      backgroundColor: COLORS.primary,
+      opacity: 0.3,
+    },
+    header: {
+      alignItems: 'center',
+      marginBottom: SPACING['3xl'],
+    },
+    iconContainer: {
+      position: 'relative',
+      marginBottom: SPACING.lg,
+    },
+    quranIcon: {
+      fontSize: 72,
+      zIndex: 2,
+    },
+    iconGlow: {
+      position: 'absolute',
+      top: -8,
+      left: -8,
+      right: -8,
+      bottom: -8,
+      borderRadius: RADIUS.full,
+      backgroundColor: COLORS.primaryMuted,
+      opacity: 0.4,
+      zIndex: 1,
+    },
+    title: {
+      fontSize: 32,
+      fontWeight: '800',
+      color: COLORS.primaryDark,
+      letterSpacing: -0.5,
+      marginBottom: SPACING.xs,
+    },
+    tagline: {
+      fontSize: 15,
+      color: COLORS.textSecondary,
+      fontWeight: '500',
+    },
+    form: {
+      gap: SPACING.lg,
+    },
+    errorBox: {
+      backgroundColor: COLORS.errorLight,
+      padding: SPACING.lg,
+      borderRadius: RADIUS.md,
+      borderRightWidth: 3,
+      borderRightColor: COLORS.error,
+    },
+    errorText: {
+      color: COLORS.error,
+      fontSize: 14,
+      fontWeight: '600',
+      textAlign: 'right',
+    },
+    inputContainer: {
+      gap: SPACING.xs,
+    },
+    inputLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: COLORS.textSecondary,
+      marginBottom: SPACING.xs,
+      textAlign: 'right',
+    },
+    input: {
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS.lg,
+      padding: SPACING.lg,
+      fontSize: 16,
+      color: COLORS.textPrimary,
+      borderWidth: 1,
+      borderColor: '#e7e5e4',
+      textAlign: 'right',
+    },
+    inputUnderline: {
+      height: 2,
+      backgroundColor: COLORS.primary,
+      opacity: 0.15,
+      marginTop: -2,
+      borderBottomLeftRadius: RADIUS.lg,
+      borderBottomRightRadius: RADIUS.lg,
+    },
+    button: {
+      backgroundColor: COLORS.primary,
+      borderRadius: RADIUS.lg,
+      padding: SPACING.lg,
+      alignItems: 'center',
+      marginTop: SPACING.sm,
+      ...SHADOWS.md,
+    },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+    buttonInner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.sm,
+    },
+    buttonText: {
+      color: COLORS.textOnPrimary,
+      fontSize: 17,
+      fontWeight: '700',
+    },
+    buttonIcon: {
+      color: COLORS.goldLight,
+      fontSize: 18,
+      fontWeight: '700',
+    },
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      marginTop: SPACING['2xl'],
+      gap: SPACING.xs,
+    },
+    footerText: {
+      color: COLORS.textSecondary,
+      fontSize: 15,
+    },
+    linkText: {
+      color: COLORS.primary,
+      fontWeight: '700',
+      fontSize: 15,
+    },
+  });

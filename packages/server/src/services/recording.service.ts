@@ -7,7 +7,11 @@ import { AppError } from '../middleware/error.middleware';
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 
 export const ensureUploadDir = async () => {
-  try { await fs.access(UPLOAD_DIR); } catch { await fs.mkdir(UPLOAD_DIR, { recursive: true }); }
+  try {
+    await fs.access(UPLOAD_DIR);
+  } catch {
+    await fs.mkdir(UPLOAD_DIR, { recursive: true });
+  }
 };
 
 export const uploadRecording = async (
@@ -28,7 +32,11 @@ export const uploadRecording = async (
       await fs.unlink(tempFilePath);
     } catch (err) {
       // Clean up temp file if final copy failed
-      try { await fs.unlink(tempFilePath); } catch { /* ignore */ }
+      try {
+        await fs.unlink(tempFilePath);
+      } catch {
+        /* ignore */
+      }
       throw new AppError(500, 'Failed to process uploaded file');
     }
   }
@@ -71,7 +79,11 @@ export const deleteRecording = async (recordingId: string, userId: string, isTea
 
   const fileName = recording.url.split('/').pop() || '';
   const filePath = path.join(UPLOAD_DIR, fileName);
-  try { await fs.unlink(filePath); } catch { /* already deleted */ }
+  try {
+    await fs.unlink(filePath);
+  } catch {
+    /* already deleted */
+  }
 
   return await prisma.recording.delete({ where: { id: recordingId } });
 };

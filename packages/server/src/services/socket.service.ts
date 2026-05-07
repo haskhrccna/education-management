@@ -7,7 +7,9 @@ import { logger } from '../lib/logger';
 let io: SocketIOServer;
 
 export const setupSocketIO = (server: http.Server) => {
-  io = new SocketIOServer(server, { cors: { origin: config.env === 'production' ? process.env.CLIENT_URL || false : '*', methods: ['GET', 'POST'] } });
+  io = new SocketIOServer(server, {
+    cors: { origin: config.env === 'production' ? process.env.CLIENT_URL || false : '*', methods: ['GET', 'POST'] },
+  });
 
   io.use((socket: Socket, next) => {
     const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.replace('Bearer ', '');

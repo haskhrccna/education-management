@@ -1,7 +1,7 @@
 export enum GradeType {
-  QUIZ = 'quiz',
-  ASSIGNMENT = 'assignment',
-  EXAM = 'exam',
-  ORAL = 'oral',
-  PARTICIPATION = 'participation',
+  QUIZ = 'QUIZ',
+  ASSIGNMENT = 'ASSIGNMENT',
+  EXAM = 'EXAM',
+  ORAL = 'ORAL',
+  PARTICIPATION = 'PARTICIPATION',
 }

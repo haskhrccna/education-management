@@ -14,7 +14,7 @@ export const generateReport = async (req: Request, res: Response, next: NextFunc
 
     const pdfUrl = await reportService.generatePDFReport(req.userId!, studentId, summary || '');
     const report = await prisma.report.create({
-      data: { teacherId: req.userId!, studentId, pdfUrl, generatedAt: new Date(), summary: summary || '' }
+      data: { teacherId: req.userId!, studentId, pdfUrl, generatedAt: new Date(), summary: summary || '' },
     });
     res.status(201).json(report);
   } catch (err) {

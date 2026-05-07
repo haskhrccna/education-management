@@ -52,9 +52,7 @@ describe('appointment.controller', () => {
 
     it('should reject missing fields', async () => {
       const app = createTestApp('student-1', 'student');
-      const res = await request(app)
-        .post('/')
-        .send({ teacherId: 'teacher-1' });
+      const res = await request(app).post('/').send({ teacherId: 'teacher-1' });
 
       expect(res.status).toBe(400);
     });
@@ -82,9 +80,7 @@ describe('appointment.controller', () => {
       mockedPrisma.appointment.update.mockResolvedValue({ id: 'appt-1', status: 'ACCEPTED' } as any);
 
       const app = createTestApp('teacher-1', 'teacher');
-      const res = await request(app)
-        .put('/appt-1')
-        .send({ action: 'ACCEPTED' });
+      const res = await request(app).put('/appt-1').send({ action: 'ACCEPTED' });
 
       expect(res.status).toBe(200);
       expect(res.body.status).toBe('ACCEPTED');
@@ -97,9 +93,7 @@ describe('appointment.controller', () => {
       } as any);
 
       const app = createTestApp('teacher-1', 'teacher');
-      const res = await request(app)
-        .put('/appt-1')
-        .send({ action: 'ACCEPTED' });
+      const res = await request(app).put('/appt-1').send({ action: 'ACCEPTED' });
 
       expect(res.status).toBe(403);
     });

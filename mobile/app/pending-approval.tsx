@@ -53,103 +53,104 @@ export default function PendingApprovalPage() {
   );
 }
 
-const createStyles = (COLORS: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: SPACING['2xl'],
-  },
-  card: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS['2xl'],
-    padding: SPACING['3xl'],
-    alignItems: 'center',
-    ...SHADOWS.lg,
-    borderTopWidth: 4,
-    borderTopColor: COLORS.gold,
-  },
-  iconContainer: {
-    position: 'relative',
-    marginBottom: SPACING.lg,
-  },
-  hourglass: {
-    fontSize: 56,
-    zIndex: 2,
-  },
-  pulseRing: {
-    position: 'absolute',
-    top: -12,
-    left: -12,
-    right: -12,
-    bottom: -12,
-    borderRadius: RADIUS.full,
-    backgroundColor: COLORS.goldMuted,
-    opacity: 0.4,
-    zIndex: 1,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: COLORS.primaryDark,
-    marginBottom: SPACING.sm,
-    textAlign: 'center',
-  },
-  description: {
-    fontSize: 15,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: SPACING['2xl'],
-  },
-  steps: {
-    width: '100%',
-    alignItems: 'flex-end',
-    gap: SPACING.xs,
-    paddingHorizontal: SPACING.xl,
-  },
-  step: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.sm,
-  },
-  stepDot: {
-    width: 10,
-    height: 10,
-    borderRadius: RADIUS.full,
-    backgroundColor: COLORS.textMuted,
-  },
-  stepActive: {
-    backgroundColor: COLORS.success,
-  },
-  stepLine: {
-    width: 2,
-    height: 24,
-    backgroundColor: '#e7e5e4',
-    marginRight: 4,
-  },
-  stepText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
-  },
-  footer: {
-    marginTop: SPACING['3xl'],
-    alignItems: 'center',
-  },
-  button: {
-    backgroundColor: COLORS.primary,
-    borderRadius: RADIUS.lg,
-    paddingVertical: SPACING.lg,
-    paddingHorizontal: SPACING['3xl'],
-    ...SHADOWS.md,
-  },
-  buttonText: {
-    color: COLORS.textOnPrimary,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-});
+const createStyles = (COLORS: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+    },
+    content: {
+      flex: 1,
+      justifyContent: 'center',
+      padding: SPACING['2xl'],
+    },
+    card: {
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS['2xl'],
+      padding: SPACING['3xl'],
+      alignItems: 'center',
+      ...SHADOWS.lg,
+      borderTopWidth: 4,
+      borderTopColor: COLORS.gold,
+    },
+    iconContainer: {
+      position: 'relative',
+      marginBottom: SPACING.lg,
+    },
+    hourglass: {
+      fontSize: 56,
+      zIndex: 2,
+    },
+    pulseRing: {
+      position: 'absolute',
+      top: -12,
+      left: -12,
+      right: -12,
+      bottom: -12,
+      borderRadius: RADIUS.full,
+      backgroundColor: COLORS.goldMuted,
+      opacity: 0.4,
+      zIndex: 1,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: '800',
+      color: COLORS.primaryDark,
+      marginBottom: SPACING.sm,
+      textAlign: 'center',
+    },
+    description: {
+      fontSize: 15,
+      color: COLORS.textSecondary,
+      textAlign: 'center',
+      lineHeight: 24,
+      marginBottom: SPACING['2xl'],
+    },
+    steps: {
+      width: '100%',
+      alignItems: 'flex-end',
+      gap: SPACING.xs,
+      paddingHorizontal: SPACING.xl,
+    },
+    step: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.sm,
+    },
+    stepDot: {
+      width: 10,
+      height: 10,
+      borderRadius: RADIUS.full,
+      backgroundColor: COLORS.textMuted,
+    },
+    stepActive: {
+      backgroundColor: COLORS.success,
+    },
+    stepLine: {
+      width: 2,
+      height: 24,
+      backgroundColor: '#e7e5e4',
+      marginRight: 4,
+    },
+    stepText: {
+      fontSize: 14,
+      color: COLORS.textSecondary,
+      fontWeight: '500',
+    },
+    footer: {
+      marginTop: SPACING['3xl'],
+      alignItems: 'center',
+    },
+    button: {
+      backgroundColor: COLORS.primary,
+      borderRadius: RADIUS.lg,
+      paddingVertical: SPACING.lg,
+      paddingHorizontal: SPACING['3xl'],
+      ...SHADOWS.md,
+    },
+    buttonText: {
+      color: COLORS.textOnPrimary,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+  });

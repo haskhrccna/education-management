@@ -1,7 +1,11 @@
 import { prisma } from '../prisma/client';
 import { logger } from '../lib/logger';
 
-let fcm: any = null;
+interface FcmClient {
+  initialized?: boolean;
+}
+
+let fcm: FcmClient | null = null;
 const SERVICE_ACCOUNT_KEY = process.env.FCM_SERVICE_ACCOUNT_KEY;
 
 // Initialize with GCP service account JSON (base64 encoded) or file path
@@ -33,7 +37,12 @@ export const saveDeviceToken = async (userId: string, deviceToken: string) => {
 };
 
 // Send push notification to specific user
-export const sendPushNotification = async (userId: string, title: string, body: string, data?: Record<string, string>) => {
+export const sendPushNotification = async (
+  userId: string,
+  title: string,
+  body: string,
+  data?: Record<string, string>
+) => {
   if (!fcm?.initialized) return;
 
   try {

@@ -117,7 +117,7 @@ const enTranslations: Record<string, string> = {
   register: 'Register',
   firstName: 'First Name',
   lastName: 'Last Name',
-  haveAccount: "Already have an account?",
+  haveAccount: 'Already have an account?',
   signIn: 'Sign In',
   verifyEmail: 'Verify Your Email',
   verifyEmailDesc: 'We sent a verification code to your email. Enter it below.',

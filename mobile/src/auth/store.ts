@@ -17,7 +17,13 @@ interface AuthState {
   token: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
-  register: (email: string, password: string, role: 'student' | 'teacher', firstName: string, lastName: string) => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    role: 'student' | 'teacher',
+    firstName: string,
+    lastName: string
+  ) => Promise<void>;
   logout: () => Promise<void>;
   loadSession: () => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;

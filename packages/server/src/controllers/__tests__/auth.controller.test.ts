@@ -26,10 +26,14 @@ const app = express();
 app.use(express.json());
 app.post('/register', register);
 app.post('/login', login);
-app.post('/verify-email', (req: any, res: any, next: any) => {
-  req.userId = 'user-1';
-  next();
-}, verifyEmail);
+app.post(
+  '/verify-email',
+  (req: any, res: any, next: any) => {
+    req.userId = 'user-1';
+    next();
+  },
+  verifyEmail
+);
 
 describe('auth.controller', () => {
   beforeEach(() => {
@@ -48,7 +52,13 @@ describe('auth.controller', () => {
 
       const res = await request(app)
         .post('/register')
-        .send({ email: 'test@example.com', password: 'Password123!', role: 'student', firstName: 'Test', lastName: 'User' });
+        .send({
+          email: 'test@example.com',
+          password: 'Password123!',
+          role: 'student',
+          firstName: 'Test',
+          lastName: 'User',
+        });
 
       expect(res.status).toBe(201);
       expect(res.body.user.status).toBe('PENDING');
@@ -60,7 +70,13 @@ describe('auth.controller', () => {
 
       const res = await request(app)
         .post('/register')
-        .send({ email: 'existing@test.com', password: 'Password123!', role: 'student', firstName: 'Test', lastName: 'User' });
+        .send({
+          email: 'existing@test.com',
+          password: 'Password123!',
+          role: 'student',
+          firstName: 'Test',
+          lastName: 'User',
+        });
 
       expect(res.status).toBe(409);
     });
@@ -79,9 +95,7 @@ describe('auth.controller', () => {
       } as any);
       mockedPrisma.user.update.mockResolvedValue({ id: 'user-1' } as any);
 
-      const res = await request(app)
-        .post('/login')
-        .send({ email: 'active@test.com', password: 'Password123!' });
+      const res = await request(app).post('/login').send({ email: 'active@test.com', password: 'Password123!' });
 
       expect(res.status).toBe(200);
       expect(res.body.token).toBe('test-token');
@@ -97,9 +111,7 @@ describe('auth.controller', () => {
         status: 'PENDING',
       } as any);
 
-      const res = await request(app)
-        .post('/login')
-        .send({ email: 'pending@test.com', password: 'Password123!' });
+      const res = await request(app).post('/login').send({ email: 'pending@test.com', password: 'Password123!' });
 
       expect(res.status).toBe(403);
     });
@@ -107,9 +119,7 @@ describe('auth.controller', () => {
     it('should reject invalid credentials', async () => {
       mockedPrisma.user.findUnique.mockResolvedValue(null);
 
-      const res = await request(app)
-        .post('/login')
-        .send({ email: 'unknown@test.com', password: 'Password123!' });
+      const res = await request(app).post('/login').send({ email: 'unknown@test.com', password: 'Password123!' });
 
       expect(res.status).toBe(401);
     });
@@ -122,9 +132,7 @@ describe('auth.controller', () => {
         status: 'PENDING',
       } as any);
 
-      const res = await request(app)
-        .post('/verify-email')
-        .set('Authorization', 'Bearer test-token');
+      const res = await request(app).post('/verify-email').set('Authorization', 'Bearer test-token');
 
       expect(res.status).toBe(200);
       expect(res.body.status).toBe('PENDING');

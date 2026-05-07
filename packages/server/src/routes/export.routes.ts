@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { authenticate, authorize } from '../middleware/auth.middleware';
-import { UserRole } from '@edu/shared';
+import { UserRole } from '@quran-review/shared';
 import * as exportService from '../services/export.service';
 import { AppError } from '../middleware/error.middleware';
 

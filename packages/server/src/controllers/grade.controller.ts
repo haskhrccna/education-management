@@ -8,7 +8,14 @@ export const createGrade = async (req: Request, res: Response, next: NextFunctio
     if (!body.studentId || !body.subject || !body.grade || !body.type) {
       throw new AppError(400, 'studentId, subject, grade, and type are required');
     }
-    const created = await gradeService.createGrade(req.userId!, body.studentId, body.subject, body.grade, body.type, body.notes);
+    const created = await gradeService.createGrade(
+      req.userId!,
+      body.studentId,
+      body.subject,
+      body.grade,
+      body.type,
+      body.notes
+    );
     res.status(201).json(created);
   } catch (err) {
     next(err);

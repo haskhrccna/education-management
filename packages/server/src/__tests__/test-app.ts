@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import { UserRole } from '@edu/shared';
+import { UserRole } from '@quran-review/shared'
 
 // Create a test app with overrideable auth
 export function createTestApp(userOverride?: { userId: string; userRole: UserRole }) {
@@ -9,10 +9,10 @@ export function createTestApp(userOverride?: { userId: string; userRole: UserRol
 
   // Mock auth middleware before importing app
   jest.doMock('../middleware/auth.middleware', () => ({
-    authenticate: (req: any, _res: any, next: any) => {
+    authenticate: async (req: unknown, _res: unknown, next: () => void) => {
       if (userOverride) {
-        req.userId = userOverride.userId;
-        req.userRole = userOverride.userRole;
+        (req as Record<string, string>).userId = userOverride.userId;
+        (req as Record<string, string>).userRole = userOverride.userRole;
       }
       next();
     },

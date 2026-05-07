@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url       = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -43,35 +43,52 @@ enum MessageType {
   SYSTEM
 }
 
-model User {
-  id            String     @id @default(uuid())
-  email         String     @unique
-  passwordHash  String
-  role          Role
-  firstName     String
-  lastName      String
-  status        UserStatus @default(PENDING)
-  emailVerifiedAt DateTime?
-  deviceToken   String?
-  refreshTokenHash String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+enum MemorizationStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETE
+}
 
-  appointmentsAsStudent Appointment[] @relation("StudentAppointments")
-  appointmentsAsTeacher Appointment[] @relation("TeacherAppointments")
-  gradesGiven           Grade[]         @relation("TeacherGrades")
-  gradesReceived        Grade[]         @relation("StudentGrades")
-  recordings          Recording[]         @relation("StudentRecordings")
-  messagesSent        Message[]         @relation("MessageSender")
-  messagesReceived    Message[]         @relation("MessageReceiver")
-  reportsGenerated    Report[]          @relation("TeacherReports")
-  reportsReceived     Report[]          @relation("StudentReports")
-  reviewedRecordings  Recording[]       @relation("ReviewedRecordings")
-  auditLogs           AuditLog[]
+enum RevisionStatus {
+  PENDING
+  COMPLETED
+  MISSED
+}
+
+model User {
+  id                String     @id @default(uuid())
+  email             String     @unique
+  passwordHash      String
+  role              Role
+  firstName         String
+  lastName          String
+  status            UserStatus @default(PENDING)
+  emailVerifiedAt   DateTime?
+  deviceToken       String?
+  refreshTokenHash  String?
+  passwordChangedAt     DateTime?
+  deletedAt             DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  appointmentsAsStudent  Appointment[]          @relation("StudentAppointments")
+  appointmentsAsTeacher  Appointment[]          @relation("TeacherAppointments")
+  gradesGiven            Grade[]                @relation("TeacherGrades")
+  gradesReceived         Grade[]                @relation("StudentGrades")
+  recordings             Recording[]            @relation("StudentRecordings")
+  messagesSent           Message[]              @relation("MessageSender")
+  messagesReceived       Message[]              @relation("MessageReceiver")
+  reportsGenerated       Report[]               @relation("TeacherReports")
+  reportsReceived        Report[]               @relation("StudentReports")
+  reviewedRecordings     Recording[]            @relation("ReviewedRecordings")
+  memorizationProgresses MemorizationProgress[] @relation("UserMemorizations")
+  revisionSchedules      RevisionSchedule[]     @relation("UserRevisions")
+  auditLogs              AuditLog[]
 
   @@index([email])
   @@index([role, status])
   @@index([refreshTokenHash])
+    @@index([deletedAt])
   @@map("users")
 }
 
@@ -89,8 +106,8 @@ model Appointment {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
-  student         User              @relation("StudentAppointments", fields: [studentId], references: [id], onDelete: Cascade)
-  teacher         User              @relation("TeacherAppointments", fields: [teacherId], references: [id], onDelete: Cascade)
+  student User @relation("StudentAppointments", fields: [studentId], references: [id], onDelete: Cascade)
+  teacher User @relation("TeacherAppointments", fields: [teacherId], references: [id], onDelete: Cascade)
 
   @@index([teacherId, requestedDate, status])
   @@index([studentId])
@@ -99,15 +116,15 @@ model Appointment {
 }
 
 model Grade {
-  id        String     @id @default(uuid())
+  id        String    @id @default(uuid())
   studentId String
   teacherId String
   subject   String
   grade     String
   type      GradeType
   notes     String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   student User @relation("StudentGrades", fields: [studentId], references: [id], onDelete: Cascade)
   teacher User @relation("TeacherGrades", fields: [teacherId], references: [id], onDelete: Cascade)
@@ -118,22 +135,22 @@ model Grade {
 }
 
 model Recording {
-  id               String    @id @default(uuid())
-  studentId        String
-  url              String
-  fileName         String
-  fileSizeBytes    Int
-  contentType      String
-  previewImageUrl  String?
-  reviewNotes      String?
-  approvedAt       DateTime?
-  rejectedAt       DateTime?
-  reviewedBy       String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id              String    @id @default(uuid())
+  studentId       String
+  url             String
+  fileName        String
+  fileSizeBytes   Int
+  contentType     String
+  previewImageUrl String?
+  reviewNotes     String?
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  reviewedBy      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  student          User      @relation("StudentRecordings", fields: [studentId], references: [id], onDelete: Cascade)
-  reviewer         User?     @relation("ReviewedRecordings", fields: [reviewedBy], references: [id], onDelete: SetNull)
+  student  User  @relation("StudentRecordings", fields: [studentId], references: [id], onDelete: Cascade)
+  reviewer User? @relation("ReviewedRecordings", fields: [reviewedBy], references: [id], onDelete: SetNull)
 
   @@index([studentId])
   @@index([studentId, createdAt])
@@ -143,17 +160,17 @@ model Recording {
 }
 
 model Message {
-  id           String       @id @default(uuid())
-  senderId     String
-  receiverId   String
-  type         MessageType   @default(TEXT)
-  content      String
+  id            String      @id @default(uuid())
+  senderId      String
+  receiverId    String
+  type          MessageType @default(TEXT)
+  content       String
   attachmentUrl String?
-  readAt       DateTime?
-  createdAt    DateTime      @default(now())
+  readAt        DateTime?
+  createdAt     DateTime    @default(now())
 
-  sender       User          @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver     User          @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender   User @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
 
   @@index([senderId, createdAt])
   @@index([receiverId, createdAt])
@@ -163,7 +180,7 @@ model Message {
 }
 
 model Report {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   teacherId   String
   studentId   String
   pdfUrl      String
@@ -196,4 +213,63 @@ model AuditLog {
   @@index([action])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ─── Quran Review Models ──────────────────────────────────────────────────────
+
+model Surah {
+  id                     Int                    @id @default(autoincrement())
+  number                 Int                    @unique // 1-114
+  nameAr                 String
+  nameEn                 String
+  ayahCount              Int
+  juz                    Int // Juz number (1-30)
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  memorizationProgresses MemorizationProgress[]
+  revisionSchedules      RevisionSchedule[]
+
+  @@index([juz])
+  @@index([number])
+  @@map("surahs")
+}
+
+model MemorizationProgress {
+  id             String             @id @default(uuid())
+  userId         String
+  surahId        Int
+  status         MemorizationStatus @default(NOT_STARTED)
+  memorizedAyahs Int                @default(0)
+  lastRecitedAt  DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  user  User  @relation("UserMemorizations", fields: [userId], references: [id], onDelete: Cascade)
+  surah Surah @relation(fields: [surahId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, surahId])
+  @@index([userId])
+  @@index([surahId])
+  @@map("memorization_progress")
+}
+
+model RevisionSchedule {
+  id           String         @id @default(uuid())
+  userId       String
+  surahId      Int
+  scheduledFor DateTime
+  status       RevisionStatus @default(PENDING)
+  notedAt      DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  user  User  @relation("UserRevisions", fields: [userId], references: [id], onDelete: Cascade)
+  surah Surah @relation(fields: [surahId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([userId, scheduledFor])
+  @@index([surahId])
+  @@index([scheduledFor, status])
+  @@map("revision_schedule")
 }

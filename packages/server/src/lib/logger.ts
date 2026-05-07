@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import pino from 'pino';
 import { config } from '../config';
 
@@ -7,7 +8,11 @@ export const logger = pino({
   base: { service: 'education-api' },
 });
 
-export const requestLogger = (req: any, res: any, next: any) => {
+interface TrackedRequest extends Request {
+  reqId?: string;
+}
+
+export const requestLogger = (req: TrackedRequest, res: Response, next: NextFunction) => {
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;

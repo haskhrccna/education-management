@@ -21,13 +21,7 @@ jest.mock('../../services/auth.service', () => ({
 }));
 
 import { prisma } from '../../prisma/client';
-import {
-  listUsers,
-  createTeacher,
-  approveStudent,
-  deactivateUser,
-  broadcastMessage,
-} from '../admin.controller';
+import { listUsers, createTeacher, approveStudent, deactivateUser, broadcastMessage } from '../admin.controller';
 
 const mockedPrisma = prisma as unknown as DeepMockProxy<PrismaClient>;
 
@@ -86,9 +80,7 @@ describe('admin.controller', () => {
     });
 
     it('should reject missing fields', async () => {
-      const res = await request(createTestApp())
-        .post('/teachers')
-        .send({ email: 'teacher@test.com' });
+      const res = await request(createTestApp()).post('/teachers').send({ email: 'teacher@test.com' });
 
       expect(res.status).toBe(400);
     });
@@ -122,9 +114,7 @@ describe('admin.controller', () => {
     it('should broadcast message', async () => {
       mockedPrisma.user.findMany.mockResolvedValue([{ id: 'user-1' }] as any);
 
-      const res = await request(createTestApp())
-        .post('/broadcast')
-        .send({ message: 'Hello all' });
+      const res = await request(createTestApp()).post('/broadcast').send({ message: 'Hello all' });
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
@@ -132,9 +122,7 @@ describe('admin.controller', () => {
     });
 
     it('should reject empty message', async () => {
-      const res = await request(createTestApp())
-        .post('/broadcast')
-        .send({});
+      const res = await request(createTestApp()).post('/broadcast').send({});
 
       expect(res.status).toBe(400);
     });

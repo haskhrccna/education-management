@@ -1,4 +1,14 @@
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -47,7 +57,11 @@ export default function FirstLoginPage() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           <Animated.View entering={FadeInUp.duration(500)} style={styles.header}>
             <View style={styles.iconContainer}>
               <Text style={styles.icon}>🔐</Text>
@@ -104,9 +118,7 @@ export default function FirstLoginPage() {
               disabled={isLoading}
               activeOpacity={0.8}
             >
-              <Text style={styles.buttonText}>
-                {isLoading ? t('loading') : t('updatePassword')}
-              </Text>
+              <Text style={styles.buttonText}>{isLoading ? t('loading') : t('updatePassword')}</Text>
             </TouchableOpacity>
           </Animated.View>
         </ScrollView>
@@ -115,71 +127,72 @@ export default function FirstLoginPage() {
   );
 }
 
-const createStyles = (COLORS: any) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  keyboardView: { flex: 1 },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: SPACING['2xl'],
-    paddingVertical: SPACING['3xl'],
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: SPACING['2xl'],
-  },
-  iconContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: RADIUS['2xl'],
-    backgroundColor: COLORS.goldMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
-  icon: { fontSize: 36 },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: COLORS.primaryDark,
-    marginBottom: SPACING.xs,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  form: { gap: SPACING.lg },
-  inputContainer: { gap: SPACING.xs },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-    textAlign: 'right',
-  },
-  input: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
-    fontSize: 16,
-    color: COLORS.textPrimary,
-    borderWidth: 1,
-    borderColor: '#e7e5e4',
-    textAlign: 'right',
-  },
-  button: {
-    backgroundColor: COLORS.gold,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    marginTop: SPACING.sm,
-    ...SHADOWS.md,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: {
-    color: COLORS.textOnGold,
-    fontSize: 17,
-    fontWeight: '700',
-  },
-});
+const createStyles = (COLORS: any) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: COLORS.background },
+    keyboardView: { flex: 1 },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      paddingHorizontal: SPACING['2xl'],
+      paddingVertical: SPACING['3xl'],
+    },
+    header: {
+      alignItems: 'center',
+      marginBottom: SPACING['2xl'],
+    },
+    iconContainer: {
+      width: 72,
+      height: 72,
+      borderRadius: RADIUS['2xl'],
+      backgroundColor: COLORS.goldMuted,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: SPACING.lg,
+    },
+    icon: { fontSize: 36 },
+    title: {
+      fontSize: 24,
+      fontWeight: '800',
+      color: COLORS.primaryDark,
+      marginBottom: SPACING.xs,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: COLORS.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+    form: { gap: SPACING.lg },
+    inputContainer: { gap: SPACING.xs },
+    inputLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: COLORS.textSecondary,
+      textAlign: 'right',
+    },
+    input: {
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS.lg,
+      padding: SPACING.lg,
+      fontSize: 16,
+      color: COLORS.textPrimary,
+      borderWidth: 1,
+      borderColor: '#e7e5e4',
+      textAlign: 'right',
+    },
+    button: {
+      backgroundColor: COLORS.gold,
+      borderRadius: RADIUS.lg,
+      padding: SPACING.lg,
+      alignItems: 'center',
+      marginTop: SPACING.sm,
+      ...SHADOWS.md,
+    },
+    buttonDisabled: { opacity: 0.6 },
+    buttonText: {
+      color: COLORS.textOnGold,
+      fontSize: 17,
+      fontWeight: '700',
+    },
+  });

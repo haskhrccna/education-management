@@ -4,49 +4,83 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
 import { useAuthStore } from '@/src/auth/store';
-import { useAppointments } from '@/src/hooks/useAppointments';
-import { useGrades } from '@/src/hooks/useGrades';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { COLORS, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { useSettingsStore } from '@/src/settings/store';
+
+// ─── Mock Quran Data (replaced by API later) ──────────────────────────────────
+
+interface Surah {
+  id: number;
+  nameAr: string;
+  nameEn: string;
+  ayahCount: number;
+  memorizedAyahs: number;
+  juz: number;
+}
+
+const SURAH_DATA: Surah[] = [
+  { id: 1, nameAr: 'الفاتحة', nameEn: 'Al-Fatiha', ayahCount: 7, memorizedAyahs: 7, juz: 1 },
+  { id: 2, nameAr: 'البقرة', nameEn: 'Al-Baqarah', ayahCount: 286, memorizedAyahs: 130, juz: 1 },
+  { id: 3, nameAr: 'آل عمران', nameEn: "Ali 'Imran", ayahCount: 200, memorizedAyahs: 80, juz: 3 },
+  { id: 4, nameAr: 'النساء', nameEn: 'An-Nisa', ayahCount: 176, memorizedAyahs: 50, juz: 4 },
+  { id: 5, nameAr: 'المائدة', nameEn: "Al-Ma'idah", ayahCount: 120, memorizedAyahs: 30, juz: 6 },
+  { id: 6, nameAr: 'الأنعام', nameEn: "Al-An'am", ayahCount: 165, memorizedAyahs: 0, juz: 7 },
+  { id: 7, nameAr: 'الأعراف', nameEn: "Al-A'raf", ayahCount: 206, memorizedAyahs: 0, juz: 8 },
+  { id: 8, nameAr: 'الأنفال', nameEn: 'Al-Anfal', ayahCount: 75, memorizedAyahs: 0, juz: 9 },
+  { id: 9, nameAr: 'التوبة', nameEn: 'At-Tawbah', ayahCount: 129, memorizedAyahs: 0, juz: 10 },
+  { id: 10, nameAr: 'يونس', nameEn: 'Yunus', ayahCount: 109, memorizedAyahs: 0, juz: 11 },
+];
+
+const REVISION_SCHEDULE = [
+  { id: 'r1', surahId: 1, surahName: 'الفاتحة', date: '2026-05-07', status: 'DUE' as const },
+  { id: 'r2', surahId: 2, surahName: 'البقرة (1-50)', date: '2026-05-10', status: 'UPCOMING' as const },
+  { id: 'r3', surahId: 3, surahName: 'آل عمران (1-30)', date: '2026-05-14', status: 'UPCOMING' as const },
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getProgressingJuz(surahs: Surah[]): number {
+  let best = 1;
+  for (const s of surahs) {
+    if (s.memorizedAyahs >= s.ayahCount) continue; // complete
+    if (s.memorizedAyahs > 0) best = Math.max(best, s.juz);
+  }
+  return best > 0 ? best : 1;
+}
+
+// ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function StudentHomeScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const logout = useAuthStore((s) => s.logout);
   const user = useAuthStore((s) => s.user);
-  const [activeTab, setActiveTab] = useState<'myReview' | 'schedule' | 'progress'>('myReview');
-
-  const { appointments, isLoading: apptLoading, fetchAppointments } = useAppointments();
-  const { grades, isLoading: gradesLoading, fetchGrades } = useGrades();
-
-  React.useEffect(() => {
-    fetchAppointments();
-    fetchGrades();
-  }, []);
+  const [activeTab, setActiveTab] = useState<'surahs' | 'schedule' | 'progress'>('surahs');
+  const { theme, darkMode } = useSettingsStore();
+  const COLORS = getColors(theme, darkMode);
+  const styles = createStyles(COLORS);
 
   const handleLogout = async () => {
     await logout();
     router.replace('/');
   };
 
-  const isLoading = apptLoading || gradesLoading;
-
-  // Mock Quran data for beautiful UI (will be replaced with real API data)
-  const currentSurah = { name: 'سورة البقرة', progress: 45, total: 286 };
-  const weeklyStreak = 5;
-  const totalMemorized = 125;
+  // Derived stats from mock data
+  const completedSurahs = SURAH_DATA.filter((s) => s.memorizedAyahs >= s.ayahCount).length;
+  const totalMemorized = SURAH_DATA.reduce((sum, s) => sum + s.memorizedAyahs, 0);
+  const totalAyahsAll = SURAH_DATA.reduce((sum, s) => sum + s.ayahCount, 0);
+  const currentJuz = getProgressingJuz(SURAH_DATA);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header with gradient effect */}
+      {/* ── Header ── */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={styles.greeting}>
-              {t('studentHomeTitle', { name: user?.firstName || '' })}
-            </Text>
+            <Text style={styles.greeting}>{t('studentHomeTitle', { name: user?.firstName || '' })}</Text>
             <Text style={styles.subGreeting}>
-              {i18n.language === 'ar' ? 'بارك الله فيك في حفظ كتابه' : 'May Allah bless your memorization'}
+              {i18n.language === 'ar' ? 'يا بارك الله فيك في حفظ كتابه' : 'May Allah bless your memorization'}
             </Text>
           </View>
           <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
@@ -57,24 +91,26 @@ export default function StudentHomeScreen() {
         {/* Quick stats row */}
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{totalMemorized}</Text>
-            <Text style={styles.statLabel}>{t('page')}</Text>
+            <Text style={styles.statValue}>{completedSurahs}</Text>
+            <Text style={styles.statLabel}>{i18n.language === 'ar' ? 'سورة مكتملة' : 'Complete'}</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{weeklyStreak}</Text>
-            <Text style={styles.statLabel}>{t('days')}</Text>
+            <Text style={styles.statValue}>
+              {totalAyahsAll > 0 ? Math.round((totalMemorized / totalAyahsAll) * 100) : 0}%
+            </Text>
+            <Text style={styles.statLabel}>{i18n.language === 'ar' ? 'إجمالي التقدم' : 'Overall'}</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{Math.round((currentSurah.progress / currentSurah.total) * 100)}%</Text>
-            <Text style={styles.statLabel}>{currentSurah.name}</Text>
+            <Text style={styles.statValue}>{currentJuz}/30</Text>
+            <Text style={styles.statLabel}>{i18n.language === 'ar' ? 'الجزء' : 'Juz'}</Text>
           </View>
         </View>
       </View>
 
-      {/* Tabs */}
+      {/* ── Tabs ── */}
       <View style={styles.tabBar}>
         {[
-          { key: 'myReview' as const, label: t('myReview') },
+          { key: 'surahs' as const, label: t('myReview') },
           { key: 'schedule' as const, label: t('schedule') },
           { key: 'progress' as const, label: t('progress') },
         ].map((tab) => (
@@ -83,485 +119,576 @@ export default function StudentHomeScreen() {
             style={[styles.tab, activeTab === tab.key && styles.tabActive]}
             onPress={() => setActiveTab(tab.key)}
           >
-            <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>
-              {tab.label}
-            </Text>
+            <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>{tab.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
+      {/* ── Content ── */}
       <ScrollView style={styles.content} contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-        {isLoading ? (
-          <Text style={styles.empty}>{t('loading')}</Text>
-        ) : activeTab === 'myReview' ? (
-          <MyReviewTab appointments={appointments} />
-        ) : activeTab === 'schedule' ? (
-          <ScheduleTab appointments={appointments} />
-        ) : (
-          <ProgressTab grades={grades} currentSurah={currentSurah} weeklyStreak={weeklyStreak} />
+        {activeTab === 'surahs' && <SurahsTab surahData={SURAH_DATA} activeJuz={currentJuz} styles={styles} />}
+        {activeTab === 'schedule' && <RevisionScheduleTab revisions={REVISION_SCHEDULE} styles={styles} />}
+        {activeTab === 'progress' && (
+          <ProgressTab
+            surahData={SURAH_DATA}
+            totalMemorized={totalMemorized}
+            styles={styles}
+            i18n={i18n}
+            COLORS={COLORS}
+            t={t}
+          />
         )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function MyReviewTab({ appointments }: { appointments: any[] }) {
-  const { t, i18n } = useTranslation();
+// ─── Surahs Tab ───────────────────────────────────────────────────────────────
 
-  if (appointments.length === 0) {
-    return (
-      <Animated.View entering={FadeInUp.duration(400)} style={styles.emptyCard}>
-        <Text style={styles.emptyIcon}>📖</Text>
-        <Text style={styles.emptyTitle}>{t('noScheduleYet')}</Text>
-        <Text style={styles.emptyDesc}>
-          {i18n.language === 'ar'
-            ? 'ستظهر هنا مراجعاتك القادمة بمجرد تعيينها من قبل معلمك'
-            : 'Your upcoming reviews will appear here once assigned by your teacher'}
-        </Text>
-      </Animated.View>
-    );
-  }
+function SurahsTab({ surahData, activeJuz, styles }: { surahData: Surah[]; activeJuz: number; styles: any }) {
+  const { i18n } = useTranslation();
+
+  // Group by Juz
+  const juzGroups: Record<number, Surah[]> = {};
+  surahData.forEach((s) => {
+    if (!juzGroups[s.juz]) juzGroups[s.juz] = [];
+    juzGroups[s.juz].push(s);
+  });
 
   return (
-    <View style={styles.tabContent}>
-      {appointments.map((a: any, index: number) => (
-        <Animated.View
-          key={a.id}
-          entering={FadeInUp.duration(400).delay(index * 80)}
-          style={styles.reviewCard}
-        >
-          <View style={styles.reviewHeader}>
-            <View style={[styles.statusBadge, a.status === 'ACCEPTED' && styles.statusAccepted]}>
-              <Text style={[styles.statusText, a.status === 'ACCEPTED' && styles.statusTextAccepted]}>
-                {a.status === 'REQUESTED' ? (i18n.language === 'ar' ? 'مُعين' : 'Assigned') :
-                 a.status === 'ACCEPTED' ? (i18n.language === 'ar' ? 'مقبول' : 'Accepted') :
-                 a.status === 'REJECTED' ? (i18n.language === 'ar' ? 'مرفوض' : 'Rejected') : a.status}
-              </Text>
+    <View style={{ gap: SPACING.md }}>
+      {/* Current Juz highlight */}
+      <Animated.View entering={FadeInUp.duration(400)} style={[styles.card, styles.highlightedCard]}>
+        <Text style={styles.juzHighlightLabel}>{i18n.language === 'ar' ? 'الجزء الحالي' : 'Current Juz'}</Text>
+        <Text style={styles.juzHighlightTitle}>
+          Juz {activeJuz} — {getJuzNameAr(activeJuz)}
+        </Text>
+      </Animated.View>
+
+      {/* Surah list grouped by Juz */}
+      {Object.entries(juzGroups)
+        .sort(([a], [b]) => Number(a) - Number(b))
+        .map(([juz, surahs]) => (
+          <View key={juz}>
+            <Text style={[styles.juzGroupTitle, { marginTop: SPACING.lg }]}>Juz {juz}</Text>
+            {surahs.map((surah) => (
+              <SurahCard key={surah.id} surah={surah} styles={styles} i18n={i18n} />
+            ))}
+          </View>
+        ))}
+    </View>
+  );
+}
+
+function SurahCard({ surah, styles, i18n }: { surah: Surah; styles: any; i18n: any }) {
+  const percent = Math.round((surah.memorizedAyahs / surah.ayahCount) * 100);
+  const isComplete = percent === 100;
+
+  return (
+    <Animated.View entering={FadeInUp.duration(400)} style={styles.surahCard}>
+      <View style={styles.surahInfo}>
+        <View style={styles.surahNameRow}>
+          <Text style={styles.surahNumber}>{surah.id}</Text>
+          <Text style={styles.surahArabic}>{surah.nameAr}</Text>
+        </View>
+        <Text style={styles.surahEnglish}>{surah.nameEn}</Text>
+      </View>
+
+      {/* Progress bar */}
+      <View style={[styles.progressBarContainer, !isComplete && { opacity: 0.85 }]}>
+        {isComplete ? (
+          <Text style={styles.completeBadge}>✓</Text>
+        ) : (
+          <>
+            <View style={styles.progressBarTrack}>
+              <View style={[styles.progressBarFill, { width: `${percent}%` }]} />
             </View>
-          </View>
-          <Text style={styles.reviewTeacher}>
-            {a.teacher?.firstName} {a.teacher?.lastName}
-          </Text>
-          <Text style={styles.reviewDetail}>
-            📅 {new Date(a.requestedDate).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US')}
-          </Text>
-          <Text style={styles.reviewDetail}>
-            🕐 {a.requestedTime}
-          </Text>
+            <Text style={styles.surahProgressText}>
+              {surah.memorizedAyahs} / {surah.ayahCount} ({percent}%)
+            </Text>
+          </>
+        )}
+      </View>
+
+      {/* Juz badge */}
+      <Text style={styles.juzBadge}>Juz {surah.juz}</Text>
+    </Animated.View>
+  );
+}
+
+// ─── Revision Schedule Tab ────────────────────────────────────────────────────
+
+function RevisionScheduleTab({ revisions, styles }: { revisions: typeof REVISION_SCHEDULE; styles: any }) {
+  const { i18n } = useTranslation();
+  const today = new Date().toISOString().split('T')[0];
+
+  const dueRevisions = revisions.filter((r) => r.date <= today);
+  const upcomingRevisions = revisions.filter((r) => r.date > today);
+
+  return (
+    <View style={{ gap: SPACING.md }}>
+      {/* Due section */}
+      {dueRevisions.length > 0 && (
+        <Animated.View entering={FadeInUp.duration(400)}>
+          <Text style={styles.sectionTitle}>{i18n.language === 'ar' ? 'مراجعة متوقفة اليوم' : 'Due today'}</Text>
+          {dueRevisions.map((rev) => (
+            <RevisionCard key={rev.id} revision={rev} styles={styles} i18n={i18n} />
+          ))}
         </Animated.View>
-      ))}
+      )}
+
+      {/* Upcoming section */}
+      {upcomingRevisions.length > 0 && (
+        <Animated.View entering={FadeInUp.duration(400).delay(100)}>
+          <Text style={styles.sectionTitle}>{i18n.language === 'ar' ? 'المراجعات القادمة' : 'Upcoming revisions'}</Text>
+          {upcomingRevisions.map((rev) => (
+            <RevisionCard key={rev.id} revision={rev} styles={styles} i18n={i18n} />
+          ))}
+        </Animated.View>
+      )}
+
+      {/* Empty state */}
+      {revisions.length === 0 && (
+        <View style={[styles.card, styles.emptyCard]}>
+          <Text style={styles.emptyIcon}>📅</Text>
+          <Text style={styles.emptyTitle}>{i18n.language === 'ar' ? 'لا توجد مراجعات بعد' : 'No revisions yet'}</Text>
+          <Text style={styles.emptyDesc}>
+            {i18n.language === 'ar'
+              ? 'ستظهر هنا مراجعة القادمة بمجرد تعيينها من قبل معلمك'
+              : 'Your upcoming revision schedule will appear here once set by your teacher'}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
 
-function ScheduleTab({ appointments }: { appointments: any[] }) {
-  const { t, i18n } = useTranslation();
+function RevisionCard({
+  revision,
+  styles,
+  i18n,
+}: {
+  revision: (typeof REVISION_SCHEDULE)[number];
+  styles: any;
+  i18n: any;
+}) {
+  const dateObj = new Date(revision.date);
+  const isOverdue = revision.date < new Date().toISOString().split('T')[0];
 
   return (
-    <View style={styles.tabContent}>
-      <Animated.View entering={FadeInUp.duration(400)} style={styles.scheduleCard}>
-        <Text style={styles.scheduleIcon}>🗓️</Text>
-        <Text style={styles.scheduleTitle}>
-          {i18n.language === 'ar' ? 'جدول المراجعة الأسبوعي' : 'Weekly Review Schedule'}
-        </Text>
-        <Text style={styles.scheduleDesc}>
-          {i18n.language === 'ar'
-            ? 'يتم تحديث الجدول من قبل معلمك. راجع معلمك للتفاصيل.'
-            : 'The schedule is updated by your teacher. Check with your teacher for details.'}
-        </Text>
-      </Animated.View>
-    </View>
+    <Animated.View entering={FadeInUp.duration(400)} style={[styles.card, isOverdue && styles.dueCard]}>
+      <View style={styles.revisionHeader}>
+        <View>
+          <Text style={styles.revisionSurah}>{revision.surahName}</Text>
+          <Text style={styles.revisionDate}>
+            {dateObj.toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+            })}
+          </Text>
+        </View>
+        <View style={[styles.dueBadge, isOverdue ? styles.dueBadgeOverdue : styles.dueBadgeUpcoming]}>
+          <Text style={[styles.dueBadgeText, isOverdue && styles.dueBadgeTextOverdue]}>
+            {isOverdue
+              ? i18n.language === 'ar'
+                ? 'متوقفة اليوم'
+                : 'Overdue'
+              : i18n.language === 'ar'
+                ? 'قادمة'
+                : 'Upcoming'}
+          </Text>
+        </View>
+      </View>
+    </Animated.View>
   );
 }
 
-function ProgressTab({ grades, currentSurah, weeklyStreak }: { grades: any[], currentSurah: any, weeklyStreak: number }) {
-  const { t, i18n } = useTranslation();
+// ─── Progress Tab ─────────────────────────────────────────────────────────────
+
+function ProgressTab({
+  surahData,
+  totalMemorized,
+  styles,
+  i18n,
+  COLORS,
+  t,
+}: {
+  surahData: Surah[];
+  totalMemorized: number;
+  styles: any;
+  i18n: any;
+  COLORS: any;
+  t: (k: string) => string;
+}) {
+  const completedSurahs = surahData.filter((s) => s.memorizedAyahs >= s.ayahCount);
+  const inProgressSurahs = surahData.filter((s) => s.memorizedAyahs > 0 && s.memorizedAyahs < s.ayahCount);
+  const notStarted = surahData.filter((s) => s.memorizedAyahs === 0);
+  const totalAyahs = surahData.reduce((sum, s) => sum + s.ayahCount, 0);
 
   return (
-    <View style={styles.tabContent}>
-      {/* Current Surah Progress */}
-      <Animated.View entering={FadeInUp.duration(400)} style={styles.progressCard}>
-        <View style={styles.progressHeader}>
-          <Text style={styles.progressTitle}>{t('currentSurah')}</Text>
-          <View style={styles.progressBadge}>
-            <Text style={styles.progressBadgeText}>{t('inProgress')}</Text>
-          </View>
-        </View>
-        <Text style={styles.surahName}>{currentSurah.name}</Text>
-        <View style={styles.progressBarContainer}>
-          <View style={[styles.progressBar, { width: `${(currentSurah.progress / currentSurah.total) * 100}%` }]} />
-        </View>
-        <Text style={styles.progressText}>
-          {currentSurah.progress} / {currentSurah.total} {i18n.language === 'ar' ? 'آية' : 'verses'}
-        </Text>
-      </Animated.View>
-
-      {/* Weekly Streak */}
-      <Animated.View entering={FadeInUp.duration(400).delay(100)} style={styles.streakCard}>
+    <View style={{ gap: SPACING.md }}>
+      {/* Weekly streak */}
+      <Animated.View entering={FadeInUp.duration(400)} style={[styles.card, styles.streakCard]}>
         <Text style={styles.streakIcon}>🔥</Text>
-        <Text style={styles.streakValue}>{weeklyStreak}</Text>
-        <Text style={styles.streakLabel}>{t('weeklyStreak')}</Text>
+        <Text style={styles.streakValue}>5</Text>
+        <Text style={styles.streakLabel}>{i18n.language === 'ar' ? 'السجل الأسبوعي' : 'Weekly Streak'}</Text>
       </Animated.View>
 
-      {/* Overall Progress */}
-      <Animated.View entering={FadeInUp.duration(400).delay(200)} style={styles.overallCard}>
-        <Text style={styles.overallTitle}>{t('totalMemorized')}</Text>
-        <View style={styles.overallRow}>
-          <View style={styles.overallItem}>
-            <Text style={styles.overallValue}>{grades.length}</Text>
-            <Text style={styles.overallLabel}>
-              {i18n.language === 'ar' ? 'سورة' : 'Surahs'}
-            </Text>
+      {/* Memorization breakdown */}
+      <Animated.View entering={FadeInUp.duration(400).delay(100)} style={[styles.card, styles.breakdownCard]}>
+        <Text style={styles.breakdownTitle}>
+          {i18n.language === 'ar' ? 'تقدم الحفظ الشامل' : 'Overall Memorization'}
+        </Text>
+
+        <View style={styles.breakdownRow}>
+          <View style={styles.breakdownItem}>
+            <Text style={[styles.breakdownValue, { color: COLORS.success }]}>{completedSurahs.length}</Text>
+            <Text style={styles.breakdownLabel}>{i18n.language === 'ar' ? 'سورة مكتملة' : 'Complete'}</Text>
           </View>
-          <View style={styles.overallDivider} />
-          <View style={styles.overallItem}>
-            <Text style={styles.overallValue}>3</Text>
-            <Text style={styles.overallLabel}>
-              {i18n.language === 'ar' ? 'جزء' : 'Juz'}
-            </Text>
+
+          <View style={styles.divider} />
+
+          <View style={styles.breakdownItem}>
+            <Text style={[styles.breakdownValue, { color: COLORS.gold }]}>{inProgressSurahs.length}</Text>
+            <Text style={styles.breakdownLabel}>{i18n.language === 'ar' ? 'قيد التقدم' : 'In Progress'}</Text>
           </View>
-          <View style={styles.overallDivider} />
-          <View style={styles.overallItem}>
-            <Text style={styles.overallValue}>125</Text>
-            <Text style={styles.overallLabel}>
-              {i18n.language === 'ar' ? 'صفحة' : 'Pages'}
-            </Text>
+
+          <View style={styles.divider} />
+
+          <View style={styles.breakdownItem}>
+            <Text style={{ color: COLORS.textMuted }}>{notStarted.length}</Text>
+            <Text style={styles.breakdownLabel}>{i18n.language === 'ar' ? 'لم تبدأ' : 'Not Started'}</Text>
           </View>
         </View>
+
+        {/* Total ayahs bar */}
+        <View style={{ marginTop: SPACING.lg }}>
+          <Text style={styles.totalAyahsLabel}>
+            {totalMemorized} / {totalAyahs} ayahs
+          </Text>
+          <View style={styles.solidProgressBarTrack}>
+            <View style={[styles.solidProgressBarFill, { width: `${(totalMemorized / totalAyahs) * 100}%` }]} />
+          </View>
+        </View>
+      </Animated.View>
+
+      {/* Juz list */}
+      <Animated.View entering={FadeInUp.duration(400).delay(200)} style={styles.juzProgressCard}>
+        <Text style={styles.breakdownTitle}>{i18n.language === 'ar' ? 'تقدم الجزء' : 'Juz Progress'}</Text>
+        {Array.from(new Set(surahData.map((s) => s.juz)))
+          .sort((a, b) => a - b)
+          .map((juz) => {
+            const surahsInJuz = surahData.filter((s) => s.juz === juz);
+            const totalAyahsInJuz = surahsInJuz.reduce((s: number, a: Surah) => s + a.ayahCount, 0);
+            const memorizedInJuz = surahsInJuz.reduce((s: number, a: Surah) => s + a.memorizedAyahs, 0);
+            const percent = totalAyahsInJuz > 0 ? Math.round((memorizedInJuz / totalAyahsInJuz) * 100) : 0;
+            return (
+              <View key={juz} style={styles.juxRow}>
+                <Text style={styles.juxLabel}>Juz {juz}</Text>
+                <View style={styles.miniProgressBar}>
+                  <View style={[styles.miniBarFill, { width: `${percent}%` }]} />
+                </View>
+                <Text style={styles.miniPercent}>{percent}%</Text>
+              </View>
+            );
+          })}
       </Animated.View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-  // Header
-  header: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.xl,
-    paddingTop: SPACING.lg,
-    paddingBottom: SPACING['2xl'],
-    borderBottomLeftRadius: RADIUS['2xl'],
-    borderBottomRightRadius: RADIUS['2xl'],
-    ...SHADOWS.lg,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: SPACING.lg,
-  },
-  greeting: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#fff',
-    marginBottom: SPACING.xs,
-  },
-  subGreeting: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.75)',
-    fontWeight: '500',
-  },
-  logoutBtn: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    borderRadius: RADIUS.md,
-  },
-  logoutText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '600',
-  },
+function getJuzNameAr(juz: number): string {
+  const names = [
+    '',
+    'alif lam meem',
+    'samman',
+    'amman',
+    'qad afalah',
+    'almulk',
+    'amma',
+    'yataka tun',
+    'naw',
+    'al hajr',
+    'nur',
+    'al anfal',
+    'ahzab',
+  ];
+  return names[juz] || '';
+}
 
-  // Stats
-  statsRow: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: RADIUS.lg,
-    padding: SPACING.md,
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: COLORS.goldLight,
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.7)',
-    fontWeight: '500',
-  },
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
-  // Tabs
-  tabBar: {
-    flexDirection: 'row',
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.lg,
-    gap: SPACING.sm,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.sm,
-    borderRadius: RADIUS.lg,
-    backgroundColor: COLORS.surface,
-    alignItems: 'center',
-    ...SHADOWS.sm,
-  },
-  tabActive: {
-    backgroundColor: COLORS.primary,
-  },
-  tabText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-  },
-  tabTextActive: {
-    color: '#fff',
-  },
+const createStyles = (COLORS: any) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: COLORS.background },
 
-  // Content
-  content: {
-    flex: 1,
-    paddingHorizontal: SPACING.xl,
-  },
-  list: {
-    gap: SPACING.md,
-    paddingBottom: SPACING['4xl'],
-  },
-  tabContent: {
-    gap: SPACING.md,
-  },
+    // Header
+    header: {
+      backgroundColor: COLORS.primary,
+      paddingHorizontal: SPACING.xl,
+      paddingTop: SPACING.lg,
+      paddingBottom: SPACING['2xl'],
+      borderBottomLeftRadius: RADIUS['2xl'],
+      borderBottomRightRadius: RADIUS['2xl'],
+      ...SHADOWS.lg,
+    },
+    headerTop: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: SPACING.lg,
+    },
+    greeting: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: '#fff',
+      marginBottom: SPACING.xs,
+    },
+    subGreeting: {
+      fontSize: 13,
+      color: 'rgba(255,255,255,0.75)',
+      fontWeight: '500',
+    },
+    logoutBtn: {
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.xs,
+      borderRadius: RADIUS.md,
+    },
+    logoutText: {
+      color: '#fff',
+      fontSize: 13,
+      fontWeight: '600',
+    },
 
-  // Empty state
-  empty: {
-    color: COLORS.textMuted,
-    textAlign: 'center',
-    marginTop: SPACING['3xl'],
-    fontSize: 16,
-  },
-  emptyCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS['2xl'],
-    padding: SPACING['3xl'],
-    alignItems: 'center',
-    ...SHADOWS.md,
-    marginTop: SPACING.xl,
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: SPACING.lg,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.sm,
-  },
-  emptyDesc: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
+    // Stats row
+    statsRow: { flexDirection: 'row', gap: SPACING.md },
+    statCard: {
+      flex: 1,
+      backgroundColor: 'rgba(255,255,255,0.12)',
+      borderRadius: RADIUS.lg,
+      padding: SPACING.md,
+      alignItems: 'center',
+    },
+    statValue: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: COLORS.goldLight,
+      marginBottom: 2,
+    },
+    statLabel: {
+      fontSize: 12,
+      color: 'rgba(255,255,255,0.7)',
+      fontWeight: '500',
+    },
 
-  // Review cards
-  reviewCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.xl,
-    padding: SPACING.lg,
-    ...SHADOWS.md,
-    borderRightWidth: 4,
-    borderRightColor: COLORS.primaryLight,
-  },
-  reviewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: SPACING.sm,
-  },
-  statusBadge: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.warningLight,
-  },
-  statusAccepted: {
-    backgroundColor: COLORS.successLight,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.warning,
-  },
-  statusTextAccepted: {
-    color: COLORS.success,
-  },
-  reviewTeacher: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.xs,
-  },
-  reviewDetail: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
+    // Tabs
+    tabBar: {
+      flexDirection: 'row',
+      paddingHorizontal: SPACING.xl,
+      paddingVertical: SPACING.lg,
+      gap: SPACING.sm,
+    },
+    tab: {
+      flex: 1,
+      paddingVertical: SPACING.md,
+      paddingHorizontal: SPACING.sm,
+      borderRadius: RADIUS.lg,
+      backgroundColor: COLORS.surface,
+      alignItems: 'center',
+      ...SHADOWS.sm,
+    },
+    tabActive: {
+      backgroundColor: COLORS.primary,
+    },
+    tabText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: COLORS.textSecondary,
+    },
+    tabTextActive: {
+      color: '#fff',
+    },
 
-  // Schedule
-  scheduleCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS['2xl'],
-    padding: SPACING['2xl'],
-    alignItems: 'center',
-    ...SHADOWS.md,
-    marginTop: SPACING.xl,
-  },
-  scheduleIcon: {
-    fontSize: 48,
-    marginBottom: SPACING.lg,
-  },
-  scheduleTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.sm,
-  },
-  scheduleDesc: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
+    // Content
+    content: { flex: 1, paddingHorizontal: SPACING.xl },
+    list: { gap: SPACING.md, paddingBottom: SPACING['4xl'] },
 
-  // Progress
-  progressCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS['2xl'],
-    padding: SPACING['2xl'],
-    ...SHADOWS.md,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
-  progressTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  progressBadge: {
-    backgroundColor: COLORS.primaryMuted,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    borderRadius: RADIUS.md,
-  },
-  progressBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
-  surahName: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: COLORS.primaryDark,
-    marginBottom: SPACING.lg,
-    textAlign: 'center',
-  },
-  progressBarContainer: {
-    height: 8,
-    backgroundColor: '#e7e5e4',
-    borderRadius: RADIUS.full,
-    marginBottom: SPACING.sm,
-    overflow: 'hidden',
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: COLORS.primary,
-    borderRadius: RADIUS.full,
-  },
-  progressText: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
+    // Card shared
+    card: {
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS['2xl'],
+      padding: SPACING.lg,
+      ...SHADOWS.sm,
+    },
+    highlightedCard: {
+      borderWidth: 2,
+      borderColor: COLORS.gold,
+    },
 
-  // Streak
-  streakCard: {
-    backgroundColor: COLORS.surfaceAlt,
-    borderRadius: RADIUS['2xl'],
-    padding: SPACING['2xl'],
-    alignItems: 'center',
-    ...SHADOWS.md,
-    borderWidth: 1,
-    borderColor: COLORS.goldMuted,
-  },
-  streakIcon: {
-    fontSize: 36,
-    marginBottom: SPACING.sm,
-  },
-  streakValue: {
-    fontSize: 40,
-    fontWeight: '800',
-    color: COLORS.gold,
-  },
-  streakLabel: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    fontWeight: '600',
-    marginTop: SPACING.xs,
-  },
+    // Juz highlight card (main content)
+    juzHighlightLabel: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: COLORS.textSecondary,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+    },
+    juzHighlightTitle: { fontSize: 20, fontWeight: '800', color: COLORS.primaryDark, marginTop: SPACING.xs },
 
-  // Overall
-  overallCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS['2xl'],
-    padding: SPACING['2xl'],
-    ...SHADOWS.md,
-  },
-  overallTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.lg,
-    textAlign: 'center',
-  },
-  overallRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  overallItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  overallValue: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: COLORS.primary,
-    marginBottom: SPACING.xs,
-  },
-  overallLabel: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
-  },
-  overallDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: '#e7e5e4',
-  },
-});
+    // Surahs
+    surahCard: {
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS['2xl'],
+      padding: SPACING.lg,
+      ...SHADOWS.sm,
+    },
+    surahInfo: { marginBottom: SPACING.md },
+    surahNameRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+    surahNumber: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: COLORS.primary,
+      backgroundColor: COLORS.primaryMuted,
+      paddingHorizontal: SPACING.sm,
+      paddingVertical: 4,
+      borderRadius: RADIUS.sm,
+    },
+    surahArabic: {
+      fontSize: 20,
+      fontWeight: '800',
+      color: COLORS.textPrimary,
+      textAlign: 'right',
+    },
+    surahEnglish: {
+      fontSize: 13,
+      color: COLORS.textSecondary,
+      fontWeight: '500',
+      marginTop: 2,
+    },
+    progressBarContainer: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+    completeBadge: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: COLORS.success,
+    },
+    progressBarTrack: {
+      flex: 1,
+      height: 8,
+      backgroundColor: '#e7e5e4',
+      borderRadius: RADIUS.full,
+      overflow: 'hidden',
+    },
+    progressBarFill: {
+      height: '100%',
+      backgroundColor: COLORS.primary,
+      borderRadius: RADIUS.full,
+    },
+    surahProgressText: {
+      fontSize: 12,
+      color: COLORS.textSecondary,
+      fontWeight: '500',
+      minWidth: 70,
+      textAlign: 'right',
+    },
+    juzBadge: {
+      fontSize: 11,
+      color: COLORS.primary,
+      fontWeight: '600',
+      marginTop: SPACING.xs,
+    },
+
+    // Juz group title
+    juzGroupTitle: { fontSize: 14, fontWeight: '700', color: COLORS.primaryDark, marginBottom: SPACING.sm },
+
+    // Section titles
+    sectionTitle: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: COLORS.primaryDark,
+      marginBottom: SPACING.sm,
+    },
+
+    // Due card
+    dueCard: {
+      borderWidth: 2,
+      borderColor: '#ef4444',
+    },
+    revisionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    revisionSurah: { fontSize: 16, fontWeight: '700', color: COLORS.textPrimary },
+    revisionDate: { fontSize: 13, color: COLORS.textSecondary, marginTop: 2 },
+    dueBadge: {
+      paddingHorizontal: SPACING.md,
+      paddingVertical: 4,
+      borderRadius: RADIUS.sm,
+      backgroundColor: '#fef3c7',
+    },
+    dueBadgeOverdue: { backgroundColor: '#fee2e2' },
+    dueBadgeUpcoming: { backgroundColor: '#dbeafe' },
+    dueBadgeText: { fontSize: 11, fontWeight: '700', color: COLORS.warning },
+    dueBadgeTextOverdue: { color: '#dc2626' },
+
+    // Streak
+    streakCard: { alignItems: 'center', borderWidth: 1, borderColor: COLORS.goldMuted },
+    streakIcon: { fontSize: 36, marginBottom: SPACING.sm },
+    streakValue: { fontSize: 40, fontWeight: '800', color: COLORS.gold },
+    streakLabel: { fontSize: 14, color: COLORS.textSecondary, fontWeight: '600', marginTop: SPACING.xs },
+
+    // Breakdown
+    breakdownCard: { alignItems: 'center' },
+    breakdownTitle: { fontSize: 16, fontWeight: '700', color: COLORS.primaryDark, marginBottom: SPACING.lg },
+    breakdownRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', width: '100%' },
+    breakdownItem: { alignItems: 'center', flex: 1 },
+    breakdownValue: { fontSize: 28, fontWeight: '800', color: COLORS.primary, marginBottom: SPACING.xs },
+    breakdownLabel: { fontSize: 13, color: COLORS.textSecondary, fontWeight: '500' },
+    divider: { width: 1, height: 40, backgroundColor: '#e7e5e4' },
+    totalAyahsLabel: { fontSize: 13, color: COLORS.textSecondary, fontWeight: '500', marginBottom: SPACING.xs },
+
+    // Solid progress bar (memorized vs pending)
+    solidProgressBarTrack: {
+      height: 24,
+      backgroundColor: '#e7e5e4',
+      borderRadius: RADIUS.full,
+      overflow: 'hidden',
+      position: 'relative',
+    },
+    solidProgressBarFill: {
+      height: '100%',
+      backgroundColor: COLORS.primary,
+      borderRadius: RADIUS.full,
+    },
+
+    // Juz progress card
+    juzProgressCard: {
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS['2xl'],
+      padding: SPACING.lg,
+      ...SHADOWS.sm,
+    },
+    juxRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.md,
+      paddingVertical: SPACING.xs,
+      borderBottomWidth: 1,
+      borderBottomColor: '#f5f5f5',
+    },
+    juxLabel: { fontSize: 14, fontWeight: '600', color: COLORS.textPrimary, flex: 1 },
+    miniProgressBar: { flex: 1, height: 6, backgroundColor: '#e7e5e4', borderRadius: RADIUS.full, overflow: 'hidden' },
+    miniBarFill: { height: '100%', backgroundColor: COLORS.primary, borderRadius: RADIUS.full },
+    miniPercent: { fontSize: 12, fontWeight: '700', color: COLORS.textSecondary, minWidth: 35, textAlign: 'right' },
+
+    // Empty state
+    emptyCard: { alignItems: 'center', padding: SPACING['3xl'], marginTop: SPACING.xl },
+    emptyIcon: { fontSize: 48, marginBottom: SPACING.lg },
+    emptyTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary, marginBottom: SPACING.sm },
+    emptyDesc: {
+      fontSize: 14,
+      color: COLORS.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+  });

@@ -17,7 +17,7 @@ export const auditExtension = Prisma.defineExtension({
       async create({ model, operation, args, query }) {
         const result = await query(args);
         if (AUDIT_MODELS.includes(model)) {
-          logAudit(model, AUDIT_ACTIONS[operation] || operation, result?.id, args.data);
+          logAudit(model, AUDIT_ACTIONS[operation] || operation, result?.id as string | undefined, args.data);
         }
         return result;
       },
@@ -31,21 +31,21 @@ export const auditExtension = Prisma.defineExtension({
       async delete({ model, operation, args, query }) {
         const result = await query(args);
         if (AUDIT_MODELS.includes(model)) {
-          logAudit(model, AUDIT_ACTIONS[operation] || operation, args.where?.id, null);
+          logAudit(model, AUDIT_ACTIONS[operation] || operation, undefined, undefined);
         }
         return result;
       },
       async updateMany({ model, operation, args, query }) {
         const result = await query(args);
         if (AUDIT_MODELS.includes(model)) {
-          logAudit(model, AUDIT_ACTIONS[operation] || operation, null, args.data);
+          logAudit(model, AUDIT_ACTIONS[operation] || operation, undefined, args.data);
         }
         return result;
       },
       async deleteMany({ model, operation, args, query }) {
         const result = await query(args);
         if (AUDIT_MODELS.includes(model)) {
-          logAudit(model, AUDIT_ACTIONS[operation] || operation, null, args.where);
+          logAudit(model, AUDIT_ACTIONS[operation] || operation, undefined, args.where);
         }
         return result;
       },
@@ -53,24 +53,35 @@ export const auditExtension = Prisma.defineExtension({
   },
 });
 
-function logAudit(model: string, action: string, resourceId: string | null | undefined, details: any) {
-  logger.info({
-    audit: true,
-    action: `${action}_${model.toUpperCase()}`,
-    resourceType: model,
-    resourceId,
-    details: details ? sanitizeForAudit(details) : null,
-  }, `AUDIT: ${action}_${model.toUpperCase()}`);
+interface AuditRecord extends Record<string, unknown> {}
+
+function logAudit(model: string, action: string, resourceId: string | undefined, detailsRaw: unknown): void {
+  const data = detailsRaw as Record<string, unknown> | null;
+  const sanitizedDetails = sanitizeForAudit(data);
+  logger.info(
+    {
+      audit: true,
+      action: `${action}_${model.toUpperCase()}`,
+      resourceType: model,
+      resourceId,
+      details: sanitizedDetails || null,
+    },
+    `AUDIT: ${action}_${model.toUpperCase()}`
+  );
 }
 
-function sanitizeForAudit(data: any): any {
-  if (!data || typeof data !== 'object') return data;
-  const sanitized: any = {};
+function sanitizeForAudit(data: Record<string, unknown> | null): AuditRecord | null {
+  if (!data || typeof data !== 'object') return null;
+  const sanitized: AuditRecord = {};
   for (const [key, value] of Object.entries(data)) {
-    if (key.toLowerCase().includes('password') || key.toLowerCase().includes('token') || key.toLowerCase().includes('secret')) {
+    if (
+      key.toLowerCase().includes('password') ||
+      key.toLowerCase().includes('token') ||
+      key.toLowerCase().includes('secret')
+    ) {
       sanitized[key] = '[REDACTED]';
     } else if (typeof value === 'object' && value !== null) {
-      sanitized[key] = sanitizeForAudit(value);
+      sanitized[key] = sanitizeForAudit(value as Record<string, unknown>);
     } else {
       sanitized[key] = value;
     }

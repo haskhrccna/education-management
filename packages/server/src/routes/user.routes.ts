@@ -2,7 +2,7 @@ import { Router } from 'express';
 import * as userController from '../controllers/user.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validate.middleware';
-import { UpdateProfileSchema } from '@edu/shared';
+import { UpdateProfileSchema } from '@quran-review/shared'
 
 const router = Router();
 router.use(authenticate);

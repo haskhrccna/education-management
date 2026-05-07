@@ -1,6 +1,6 @@
 import { prisma } from '../prisma/client';
 
-function escapeCsv(value: any): string {
+function escapeCsv(value: unknown): string {
   const str = String(value ?? '');
   if (str.includes(',') || str.includes('"') || str.includes('\n')) {
     return `"${str.replace(/"/g, '""')}"`;
@@ -8,7 +8,7 @@ function escapeCsv(value: any): string {
   return str;
 }
 
-function toCsv(rows: Record<string, any>[], headers: string[]): string {
+function toCsv(rows: Record<string, unknown>[], headers: string[]): string {
   const lines = [headers.join(',')];
   for (const row of rows) {
     lines.push(headers.map((h) => escapeCsv(row[h])).join(','));
@@ -63,7 +63,7 @@ export const exportUsersCsv = async (roleFilter?: string) => {
 };
 
 export const exportAppointmentsCsv = async (userId?: string, userRole?: string) => {
-  const where: any = {};
+  const where: { studentId?: string; teacherId?: string } = {};
   if (userId) {
     where[userRole === 'STUDENT' ? 'studentId' : 'teacherId'] = userId;
   }

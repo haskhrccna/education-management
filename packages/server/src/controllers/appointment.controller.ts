@@ -9,7 +9,11 @@ export const createAppointment = async (req: Request, res: Response, next: NextF
       throw new AppError(400, 'teacherId, requestedDate, and requestedTime are required');
     }
     const appointment = await appointmentService.createAppointment(
-      req.userId!, teacherId, String(requestedDate), String(requestedTime), durationMinutes || 60
+      req.userId!,
+      teacherId,
+      String(requestedDate),
+      String(requestedTime),
+      durationMinutes || 60
     );
     res.status(201).json(appointment);
   } catch (err) {
@@ -32,7 +36,11 @@ export const manageAppointment = async (req: Request, res: Response, next: NextF
     const appointmentId = String(req.params.id);
     const body = req.body as any;
     const appointment = await appointmentService.manageAppointment(
-      appointmentId, req.userId!, String(req.userRole), body.action, body.amendedNote
+      appointmentId,
+      req.userId!,
+      String(req.userRole),
+      body.action,
+      body.amendedNote
     );
     res.json(appointment);
   } catch (err) {

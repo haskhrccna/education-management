@@ -34,17 +34,13 @@ describe('admin.service', () => {
       mockedPrisma.user.findMany.mockResolvedValue([{ id: 'user-1' }] as any);
       const result = await listUsers();
       expect(result).toHaveLength(1);
-      expect(mockedPrisma.user.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: undefined })
-      );
+      expect(mockedPrisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: undefined }));
     });
 
     it('should filter by role', async () => {
       mockedPrisma.user.findMany.mockResolvedValue([{ id: 'user-1', role: 'STUDENT' }] as any);
       await listUsers('student');
-      expect(mockedPrisma.user.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { role: 'STUDENT' } })
-      );
+      expect(mockedPrisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { role: 'STUDENT' } }));
     });
   });
 
@@ -69,8 +65,9 @@ describe('admin.service', () => {
 
     it('should reject duplicate email', async () => {
       mockedPrisma.user.findUnique.mockResolvedValue({ id: 'existing' } as any);
-      await expect(createTeacher('existing@test.com', 'Password123!', 'John', 'Doe'))
-        .rejects.toThrow('Email already registered');
+      await expect(createTeacher('existing@test.com', 'Password123!', 'John', 'Doe')).rejects.toThrow(
+        'Email already registered'
+      );
     });
   });
 
@@ -85,14 +82,12 @@ describe('admin.service', () => {
 
     it('should reject non-student', async () => {
       mockedPrisma.user.findUnique.mockResolvedValue({ id: 'teacher-1', role: 'TEACHER' } as any);
-      await expect(approveStudent('teacher-1'))
-        .rejects.toThrow('User is not a student');
+      await expect(approveStudent('teacher-1')).rejects.toThrow('User is not a student');
     });
 
     it('should reject unknown user', async () => {
       mockedPrisma.user.findUnique.mockResolvedValue(null);
-      await expect(approveStudent('unknown'))
-        .rejects.toThrow('Student not found');
+      await expect(approveStudent('unknown')).rejects.toThrow('Student not found');
     });
   });
 
@@ -107,8 +102,7 @@ describe('admin.service', () => {
 
     it('should reject unknown user', async () => {
       mockedPrisma.user.findUnique.mockResolvedValue(null);
-      await expect(deactivateUser('unknown'))
-        .rejects.toThrow('User not found');
+      await expect(deactivateUser('unknown')).rejects.toThrow('User not found');
     });
   });
 
@@ -177,10 +171,7 @@ describe('admin.service', () => {
 
   describe('broadcastMessage', () => {
     it('should broadcast to all users', async () => {
-      mockedPrisma.user.findMany.mockResolvedValue([
-        { id: 'user-1' },
-        { id: 'user-2' },
-      ] as any);
+      mockedPrisma.user.findMany.mockResolvedValue([{ id: 'user-1' }, { id: 'user-2' }] as any);
 
       const result = await broadcastMessage('Hello everyone');
       expect(result.recipients).toBe(2);
@@ -190,9 +181,7 @@ describe('admin.service', () => {
       mockedPrisma.user.findMany.mockResolvedValue([{ id: 'student-1' }] as any);
 
       await broadcastMessage('Hello students', 'student');
-      expect(mockedPrisma.user.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { role: 'STUDENT' } })
-      );
+      expect(mockedPrisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { role: 'STUDENT' } }));
     });
   });
 });

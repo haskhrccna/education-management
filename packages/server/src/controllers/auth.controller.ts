@@ -1,6 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../prisma/client';
-import { hashPassword, comparePassword, generateToken, generateRefreshToken, hashRefreshToken, verifyRefreshToken } from '../services/auth.service';
+import {
+  hashPassword,
+  comparePassword,
+  generateToken,
+  generateRefreshToken,
+  hashRefreshToken,
+  verifyRefreshToken,
+} from '../services/auth.service';
 import { AppError } from '../middleware/error.middleware';
 import { sendWelcomeEmail } from '../services/email.service';
 
@@ -8,18 +15,21 @@ export const register = async (req: Request, res: Response, next: NextFunction):
   try {
     const { email, password, role, firstName, lastName } = req.body;
     const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
+    if (existing && !existing.deletedAt) {
       throw new AppError(409, 'Email already registered');
+     }
+    if (existing?.deletedAt) {
+      throw new AppError(409, 'This email has been used by a deleted account. Contact support.');
     }
     const passwordHash = await hashPassword(password);
     const user = await prisma.user.create({
       data: { email, passwordHash, role: role.toUpperCase(), firstName, lastName },
       select: { id: true, email: true, role: true, firstName: true, lastName: true, status: true },
     });
-    
+
     // Send welcome email asynchronously
     sendWelcomeEmail(user.email, user.firstName).catch(() => {});
-    
+
     res.status(201).json({ message: 'Registration successful. Awaiting admin approval.', user });
   } catch (err) {
     next(err);
@@ -32,6 +42,9 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !(await comparePassword(password, user.passwordHash))) {
       throw new AppError(401, 'Invalid credentials');
+     }
+    if (user.deletedAt) {
+      throw new AppError(403, 'Account has been deleted. Contact support.');
     }
     if (user.status !== 'ACTIVE') {
       throw new AppError(403, 'Account is not active. Please wait for admin approval.');
@@ -41,7 +54,16 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     const refreshTokenHash = hashRefreshToken(refreshToken);
     await prisma.user.update({ where: { id: user.id }, data: { refreshTokenHash } });
 
-    const userInfo = { id: user.id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName, status: user.status };
+    const userInfo = {
+      id: user.id,
+      email: user.email,
+      // Mobile client types role/status as lowercase. Server-internal canonical
+      // is uppercase (Prisma enum, JWT payload, authorize() guards).
+      role: user.role.toLowerCase(),
+      firstName: user.firstName,
+      lastName: user.lastName,
+      status: user.status.toLowerCase(),
+    };
     res.json({ message: 'Login successful', user: userInfo, token, refreshToken });
   } catch (err) {
     next(err);
@@ -88,7 +110,7 @@ export const resendVerification = async (req: Request, res: Response, next: Next
     const userId = req.userId!;
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, firstName: true } });
     if (!user) throw new AppError(404, 'User not found');
-    
+
     await sendWelcomeEmail(user.email, user.firstName);
     res.json({ message: 'Verification email resent' });
   } catch (err) {

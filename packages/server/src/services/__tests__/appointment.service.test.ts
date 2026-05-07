@@ -42,8 +42,7 @@ describe('appointment.service', () => {
     it('should reject invalid teacher', async () => {
       mockedPrisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(createAppointment('student-1', 'invalid', '2025-01-15', '10:00', 60))
-        .rejects.toThrow(AppError);
+      await expect(createAppointment('student-1', 'invalid', '2025-01-15', '10:00', 60)).rejects.toThrow(AppError);
     });
 
     it('should reject overlapping appointments', async () => {
@@ -52,8 +51,9 @@ describe('appointment.service', () => {
         { id: 'existing', requestedTime: '09:30', durationMinutes: 60, status: 'ACCEPTED' },
       ] as any);
 
-      await expect(createAppointment('student-1', 'teacher-1', '2025-01-15', '10:00', 60))
-        .rejects.toThrow('overlapping');
+      await expect(createAppointment('student-1', 'teacher-1', '2025-01-15', '10:00', 60)).rejects.toThrow(
+        'overlapping'
+      );
     });
 
     it('should allow non-overlapping same-day appointments', async () => {
@@ -87,8 +87,9 @@ describe('appointment.service', () => {
         teacherId: 'teacher-2',
       } as any);
 
-      await expect(manageAppointment('appt-1', 'teacher-1', 'TEACHER', 'ACCEPTED'))
-        .rejects.toThrow('only manage your own');
+      await expect(manageAppointment('appt-1', 'teacher-1', 'TEACHER', 'ACCEPTED')).rejects.toThrow(
+        'only manage your own'
+      );
     });
 
     it('should allow admin to manage any appointment', async () => {

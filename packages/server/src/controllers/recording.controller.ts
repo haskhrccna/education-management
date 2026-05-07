@@ -12,7 +12,11 @@ export const uploadRecording = async (req: Request, res: Response, next: NextFun
 
     if (!actualFileName) throw new AppError(400, 'fileName is required');
     const recording = await recordingService.uploadRecording(
-      req.userId!, actualFileName, actualSize, actualType, file?.path
+      req.userId!,
+      actualFileName,
+      actualSize,
+      actualType,
+      file?.path
     );
     res.status(201).json(recording);
   } catch (err) {

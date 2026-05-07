@@ -2,12 +2,15 @@ import { Request, Response, NextFunction } from 'express';
 
 const SENSITIVE_FIELDS = ['password', 'passwordHash', 'token', 'authorization', 'apiKey', 'secret'];
 
-function sanitizeObject(obj: any): any {
-  if (!obj || typeof obj !== 'object') return obj;
-  if (Array.isArray(obj)) return obj.map(sanitizeObject);
+interface SanitizedRecord extends Record<string, unknown> {}
 
-  const sanitized: any = {};
-  for (const [key, value] of Object.entries(obj)) {
+function sanitizeObject(obj: unknown): SanitizedRecord | string | number | boolean | null {
+  if (!obj || typeof obj !== 'object') return obj as string | number | boolean | null;
+  if (Array.isArray(obj)) return obj.map(sanitizeObject) as unknown as SanitizedRecord;
+
+  const record = obj as Record<string, unknown>;
+  const sanitized: SanitizedRecord = {};
+  for (const [key, value] of Object.entries(record)) {
     if (SENSITIVE_FIELDS.some((f) => key.toLowerCase().includes(f.toLowerCase()))) {
       sanitized[key] = '[REDACTED]';
     } else if (typeof value === 'object' && value !== null) {
@@ -28,7 +31,7 @@ export const sanitizeRequestBody = (req: Request, _res: Response, next: NextFunc
 
 export const sanitizeResponse = (_req: Request, res: Response, next: NextFunction): void => {
   const originalJson = res.json.bind(res);
-  res.json = function (body: any) {
+  res.json = function <T>(body: T): Response<T> {
     if (body && typeof body === 'object') {
       return originalJson(sanitizeObject(body));
     }

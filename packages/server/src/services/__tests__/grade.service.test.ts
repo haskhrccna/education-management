@@ -35,14 +35,14 @@ describe('grade.service', () => {
 
     it('should reject non-existent student', async () => {
       mockedPrisma.user.findUnique.mockResolvedValue(null);
-      await expect(createGrade('teacher-1', 'unknown', 'Math', '95', 'EXAM'))
-        .rejects.toThrow('Student not found');
+      await expect(createGrade('teacher-1', 'unknown', 'Math', '95', 'EXAM')).rejects.toThrow('Student not found');
     });
 
     it('should reject non-student target', async () => {
       mockedPrisma.user.findUnique.mockResolvedValue({ id: 'teacher-1', role: 'TEACHER' } as any);
-      await expect(createGrade('teacher-1', 'teacher-1', 'Math', '95', 'EXAM'))
-        .rejects.toThrow('Target user is not a student');
+      await expect(createGrade('teacher-1', 'teacher-1', 'Math', '95', 'EXAM')).rejects.toThrow(
+        'Target user is not a student'
+      );
     });
   });
 

@@ -32,11 +32,11 @@ export default function TeacherHomeScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={styles.greeting}>
-              {t('teacherHomeTitle', { name: user?.firstName || '' })}
-            </Text>
+            <Text style={styles.greeting}>{t('teacherHomeTitle', { name: user?.firstName || '' })}</Text>
             <Text style={styles.subGreeting}>
-              {i18n.language === 'ar' ? 'جزاك الله خيراً على تعليم القرآن' : 'May Allah reward you for teaching the Quran'}
+              {i18n.language === 'ar'
+                ? 'جزاك الله خيراً على تعليم القرآن'
+                : 'May Allah reward you for teaching the Quran'}
             </Text>
           </View>
           <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
@@ -56,9 +56,7 @@ export default function TeacherHomeScreen() {
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>85%</Text>
-            <Text style={styles.statLabel}>
-              {i18n.language === 'ar' ? 'معدل الإنجاز' : 'Completion'}
-            </Text>
+            <Text style={styles.statLabel}>{i18n.language === 'ar' ? 'معدل الإنجاز' : 'Completion'}</Text>
           </View>
         </View>
       </View>
@@ -74,9 +72,7 @@ export default function TeacherHomeScreen() {
             style={[styles.tab, activeTab === tab.key && styles.tabActive]}
             onPress={() => setActiveTab(tab.key)}
           >
-            <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>
-              {tab.label}
-            </Text>
+            <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>{tab.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -114,11 +110,7 @@ function MyStudentsTab({ appointments }: { appointments: any[] }) {
   return (
     <View style={styles.tabContent}>
       {appointments.map((a: any, index: number) => (
-        <Animated.View
-          key={a.id}
-          entering={FadeInUp.duration(400).delay(index * 80)}
-          style={styles.studentCard}
-        >
+        <Animated.View key={a.id} entering={FadeInUp.duration(400).delay(index * 80)} style={styles.studentCard}>
           <View style={styles.studentHeader}>
             <View style={styles.studentAvatar}>
               <Text style={styles.avatarText}>{a.student?.firstName?.[0] || '?'}</Text>
@@ -131,18 +123,20 @@ function MyStudentsTab({ appointments }: { appointments: any[] }) {
             </View>
             <View style={[styles.statusBadge, a.status === 'ACCEPTED' && styles.statusAccepted]}>
               <Text style={[styles.statusText, a.status === 'ACCEPTED' && styles.statusTextAccepted]}>
-                {a.status === 'REQUESTED' ? t('awaitingApproval') :
-                 a.status === 'ACCEPTED' ? t('approved') :
-                 a.status === 'REJECTED' ? t('rejected') : a.status}
+                {a.status === 'REQUESTED'
+                  ? t('awaitingApproval')
+                  : a.status === 'ACCEPTED'
+                    ? t('approved')
+                    : a.status === 'REJECTED'
+                      ? t('rejected')
+                      : a.status}
               </Text>
             </View>
           </View>
 
           <View style={styles.studentProgress}>
             <View style={styles.progressRow}>
-              <Text style={styles.progressLabel}>
-                {i18n.language === 'ar' ? 'سورة البقرة' : 'Surah Al-Baqarah'}
-              </Text>
+              <Text style={styles.progressLabel}>{i18n.language === 'ar' ? 'سورة البقرة' : 'Surah Al-Baqarah'}</Text>
               <Text style={styles.progressValue}>45%</Text>
             </View>
             <View style={styles.progressBarContainer}>
@@ -154,9 +148,7 @@ function MyStudentsTab({ appointments }: { appointments: any[] }) {
             <Text style={styles.metaText}>
               📅 {new Date(a.requestedDate).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US')}
             </Text>
-            <Text style={styles.metaText}>
-              🕐 {a.requestedTime}
-            </Text>
+            <Text style={styles.metaText}>🕐 {a.requestedTime}</Text>
           </View>
         </Animated.View>
       ))}
@@ -171,15 +163,9 @@ function AssignmentsTab() {
   return (
     <View style={styles.tabContent}>
       <Animated.View entering={FadeInUp.duration(400)} style={styles.actionCard}>
-        <TouchableOpacity
-          style={styles.actionBtn}
-          onPress={() => router.push('/teacher/grades')}
-          activeOpacity={0.8}
-        >
+        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/teacher/grades')} activeOpacity={0.8}>
           <Text style={styles.actionIcon}>📝</Text>
-          <Text style={styles.actionBtnText}>
-            {t('addReviewTask')}
-          </Text>
+          <Text style={styles.actionBtnText}>{t('addReviewTask')}</Text>
           <Text style={styles.actionBtnSub}>
             {i18n.language === 'ar' ? 'تعيين سورة أو جزء لمراجعة الطالب' : 'Assign a Surah or Juz for student review'}
           </Text>
@@ -195,7 +181,9 @@ function AssignmentsTab() {
             {i18n.language === 'ar' ? 'تقرير التقدم' : 'Progress Report'}
           </Text>
           <Text style={[styles.actionBtnSub, styles.secondarySub]}>
-            {i18n.language === 'ar' ? 'عرض تقرير شامل عن تقدم طلابك' : 'View comprehensive report of your students\' progress'}
+            {i18n.language === 'ar'
+              ? 'عرض تقرير شامل عن تقدم طلابك'
+              : "View comprehensive report of your students' progress"}
           </Text>
         </TouchableOpacity>
       </Animated.View>

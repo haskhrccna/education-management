@@ -5,7 +5,7 @@ import { logger } from '../lib/logger';
 export const notifyUser = async (options: {
   userId: string;
   event: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   email?: { subject: string; body: string };
   push?: { title: string; body: string };
 }) => {
@@ -43,10 +43,16 @@ export const notifyUser = async (options: {
   }
 };
 
-export const notifyAppointmentUpdate = async (studentId: string, appointment: any) => {
-  const statusText = appointment.status === 'ACCEPTED' ? 'accepted' :
-                     appointment.status === 'REJECTED' ? 'rejected' : 'updated';
-  const date = new Date(appointment.requestedDate).toLocaleDateString('en-US');
+interface AppointmentSummary extends Record<string, unknown> {
+  status?: string;
+  requestedDate?: string | number | Date;
+  requestedTime?: string;
+}
+
+export const notifyAppointmentUpdate = async (studentId: string, appointment: AppointmentSummary) => {
+  const statusText =
+    appointment.status === 'ACCEPTED' ? 'accepted' : appointment.status === 'REJECTED' ? 'rejected' : 'updated';
+  const date = new Date(appointment.requestedDate ?? '').toLocaleDateString('en-US');
 
   const user = await prisma.user.findUnique({ where: { id: studentId }, select: { firstName: true, email: true } });
   const name = user?.firstName || '';
@@ -66,7 +72,12 @@ export const notifyAppointmentUpdate = async (studentId: string, appointment: an
   });
 };
 
-export const notifyNewGrade = async (studentId: string, grade: any) => {
+interface GradeSummary extends Record<string, unknown> {
+  subject?: string;
+  grade?: string;
+}
+
+export const notifyNewGrade = async (studentId: string, grade: GradeSummary) => {
   const user = await prisma.user.findUnique({ where: { id: studentId }, select: { firstName: true, email: true } });
   const name = user?.firstName || '';
 
@@ -85,14 +96,19 @@ export const notifyNewGrade = async (studentId: string, grade: any) => {
   });
 };
 
-export const notifyNewMessage = async (receiverId: string, message: any) => {
+interface MessageSummary extends Record<string, unknown> {
+  sender?: { firstName?: string };
+  content?: string;
+}
+
+export const notifyNewMessage = async (receiverId: string, message: MessageSummary) => {
   await notifyUser({
     userId: receiverId,
     event: 'new_message',
     data: message,
     push: {
       title: `New message from ${message.sender?.firstName || 'Someone'}`,
-      body: message.content.substring(0, 100),
+      body: message.content?.substring(0, 100) ?? '',
     },
   });
 };

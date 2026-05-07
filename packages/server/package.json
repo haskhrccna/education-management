@@ -1,5 +1,5 @@
 {
-  "name": "@edu/server",
+  "name": "@quran-review/server",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -16,7 +16,7 @@
     "seed": "ts-node src/prisma/seed.ts"
   },
   "dependencies": {
-    "@edu/shared": "*",
+    "@quran-review/shared": "*",
     "@prisma/client": "^6.0.0",
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.76.4",

@@ -29,10 +29,14 @@ export default function AdminSettingsScreen() {
 
   const getThemeColor = (key: ThemeColor) => {
     switch (key) {
-      case 'green': return '#047857';
-      case 'blue': return '#2563eb';
-      case 'purple': return '#7c3aed';
-      case 'dark': return '#1c1917';
+      case 'green':
+        return '#047857';
+      case 'blue':
+        return '#2563eb';
+      case 'purple':
+        return '#7c3aed';
+      case 'dark':
+        return '#1c1917';
     }
   };
 
@@ -53,7 +57,11 @@ export default function AdminSettingsScreen() {
         </View>
       </View>
 
-      <ScrollView style={dynamicStyles.content} contentContainerStyle={dynamicStyles.list} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={dynamicStyles.content}
+        contentContainerStyle={dynamicStyles.list}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Theme Selection */}
         <Animated.View entering={FadeInUp.duration(400)} style={dynamicStyles.sectionCard}>
           <Text style={[dynamicStyles.sectionTitle, { fontSize: 16 * fontScale }]}>
@@ -73,10 +81,12 @@ export default function AdminSettingsScreen() {
                 onPress={() => settings.setTheme(theme.key)}
               >
                 <View style={[dynamicStyles.themeColor, { backgroundColor: getThemeColor(theme.key) }]} />
-                <Text style={[
-                  dynamicStyles.themeLabel,
-                  settings.theme === theme.key && { color: COLORS.primary, fontWeight: '700' },
-                ]}>
+                <Text
+                  style={[
+                    dynamicStyles.themeLabel,
+                    settings.theme === theme.key && { color: COLORS.primary, fontWeight: '700' },
+                  ]}
+                >
                   {theme.label}
                 </Text>
                 {settings.theme === theme.key && (
@@ -104,17 +114,21 @@ export default function AdminSettingsScreen() {
                 ]}
                 onPress={() => settings.setFontSize(fs.key)}
               >
-                <Text style={[
-                  dynamicStyles.fontSizeSample,
-                  { fontSize: 16 * FONT_SCALE[fs.key] },
-                  settings.fontSize === fs.key && { color: COLORS.primary },
-                ]}>
+                <Text
+                  style={[
+                    dynamicStyles.fontSizeSample,
+                    { fontSize: 16 * FONT_SCALE[fs.key] },
+                    settings.fontSize === fs.key && { color: COLORS.primary },
+                  ]}
+                >
                   أب
                 </Text>
-                <Text style={[
-                  dynamicStyles.fontSizeLabel,
-                  settings.fontSize === fs.key && { color: COLORS.primary, fontWeight: '700' },
-                ]}>
+                <Text
+                  style={[
+                    dynamicStyles.fontSizeLabel,
+                    settings.fontSize === fs.key && { color: COLORS.primary, fontWeight: '700' },
+                  ]}
+                >
                   {fs.label}
                 </Text>
               </TouchableOpacity>
@@ -190,23 +204,32 @@ export default function AdminSettingsScreen() {
               style={[dynamicStyles.langBtn, i18n.language === 'ar' && { borderColor: COLORS.primary, borderWidth: 2 }]}
               onPress={() => i18n.changeLanguage('ar')}
             >
-              <Text style={[dynamicStyles.langText, i18n.language === 'ar' && { color: COLORS.primary, fontWeight: '700' }]}>العربية</Text>
+              <Text
+                style={[dynamicStyles.langText, i18n.language === 'ar' && { color: COLORS.primary, fontWeight: '700' }]}
+              >
+                العربية
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[dynamicStyles.langBtn, i18n.language === 'en' && { borderColor: COLORS.primary, borderWidth: 2 }]}
               onPress={() => i18n.changeLanguage('en')}
             >
-              <Text style={[dynamicStyles.langText, i18n.language === 'en' && { color: COLORS.primary, fontWeight: '700' }]}>English</Text>
+              <Text
+                style={[dynamicStyles.langText, i18n.language === 'en' && { color: COLORS.primary, fontWeight: '700' }]}
+              >
+                English
+              </Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
 
         {/* Save Button */}
         <Animated.View entering={FadeInUp.duration(400).delay(400)}>
-          <TouchableOpacity style={[dynamicStyles.saveBtn, { backgroundColor: COLORS.primary }]} onPress={() => router.back()}>
-            <Text style={dynamicStyles.saveBtnText}>
-              {i18n.language === 'ar' ? 'حفظ الإعدادات' : 'Save Settings'}
-            </Text>
+          <TouchableOpacity
+            style={[dynamicStyles.saveBtn, { backgroundColor: COLORS.primary }]}
+            onPress={() => router.back()}
+          >
+            <Text style={dynamicStyles.saveBtnText}>{i18n.language === 'ar' ? 'حفظ الإعدادات' : 'Save Settings'}</Text>
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>

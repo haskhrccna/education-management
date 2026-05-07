@@ -34,40 +34,57 @@ function baseTemplate(content: string, lang: 'ar' | 'en' = 'en'): string {
 
 export const templates = {
   welcome: (vars: TemplateVars, lang: 'ar' | 'en' = 'en') => {
-    const content = lang === 'ar'
-      ? `<h2>مرحباً ${vars.name}!</h2><p>تم إنشاء حسابك بنجاح. حسابك قيد انتظار موافقة المسؤول.</p>`
-      : `<h2>Welcome, ${vars.name}!</h2><p>Your account has been created successfully. It is pending admin approval.</p>`;
+    const content =
+      lang === 'ar'
+        ? `<h2>مرحباً ${vars.name}!</h2><p>تم إنشاء حسابك بنجاح. حسابك قيد انتظار موافقة المسؤول.</p>`
+        : `<h2>Welcome, ${vars.name}!</h2><p>Your account has been created successfully. It is pending admin approval.</p>`;
     return baseTemplate(content, lang);
   },
 
   accountApproved: (vars: TemplateVars, lang: 'ar' | 'en' = 'en') => {
-    const content = lang === 'ar'
-      ? `<h2>تهانينا ${vars.name}!</h2><p>تمت الموافقة على حسابك من قبل المسؤول. يمكنك الآن تسجيل الدخول.</p><a href="${vars.loginUrl || '#'}" class="button">تسجيل الدخول</a>`
-      : `<h2>Congratulations, ${vars.name}!</h2><p>Your account has been approved by the admin. You can now log in.</p><a href="${vars.loginUrl || '#'}" class="button">Log In</a>`;
+    const content =
+      lang === 'ar'
+        ? `<h2>تهانينا ${vars.name}!</h2><p>تمت الموافقة على حسابك من قبل المسؤول. يمكنك الآن تسجيل الدخول.</p><a href="${vars.loginUrl || '#'}" class="button">تسجيل الدخول</a>`
+        : `<h2>Congratulations, ${vars.name}!</h2><p>Your account has been approved by the admin. You can now log in.</p><a href="${vars.loginUrl || '#'}" class="button">Log In</a>`;
     return baseTemplate(content, lang);
   },
 
-  appointmentUpdate: (vars: TemplateVars & { date: string; time: string; status: string }, lang: 'ar' | 'en' = 'en') => {
-    const statusText = vars.status === 'ACCEPTED' ? (lang === 'ar' ? 'مقبول' : 'accepted')
-      : vars.status === 'REJECTED' ? (lang === 'ar' ? 'مرفوض' : 'rejected')
-      : (lang === 'ar' ? 'محدث' : 'updated');
-    const content = lang === 'ar'
-      ? `<h2>تحديث الموعد</h2><p>مرحباً ${vars.name}،</p><p>تم <strong>${statusText}</strong> موعدك المقرر بتاريخ ${vars.date} الساعة ${vars.time}.</p>`
-      : `<h2>Appointment Update</h2><p>Hi ${vars.name},</p><p>Your appointment scheduled for ${vars.date} at ${vars.time} has been <strong>${statusText}</strong>.</p>`;
+  appointmentUpdate: (
+    vars: TemplateVars & { date: string; time: string; status: string },
+    lang: 'ar' | 'en' = 'en'
+  ) => {
+    const statusText =
+      vars.status === 'ACCEPTED'
+        ? lang === 'ar'
+          ? 'مقبول'
+          : 'accepted'
+        : vars.status === 'REJECTED'
+          ? lang === 'ar'
+            ? 'مرفوض'
+            : 'rejected'
+          : lang === 'ar'
+            ? 'محدث'
+            : 'updated';
+    const content =
+      lang === 'ar'
+        ? `<h2>تحديث الموعد</h2><p>مرحباً ${vars.name}،</p><p>تم <strong>${statusText}</strong> موعدك المقرر بتاريخ ${vars.date} الساعة ${vars.time}.</p>`
+        : `<h2>Appointment Update</h2><p>Hi ${vars.name},</p><p>Your appointment scheduled for ${vars.date} at ${vars.time} has been <strong>${statusText}</strong>.</p>`;
     return baseTemplate(content, lang);
   },
 
   newGrade: (vars: TemplateVars & { subject: string; grade: string }, lang: 'ar' | 'en' = 'en') => {
-    const content = lang === 'ar'
-      ? `<h2>درجة جديدة</h2><p>مرحباً ${vars.name}،</p><p>تم إضافة درجة جديدة لمادة <strong>${vars.subject}</strong>: <strong>${vars.grade}</strong></p>`
-      : `<h2>New Grade Posted</h2><p>Hi ${vars.name},</p><p>A new grade has been posted for <strong>${vars.subject}</strong>: <strong>${vars.grade}</strong></p>`;
+    const content =
+      lang === 'ar'
+        ? `<h2>درجة جديدة</h2><p>مرحباً ${vars.name}،</p><p>تم إضافة درجة جديدة لمادة <strong>${vars.subject}</strong>: <strong>${vars.grade}</strong></p>`
+        : `<h2>New Grade Posted</h2><p>Hi ${vars.name},</p><p>A new grade has been posted for <strong>${vars.subject}</strong>: <strong>${vars.grade}</strong></p>`;
     return baseTemplate(content, lang);
   },
 
   passwordChanged: (vars: TemplateVars, lang: 'ar' | 'en' = 'en') => {
-    const content = lang === 'ar'
-      ? `<h2>تم تغيير كلمة المرور</h2><p>مرحباً ${vars.name}،</p><p>تم تغيير كلمة المرور الخاصة بك بنجاح. إذا لم تقم بهذا التغيير، يرجى الاتصال بالدعم فوراً.</p>`
-      : `<h2>Password Changed</h2><p>Hi ${vars.name},</p><p>Your password has been changed successfully. If you did not make this change, please contact support immediately.</p>`;
+    const content =
+      lang === 'ar'
+        ? `<h2>تم تغيير كلمة المرور</h2><p>مرحباً ${vars.name}،</p><p>تم تغيير كلمة المرور الخاصة بك بنجاح. إذا لم تقم بهذا التغيير، يرجى الاتصال بالدعم فوراً.</p>`
+        : `<h2>Password Changed</h2><p>Hi ${vars.name},</p><p>Your password has been changed successfully. If you did not make this change, please contact support immediately.</p>`;
     return baseTemplate(content, lang);
   },
 };

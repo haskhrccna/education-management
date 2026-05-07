@@ -64,8 +64,9 @@ describe('recording.service', () => {
       mockedFs.copyFile.mockRejectedValue(new Error('disk full'));
       mockedFs.unlink.mockResolvedValue(undefined as any);
 
-      await expect(uploadRecording('student-1', 'file.mp3', 1024, 'audio/mpeg', '/tmp/upload-123'))
-        .rejects.toThrow('Failed to process uploaded file');
+      await expect(uploadRecording('student-1', 'file.mp3', 1024, 'audio/mpeg', '/tmp/upload-123')).rejects.toThrow(
+        'Failed to process uploaded file'
+      );
       expect(mockedFs.unlink).toHaveBeenCalledWith('/tmp/upload-123');
     });
   });
@@ -82,9 +83,7 @@ describe('recording.service', () => {
     it('should return all for teachers', async () => {
       mockedPrisma.recording.findMany.mockResolvedValue([]);
       await listRecordings('teacher-1', 'teacher');
-      expect(mockedPrisma.recording.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: {} })
-      );
+      expect(mockedPrisma.recording.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: {} }));
     });
   });
 
@@ -99,8 +98,7 @@ describe('recording.service', () => {
 
     it('should reject unknown recording', async () => {
       mockedPrisma.recording.findUnique.mockResolvedValue(null);
-      await expect(reviewRecording('rec-1', 'teacher-1', true))
-        .rejects.toThrow('Recording not found');
+      await expect(reviewRecording('rec-1', 'teacher-1', true)).rejects.toThrow('Recording not found');
     });
   });
 
@@ -137,8 +135,7 @@ describe('recording.service', () => {
         studentId: 'student-2',
       } as any);
 
-      await expect(deleteRecording('rec-1', 'student-1', false))
-        .rejects.toThrow('Permission denied');
+      await expect(deleteRecording('rec-1', 'student-1', false)).rejects.toThrow('Permission denied');
     });
   });
 });

@@ -31,19 +31,23 @@ app.use(requestId);
 app.use(timeout());
 
 // Security middleware
-app.use(helmet({
-  contentSecurityPolicy: config.env === 'production',
-  crossOriginEmbedderPolicy: config.env === 'production',
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true,
-  },
-}));
-app.use(cors({
-  origin: config.env === 'production' ? config.clientUrl : '*',
-  credentials: true,
-}));
+app.use(
+  helmet({
+    contentSecurityPolicy: config.env === 'production',
+    crossOriginEmbedderPolicy: config.env === 'production',
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+  })
+);
+app.use(
+  cors({
+    origin: config.env === 'production' ? config.clientUrl : '*',
+    credentials: true,
+  })
+);
 
 // Rate limiting
 app.use(standardLimiter);

@@ -3,7 +3,7 @@ import * as messageController from '../controllers/message.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validate.middleware';
 import { paginate } from '../middleware/pagination.middleware';
-import { SendMessageSchema } from '@edu/shared';
+import { SendMessageSchema } from '@quran-review/shared';
 
 const router = Router();
 router.use(authenticate);

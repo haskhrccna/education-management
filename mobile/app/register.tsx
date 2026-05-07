@@ -1,4 +1,13 @@
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -39,7 +48,11 @@ export default function RegisterPage() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           {/* Header */}
           <Animated.View entering={FadeInUp.duration(500)} style={styles.header}>
             <View style={styles.iconContainer}>
@@ -115,9 +128,7 @@ export default function RegisterPage() {
               disabled={isLoading}
               activeOpacity={0.8}
             >
-              <Text style={styles.buttonText}>
-                {isLoading ? t('loading') : t('register')}
-              </Text>
+              <Text style={styles.buttonText}>{isLoading ? t('loading') : t('register')}</Text>
             </TouchableOpacity>
           </Animated.View>
 
@@ -134,92 +145,93 @@ export default function RegisterPage() {
   );
 }
 
-const createStyles = (COLORS: any) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  keyboardView: { flex: 1 },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: SPACING['2xl'],
-    paddingVertical: SPACING['2xl'],
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: SPACING['2xl'],
-  },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: RADIUS['2xl'],
-    backgroundColor: COLORS.primaryMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
-  quranIcon: { fontSize: 40 },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: COLORS.primaryDark,
-    marginBottom: SPACING.xs,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
-  },
-  form: { gap: SPACING.lg },
-  row: { flexDirection: 'row', gap: SPACING.md },
-  errorBox: {
-    backgroundColor: COLORS.errorLight,
-    padding: SPACING.lg,
-    borderRadius: RADIUS.md,
-    borderRightWidth: 3,
-    borderRightColor: COLORS.error,
-  },
-  errorText: {
-    color: COLORS.error,
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'right',
-  },
-  inputContainer: { gap: SPACING.xs },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-    textAlign: 'right',
-  },
-  input: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
-    fontSize: 16,
-    color: COLORS.textPrimary,
-    borderWidth: 1,
-    borderColor: '#e7e5e4',
-    textAlign: 'right',
-  },
-  button: {
-    backgroundColor: COLORS.primary,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    marginTop: SPACING.sm,
-    ...SHADOWS.md,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: {
-    color: COLORS.textOnPrimary,
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: SPACING['2xl'],
-    gap: SPACING.xs,
-  },
-  footerText: { color: COLORS.textSecondary, fontSize: 15 },
-  linkText: { color: COLORS.primary, fontWeight: '700', fontSize: 15 },
-});
+const createStyles = (COLORS: any) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: COLORS.background },
+    keyboardView: { flex: 1 },
+    scrollContent: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      paddingHorizontal: SPACING['2xl'],
+      paddingVertical: SPACING['2xl'],
+    },
+    header: {
+      alignItems: 'center',
+      marginBottom: SPACING['2xl'],
+    },
+    iconContainer: {
+      width: 80,
+      height: 80,
+      borderRadius: RADIUS['2xl'],
+      backgroundColor: COLORS.primaryMuted,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: SPACING.lg,
+    },
+    quranIcon: { fontSize: 40 },
+    title: {
+      fontSize: 28,
+      fontWeight: '800',
+      color: COLORS.primaryDark,
+      marginBottom: SPACING.xs,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: COLORS.textSecondary,
+      fontWeight: '500',
+    },
+    form: { gap: SPACING.lg },
+    row: { flexDirection: 'row', gap: SPACING.md },
+    errorBox: {
+      backgroundColor: COLORS.errorLight,
+      padding: SPACING.lg,
+      borderRadius: RADIUS.md,
+      borderRightWidth: 3,
+      borderRightColor: COLORS.error,
+    },
+    errorText: {
+      color: COLORS.error,
+      fontSize: 14,
+      fontWeight: '600',
+      textAlign: 'right',
+    },
+    inputContainer: { gap: SPACING.xs },
+    inputLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: COLORS.textSecondary,
+      textAlign: 'right',
+    },
+    input: {
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS.lg,
+      padding: SPACING.lg,
+      fontSize: 16,
+      color: COLORS.textPrimary,
+      borderWidth: 1,
+      borderColor: '#e7e5e4',
+      textAlign: 'right',
+    },
+    button: {
+      backgroundColor: COLORS.primary,
+      borderRadius: RADIUS.lg,
+      padding: SPACING.lg,
+      alignItems: 'center',
+      marginTop: SPACING.sm,
+      ...SHADOWS.md,
+    },
+    buttonDisabled: { opacity: 0.6 },
+    buttonText: {
+      color: COLORS.textOnPrimary,
+      fontSize: 17,
+      fontWeight: '700',
+    },
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      marginTop: SPACING['2xl'],
+      gap: SPACING.xs,
+    },
+    footerText: { color: COLORS.textSecondary, fontSize: 15 },
+    linkText: { color: COLORS.primary, fontWeight: '700', fontSize: 15 },
+  });

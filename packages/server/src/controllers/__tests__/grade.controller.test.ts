@@ -48,9 +48,7 @@ describe('grade.controller', () => {
 
     it('should reject missing fields', async () => {
       const app = createTestApp('teacher-1', 'teacher');
-      const res = await request(app)
-        .post('/')
-        .send({ studentId: 'student-1' });
+      const res = await request(app).post('/').send({ studentId: 'student-1' });
 
       expect(res.status).toBe(400);
     });

@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import i18next from 'i18next';
 import { create } from 'zustand';
 
 export type ThemeColor = 'green' | 'blue' | 'purple' | 'dark';
@@ -10,12 +11,14 @@ interface SettingsState {
   darkMode: boolean;
   notifications: boolean;
   compactView: boolean;
+  language: 'ar' | 'en';
   isLoaded: boolean;
   setTheme: (theme: ThemeColor) => Promise<void>;
   setFontSize: (size: FontSize) => Promise<void>;
   setDarkMode: (enabled: boolean) => Promise<void>;
   setNotifications: (enabled: boolean) => Promise<void>;
   setCompactView: (enabled: boolean) => Promise<void>;
+  setLanguage: (lng: 'ar' | 'en') => Promise<void>;
   loadSettings: () => Promise<void>;
 }
 
@@ -27,6 +30,7 @@ const DEFAULT_SETTINGS = {
   darkMode: false,
   notifications: true,
   compactView: false,
+  language: 'ar' as const,
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -58,12 +62,21 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     await saveSettings({ ...get(), compactView });
   },
 
+  setLanguage: async (language) => {
+    set({ language });
+    await i18next.changeLanguage(language);
+    await saveSettings({ ...get(), language });
+  },
+
   loadSettings: async () => {
     try {
       const stored = await AsyncStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
         set({ ...parsed, isLoaded: true });
+        if (parsed.language && parsed.language !== i18next.language) {
+          await i18next.changeLanguage(parsed.language);
+        }
       } else {
         set({ isLoaded: true });
       }

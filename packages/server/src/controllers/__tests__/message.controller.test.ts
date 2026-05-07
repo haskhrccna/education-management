@@ -59,9 +59,7 @@ describe('message.controller', () => {
       } as any);
 
       const app = createTestApp('user-1');
-      const res = await request(app)
-        .post('/')
-        .send({ receiverId: 'receiver-1', content: 'Hello', type: 'TEXT' });
+      const res = await request(app).post('/').send({ receiverId: 'receiver-1', content: 'Hello', type: 'TEXT' });
 
       expect(res.status).toBe(201);
       expect(res.body.content).toBe('Hello');
@@ -69,9 +67,7 @@ describe('message.controller', () => {
 
     it('should reject missing receiverId', async () => {
       const app = createTestApp('user-1');
-      const res = await request(app)
-        .post('/')
-        .send({ content: 'Hello' });
+      const res = await request(app).post('/').send({ content: 'Hello' });
 
       expect(res.status).toBe(400);
     });

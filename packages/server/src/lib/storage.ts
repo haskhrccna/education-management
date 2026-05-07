@@ -17,7 +17,11 @@ class LocalStorageAdapter implements StorageAdapter {
   }
 
   async ensureDir() {
-    try { await fs.access(this.baseDir); } catch { await fs.mkdir(this.baseDir, { recursive: true }); }
+    try {
+      await fs.access(this.baseDir);
+    } catch {
+      await fs.mkdir(this.baseDir, { recursive: true });
+    }
   }
 
   async save(sourcePath: string, key: string): Promise<string> {
@@ -29,14 +33,20 @@ class LocalStorageAdapter implements StorageAdapter {
 
   async delete(key: string): Promise<void> {
     const filePath = path.join(this.baseDir, key);
-    try { await fs.unlink(filePath); } catch { /* ignore */ }
+    try {
+      await fs.unlink(filePath);
+    } catch {
+      /* ignore */
+    }
   }
 
   async exists(key: string): Promise<boolean> {
     try {
       await fs.access(path.join(this.baseDir, key));
       return true;
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   }
 
   getLocalPath(key: string): string {

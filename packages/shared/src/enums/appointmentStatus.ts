@@ -1,8 +1,8 @@
 export enum AppointmentStatus {
-  REQUESTED = 'requested',
-  ACCEPTED = 'accepted',
-  AMENDED = 'amended',
-  REJECTED = 'rejected',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled',
+  REQUESTED = 'REQUESTED',
+  ACCEPTED = 'ACCEPTED',
+  AMENDED = 'AMENDED',
+  REJECTED = 'REJECTED',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
 }

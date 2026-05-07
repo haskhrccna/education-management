@@ -4,8 +4,8 @@ import * as recordingController from '../controllers/recording.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validate.middleware';
 import { paginate } from '../middleware/pagination.middleware';
-import { UserRole } from '@edu/shared';
-import { CreateRecordingSchema } from '@edu/shared';
+import { UserRole } from '@quran-review/shared';
+import { CreateRecordingSchema } from '@quran-review/shared';
 
 const upload = multer({
   dest: 'uploads/',
@@ -20,7 +20,13 @@ const router = Router();
 router.use(authenticate);
 
 // Student uploads recordings
-router.post('/', authorize(UserRole.STUDENT), upload.single('file'), validate(CreateRecordingSchema), recordingController.uploadRecording);
+router.post(
+  '/',
+  authorize(UserRole.STUDENT),
+  upload.single('file'),
+  validate(CreateRecordingSchema),
+  recordingController.uploadRecording
+);
 router.get('/', paginate(20, 100), recordingController.listRecordings);
 
 // Teacher/Admin reviews/deletes recordings

@@ -1,4 +1,13 @@
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, ActivityIndicator } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -113,7 +122,11 @@ export default function UserDetailScreen() {
             <Text style={styles.backText}>←</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
-            {isEditing ? (i18n.language === 'ar' ? 'تعديل المستخدم' : 'Edit User') : user.firstName + ' ' + user.lastName}
+            {isEditing
+              ? i18n.language === 'ar'
+                ? 'تعديل المستخدم'
+                : 'Edit User'
+              : user.firstName + ' ' + user.lastName}
           </Text>
           <TouchableOpacity onPress={() => setIsEditing(!isEditing)} style={styles.editBtn}>
             <Text style={styles.editText}>{isEditing ? '✕' : '✎'}</Text>
@@ -185,7 +198,9 @@ export default function UserDetailScreen() {
             </View>
           ) : (
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{user.firstName} {user.lastName}</Text>
+              <Text style={styles.profileName}>
+                {user.firstName} {user.lastName}
+              </Text>
               <Text style={styles.profileEmail}>{user.email}</Text>
               <View style={styles.profileMeta}>
                 <View style={[styles.roleBadge, user.role === 'ADMIN' && styles.adminBadge]}>
@@ -198,9 +213,7 @@ export default function UserDetailScreen() {
               {/* Joining Date */}
               <View style={styles.joinDateRow}>
                 <Text style={styles.joinDateIcon}>📅</Text>
-                <Text style={styles.joinDateLabel}>
-                  {i18n.language === 'ar' ? 'تاريخ الانضمام:' : 'Join Date:'}
-                </Text>
+                <Text style={styles.joinDateLabel}>{i18n.language === 'ar' ? 'تاريخ الانضمام:' : 'Join Date:'}</Text>
                 <Text style={styles.joinDateValue}>{joinDate}</Text>
               </View>
             </View>
@@ -210,16 +223,16 @@ export default function UserDetailScreen() {
         {/* Student's Teachers */}
         {isStudent && analytics?.teachers && analytics.teachers.length > 0 && (
           <Animated.View entering={FadeInUp.duration(400).delay(100)} style={styles.relationsCard}>
-            <Text style={styles.relationsTitle}>
-              {i18n.language === 'ar' ? '👨‍🏫 المعلمون' : '👨‍🏫 Teachers'}
-            </Text>
+            <Text style={styles.relationsTitle}>{i18n.language === 'ar' ? '👨‍🏫 المعلمون' : '👨‍🏫 Teachers'}</Text>
             {analytics.teachers.map((teacher: any) => (
               <View key={teacher.id} style={styles.relationItem}>
                 <View style={styles.relationAvatar}>
                   <Text style={styles.relationAvatarText}>{teacher.firstName[0]}</Text>
                 </View>
                 <View style={styles.relationInfo}>
-                  <Text style={styles.relationName}>{teacher.firstName} {teacher.lastName}</Text>
+                  <Text style={styles.relationName}>
+                    {teacher.firstName} {teacher.lastName}
+                  </Text>
                   <Text style={styles.relationEmail}>{teacher.email}</Text>
                 </View>
               </View>
@@ -230,16 +243,16 @@ export default function UserDetailScreen() {
         {/* Teacher's Students */}
         {isTeacher && analytics?.students && analytics.students.length > 0 && (
           <Animated.View entering={FadeInUp.duration(400).delay(100)} style={styles.relationsCard}>
-            <Text style={styles.relationsTitle}>
-              {i18n.language === 'ar' ? '👨‍🎓 الطلاب' : '👨‍🎓 Students'}
-            </Text>
+            <Text style={styles.relationsTitle}>{i18n.language === 'ar' ? '👨‍🎓 الطلاب' : '👨‍🎓 Students'}</Text>
             {analytics.students.map((student: any) => (
               <View key={student.id} style={styles.relationItem}>
                 <View style={styles.relationAvatar}>
                   <Text style={styles.relationAvatarText}>{student.firstName[0]}</Text>
                 </View>
                 <View style={styles.relationInfo}>
-                  <Text style={styles.relationName}>{student.firstName} {student.lastName}</Text>
+                  <Text style={styles.relationName}>
+                    {student.firstName} {student.lastName}
+                  </Text>
                   <Text style={styles.relationEmail}>{student.email}</Text>
                   <Text style={styles.relationDate}>
                     {i18n.language === 'ar' ? 'انضم:' : 'Joined:'}{' '}
@@ -293,19 +306,19 @@ export default function UserDetailScreen() {
         {/* Activity Summary */}
         {(isStudent || isTeacher) && (
           <Animated.View entering={FadeInUp.duration(400).delay(200)} style={styles.activityCard}>
-            <Text style={styles.activityTitle}>
-              {i18n.language === 'ar' ? 'ملخص النشاط' : 'Activity Summary'}
-            </Text>
+            <Text style={styles.activityTitle}>{i18n.language === 'ar' ? 'ملخص النشاط' : 'Activity Summary'}</Text>
             <View style={styles.activityItem}>
               <Text style={styles.activityIcon}>📅</Text>
               <View style={styles.activityContent}>
-                <Text style={styles.activityLabel}>
-                  {i18n.language === 'ar' ? 'آخر موعد' : 'Last Appointment'}
-                </Text>
+                <Text style={styles.activityLabel}>{i18n.language === 'ar' ? 'آخر موعد' : 'Last Appointment'}</Text>
                 <Text style={styles.activityValue}>
                   {analytics?.acceptedAppointments > 0
-                    ? (i18n.language === 'ar' ? 'موجود' : 'Available')
-                    : (i18n.language === 'ar' ? 'لا يوجد' : 'None')}
+                    ? i18n.language === 'ar'
+                      ? 'موجود'
+                      : 'Available'
+                    : i18n.language === 'ar'
+                      ? 'لا يوجد'
+                      : 'None'}
                 </Text>
               </View>
             </View>
@@ -317,23 +330,31 @@ export default function UserDetailScreen() {
                 </Text>
                 <Text style={styles.activityValue}>
                   {analytics?.averageGrade > 80
-                    ? (i18n.language === 'ar' ? 'ممتاز' : 'Excellent')
+                    ? i18n.language === 'ar'
+                      ? 'ممتاز'
+                      : 'Excellent'
                     : analytics?.averageGrade > 60
-                      ? (i18n.language === 'ar' ? 'جيد' : 'Good')
-                      : (i18n.language === 'ar' ? 'يحتاج تحسين' : 'Needs Improvement')}
+                      ? i18n.language === 'ar'
+                        ? 'جيد'
+                        : 'Good'
+                      : i18n.language === 'ar'
+                        ? 'يحتاج تحسين'
+                        : 'Needs Improvement'}
                 </Text>
               </View>
             </View>
             <View style={styles.activityItem}>
               <Text style={styles.activityIcon}>🔥</Text>
               <View style={styles.activityContent}>
-                <Text style={styles.activityLabel}>
-                  {i18n.language === 'ar' ? 'معدل التفاعل' : 'Engagement Rate'}
-                </Text>
+                <Text style={styles.activityLabel}>{i18n.language === 'ar' ? 'معدل التفاعل' : 'Engagement Rate'}</Text>
                 <Text style={styles.activityValue}>
                   {analytics?.totalMessages > 10
-                    ? (i18n.language === 'ar' ? 'عالي' : 'High')
-                    : (i18n.language === 'ar' ? 'متوسط' : 'Medium')}
+                    ? i18n.language === 'ar'
+                      ? 'عالي'
+                      : 'High'
+                    : i18n.language === 'ar'
+                      ? 'متوسط'
+                      : 'Medium'}
                 </Text>
               </View>
             </View>
@@ -344,9 +365,7 @@ export default function UserDetailScreen() {
         {!isEditing && (
           <Animated.View entering={FadeInUp.duration(400).delay(250)}>
             <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
-              <Text style={styles.deleteText}>
-                {i18n.language === 'ar' ? '🗑️ حذف المستخدم' : '🗑️ Delete User'}
-              </Text>
+              <Text style={styles.deleteText}>{i18n.language === 'ar' ? '🗑️ حذف المستخدم' : '🗑️ Delete User'}</Text>
             </TouchableOpacity>
           </Animated.View>
         )}
@@ -355,387 +374,388 @@ export default function UserDetailScreen() {
   );
 }
 
-const createStyles = (COLORS: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+const createStyles = (COLORS: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
 
-  // Header
-  header: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.xl,
-    paddingTop: SPACING.lg,
-    paddingBottom: SPACING.lg,
-    borderBottomLeftRadius: RADIUS['2xl'],
-    borderBottomRightRadius: RADIUS['2xl'],
-    ...SHADOWS.lg,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.full,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  editBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.full,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  editText: {
-    color: '#fff',
-    fontSize: 16,
-  },
+    // Header
+    header: {
+      backgroundColor: COLORS.primary,
+      paddingHorizontal: SPACING.xl,
+      paddingTop: SPACING.lg,
+      paddingBottom: SPACING.lg,
+      borderBottomLeftRadius: RADIUS['2xl'],
+      borderBottomRightRadius: RADIUS['2xl'],
+      ...SHADOWS.lg,
+    },
+    headerTop: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: RADIUS.full,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    backText: {
+      color: '#fff',
+      fontSize: 18,
+      fontWeight: '700',
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: '#fff',
+    },
+    editBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: RADIUS.full,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    editText: {
+      color: '#fff',
+      fontSize: 16,
+    },
 
-  // Content
-  content: {
-    flex: 1,
-    paddingHorizontal: SPACING.xl,
-  },
-  list: {
-    gap: SPACING.md,
-    paddingVertical: SPACING.lg,
-    paddingBottom: SPACING['4xl'],
-  },
+    // Content
+    content: {
+      flex: 1,
+      paddingHorizontal: SPACING.xl,
+    },
+    list: {
+      gap: SPACING.md,
+      paddingVertical: SPACING.lg,
+      paddingBottom: SPACING['4xl'],
+    },
 
-  // Profile Card
-  profileCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS['2xl'],
-    padding: SPACING['2xl'],
-    alignItems: 'center',
-    ...SHADOWS.md,
-  },
-  avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: RADIUS.full,
-    backgroundColor: COLORS.primaryMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
-  },
-  avatarText: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: COLORS.primary,
-  },
-  profileInfo: {
-    alignItems: 'center',
-  },
-  profileName: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.xs,
-  },
-  profileEmail: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.md,
-  },
-  profileMeta: {
-    flexDirection: 'row',
-    gap: SPACING.sm,
-    marginBottom: SPACING.md,
-  },
-  roleBadge: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    borderRadius: RADIUS.md,
-    backgroundColor: '#f1f5f9',
-  },
-  adminBadge: {
-    backgroundColor: '#f3e8ff',
-  },
-  roleText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#475569',
-  },
-  adminText: {
-    color: '#7c3aed',
-  },
-  statusBadge: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.warningLight,
-  },
-  activeBadge: {
-    backgroundColor: COLORS.successLight,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.warning,
-  },
-  activeText: {
-    color: COLORS.success,
-  },
-  joinDateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.xs,
-    marginTop: SPACING.sm,
-    backgroundColor: COLORS.background,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    borderRadius: RADIUS.md,
-  },
-  joinDateIcon: {
-    fontSize: 14,
-  },
-  joinDateLabel: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-  },
-  joinDateValue: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
+    // Profile Card
+    profileCard: {
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS['2xl'],
+      padding: SPACING['2xl'],
+      alignItems: 'center',
+      ...SHADOWS.md,
+    },
+    avatar: {
+      width: 72,
+      height: 72,
+      borderRadius: RADIUS.full,
+      backgroundColor: COLORS.primaryMuted,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: SPACING.lg,
+    },
+    avatarText: {
+      fontSize: 28,
+      fontWeight: '800',
+      color: COLORS.primary,
+    },
+    profileInfo: {
+      alignItems: 'center',
+    },
+    profileName: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: COLORS.textPrimary,
+      marginBottom: SPACING.xs,
+    },
+    profileEmail: {
+      fontSize: 14,
+      color: COLORS.textSecondary,
+      marginBottom: SPACING.md,
+    },
+    profileMeta: {
+      flexDirection: 'row',
+      gap: SPACING.sm,
+      marginBottom: SPACING.md,
+    },
+    roleBadge: {
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.xs,
+      borderRadius: RADIUS.md,
+      backgroundColor: '#f1f5f9',
+    },
+    adminBadge: {
+      backgroundColor: '#f3e8ff',
+    },
+    roleText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: '#475569',
+    },
+    adminText: {
+      color: '#7c3aed',
+    },
+    statusBadge: {
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.xs,
+      borderRadius: RADIUS.md,
+      backgroundColor: COLORS.warningLight,
+    },
+    activeBadge: {
+      backgroundColor: COLORS.successLight,
+    },
+    statusText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: COLORS.warning,
+    },
+    activeText: {
+      color: COLORS.success,
+    },
+    joinDateRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.xs,
+      marginTop: SPACING.sm,
+      backgroundColor: COLORS.background,
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.xs,
+      borderRadius: RADIUS.md,
+    },
+    joinDateIcon: {
+      fontSize: 14,
+    },
+    joinDateLabel: {
+      fontSize: 13,
+      color: COLORS.textSecondary,
+    },
+    joinDateValue: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: COLORS.primary,
+    },
 
-  // Edit Form
-  editForm: {
-    width: '100%',
-    gap: SPACING.md,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-  },
-  inputHalf: {
-    flex: 1,
-  },
-  inputFull: {
-    width: '100%',
-  },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.xs,
-    textAlign: 'right',
-  },
-  input: {
-    backgroundColor: COLORS.background,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
-    fontSize: 15,
-    color: COLORS.textPrimary,
-    borderWidth: 1,
-    borderColor: '#e7e5e4',
-    textAlign: 'right',
-  },
-  saveBtn: {
-    backgroundColor: COLORS.primary,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    marginTop: SPACING.sm,
-    ...SHADOWS.md,
-  },
-  saveBtnText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
+    // Edit Form
+    editForm: {
+      width: '100%',
+      gap: SPACING.md,
+    },
+    inputRow: {
+      flexDirection: 'row',
+      gap: SPACING.md,
+    },
+    inputHalf: {
+      flex: 1,
+    },
+    inputFull: {
+      width: '100%',
+    },
+    inputLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: COLORS.textSecondary,
+      marginBottom: SPACING.xs,
+      textAlign: 'right',
+    },
+    input: {
+      backgroundColor: COLORS.background,
+      borderRadius: RADIUS.lg,
+      padding: SPACING.lg,
+      fontSize: 15,
+      color: COLORS.textPrimary,
+      borderWidth: 1,
+      borderColor: '#e7e5e4',
+      textAlign: 'right',
+    },
+    saveBtn: {
+      backgroundColor: COLORS.primary,
+      borderRadius: RADIUS.lg,
+      padding: SPACING.lg,
+      alignItems: 'center',
+      marginTop: SPACING.sm,
+      ...SHADOWS.md,
+    },
+    saveBtnText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '700',
+    },
 
-  // Relations Card (Teachers/Students)
-  relationsCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS['2xl'],
-    padding: SPACING['2xl'],
-    ...SHADOWS.md,
-  },
-  relationsTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.lg,
-    textAlign: 'right',
-  },
-  relationItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.md,
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  relationAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: RADIUS.full,
-    backgroundColor: COLORS.primaryMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  relationAvatarText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
-  relationInfo: {
-    flex: 1,
-  },
-  relationName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  relationEmail: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  relationDate: {
-    fontSize: 12,
-    color: COLORS.primary,
-    fontWeight: '600',
-    marginTop: 2,
-  },
+    // Relations Card (Teachers/Students)
+    relationsCard: {
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS['2xl'],
+      padding: SPACING['2xl'],
+      ...SHADOWS.md,
+    },
+    relationsTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: COLORS.textPrimary,
+      marginBottom: SPACING.lg,
+      textAlign: 'right',
+    },
+    relationItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.md,
+      paddingVertical: SPACING.md,
+      borderBottomWidth: 1,
+      borderBottomColor: '#f1f5f9',
+    },
+    relationAvatar: {
+      width: 40,
+      height: 40,
+      borderRadius: RADIUS.full,
+      backgroundColor: COLORS.primaryMuted,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    relationAvatarText: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: COLORS.primary,
+    },
+    relationInfo: {
+      flex: 1,
+    },
+    relationName: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: COLORS.textPrimary,
+    },
+    relationEmail: {
+      fontSize: 12,
+      color: COLORS.textSecondary,
+      marginTop: 2,
+    },
+    relationDate: {
+      fontSize: 12,
+      color: COLORS.primary,
+      fontWeight: '600',
+      marginTop: 2,
+    },
 
-  // Analytics
-  analyticsCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS['2xl'],
-    padding: SPACING['2xl'],
-    ...SHADOWS.md,
-  },
-  analyticsTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.lg,
-    textAlign: 'right',
-  },
-  analyticsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.md,
-  },
-  analyticsItem: {
-    width: '47%',
-    backgroundColor: COLORS.background,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
-    alignItems: 'center',
-  },
-  analyticsValue: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: COLORS.primary,
-    marginBottom: SPACING.xs,
-  },
-  analyticsLabel: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
-  },
-  analyticsRow: {
-    flexDirection: 'row',
-    marginTop: SPACING.lg,
-    paddingTop: SPACING.lg,
-    borderTopWidth: 1,
-    borderTopColor: '#e7e5e4',
-    gap: SPACING.md,
-  },
-  analyticsRowItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  analyticsRowLabel: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.xs,
-  },
-  analyticsRowValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
+    // Analytics
+    analyticsCard: {
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS['2xl'],
+      padding: SPACING['2xl'],
+      ...SHADOWS.md,
+    },
+    analyticsTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: COLORS.textPrimary,
+      marginBottom: SPACING.lg,
+      textAlign: 'right',
+    },
+    analyticsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: SPACING.md,
+    },
+    analyticsItem: {
+      width: '47%',
+      backgroundColor: COLORS.background,
+      borderRadius: RADIUS.lg,
+      padding: SPACING.lg,
+      alignItems: 'center',
+    },
+    analyticsValue: {
+      fontSize: 24,
+      fontWeight: '800',
+      color: COLORS.primary,
+      marginBottom: SPACING.xs,
+    },
+    analyticsLabel: {
+      fontSize: 12,
+      color: COLORS.textSecondary,
+      fontWeight: '500',
+    },
+    analyticsRow: {
+      flexDirection: 'row',
+      marginTop: SPACING.lg,
+      paddingTop: SPACING.lg,
+      borderTopWidth: 1,
+      borderTopColor: '#e7e5e4',
+      gap: SPACING.md,
+    },
+    analyticsRowItem: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    analyticsRowLabel: {
+      fontSize: 12,
+      color: COLORS.textSecondary,
+      marginBottom: SPACING.xs,
+    },
+    analyticsRowValue: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: COLORS.textPrimary,
+    },
 
-  // Activity
-  activityCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS['2xl'],
-    padding: SPACING['2xl'],
-    ...SHADOWS.md,
-  },
-  activityTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.lg,
-    textAlign: 'right',
-  },
-  activityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.md,
-    paddingVertical: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  activityIcon: {
-    fontSize: 24,
-  },
-  activityContent: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  activityLabel: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  activityValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
+    // Activity
+    activityCard: {
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS['2xl'],
+      padding: SPACING['2xl'],
+      ...SHADOWS.md,
+    },
+    activityTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: COLORS.textPrimary,
+      marginBottom: SPACING.lg,
+      textAlign: 'right',
+    },
+    activityItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.md,
+      paddingVertical: SPACING.md,
+      borderBottomWidth: 1,
+      borderBottomColor: '#f1f5f9',
+    },
+    activityIcon: {
+      fontSize: 24,
+    },
+    activityContent: {
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    activityLabel: {
+      fontSize: 14,
+      color: COLORS.textSecondary,
+    },
+    activityValue: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: COLORS.primary,
+    },
 
-  // Delete
-  deleteBtn: {
-    backgroundColor: COLORS.errorLight,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    marginTop: SPACING.md,
-    borderWidth: 1,
-    borderColor: COLORS.error,
-  },
-  deleteText: {
-    color: COLORS.error,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-});
+    // Delete
+    deleteBtn: {
+      backgroundColor: COLORS.errorLight,
+      borderRadius: RADIUS.lg,
+      padding: SPACING.lg,
+      alignItems: 'center',
+      marginTop: SPACING.md,
+      borderWidth: 1,
+      borderColor: COLORS.error,
+    },
+    deleteText: {
+      color: COLORS.error,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+  });

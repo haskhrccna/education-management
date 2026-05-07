@@ -9,38 +9,47 @@ function toDateOnly(dateInput: string | Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
-export const createAppointment = async (studentId: string, teacherId: string, requestedDate: string, requestedTime: string, durationMinutes: number) => {
-  return await prisma.$transaction(async (tx) => {
-    const teacherUser = await tx.user.findUnique({ where: { id: teacherId } });
-    if (!teacherUser || teacherUser.role !== 'TEACHER') throw new AppError(400, 'Invalid teacher');
+export const createAppointment = async (
+  studentId: string,
+  teacherId: string,
+  requestedDate: string,
+  requestedTime: string,
+  durationMinutes: number
+) => {
+  return await prisma.$transaction(
+    async (tx) => {
+      const teacherUser = await tx.user.findUnique({ where: { id: teacherId } });
+      if (!teacherUser || teacherUser.role !== 'TEACHER') throw new AppError(400, 'Invalid teacher');
 
-    const dateOnly = toDateOnly(requestedDate);
-    const nextDay = new Date(dateOnly);
-    nextDay.setDate(nextDay.getDate() + 1);
+      const dateOnly = toDateOnly(requestedDate);
+      const nextDay = new Date(dateOnly);
+      nextDay.setDate(nextDay.getDate() + 1);
 
-    const conflicts = await tx.appointment.findMany({
-      where: {
-        teacherId,
-        requestedDate: { gte: dateOnly, lt: nextDay },
-        status: { in: ['REQUESTED', 'ACCEPTED'] },
-      },
-    });
+      const conflicts = await tx.appointment.findMany({
+        where: {
+          teacherId,
+          requestedDate: { gte: dateOnly, lt: nextDay },
+          status: { in: ['REQUESTED', 'ACCEPTED'] },
+        },
+      });
 
-    const newStart = timeToMinutes(requestedTime);
-    const newEnd = newStart + (durationMinutes || 60);
+      const newStart = timeToMinutes(requestedTime);
+      const newEnd = newStart + (durationMinutes || 60);
 
-    for (const existing of conflicts) {
-      const existingStart = timeToMinutes(existing.requestedTime);
-      const existingEnd = existingStart + (existing.durationMinutes || 60);
-      if (timesOverlap(newStart, newEnd, existingStart, existingEnd)) {
-        throw new AppError(409, 'Teacher already has an appointment overlapping this time');
+      for (const existing of conflicts) {
+        const existingStart = timeToMinutes(existing.requestedTime);
+        const existingEnd = existingStart + (existing.durationMinutes || 60);
+        if (timesOverlap(newStart, newEnd, existingStart, existingEnd)) {
+          throw new AppError(409, 'Teacher already has an appointment overlapping this time');
+        }
       }
-    }
 
-    return await tx.appointment.create({
-      data: { studentId, teacherId, requestedDate: dateOnly, requestedTime, durationMinutes: durationMinutes || 60 },
-    });
-  }, { isolationLevel: 'Serializable' });
+      return await tx.appointment.create({
+        data: { studentId, teacherId, requestedDate: dateOnly, requestedTime, durationMinutes: durationMinutes || 60 },
+      });
+    },
+    { isolationLevel: 'Serializable' }
+  );
 };
 
 function timeToMinutes(time: string): number {
@@ -67,7 +76,13 @@ export const getMyAppointments = async (userId: string, userRole: UserRoleInput)
   });
 };
 
-export const manageAppointment = async (appointmentId: string, userId: string, userRole: string, action: string, amendedNote?: string) => {
+export const manageAppointment = async (
+  appointmentId: string,
+  userId: string,
+  userRole: string,
+  action: string,
+  amendedNote?: string
+) => {
   const validActions = ['ACCEPTED', 'AMENDED', 'REJECTED'];
   if (!validActions.includes(action)) throw new AppError(400, 'Invalid action');
 

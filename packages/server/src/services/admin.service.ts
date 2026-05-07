@@ -9,14 +9,14 @@ const MAX_BULK_IDS = 1000;
 
 export const listUsers = async (roleFilter?: string) => {
   return await prisma.user.findMany({
-    where: roleFilter ? { role: roleFilter.toUpperCase() as 'STUDENT' | 'TEACHER' | 'ADMIN' } : undefined,
+where: { ...(roleFilter ? { role: roleFilter.toUpperCase() as 'STUDENT' | 'TEACHER' | 'ADMIN' } : {}), deletedAt: null },
     select: { id: true, email: true, firstName: true, lastName: true, role: true, status: true, createdAt: true },
     orderBy: { createdAt: 'desc' },
   });
 };
 
 export const listUsersPaginated = async (roleFilter?: string, skip = 0, take = 20) => {
-  const where = roleFilter ? { role: roleFilter.toUpperCase() as 'STUDENT' | 'TEACHER' | 'ADMIN' } : undefined;
+  const where = { ...(roleFilter ? { role: roleFilter.toUpperCase() as 'STUDENT' | 'TEACHER' | 'ADMIN' } : {}), deletedAt: null };
   const [users, total] = await Promise.all([
     prisma.user.findMany({
       where,
@@ -25,7 +25,7 @@ export const listUsersPaginated = async (roleFilter?: string, skip = 0, take = 2
       skip,
       take,
     }),
-    prisma.user.count({ where }),
+    prisma.user.count({ where: { ...where, deletedAt: null } }),
   ]);
   return { users, total };
 };
@@ -75,7 +75,10 @@ export const getTeacherProgress = async (teacherId?: string) => {
     return await prisma.user.findUnique({
       where: { id: teacherId },
       select: {
-        id: true, email: true, firstName: true, lastName: true,
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
         appointmentsAsTeacher: { where: { status: 'ACCEPTED' }, select: { id: true } },
         gradesGiven: { select: { id: true, grade: true, type: true } },
       },
@@ -84,18 +87,21 @@ export const getTeacherProgress = async (teacherId?: string) => {
   const teachers = await prisma.user.findMany({
     where: { role: 'TEACHER', status: 'ACTIVE' },
     select: {
-      id: true, email: true, firstName: true, lastName: true,
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
       appointmentsAsTeacher: { where: { status: 'ACCEPTED' }, select: { id: true } },
       gradesGiven: { select: { grade: true } },
     },
   });
-  return teachers.map(t => ({
+  return teachers.map((t) => ({
     id: t.id,
     email: t.email,
     name: `${t.firstName} ${t.lastName}`,
     acceptedAppointments: t.appointmentsAsTeacher.length,
     gradesGiven: t.gradesGiven.length,
-    averageGrade: safeAverage(t.gradesGiven.map(g => g.grade)),
+    averageGrade: safeAverage(t.gradesGiven.map((g) => g.grade)),
   }));
 };
 
@@ -104,7 +110,10 @@ export const getStudentProgress = async (studentId?: string) => {
     return await prisma.user.findUnique({
       where: { id: studentId },
       select: {
-        id: true, email: true, firstName: true, lastName: true,
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
         gradesReceived: { select: { id: true, grade: true, subject: true, type: true } },
         appointmentsAsStudent: { where: { status: 'ACCEPTED' }, select: { id: true } },
       },
@@ -113,23 +122,26 @@ export const getStudentProgress = async (studentId?: string) => {
   const students = await prisma.user.findMany({
     where: { role: 'STUDENT', status: 'ACTIVE' },
     select: {
-      id: true, email: true, firstName: true, lastName: true,
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
       gradesReceived: { select: { grade: true, subject: true, type: true } },
       appointmentsAsStudent: { where: { status: 'ACCEPTED' }, select: { id: true } },
     },
   });
-  return students.map(s => ({
+  return students.map((s) => ({
     id: s.id,
     email: s.email,
     name: `${s.firstName} ${s.lastName}`,
     gradesReceived: s.gradesReceived.length,
     acceptedAppointments: s.appointmentsAsStudent.length,
-    averageGrade: safeAverage(s.gradesReceived.map(g => g.grade)),
+    averageGrade: safeAverage(s.gradesReceived.map((g) => g.grade)),
   }));
 };
 
 function safeAverage(grades: string[]): number {
-  const nums = grades.map(g => parseFloat(g)).filter(n => !isNaN(n));
+  const nums = grades.map((g) => parseFloat(g)).filter((n) => !isNaN(n));
   if (nums.length === 0) return 0;
   return nums.reduce((a, b) => a + b, 0) / nums.length;
 }
@@ -194,18 +206,31 @@ export const getUserById = async (userId: string) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
-      id: true, email: true, firstName: true, lastName: true,
-      role: true, status: true, createdAt: true, updatedAt: true,
-      emailVerifiedAt: true, deviceToken: true,
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      role: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      emailVerifiedAt: true,
+      deviceToken: true,
       appointmentsAsStudent: {
         select: {
-          id: true, status: true, requestedDate: true, createdAt: true,
+          id: true,
+          status: true,
+          requestedDate: true,
+          createdAt: true,
           teacher: { select: { id: true, firstName: true, lastName: true, email: true } },
         },
       },
       appointmentsAsTeacher: {
         select: {
-          id: true, status: true, requestedDate: true, createdAt: true,
+          id: true,
+          status: true,
+          requestedDate: true,
+          createdAt: true,
           student: { select: { id: true, firstName: true, lastName: true, email: true } },
         },
       },
@@ -223,34 +248,44 @@ export const getUserById = async (userId: string) => {
   // Get unique teachers for students
   const teachers = isStudent
     ? Array.from(
-        user.appointmentsAsStudent.reduce((map: Map<string, any>, a: any) => {
-          if (!map.has(a.teacher.id)) map.set(a.teacher.id, a.teacher);
-          return map;
-        }, new Map<string, any>()).values()
+        user.appointmentsAsStudent
+          .reduce((map, a) => {
+            if (!map.has(a.teacher.id)) map.set(a.teacher.id, a.teacher);
+            return map;
+          }, new Map<string, { id: string; firstName: string; lastName: string; email: string; joinedAt?: Date }>())
+          .values()
       )
     : [];
 
   // Get unique students for teachers with joining date (first appointment)
   const students = isTeacher
     ? Array.from(
-        user.appointmentsAsTeacher.reduce((map: Map<string, any>, a: any) => {
-          if (!map.has(a.student.id)) {
-            map.set(a.student.id, { ...a.student, joinedAt: a.createdAt });
-          }
-          return map;
-        }, new Map<string, any>()).values()
+        user.appointmentsAsTeacher
+          .reduce((map, a) => {
+            if (!map.has(a.student.id)) {
+              map.set(a.student.id, { ...a.student, joinedAt: a.createdAt });
+            }
+            return map;
+          }, new Map<string, { id: string; firstName: string; lastName: string; email: string; joinedAt?: Date }>())
+          .values()
       )
     : [];
 
   const analytics = {
-    totalAppointments: isStudent ? user.appointmentsAsStudent.length : isTeacher ? user.appointmentsAsTeacher.length : 0,
-    acceptedAppointments: isStudent
-      ? user.appointmentsAsStudent.filter((a: any) => a.status === 'ACCEPTED').length
+    totalAppointments: isStudent
+      ? user.appointmentsAsStudent.length
       : isTeacher
-        ? user.appointmentsAsTeacher.filter((a: any) => a.status === 'ACCEPTED').length
+        ? user.appointmentsAsTeacher.length
+        : 0,
+    acceptedAppointments: isStudent
+      ? user.appointmentsAsStudent.filter((a) => a.status === 'ACCEPTED').length
+      : isTeacher
+        ? user.appointmentsAsTeacher.filter((a) => a.status === 'ACCEPTED').length
         : 0,
     totalGrades: isStudent ? user.gradesReceived.length : isTeacher ? user.gradesGiven.length : 0,
-    averageGrade: safeAverage(isStudent ? user.gradesReceived.map((g: any) => g.grade) : isTeacher ? user.gradesGiven.map((g: any) => g.grade) : []),
+    averageGrade: safeAverage(
+      isStudent ? user.gradesReceived.map((g) => g.grade) : isTeacher ? user.gradesGiven.map((g) => g.grade) : []
+    ),
     totalMessages: user.messagesSent.length + user.messagesReceived.length,
     memberSince: user.createdAt,
     lastActive: user.updatedAt,
@@ -261,20 +296,30 @@ export const getUserById = async (userId: string) => {
   return { user, analytics };
 };
 
-export const updateUser = async (userId: string, data: { firstName?: string; lastName?: string; email?: string; status?: string; role?: string }) => {
+export const updateUser = async (
+  userId: string,
+  data: { firstName?: string; lastName?: string; email?: string; status?: string; role?: string }
+) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new AppError(404, 'User not found');
 
-  const updateData: any = {};
+  const updateData: Record<string, unknown> = {};
   if (data.firstName) updateData.firstName = data.firstName;
   if (data.lastName) updateData.lastName = data.lastName;
-  if (data.email) updateData.email = data.email;
+  if (data.email) {
+    const existing = await prisma.user.findUnique({ where: { email: data.email } });
+    if (existing && existing.id !== userId) throw new AppError(409, 'Email already in use');
+    updateData.email = data.email;
+    }
   if (data.status) updateData.status = data.status;
-  if (data.role) updateData.role = data.role;
+  if (data.role) {
+    if (!['STUDENT', 'TEACHER', 'ADMIN'].includes(data.role)) throw new AppError(400, 'Invalid role');
+    updateData.role = data.role;
+    }
 
   return await prisma.user.update({
     where: { id: userId },
-    data: updateData,
+    data: updateData as Record<string, unknown>,
     select: { id: true, email: true, firstName: true, lastName: true, role: true, status: true, createdAt: true },
   });
 };
@@ -283,7 +328,20 @@ export const deleteUser = async (userId: string) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new AppError(404, 'User not found');
 
-  await prisma.user.delete({ where: { id: userId } });
+   // Soft-delete: anonymize PII while preserving relationship integrity and audit trail.
+   // Hard cascade via Prisma relations (onDelete: Cascade) removes child records,
+   // but we keep the user row for compliance — email + names are replaced with
+   // a deterministic "deleted" identity so foreign keys remain valid.
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      status: 'BANNED',
+      firstName: 'Deleted User',
+      lastName: '',
+      deletedAt: new Date(),
+     },
+   });
+
   return { id: userId, deleted: true };
 };
 
@@ -297,7 +355,7 @@ export const bulkDeactivateUsers = async (userIds: string[]) => {
 
   return await prisma.$transaction(async (tx) => {
     const users = await tx.user.findMany({
-      where: { id: { in: userIds } },
+      where: { id: { in: userIds }, deletedAt: null },
       select: { id: true },
     });
 

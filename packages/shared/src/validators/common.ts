@@ -1,7 +1,8 @@
 import * as z from 'zod';
 
 export const uuidSchema = z.string().uuid();
-export const passwordSchema = z.string()
+export const passwordSchema = z
+  .string()
   .min(8, 'Password must be at least 8 characters')
   .max(100, 'Password must not exceed 100 characters')
   .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
@@ -82,7 +83,7 @@ export const UpdateProfileSchema = z.object({
 });
 
 export const RefreshTokenSchema = z.object({
-  refreshToken: z.string().min(1),
+  refreshToken: z.string().min(32, 'Refresh token must be at least 32 characters'),
 });
 
 export type ZodLoginInput = z.infer<typeof LoginSchema>;

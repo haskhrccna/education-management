@@ -8,10 +8,20 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId! },
-      select: { id: true, email: true, role: true, firstName: true, lastName: true, status: true, emailVerifiedAt: true, createdAt: true },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        firstName: true,
+        lastName: true,
+        status: true,
+        emailVerifiedAt: true,
+        createdAt: true,
+      },
     });
     if (!user) throw new AppError(404, 'User not found');
-    res.json(user);
+    // Mobile expects lowercase role/status; server-internal canonical is uppercase.
+    res.json({ ...user, role: user.role.toLowerCase(), status: user.status.toLowerCase() });
   } catch (err) {
     next(err);
   }
@@ -36,18 +46,23 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
 
 export const changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { currentPassword, newPassword } = req.body as any;
+    const { currentPassword, newPassword } = req.body;
     if (!newPassword || newPassword.length < 8) {
       throw new AppError(400, 'New password must be at least 8 characters');
     }
     const user = await prisma.user.findUnique({ where: { id: req.userId! } });
     if (!user) throw new AppError(404, 'User not found');
+
     const bcrypt = await import('bcryptjs');
     if (!(await bcrypt.compare(currentPassword, user.passwordHash))) {
       throw new AppError(401, 'Current password is incorrect');
     }
+
     const hash = await hashPassword(newPassword);
-    await prisma.user.update({ where: { id: req.userId! }, data: { passwordHash: hash } });
+    await prisma.user.update({
+      where: { id: req.userId! },
+      data: { passwordHash: hash, passwordChangedAt: new Date() },
+    });
     res.json({ message: 'Password changed successfully' });
   } catch (err) {
     next(err);
@@ -56,7 +71,7 @@ export const changePassword = async (req: Request, res: Response, next: NextFunc
 
 export const saveDeviceToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { deviceToken } = req.body as any;
+    const { deviceToken } = req.body;
     if (!deviceToken) throw new AppError(400, 'deviceToken is required');
 
     await prisma.user.update({

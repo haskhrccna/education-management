@@ -2,7 +2,7 @@ import { Router } from 'express';
 import * as authController from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validate.middleware';
-import { LoginSchema, RegisterSchema, RefreshTokenSchema } from '@edu/shared';
+import { LoginSchema, RegisterSchema, RefreshTokenSchema } from '@quran-review/shared';
 
 const router = Router();
 router.post('/register', validate(RegisterSchema), authController.register);

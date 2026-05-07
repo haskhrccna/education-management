@@ -27,13 +27,16 @@ export async function auditLog(entry: AuditLogEntry): Promise<void> {
     });
 
     // Also log to Pino for real-time monitoring
-    logger.info({
-      audit: true,
-      userId: entry.userId,
-      action: entry.action,
-      resourceType: entry.resourceType,
-      resourceId: entry.resourceId,
-    }, `AUDIT: ${entry.action} ${entry.resourceType}`);
+    logger.info(
+      {
+        audit: true,
+        userId: entry.userId,
+        action: entry.action,
+        resourceType: entry.resourceType,
+        resourceId: entry.resourceId,
+      },
+      `AUDIT: ${entry.action} ${entry.resourceType}`
+    );
   } catch (err) {
     logger.error({ err }, 'Failed to write audit log');
   }

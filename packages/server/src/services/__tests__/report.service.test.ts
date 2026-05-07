@@ -68,8 +68,7 @@ describe('report.service', () => {
       mockedPrisma.grade.findMany.mockResolvedValue([]);
       mockedPrisma.recording.count.mockResolvedValue(0);
 
-      await expect(generatePDFReport('teacher-1', 'unknown', ''))
-        .rejects.toThrow('Student not found');
+      await expect(generatePDFReport('teacher-1', 'unknown', '')).rejects.toThrow('Student not found');
     });
 
     it('should handle student with no grades', async () => {

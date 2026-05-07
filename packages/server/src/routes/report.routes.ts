@@ -2,8 +2,8 @@ import { Router } from 'express';
 import * as reportController from '../controllers/report.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validate.middleware';
-import { UserRole } from '@edu/shared';
-import { GenerateReportSchema } from '@edu/shared';
+import { UserRole } from '@quran-review/shared';
+import { GenerateReportSchema } from '@quran-review/shared';
 
 const router = Router();
 router.use(authenticate);
