@@ -121,3 +121,15 @@ export const resendVerification = async (req: Request, res: Response, next: Next
     next(err);
   }
 };
+
+export const logout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    await prisma.user.update({
+      where: { id: req.userId! },
+      data: { refreshTokenHash: null },
+    });
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+};
