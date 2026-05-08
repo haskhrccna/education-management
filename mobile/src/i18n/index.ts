@@ -164,6 +164,7 @@ const arTranslations: Record<string, string> = {
   passwordTooShort: 'يجب أن تكون كلمة المرور 8 أحرف على الأقل',
   passwordsDoNotMatch: 'كلمتا المرور غير متطابقتين',
   passwordChangeFailed: 'فشل تغيير كلمة المرور',
+  loadFailed: 'فشل التحميل. اضغط للمحاولة مجدداً',
 };
 
 const enTranslations: Record<string, string> = {
@@ -329,6 +330,7 @@ const enTranslations: Record<string, string> = {
   passwordTooShort: 'Password must be at least 8 characters',
   passwordsDoNotMatch: 'Passwords do not match',
   passwordChangeFailed: 'Password change failed',
+  loadFailed: 'Failed to load. Tap to retry.',
 };
 
 i18next.use(initReactI18next).init({
