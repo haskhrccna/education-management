@@ -49,11 +49,15 @@ export default function TeacherHomeScreen() {
   const styles = createStyles(COLORS);
 
   const { appointments, isLoading, fetchAppointments } = useAppointments();
-  const { unreadCount } = useMessages();
+  const { unreadCount, fetchMessages: fetchUnreadCount } = useMessages();
 
   React.useEffect(() => {
     fetchAppointments();
   }, [fetchAppointments]);
+
+  React.useEffect(() => {
+    fetchUnreadCount();
+  }, []);
 
   React.useEffect(() => {
     const acceptedStudents = appointments

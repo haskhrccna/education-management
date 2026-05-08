@@ -45,11 +45,15 @@ export default function StudentHomeScreen() {
   const styles = createStyles(COLORS);
 
   const { progress, surahs: apiSurahs, isLoading: isLoadingProgress, fetchProgress } = useMemorization();
-  const { unreadCount } = useMessages();
+  const { unreadCount, fetchMessages: fetchUnreadCount } = useMessages();
 
   useEffect(() => {
     fetchProgress();
   }, [fetchProgress]);
+
+  useEffect(() => {
+    fetchUnreadCount();
+  }, []);
 
   const handleLogout = async () => {
     await logout();

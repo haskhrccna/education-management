@@ -41,7 +41,7 @@ export default function AdminHomeScreen() {
   const [stats, setStats] = useState({ students: 0, teachers: 0, pending: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<FilterType>('PENDING_AND_TEACHER');
-  const { unreadCount } = useMessages();
+  const { unreadCount, fetchMessages: fetchUnreadCount } = useMessages();
 
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
@@ -63,6 +63,7 @@ export default function AdminHomeScreen() {
 
   React.useEffect(() => {
     loadUsers();
+    fetchUnreadCount();
   }, [loadUsers]);
 
   const applyFilter = (filter: FilterType) => {
