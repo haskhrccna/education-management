@@ -5,9 +5,22 @@ export const getSurahs = async () => {
   return prisma.surah.findMany({ orderBy: { number: 'asc' } });
 };
 
+async function assertTeacherCanAccessStudent(teacherId: string, studentId: string) {
+  const appointment = await prisma.appointment.findFirst({
+    where: { teacherId, studentId, status: 'ACCEPTED' },
+    select: { id: true },
+  });
+  if (!appointment) throw new AppError(403, 'No accepted appointment with this student');
+}
+
 export const getProgress = async (callerId: string, callerRole: string, studentId?: string) => {
   const targetId = callerRole === 'STUDENT' ? callerId : studentId;
   if (!targetId) throw new AppError(400, 'studentId query param is required');
+
+  if (callerRole === 'TEACHER') {
+    await assertTeacherCanAccessStudent(callerId, targetId);
+  }
+
   return prisma.memorizationProgress.findMany({
     where: { userId: targetId },
     include: { surah: true },
@@ -22,10 +35,7 @@ export const updateProgress = async (
   memorizedAyahs: number,
   status?: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETE'
 ) => {
-  const appointment = await prisma.appointment.findFirst({
-    where: { teacherId, studentId, status: 'ACCEPTED' },
-  });
-  if (!appointment) throw new AppError(403, 'No accepted appointment with this student');
+  await assertTeacherCanAccessStudent(teacherId, studentId);
 
   const surah = await prisma.surah.findUnique({ where: { id: surahId } });
   if (!surah) throw new AppError(404, 'Surah not found');

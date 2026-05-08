@@ -3,6 +3,14 @@ import { AppError } from '../middleware/error.middleware';
 
 type GradeTypeInput = 'QUIZ' | 'ASSIGNMENT' | 'EXAM' | 'ORAL' | 'PARTICIPATION';
 
+async function assertTeacherCanAccessStudent(teacherId: string, studentId: string) {
+  const appointment = await prisma.appointment.findFirst({
+    where: { teacherId, studentId, status: 'ACCEPTED' },
+    select: { id: true },
+  });
+  if (!appointment) throw new AppError(403, 'No accepted appointment with this student');
+}
+
 export const createGrade = async (
   teacherId: string,
   studentId: string,
@@ -14,6 +22,7 @@ export const createGrade = async (
   const student = await prisma.user.findUnique({ where: { id: studentId } });
   if (!student || student.deletedAt) throw new AppError(404, 'Student not found');
   if (student.role !== 'STUDENT') throw new AppError(400, 'Target user is not a student');
+  await assertTeacherCanAccessStudent(teacherId, studentId);
 
   const grade = await prisma.grade.create({
     data: { teacherId, studentId, subject, grade: gradeValue, type, notes: notes || null },
@@ -34,7 +43,11 @@ export const getMyGrades = async (studentId: string) => {
   });
 };
 
-export const getStudentGrades = async (_teacherId: string, studentId: string) => {
+export const getStudentGrades = async (callerId: string, callerRole: string, studentId: string) => {
+  if (callerRole !== 'ADMIN') {
+    await assertTeacherCanAccessStudent(callerId, studentId);
+  }
+
   return await prisma.grade.findMany({
     where: { studentId },
     orderBy: { createdAt: 'desc' },

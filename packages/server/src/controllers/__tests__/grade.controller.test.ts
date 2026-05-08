@@ -35,9 +35,10 @@ describe('grade.controller', () => {
   describe('POST /', () => {
     it('should create grade for valid student', async () => {
       mockedPrisma.user.findUnique.mockResolvedValue({ id: 'student-1', role: 'STUDENT' } as any);
+      mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appointment-1' } as any);
       mockedPrisma.grade.create.mockResolvedValue({ id: 'grade-1' } as any);
 
-      const app = createTestApp('teacher-1', 'teacher');
+      const app = createTestApp('teacher-1', 'TEACHER');
       const res = await request(app)
         .post('/')
         .send({ studentId: 'student-1', subject: 'Math', grade: '95', type: 'EXAM' });
@@ -47,7 +48,11 @@ describe('grade.controller', () => {
     });
 
     it('should return 404 for deleted student', async () => {
-      mockedPrisma.user.findUnique.mockResolvedValue({ id: 'student-1', role: 'STUDENT', deletedAt: new Date() } as any);
+      mockedPrisma.user.findUnique.mockResolvedValue({
+        id: 'student-1',
+        role: 'STUDENT',
+        deletedAt: new Date(),
+      } as any);
 
       const app = createTestApp('teacher-1', 'TEACHER');
       const res = await request(app)
@@ -72,9 +77,10 @@ describe('grade.controller', () => {
 
   describe('GET /student/:id', () => {
     it('should return student grades for teacher', async () => {
+      mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appointment-1' } as any);
       mockedPrisma.grade.findMany.mockResolvedValue([{ id: 'grade-1' }] as any);
 
-      const app = createTestApp('teacher-1', 'teacher');
+      const app = createTestApp('teacher-1', 'TEACHER');
       const res = await request(app).get('/student/student-1');
 
       expect(res.status).toBe(200);
