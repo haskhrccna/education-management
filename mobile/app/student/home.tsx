@@ -1,12 +1,13 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@/src/auth/store';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
+import { useMemorization } from '@/src/hooks/useMemorization';
 
 // ─── Mock Quran Data (replaced by API later) ──────────────────────────────────
 
@@ -19,24 +20,6 @@ interface Surah {
   juz: number;
 }
 
-const SURAH_DATA: Surah[] = [
-  { id: 1, nameAr: 'الفاتحة', nameEn: 'Al-Fatiha', ayahCount: 7, memorizedAyahs: 7, juz: 1 },
-  { id: 2, nameAr: 'البقرة', nameEn: 'Al-Baqarah', ayahCount: 286, memorizedAyahs: 130, juz: 1 },
-  { id: 3, nameAr: 'آل عمران', nameEn: "Ali 'Imran", ayahCount: 200, memorizedAyahs: 80, juz: 3 },
-  { id: 4, nameAr: 'النساء', nameEn: 'An-Nisa', ayahCount: 176, memorizedAyahs: 50, juz: 4 },
-  { id: 5, nameAr: 'المائدة', nameEn: "Al-Ma'idah", ayahCount: 120, memorizedAyahs: 30, juz: 6 },
-  { id: 6, nameAr: 'الأنعام', nameEn: "Al-An'am", ayahCount: 165, memorizedAyahs: 0, juz: 7 },
-  { id: 7, nameAr: 'الأعراف', nameEn: "Al-A'raf", ayahCount: 206, memorizedAyahs: 0, juz: 8 },
-  { id: 8, nameAr: 'الأنفال', nameEn: 'Al-Anfal', ayahCount: 75, memorizedAyahs: 0, juz: 9 },
-  { id: 9, nameAr: 'التوبة', nameEn: 'At-Tawbah', ayahCount: 129, memorizedAyahs: 0, juz: 10 },
-  { id: 10, nameAr: 'يونس', nameEn: 'Yunus', ayahCount: 109, memorizedAyahs: 0, juz: 11 },
-];
-
-const REVISION_SCHEDULE = [
-  { id: 'r1', surahId: 1, surahName: 'الفاتحة', date: '2026-05-07', status: 'DUE' as const },
-  { id: 'r2', surahId: 2, surahName: 'البقرة (1-50)', date: '2026-05-10', status: 'UPCOMING' as const },
-  { id: 'r3', surahId: 3, surahName: 'آل عمران (1-30)', date: '2026-05-14', status: 'UPCOMING' as const },
-];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -61,12 +44,32 @@ export default function StudentHomeScreen() {
   const COLORS = getColors(theme, darkMode);
   const styles = createStyles(COLORS);
 
+  const { progress, surahs: apiSurahs, isLoading: isLoadingProgress, fetchProgress } = useMemorization();
+
+  useEffect(() => { fetchProgress(); }, []);
+
   const handleLogout = async () => {
     await logout();
     router.replace('/');
   };
 
-  // Derived stats from mock data
+  // Map API data to the shape sub-components consume
+  const SURAH_DATA: Surah[] = apiSurahs.map((s) => {
+    const entry = progress.find((e) => e.surahId === s.id);
+    return {
+      id: s.id,
+      nameAr: s.nameAr,
+      nameEn: s.nameEn,
+      ayahCount: s.ayahCount,
+      memorizedAyahs: entry?.memorizedAyahs ?? 0,
+      juz: s.juz,
+    };
+  });
+
+  // RevisionSchedule API is out of scope — keep empty until Bundle 3
+  type RevisionItem = { id: string; surahId: number; surahName: string; date: string; status: 'DUE' | 'UPCOMING' };
+  const REVISION_SCHEDULE: RevisionItem[] = [];
+
   const completedSurahs = SURAH_DATA.filter((s) => s.memorizedAyahs >= s.ayahCount).length;
   const totalMemorized = SURAH_DATA.reduce((sum, s) => sum + s.memorizedAyahs, 0);
   const totalAyahsAll = SURAH_DATA.reduce((sum, s) => sum + s.ayahCount, 0);
@@ -83,9 +86,14 @@ export default function StudentHomeScreen() {
               {i18n.language === 'ar' ? 'يا بارك الله فيك في حفظ كتابه' : 'May Allah bless your memorization'}
             </Text>
           </View>
-          <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-            <Text style={styles.logoutText}>{t('logout')}</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: SPACING.sm }}>
+            <TouchableOpacity onPress={() => router.push('/student/grades')} style={styles.logoutBtn}>
+              <Text style={styles.logoutText}>My Grades</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+              <Text style={styles.logoutText}>{t('logout')}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Quick stats row */}
@@ -126,7 +134,11 @@ export default function StudentHomeScreen() {
 
       {/* ── Content ── */}
       <ScrollView style={styles.content} contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-        {activeTab === 'surahs' && <SurahsTab surahData={SURAH_DATA} activeJuz={currentJuz} styles={styles} />}
+        {activeTab === 'surahs' && (
+          isLoadingProgress && SURAH_DATA.length === 0
+            ? <ActivityIndicator color={COLORS.primary} style={{ marginTop: 40 }} />
+            : <SurahsTab surahData={SURAH_DATA} activeJuz={currentJuz} styles={styles} />
+        )}
         {activeTab === 'schedule' && <RevisionScheduleTab revisions={REVISION_SCHEDULE} styles={styles} />}
         {activeTab === 'progress' && (
           <ProgressTab
@@ -218,7 +230,7 @@ function SurahCard({ surah, styles, i18n }: { surah: Surah; styles: any; i18n: a
 
 // ─── Revision Schedule Tab ────────────────────────────────────────────────────
 
-function RevisionScheduleTab({ revisions, styles }: { revisions: typeof REVISION_SCHEDULE; styles: any }) {
+function RevisionScheduleTab({ revisions, styles }: { revisions: Array<{ id: string; surahId: number; surahName: string; date: string; status: 'DUE' | 'UPCOMING' }>; styles: any }) {
   const { i18n } = useTranslation();
   const today = new Date().toISOString().split('T')[0];
 
@@ -268,7 +280,7 @@ function RevisionCard({
   styles,
   i18n,
 }: {
-  revision: (typeof REVISION_SCHEDULE)[number];
+  revision: { id: string; surahId: number; surahName: string; date: string; status: 'DUE' | 'UPCOMING' };
   styles: any;
   i18n: any;
 }) {
