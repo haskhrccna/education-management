@@ -74,12 +74,7 @@ export default function ConversationScreen() {
       : '';
 
     return (
-      <View
-        style={[
-          styles.bubbleWrapper,
-          isMe ? styles.bubbleWrapperRight : styles.bubbleWrapperLeft,
-        ]}
-      >
+      <View style={[styles.bubbleWrapper, isMe ? styles.bubbleWrapperRight : styles.bubbleWrapperLeft]}>
         <View
           style={[
             styles.bubble,
@@ -91,18 +86,11 @@ export default function ConversationScreen() {
             !isMe && { borderWidth: 1, borderColor },
           ]}
         >
-          <Text
-            style={[
-              styles.bubbleText,
-              { color: isMe ? COLORS.textOnPrimary : COLORS.textPrimary },
-            ]}
-          >
+          <Text style={[styles.bubbleText, { color: isMe ? COLORS.textOnPrimary : COLORS.textPrimary }]}>
             {item.content}
           </Text>
         </View>
-        {time ? (
-          <Text style={[styles.timestamp, { color: COLORS.textSecondary }]}>{time}</Text>
-        ) : null}
+        {time ? <Text style={[styles.timestamp, { color: COLORS.textSecondary }]}>{time}</Text> : null}
       </View>
     );
   };
@@ -114,19 +102,11 @@ export default function ConversationScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
     >
       {/* Header */}
-      <View
-        style={[
-          styles.header,
-          { backgroundColor: COLORS.surface, borderBottomColor: borderColor },
-        ]}
-      >
+      <View style={[styles.header, { backgroundColor: COLORS.surface, borderBottomColor: borderColor }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Text style={[styles.backText, { color: COLORS.primary }]}>{'‹ Back'}</Text>
         </TouchableOpacity>
-        <Text
-          style={[styles.headerTitle, { color: COLORS.textPrimary }]}
-          numberOfLines={1}
-        >
+        <Text style={[styles.headerTitle, { color: COLORS.textPrimary }]} numberOfLines={1}>
           {partnerName ?? 'Conversation'}
         </Text>
         <View style={styles.headerSpacer} />
@@ -140,10 +120,7 @@ export default function ConversationScreen() {
       ) : error && thread.length === 0 ? (
         <View style={styles.centered}>
           <Text style={[styles.errorText, { color: COLORS.error }]}>{error}</Text>
-          <TouchableOpacity
-            style={[styles.retryButton, { backgroundColor: COLORS.primary }]}
-            onPress={fetchThread}
-          >
+          <TouchableOpacity style={[styles.retryButton, { backgroundColor: COLORS.primary }]} onPress={fetchThread}>
             <Text style={[styles.retryText, { color: COLORS.textOnPrimary }]}>Retry</Text>
           </TouchableOpacity>
         </View>
@@ -159,12 +136,7 @@ export default function ConversationScreen() {
       )}
 
       {/* Input bar */}
-      <View
-        style={[
-          styles.inputBar,
-          { backgroundColor: COLORS.surface, borderTopColor: borderColor },
-        ]}
-      >
+      <View style={[styles.inputBar, { backgroundColor: COLORS.surface, borderTopColor: borderColor }]}>
         <TextInput
           style={[
             styles.input,
@@ -187,10 +159,7 @@ export default function ConversationScreen() {
           style={[
             styles.sendButton,
             {
-              backgroundColor:
-                draft.trim().length === 0 || isSending
-                  ? COLORS.textSecondary
-                  : COLORS.primary,
+              backgroundColor: draft.trim().length === 0 || isSending ? COLORS.textSecondary : COLORS.primary,
               borderRadius: RADIUS.md,
             },
           ]}
@@ -198,11 +167,7 @@ export default function ConversationScreen() {
           disabled={draft.trim().length === 0 || isSending}
           accessibilityLabel="Send message"
         >
-          {isSending ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text style={styles.sendIcon}>{'›'}</Text>
-          )}
+          {isSending ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.sendIcon}>{'›'}</Text>}
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

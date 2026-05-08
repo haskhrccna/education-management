@@ -36,9 +36,7 @@ export default function BroadcastScreen() {
     try {
       const targetRole = target === 'ALL' ? undefined : (target as 'STUDENT' | 'TEACHER');
       await messagesApi.broadcast(content.trim(), targetRole);
-      Alert.alert('', t('broadcastSent'), [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      Alert.alert('', t('broadcastSent'), [{ text: 'OK', onPress: () => router.back() }]);
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to send broadcast');
     } finally {
@@ -81,9 +79,7 @@ export default function BroadcastScreen() {
                   onPress={() => setTarget(chip.key)}
                   activeOpacity={0.75}
                 >
-                  <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
-                    {chip.label}
-                  </Text>
+                  <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{chip.label}</Text>
                 </TouchableOpacity>
               );
             })}

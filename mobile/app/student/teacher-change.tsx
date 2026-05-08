@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import {
-  SafeAreaView, View, Text, TextInput, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator, ScrollView,
+  SafeAreaView,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -18,7 +25,9 @@ export default function TeacherChangeScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  useEffect(() => { fetchRequests(); }, []);
+  useEffect(() => {
+    fetchRequests();
+  }, []);
 
   const pendingRequest = requests.find((r: any) => r.status === 'PENDING');
   const decidedRequest = requests.find((r: any) => r.status === 'APPROVED' || r.status === 'DENIED');
@@ -40,16 +49,20 @@ export default function TeacherChangeScreen() {
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: COLORS.background },
     header: {
-      flexDirection: 'row', alignItems: 'center',
-      paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm,
-      borderBottomWidth: 1, borderBottomColor: '#e5e7eb',
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: '#e5e7eb',
     },
     backBtn: { marginRight: SPACING.sm, padding: 4 },
     backText: { fontSize: 20, color: COLORS.primary },
     headerTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary },
     body: { padding: SPACING.md, gap: SPACING.md },
     statusCard: {
-      backgroundColor: COLORS.surface, borderRadius: RADIUS.md,
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS.md,
       padding: SPACING.md,
     },
     statusTitle: { fontSize: 16, fontWeight: '700', color: COLORS.textPrimary, marginBottom: SPACING.xs },
@@ -57,15 +70,22 @@ export default function TeacherChangeScreen() {
     adminNote: { fontSize: 13, color: COLORS.textSecondary, fontStyle: 'italic', marginTop: SPACING.xs },
     label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary, marginBottom: SPACING.xs },
     textInput: {
-      backgroundColor: COLORS.surface, borderRadius: RADIUS.md,
-      padding: SPACING.sm, color: COLORS.textPrimary, fontSize: 15,
-      minHeight: 120, textAlignVertical: 'top',
-      borderWidth: 1, borderColor: '#e5e7eb',
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS.md,
+      padding: SPACING.sm,
+      color: COLORS.textPrimary,
+      fontSize: 15,
+      minHeight: 120,
+      textAlignVertical: 'top',
+      borderWidth: 1,
+      borderColor: '#e5e7eb',
     },
     charCount: { fontSize: 11, color: COLORS.textSecondary, textAlign: 'right', marginTop: 4 },
     submitBtn: {
-      backgroundColor: COLORS.primary, borderRadius: RADIUS.md,
-      padding: SPACING.sm, alignItems: 'center',
+      backgroundColor: COLORS.primary,
+      borderRadius: RADIUS.md,
+      padding: SPACING.sm,
+      alignItems: 'center',
     },
     submitText: { color: '#fff', fontWeight: '700', fontSize: 16 },
     errorText: { color: '#ef4444', fontSize: 13 },
@@ -90,14 +110,10 @@ export default function TeacherChangeScreen() {
         ) : decidedRequest ? (
           <View style={styles.statusCard}>
             <Text style={styles.statusTitle}>
-              {decidedRequest.status === 'APPROVED'
-                ? `✅ ${t('requestApproved')}`
-                : `❌ ${t('requestDenied')}`}
+              {decidedRequest.status === 'APPROVED' ? `✅ ${t('requestApproved')}` : `❌ ${t('requestDenied')}`}
             </Text>
             <Text style={styles.statusDesc}>{decidedRequest.reason}</Text>
-            {decidedRequest.adminNote && (
-              <Text style={styles.adminNote}>{decidedRequest.adminNote}</Text>
-            )}
+            {decidedRequest.adminNote && <Text style={styles.adminNote}>{decidedRequest.adminNote}</Text>}
           </View>
         ) : (
           <>
@@ -119,9 +135,11 @@ export default function TeacherChangeScreen() {
               onPress={handleSubmit}
               disabled={reason.trim().length < 10 || isSubmitting}
             >
-              {isSubmitting
-                ? <ActivityIndicator color="#fff" />
-                : <Text style={styles.submitText}>{t('requestTeacherChange')}</Text>}
+              {isSubmitting ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.submitText}>{t('requestTeacherChange')}</Text>
+              )}
             </TouchableOpacity>
           </>
         )}

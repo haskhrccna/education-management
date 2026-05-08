@@ -25,10 +25,13 @@ export function useConversation(partnerId: string) {
     }
   }, [partnerId, user?.id]);
 
-  const sendMessage = useCallback(async (content: string) => {
-    await messagesApi.send(partnerId, content, 'TEXT');
-    await fetchThread();
-  }, [partnerId, fetchThread]);
+  const sendMessage = useCallback(
+    async (content: string) => {
+      await messagesApi.send(partnerId, content, 'TEXT');
+      await fetchThread();
+    },
+    [partnerId, fetchThread]
+  );
 
   return { thread, isLoading, error, fetchThread, sendMessage };
 }

@@ -23,10 +23,13 @@ export function useTeacherChange() {
     await teacherChangeApi.submit(reason);
   }, []);
 
-  const decideRequest = useCallback(async (id: string, action: 'APPROVE' | 'DENY', adminNote?: string) => {
-    await teacherChangeApi.decide(id, action, adminNote);
-    await fetchRequests();
-  }, [fetchRequests]);
+  const decideRequest = useCallback(
+    async (id: string, action: 'APPROVE' | 'DENY', adminNote?: string) => {
+      await teacherChangeApi.decide(id, action, adminNote);
+      await fetchRequests();
+    },
+    [fetchRequests]
+  );
 
   return { requests, isLoading, error, fetchRequests, submitRequest, decideRequest };
 }

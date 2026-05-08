@@ -2,7 +2,14 @@ import { Router } from 'express';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validate.middleware';
 import { paginate } from '../middleware/pagination.middleware';
-import { UserRole, CreateTeacherSchema, BroadcastMessageSchema, UpdateUserSchema, BulkApproveSchema, BulkDeactivateSchema } from '@quran-review/shared';
+import {
+  UserRole,
+  CreateTeacherSchema,
+  BroadcastMessageSchema,
+  UpdateUserSchema,
+  BulkApproveSchema,
+  BulkDeactivateSchema,
+} from '@quran-review/shared';
 import * as adminController from '../controllers/admin.controller';
 
 const router = Router();

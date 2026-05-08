@@ -195,7 +195,11 @@ export default function TeacherHomeScreen() {
           </TouchableOpacity>
         )}
         {isLoading ? (
-          <><SkeletonCard lines={2} /><SkeletonCard lines={2} /><SkeletonCard lines={2} /></>
+          <>
+            <SkeletonCard lines={2} />
+            <SkeletonCard lines={2} />
+            <SkeletonCard lines={2} />
+          </>
         ) : activeTab === 'myStudents' ? (
           <MyStudentsTab
             appointments={appointments}

@@ -1,29 +1,16 @@
 <claude-mem-context>
 # Memory Context
 
-# [education_management] recent context, 2026-05-08 1:58pm GMT+4
+# [education_management] recent context, 2026-05-08 2:42pm GMT+4
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision 🚨security_alert 🔐security_note
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 44 obs (18,554t read) | 701,535t work | 97% savings
+Stats: 50 obs (22,681t read) | 1,394,478t work | 98% savings
 
 ### May 7, 2026
-51 12:14a 🔵 Comprehensive security audit of education_management platform — 9 critical/high-severity issues identified
-52 " 🔵 Audit log persistence to database already implemented
-53 " 🔵 Seed file hardcoded passwords confirmed — security violation present
-54 " 🔵 JWT role case mismatch confirmed — generateToken passes raw database role
-55 " 🔵 User deletion still uses hard delete — no soft-delete or compliance safeguards
-56 " ⚖️ Phase 1 Security Hardening initiated — task tracking started
-59 12:15a 🔵 JWT_SECRET validation missing minimum length requirement
-60 " 🔵 RefreshTokenSchema validation too loose — accepts single character
-61 " ⚖️ Phase 1 security fixes — 8 tasks created for systematic execution
-62 " 🔵 Prisma schema reviewed — AuditLog model properly configured with cascade
-64 " 🔵 Environment files located — .env and .env.example ready for security hardening
-65 12:16a 🔵 Auth controller confirms JWT role case bug — uppercase from DB flows into token
-66 " 🔵 Mobile 401 interceptor infinite loop confirmed — refresh request not excluded from retry
-70 " 🔵 .env is gitignored — JWT secret not committed to version control
+70 12:16a 🔵 .env is gitignored — JWT secret not committed to version control
 71 12:17a 🔴 C1 Fixed — Seed passwords moved to env vars with production guard
 72 " ✅ .env.example updated with JWT secret generation instructions and seed password vars
 73 " 🔵 JWT_SECRET referenced only in config/index.ts — length validation impact is minimal
@@ -65,6 +52,25 @@ S49 7-Phase Security & Quality Remediation Plan Approved for education_managemen
 112 " 🔵 Mobile UX Audit — 15 Bugs and UX Gaps Identified in education_management App
 113 1:55p 🔵 Mobile UX Audit — 15 Critical Bugs and Feature Gaps Identified in Quran Memorization App
 114 1:56p 🔵 Mobile App UX Audit — 15 Bugs and Gaps Catalogued in education_management Platform
+116 1:58p ⚖️ Mobile UX Audit — 15-Issue Remediation Plan Finalized
+117 2:00p 🔴 Teacher Home: Real Student Progress Replaces Hardcoded 45% Mock Data
+118 " 🔴 Teacher Home: Dark Mode Fixed — Static COLORS Import Replaced with getColors()
+119 " 🔴 Admin Filter Badge: PENDING_AND_TEACHER Label Added, Filter Logic Extracted to Pure Function
+120 " 🔴 Admin User List: Role and Status Badges Localized (No More Raw DB Enums)
+121 " 🔴 Student Grades Screen: Date Locale Now Respects App Language (ar-SA / en-US)
+122 " 🟣 Student Home: Pull-to-Refresh Added to Surahs/Progress ScrollView
+124 2:09p 🔴 Teacher Home — Dark Mode Fixed and Real Student Progress Wired
+125 " 🔴 Admin Filter Badge — PENDING_AND_TEACHER Label Added, Filter Logic Extracted
+126 " 🔴 Admin Role/Status Badges Localized — Raw DB Enums No Longer Shown
+127 " 🔴 Student Grades Date Locale Fixed — Respects Arabic Language Setting
+128 " 🟣 Pull-to-Refresh Added to Student Home Screen
+129 " ✅ Mobile UX Bug Batch Committed — 4 Files, 7 Fixes in One Commit
+130 2:11p 🔵 FCM Push Notifications Are a Stub — Server Never Actually Sends Push
+131 " 🔵 Messaging Screen Gap — Full Stack Exists Server-Side and in Mobile API Layer, Only UI Missing
+132 " 🔵 RevisionSchedule — Prisma Model Exists But No Service, Controller, or Route
+133 " 🔵 Server Role/Status Case Design — JWT and Prisma Use Uppercase, Login Response Lowercases for Mobile
+134 " 🔵 Mobile Navigation Uses Flat Stack — No Tab Navigator Exists Yet
+135 " 🔵 education_management Full Stack Architecture Summary
 
-Access 702k tokens of past work via get_observations([IDs]) or mem-search skill.
+Access 1394k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

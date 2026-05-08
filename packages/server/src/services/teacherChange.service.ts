@@ -60,11 +60,7 @@ export const getTeacherChangeRequests = async (userId: string, userRole: string,
   });
 };
 
-export const decideTeacherChangeRequest = async (
-  id: string,
-  action: 'APPROVE' | 'DENY',
-  adminNote?: string
-) => {
+export const decideTeacherChangeRequest = async (id: string, action: 'APPROVE' | 'DENY', adminNote?: string) => {
   const request = await prisma.teacherChangeRequest.findUnique({ where: { id } });
   if (!request) throw new AppError(404, 'Request not found');
   if (request.status !== 'PENDING') throw new AppError(409, 'Request already decided');

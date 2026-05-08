@@ -1,13 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import {
-  SafeAreaView,
-  FlatList,
-  TouchableOpacity,
-  Text,
-  View,
-  StyleSheet,
-  ActivityIndicator,
-} from 'react-native';
+import { SafeAreaView, FlatList, TouchableOpacity, Text, View, StyleSheet, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '@/src/settings/store';
@@ -166,11 +158,7 @@ export default function MessagesScreen() {
           <Text style={styles.emptyDesc}>{t('noConversationsDesc')}</Text>
         </View>
       ) : (
-        <FlatList
-          data={conversations}
-          keyExtractor={(item) => item.partnerId}
-          renderItem={renderItem}
-        />
+        <FlatList data={conversations} keyExtractor={(item) => item.partnerId} renderItem={renderItem} />
       )}
     </SafeAreaView>
   );

@@ -204,7 +204,11 @@ export default function AdminHomeScreen() {
           </TouchableOpacity>
         )}
         {isLoading ? (
-          <><SkeletonCard lines={3} /><SkeletonCard lines={3} /><SkeletonCard lines={3} /></>
+          <>
+            <SkeletonCard lines={3} />
+            <SkeletonCard lines={3} />
+            <SkeletonCard lines={3} />
+          </>
         ) : (
           <UsersList users={users} onUserPress={navigateToUserDetail} onApprove={approveStudent} styles={styles} />
         )}

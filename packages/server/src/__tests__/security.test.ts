@@ -23,7 +23,7 @@ jest.mock('../services/auth.service', () => ({
 
 import { prisma } from '../prisma/client';
 import { authenticate, authorize } from '../middleware/auth.middleware';
-import { UserRole } from '@quran-review/shared'
+import { UserRole } from '@quran-review/shared';
 
 const mockedPrisma = prisma as unknown as DeepMockProxy<PrismaClient>;
 

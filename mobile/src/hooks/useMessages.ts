@@ -8,9 +8,7 @@ export function useMessages() {
   const [error, setError] = useState<string | null>(null);
 
   const { user } = useAuthStore();
-  const unreadCount = messages.filter(
-    (m: any) => !m.readAt && m.receiverId === user?.id
-  ).length;
+  const unreadCount = messages.filter((m: any) => !m.readAt && m.receiverId === user?.id).length;
 
   const fetchMessages = useCallback(async () => {
     setIsLoading(true);
