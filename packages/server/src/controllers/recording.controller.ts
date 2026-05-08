@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as recordingService from '../services/recording.service';
 import { AppError } from '../middleware/error.middleware';
+import { auditLog } from '../lib/audit';
 
 export const uploadRecording = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -38,6 +39,14 @@ export const reviewRecording = async (req: Request, res: Response, next: NextFun
     const recordingId = String(req.params.id);
     const { approved, notes } = req.body as any;
     const recording = await recordingService.reviewRecording(recordingId, req.userId!, approved, notes);
+    await auditLog({
+      userId: req.userId!,
+      action: 'REVIEW_RECORDING',
+      resourceType: 'RECORDING',
+      resourceId: recordingId,
+      details: { approved },
+      ipAddress: req.ip,
+    });
     res.json(recording);
   } catch (err) {
     next(err);
@@ -49,6 +58,13 @@ export const deleteRecording = async (req: Request, res: Response, next: NextFun
     const recordingId = String(req.params.id);
     const isTeacherOrAdmin = ['TEACHER', 'ADMIN'].includes(String(req.userRole));
     await recordingService.deleteRecording(recordingId, req.userId!, isTeacherOrAdmin);
+    await auditLog({
+      userId: req.userId!,
+      action: 'DELETE_RECORDING',
+      resourceType: 'RECORDING',
+      resourceId: recordingId,
+      ipAddress: req.ip,
+    });
     res.json({ message: 'Recording deleted' });
   } catch (err) {
     next(err);
