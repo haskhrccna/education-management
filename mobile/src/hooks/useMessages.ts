@@ -1,10 +1,16 @@
 import { useCallback, useState } from 'react';
 import { messagesApi, Message } from '../api';
+import { useAuthStore } from '../auth/store';
 
 export function useMessages() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { user } = useAuthStore();
+  const unreadCount = messages.filter(
+    (m: any) => !m.readAt && m.receiverId === user?.id
+  ).length;
 
   const fetchMessages = useCallback(async () => {
     setIsLoading(true);
@@ -30,5 +36,5 @@ export function useMessages() {
     }
   }, []);
 
-  return { messages, isLoading, error, fetchMessages, sendMessage };
+  return { messages, isLoading, error, fetchMessages, sendMessage, unreadCount };
 }
