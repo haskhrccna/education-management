@@ -136,7 +136,15 @@ export default function GradeFormScreen() {
           {/* Subject */}
           <Text style={[styles.label, { color: COLORS.textSecondary }]}>{t('subjectLabel')}</Text>
           <TextInput
-            style={[styles.input, { backgroundColor: COLORS.surface, color: COLORS.textPrimary, textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' }]}
+            style={[
+              styles.input,
+              {
+                backgroundColor: COLORS.surface,
+                color: COLORS.textPrimary,
+                textAlign: isRTL ? 'right' : 'left',
+                writingDirection: isRTL ? 'rtl' : 'ltr',
+              },
+            ]}
             placeholder={t('subjectPlaceholder')}
             placeholderTextColor={COLORS.textMuted}
             value={subject}
@@ -167,7 +175,9 @@ export default function GradeFormScreen() {
                 ]}
                 onPress={() => setType(gradeType)}
               >
-                <Text style={[styles.chipText, { color: type === gradeType ? '#fff' : COLORS.textPrimary }]}>{TYPE_LABELS[gradeType] ?? gradeType}</Text>
+                <Text style={[styles.chipText, { color: type === gradeType ? '#fff' : COLORS.textPrimary }]}>
+                  {TYPE_LABELS[gradeType] ?? gradeType}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -175,7 +185,16 @@ export default function GradeFormScreen() {
           {/* Notes */}
           <Text style={[styles.label, { color: COLORS.textSecondary }]}>{t('notesOptional')}</Text>
           <TextInput
-            style={[styles.input, styles.notesInput, { backgroundColor: COLORS.surface, color: COLORS.textPrimary, textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' }]}
+            style={[
+              styles.input,
+              styles.notesInput,
+              {
+                backgroundColor: COLORS.surface,
+                color: COLORS.textPrimary,
+                textAlign: isRTL ? 'right' : 'left',
+                writingDirection: isRTL ? 'rtl' : 'ltr',
+              },
+            ]}
             placeholder={t('notesPlaceholder')}
             placeholderTextColor={COLORS.textMuted}
             value={notes}
@@ -196,7 +215,11 @@ export default function GradeFormScreen() {
             disabled={!canSubmit}
             activeOpacity={0.8}
           >
-            {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>{t('submitGrade')}</Text>}
+            {isSubmitting ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.submitText}>{t('submitGrade')}</Text>
+            )}
           </TouchableOpacity>
 
           {/* Cancel */}

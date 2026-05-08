@@ -1,0 +1,137 @@
+<h2>What should we build next?</h2>
+<p class="subtitle">The app is working. These are the gaps — pick what matters most. You can select multiple.</p>
+
+<style>
+  .role-label {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin: 1.5rem 0 0.75rem;
+  }
+  .role-student { background: #dbeafe; color: #1d4ed8; }
+  .role-teacher { background: #dcfce7; color: #15803d; }
+  .role-admin   { background: #fef3c7; color: #b45309; }
+  .feature-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+  .feature-tag {
+    font-size: 10px; font-weight: 700; padding: 2px 7px;
+    border-radius: 10px; display: inline-block; margin-top: 4px;
+  }
+  .tag-missing { background: #fee2e2; color: #b91c1c; }
+  .tag-stub    { background: #fef3c7; color: #b45309; }
+</style>
+
+<div class="options" data-multiselect>
+
+  <div style="grid-column:1/-1"><span class="role-label role-student">👨‍🎓 Student</span></div>
+
+  <div class="option" data-choice="student-grades" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <div class="feature-icon">📊</div>
+      <div><strong>My Grades Screen</strong></div>
+      <small>Student sees real grades from teacher — subject, score, type (quiz/exam/oral).</small><br>
+      <span class="feature-tag tag-missing">Missing screen</span>
+    </div>
+  </div>
+
+  <div class="option" data-choice="student-appointment" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <div class="feature-icon">📅</div>
+      <div><strong>Book Appointment</strong></div>
+      <small>Student picks a teacher, selects date/time, requests a session. API already exists.</small><br>
+      <span class="feature-tag tag-missing">Missing screen</span>
+    </div>
+  </div>
+
+  <div class="option" data-choice="student-quran-real" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <div class="feature-icon">📖</div>
+      <div><strong>Real Quran Progress</strong></div>
+      <small>Connect student home to real API data — currently shows hardcoded mock surahs.</small><br>
+      <span class="feature-tag tag-stub">Stubbed</span>
+    </div>
+  </div>
+
+  <div class="option" data-choice="student-messages" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <div class="feature-icon">💬</div>
+      <div><strong>Messages</strong></div>
+      <small>Student sends/receives messages with their teacher. Backend API is ready.</small><br>
+      <span class="feature-tag tag-missing">Missing screen</span>
+    </div>
+  </div>
+
+  <div style="grid-column:1/-1"><span class="role-label role-teacher">👩‍🏫 Teacher</span></div>
+
+  <div class="option" data-choice="teacher-grade" onclick="toggleSelect(this)">
+    <div class="letter">E</div>
+    <div class="content">
+      <div class="feature-icon">✏️</div>
+      <div><strong>Grade a Student</strong></div>
+      <small>Teacher assigns grade — pick student, subject, score, type. Currently routes to a missing screen.</small><br>
+      <span class="feature-tag tag-missing">Missing screen</span>
+    </div>
+  </div>
+
+  <div class="option" data-choice="teacher-appointments" onclick="toggleSelect(this)">
+    <div class="letter">F</div>
+    <div class="content">
+      <div class="feature-icon">✅</div>
+      <div><strong>Manage Appointments</strong></div>
+      <small>Teacher sees pending requests, accepts or rejects them. API exists, no UI yet.</small><br>
+      <span class="feature-tag tag-missing">Missing screen</span>
+    </div>
+  </div>
+
+  <div class="option" data-choice="teacher-student-detail" onclick="toggleSelect(this)">
+    <div class="letter">G</div>
+    <div class="content">
+      <div class="feature-icon">📈</div>
+      <div><strong>Student Progress Detail</strong></div>
+      <small>Tap a student → see their real grades. Currently shows a hardcoded "45%".</small><br>
+      <span class="feature-tag tag-stub">Stubbed</span>
+    </div>
+  </div>
+
+  <div class="option" data-choice="teacher-messages" onclick="toggleSelect(this)">
+    <div class="letter">H</div>
+    <div class="content">
+      <div class="feature-icon">💬</div>
+      <div><strong>Message Students</strong></div>
+      <small>Teacher sends messages to individual students. API exists, no UI yet.</small><br>
+      <span class="feature-tag tag-missing">Missing screen</span>
+    </div>
+  </div>
+
+  <div style="grid-column:1/-1"><span class="role-label role-admin">🛡️ Admin</span></div>
+
+  <div class="option" data-choice="admin-broadcast" onclick="toggleSelect(this)">
+    <div class="letter">I</div>
+    <div class="content">
+      <div class="feature-icon">📢</div>
+      <div><strong>Broadcast Message</strong></div>
+      <small>Admin sends a message to all students, all teachers, or everyone. API is ready.</small><br>
+      <span class="feature-tag tag-missing">Missing UI</span>
+    </div>
+  </div>
+
+  <div class="option" data-choice="admin-reports" onclick="toggleSelect(this)">
+    <div class="letter">J</div>
+    <div class="content">
+      <div class="feature-icon">📋</div>
+      <div><strong>Progress Reports</strong></div>
+      <small>Admin views teacher/student performance summaries. Report API exists, no UI yet.</small><br>
+      <span class="feature-tag tag-missing">Missing UI</span>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:1.5rem;text-align:center;">Select all that apply, then tell me in the terminal which are most urgent.</p>

@@ -1,0 +1,174 @@
+<h2>Bundle 1 — Screen designs</h2>
+<p class="subtitle">Four screens/updates for the full academic loop. Tell me in the terminal if anything needs changing.</p>
+
+<style>
+  .screens { display:flex;flex-wrap:wrap;gap:20px;justify-content:center;margin-top:1.2rem; }
+  .screen-wrap { display:flex;flex-direction:column;align-items:center;gap:8px; }
+  .screen-title { font-size:13px;font-weight:700;color:#374151;text-align:center; }
+  .screen-role  { font-size:11px;color:#6b7280;text-align:center; }
+  .badge-new { font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:#dcfce7;color:#15803d; }
+  .badge-upd { font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:#fef3c7;color:#b45309; }
+  .phone {
+    width:195px;border:2px solid #d1d5db;border-radius:24px;
+    overflow:hidden;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.10);font-size:11px;
+  }
+  .ph { padding:11px 10px 9px;color:#fff;font-size:12px;font-weight:700; }
+  .ph-sub { font-size:10px;opacity:.75;margin-top:2px;font-weight:400; }
+  .pb { padding:10px; }
+  .lbl { font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;margin:8px 0 3px; }
+  .inp { background:#f3f4f6;border-radius:8px;padding:6px 8px;color:#111827;margin-bottom:4px; }
+  .sel { background:#f3f4f6;border-radius:8px;padding:6px 8px;color:#6366f1;margin-bottom:4px; }
+  .btn  { background:#4f46e5;color:#fff;border-radius:10px;padding:8px;text-align:center;font-weight:700;font-size:12px;margin-top:8px; }
+  .btn2 { background:#f3f4f6;color:#374151;border-radius:10px;padding:8px;text-align:center;font-weight:700;font-size:12px;margin-top:5px; }
+  .stats { display:flex;gap:5px;margin-bottom:8px; }
+  .stat { flex:1;background:#f3f4f6;border-radius:10px;padding:7px;text-align:center; }
+  .sv { font-size:15px;font-weight:800;color:#4f46e5; }
+  .sl { font-size:9px;color:#6b7280;margin-top:1px; }
+  .gc { background:#f9fafb;border-radius:10px;padding:8px;margin-bottom:6px; }
+  .gt { font-weight:700;color:#111827;font-size:11px; }
+  .gm { color:#6b7280;font-size:10px;margin-top:2px; }
+  .gs { font-size:16px;font-weight:800;float:right;margin-top:-18px; }
+  .bdg { font-size:9px;font-weight:700;padding:2px 6px;border-radius:99px;display:inline-block; }
+  .b-oral { background:#dbeafe;color:#1e40af; }
+  .b-quiz { background:#dcfce7;color:#15803d; }
+  .b-exam { background:#fee2e2;color:#b91c1c; }
+  .sr { display:flex;align-items:center;gap:5px;padding:5px 0;border-bottom:1px solid #f3f4f6; }
+  .sn { flex:1;font-weight:600;color:#111827; }
+  .bt { flex:1;height:5px;background:#e5e7eb;border-radius:99px;overflow:hidden; }
+  .bf { height:100%;background:#4f46e5;border-radius:99px; }
+  .sp { font-size:10px;color:#6b7280;min-width:26px;text-align:right; }
+  .api-note { font-size:10px;font-weight:700;color:#4f46e5;margin-bottom:5px; }
+</style>
+
+<div class="screens">
+
+  <!-- 1: Teacher Grade Form -->
+  <div class="screen-wrap">
+    <div class="screen-title">Grade Form</div>
+    <div class="screen-role">Teacher · Assignments tab <span class="badge-new">NEW</span></div>
+    <div class="phone">
+      <div class="ph" style="background:#2d6a4f;">← Add Grade<div class="ph-sub">Assess a student's recitation</div></div>
+      <div class="pb">
+        <div class="lbl">Student</div>
+        <div class="sel">Ahmad Al-Rashid ▾</div>
+        <div class="lbl">Subject</div>
+        <div class="inp">Al-Baqarah (ayahs 1–50)</div>
+        <div class="lbl">Score</div>
+        <div class="inp">87</div>
+        <div class="lbl">Type</div>
+        <div class="sel">ORAL ▾</div>
+        <div class="lbl">Notes (optional)</div>
+        <div class="inp" style="color:#9ca3af;min-height:28px;">Tajweed needs work on madd...</div>
+        <div class="btn">Submit Grade</div>
+        <div class="btn2">Cancel</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2: Student Grades List -->
+  <div class="screen-wrap">
+    <div class="screen-title">My Grades</div>
+    <div class="screen-role">Student <span class="badge-new">NEW</span></div>
+    <div class="phone">
+      <div class="ph" style="background:#1e40af;">My Grades<div class="ph-sub">3 assessments this month</div></div>
+      <div class="pb">
+        <div class="stats">
+          <div class="stat"><div class="sv">87</div><div class="sl">Avg Score</div></div>
+          <div class="stat"><div class="sv">3</div><div class="sl">Total</div></div>
+        </div>
+        <div class="gc" style="border-left:3px solid #6366f1;">
+          <span class="bdg b-oral">ORAL</span>
+          <div class="gt">Al-Baqarah (1–50)</div>
+          <div class="gs" style="color:#4f46e5;">87</div>
+          <div class="gm">May 7 · Ustadh Ali</div>
+        </div>
+        <div class="gc" style="border-left:3px solid #f59e0b;">
+          <span class="bdg b-quiz">QUIZ</span>
+          <div class="gt">Tajweed — Noon Saakin</div>
+          <div class="gs" style="color:#f59e0b;">90</div>
+          <div class="gm">May 5 · Ustadh Ali</div>
+        </div>
+        <div class="gc" style="border-left:3px solid #22c55e;">
+          <span class="bdg b-exam">EXAM</span>
+          <div class="gt">Al-Fatiha — Memorization</div>
+          <div class="gs" style="color:#22c55e;">100</div>
+          <div class="gm">Apr 30 · Ustadh Ali</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3: Teacher Student Detail -->
+  <div class="screen-wrap">
+    <div class="screen-title">Student Detail</div>
+    <div class="screen-role">Teacher · tap a student <span class="badge-upd">UPDATED</span></div>
+    <div class="phone">
+      <div class="ph" style="background:#2d6a4f;">← Ahmad Al-Rashid<div class="ph-sub">ACTIVE · Joined Jan 2026</div></div>
+      <div class="pb">
+        <div class="stats">
+          <div class="stat"><div class="sv">87</div><div class="sl">Avg</div></div>
+          <div class="stat"><div class="sv">3</div><div class="sl">Grades</div></div>
+          <div class="stat"><div class="sv">45%</div><div class="sl">Memorized</div></div>
+        </div>
+        <div class="lbl">Recent Grades</div>
+        <div class="gc" style="border-left:3px solid #6366f1;">
+          <span class="bdg b-oral">ORAL</span>
+          <div class="gt">Al-Baqarah (1–50)</div>
+          <div class="gs" style="color:#4f46e5;">87</div>
+          <div class="gm">May 7</div>
+        </div>
+        <div class="gc" style="border-left:3px solid #f59e0b;">
+          <span class="bdg b-quiz">QUIZ</span>
+          <div class="gt">Tajweed — Noon Saakin</div>
+          <div class="gs" style="color:#f59e0b;">90</div>
+          <div class="gm">May 5</div>
+        </div>
+        <div class="btn" style="background:#2d6a4f;margin-top:6px;">+ Add Grade for Ahmad</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4: Student Home Surahs tab -->
+  <div class="screen-wrap">
+    <div class="screen-title">Student Home · Surahs</div>
+    <div class="screen-role">Real API replaces mock data <span class="badge-upd">UPDATED</span></div>
+    <div class="phone">
+      <div class="ph">السلام عليكم، Ahmad<div class="ph-sub">May Allah bless your memorization</div></div>
+      <div class="pb">
+        <div class="stats">
+          <div class="stat"><div class="sv">1</div><div class="sl">Complete</div></div>
+          <div class="stat"><div class="sv">45%</div><div class="sl">Overall</div></div>
+          <div class="stat"><div class="sv">2/30</div><div class="sl">Juz</div></div>
+        </div>
+        <div class="api-note">📡 Live from GET /memorization</div>
+        <div class="sr">
+          <span style="font-size:10px;color:#9ca3af;width:14px;">1</span>
+          <div class="sn">الفاتحة</div>
+          <div class="bt"><div class="bf" style="width:100%;background:#22c55e;"></div></div>
+          <div class="sp" style="color:#22c55e;">✓</div>
+        </div>
+        <div class="sr">
+          <span style="font-size:10px;color:#9ca3af;width:14px;">2</span>
+          <div class="sn">البقرة</div>
+          <div class="bt"><div class="bf" style="width:45%;"></div></div>
+          <div class="sp">45%</div>
+        </div>
+        <div class="sr">
+          <span style="font-size:10px;color:#9ca3af;width:14px;">3</span>
+          <div class="sn">آل عمران</div>
+          <div class="bt"><div class="bf" style="width:40%;"></div></div>
+          <div class="sp">40%</div>
+        </div>
+        <div class="sr">
+          <span style="font-size:10px;color:#9ca3af;width:14px;">4</span>
+          <div class="sn">النساء</div>
+          <div class="bt"><div class="bf" style="width:0%;"></div></div>
+          <div class="sp">0%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:2rem;text-align:center;">Does this look right? Any changes before I write the spec?</p>

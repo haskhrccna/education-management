@@ -1,0 +1,82 @@
+<h2>10 features → 3 independent bundles</h2>
+<p class="subtitle">Each bundle can be specced, built, and shipped on its own. Which do you want to start with?</p>
+
+<style>
+  .rec-label { font-size:10px;font-weight:700;color:#b45309;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px; }
+  .bundle-header { display:flex;align-items:center;gap:14px;margin-bottom:12px; }
+  .bundle-emoji { font-size:28px; }
+  .bundle-title { font-size:17px;font-weight:800;color:#111827; }
+  .bundle-tag { font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;display:inline-block;margin-top:3px; }
+  .tag-core    { background:#dbeafe;color:#1e40af; }
+  .tag-ux      { background:#dcfce7;color:#15803d; }
+  .tag-connect { background:#f3e8ff;color:#7e22ce; }
+  .chips { display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px; }
+  .chip { font-size:12px;font-weight:600;padding:4px 11px;border-radius:20px;background:#f3f4f6;color:#374151; }
+  .note { font-size:12px;color:#6b7280;margin:0;line-height:1.5; }
+  .recommended-border { border-color:#f59e0b!important;background:#fffbeb!important; }
+</style>
+
+<div class="options">
+
+  <div class="option recommended-border" data-choice="bundle-grades" onclick="toggleSelect(this)">
+    <div class="letter">1</div>
+    <div class="content">
+      <div class="rec-label">⭐ Recommended first</div>
+      <div class="bundle-header">
+        <div class="bundle-emoji">📊</div>
+        <div>
+          <div class="bundle-title">Grades &amp; Progress</div>
+          <span class="bundle-tag tag-core">Core academic loop</span>
+        </div>
+      </div>
+      <div class="chips">
+        <span class="chip">✏️ Grade a student (teacher)</span>
+        <span class="chip">📊 My grades screen (student)</span>
+        <span class="chip">📈 Student progress detail (teacher)</span>
+        <span class="chip">📖 Real Quran progress (student)</span>
+      </div>
+      <p class="note">Teacher assigns grades → student sees them → teacher taps student to view full detail. The main academic loop of the app. Quran progress tab hooks into the same grade data.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="bundle-appointments" onclick="toggleSelect(this)">
+    <div class="letter">2</div>
+    <div class="content">
+      <div class="bundle-header">
+        <div class="bundle-emoji">📅</div>
+        <div>
+          <div class="bundle-title">Appointments</div>
+          <span class="bundle-tag tag-ux">Scheduling flow</span>
+        </div>
+      </div>
+      <div class="chips">
+        <span class="chip">📅 Book appointment (student)</span>
+        <span class="chip">✅ Manage appointments (teacher)</span>
+      </div>
+      <p class="note">Student picks a teacher, selects date/time, requests a session. Teacher sees pending requests and accepts or rejects. Clean two-screen flow — independent of grades.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="bundle-messaging" onclick="toggleSelect(this)">
+    <div class="letter">3</div>
+    <div class="content">
+      <div class="bundle-header">
+        <div class="bundle-emoji">💬</div>
+        <div>
+          <div class="bundle-title">Messaging &amp; Admin Tools</div>
+          <span class="bundle-tag tag-connect">Communication layer</span>
+        </div>
+      </div>
+      <div class="chips">
+        <span class="chip">💬 Messages (student)</span>
+        <span class="chip">💬 Message students (teacher)</span>
+        <span class="chip">📢 Broadcast (admin)</span>
+        <span class="chip">📋 Progress reports (admin)</span>
+      </div>
+      <p class="note">Shared conversation screen reused across student + teacher. Admin broadcast and progress dashboard on top. Most complex bundle — best done last.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:1.5rem;text-align:center;">Click your preferred starting bundle, or type in the terminal if you want a different order.</p>
