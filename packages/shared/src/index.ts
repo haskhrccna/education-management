@@ -14,3 +14,4 @@ export * from './types/report';
 
 // Validators
 export * from './validators/common';
+export * from './validators/teacherChange';
