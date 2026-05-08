@@ -120,6 +120,9 @@ export default function AdminHomeScreen() {
             </Text>
           </View>
           <View style={styles.headerActions}>
+            <TouchableOpacity style={styles.msgIconBtn} onPress={() => router.push('/admin/change-requests')}>
+              <Text style={styles.msgIconText}>📋</Text>
+            </TouchableOpacity>
             <View style={styles.msgIconWrap}>
               <TouchableOpacity style={styles.msgIconBtn} onPress={() => router.push('/messages')}>
                 <Text style={styles.msgIconText}>💬</Text>
