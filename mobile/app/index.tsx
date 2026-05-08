@@ -117,6 +117,12 @@ export default function LoginPage() {
                 {!isLoading && <Text style={styles.buttonIcon}>→</Text>}
               </View>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={{ marginTop: SPACING.sm, alignItems: 'center' }}
+              onPress={() => router.push('/forgot-password')}
+            >
+              <Text style={{ fontSize: 13, color: COLORS.primary }}>{t('forgotPassword')}</Text>
+            </TouchableOpacity>
           </Animated.View>
 
           {/* Footer */}
