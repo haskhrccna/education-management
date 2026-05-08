@@ -27,4 +27,13 @@ export const messagesApi = {
     const res = await apiClient.put(`/messages/${messageId}/read`);
     return res.data;
   },
+
+  getThread: async (partnerId: string) => {
+    const res = await apiClient.get('/messages', { params: { partnerId } });
+    return res.data;
+  },
+
+  broadcast: async (content: string, targetRole?: 'STUDENT' | 'TEACHER') => {
+    await apiClient.post('/admin/broadcast', { content, targetRole });
+  },
 };
