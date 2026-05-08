@@ -92,6 +92,7 @@ export default function TeacherHomeScreen() {
 
 function MyStudentsTab({ appointments }: { appointments: any[] }) {
   const { t, i18n } = useTranslation();
+  const router = useRouter();
 
   if (appointments.length === 0) {
     return (
@@ -110,47 +111,59 @@ function MyStudentsTab({ appointments }: { appointments: any[] }) {
   return (
     <View style={styles.tabContent}>
       {appointments.map((a: any, index: number) => (
-        <Animated.View key={a.id} entering={FadeInUp.duration(400).delay(index * 80)} style={styles.studentCard}>
-          <View style={styles.studentHeader}>
-            <View style={styles.studentAvatar}>
-              <Text style={styles.avatarText}>{a.student?.firstName?.[0] || '?'}</Text>
+        <TouchableOpacity
+          key={a.id}
+          activeOpacity={0.85}
+          onPress={() =>
+            router.push(
+              `/teacher/student-detail?id=${a.student?.id}&name=${encodeURIComponent(
+                `${a.student?.firstName ?? ''} ${a.student?.lastName ?? ''}`.trim()
+              )}`
+            )
+          }
+        >
+          <Animated.View entering={FadeInUp.duration(400).delay(index * 80)} style={styles.studentCard}>
+            <View style={styles.studentHeader}>
+              <View style={styles.studentAvatar}>
+                <Text style={styles.avatarText}>{a.student?.firstName?.[0] || '?'}</Text>
+              </View>
+              <View style={styles.studentInfo}>
+                <Text style={styles.studentName}>
+                  {a.student?.firstName} {a.student?.lastName}
+                </Text>
+                <Text style={styles.studentEmail}>{a.student?.email}</Text>
+              </View>
+              <View style={[styles.statusBadge, a.status === 'ACCEPTED' && styles.statusAccepted]}>
+                <Text style={[styles.statusText, a.status === 'ACCEPTED' && styles.statusTextAccepted]}>
+                  {a.status === 'REQUESTED'
+                    ? t('awaitingApproval')
+                    : a.status === 'ACCEPTED'
+                      ? t('approved')
+                      : a.status === 'REJECTED'
+                        ? t('rejected')
+                        : a.status}
+                </Text>
+              </View>
             </View>
-            <View style={styles.studentInfo}>
-              <Text style={styles.studentName}>
-                {a.student?.firstName} {a.student?.lastName}
-              </Text>
-              <Text style={styles.studentEmail}>{a.student?.email}</Text>
-            </View>
-            <View style={[styles.statusBadge, a.status === 'ACCEPTED' && styles.statusAccepted]}>
-              <Text style={[styles.statusText, a.status === 'ACCEPTED' && styles.statusTextAccepted]}>
-                {a.status === 'REQUESTED'
-                  ? t('awaitingApproval')
-                  : a.status === 'ACCEPTED'
-                    ? t('approved')
-                    : a.status === 'REJECTED'
-                      ? t('rejected')
-                      : a.status}
-              </Text>
-            </View>
-          </View>
 
-          <View style={styles.studentProgress}>
-            <View style={styles.progressRow}>
-              <Text style={styles.progressLabel}>{i18n.language === 'ar' ? 'سورة البقرة' : 'Surah Al-Baqarah'}</Text>
-              <Text style={styles.progressValue}>45%</Text>
+            <View style={styles.studentProgress}>
+              <View style={styles.progressRow}>
+                <Text style={styles.progressLabel}>{i18n.language === 'ar' ? 'سورة البقرة' : 'Surah Al-Baqarah'}</Text>
+                <Text style={styles.progressValue}>45%</Text>
+              </View>
+              <View style={styles.progressBarContainer}>
+                <View style={[styles.progressBar, { width: '45%' }]} />
+              </View>
             </View>
-            <View style={styles.progressBarContainer}>
-              <View style={[styles.progressBar, { width: '45%' }]} />
-            </View>
-          </View>
 
-          <View style={styles.studentMeta}>
-            <Text style={styles.metaText}>
-              📅 {new Date(a.requestedDate).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US')}
-            </Text>
-            <Text style={styles.metaText}>🕐 {a.requestedTime}</Text>
-          </View>
-        </Animated.View>
+            <View style={styles.studentMeta}>
+              <Text style={styles.metaText}>
+                📅 {new Date(a.requestedDate).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US')}
+              </Text>
+              <Text style={styles.metaText}>🕐 {a.requestedTime}</Text>
+            </View>
+          </Animated.View>
+        </TouchableOpacity>
       ))}
     </View>
   );
@@ -163,7 +176,7 @@ function AssignmentsTab() {
   return (
     <View style={styles.tabContent}>
       <Animated.View entering={FadeInUp.duration(400)} style={styles.actionCard}>
-        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/teacher/grades')} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/teacher/grade-form')} activeOpacity={0.8}>
           <Text style={styles.actionIcon}>📝</Text>
           <Text style={styles.actionBtnText}>{t('addReviewTask')}</Text>
           <Text style={styles.actionBtnSub}>
