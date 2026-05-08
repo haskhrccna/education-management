@@ -2,6 +2,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { config } from '../config';
+import { prisma } from '../prisma/client';
+import { AppError } from '../middleware/error.middleware';
 
 export const hashPassword = async (password: string): Promise<string> => {
   return bcrypt.hash(password, 10);
@@ -41,4 +43,53 @@ export const verifyRefreshToken = (token: string, storedHash: string | null): bo
   } catch {
     return false;
   }
+};
+
+export const forgotPassword = async (email: string) => {
+  const user = await prisma.user.findFirst({
+    where: { email: { equals: email, mode: 'insensitive' }, deletedAt: null },
+    select: { id: true },
+  });
+
+  if (!user) return { token: null };
+
+  const token = crypto.randomBytes(32).toString('hex');
+  const hash = crypto.createHash('sha256').update(token).digest('hex');
+  const expiry = new Date(Date.now() + 3_600_000);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordResetToken: hash, passwordResetExpiry: expiry },
+  });
+
+  return { token };
+};
+
+export const resetPassword = async (token: string, newPassword: string) => {
+  const hash = crypto.createHash('sha256').update(token).digest('hex');
+
+  const user = await prisma.user.findFirst({
+    where: {
+      passwordResetToken: hash,
+      passwordResetExpiry: { gt: new Date() },
+      deletedAt: null,
+    },
+    select: { id: true },
+  });
+
+  if (!user) throw new AppError(400, 'Invalid or expired reset token');
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      passwordHash,
+      passwordResetToken: null,
+      passwordResetExpiry: null,
+      refreshTokenHash: null,
+    },
+  });
+
+  return { message: 'Password reset successfully' };
 };
