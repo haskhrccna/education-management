@@ -34,9 +34,7 @@ describe('admin.service', () => {
       mockedPrisma.user.findMany.mockResolvedValue([{ id: 'user-1' }] as any);
       const result = await listUsers();
       expect(result).toHaveLength(1);
-      expect(mockedPrisma.user.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { deletedAt: null } })
-      );
+      expect(mockedPrisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { deletedAt: null } }));
     });
 
     it('should filter by role', async () => {

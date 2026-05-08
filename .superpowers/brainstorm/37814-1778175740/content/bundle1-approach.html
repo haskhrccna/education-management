@@ -1,0 +1,89 @@
+<h2>Bundle 1: Grades &amp; Progress — Pick an approach</h2>
+<p class="subtitle">Three ways to implement it. Pick what fits your timeline.</p>
+
+<style>
+  .tag { font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;display:inline-block;margin-bottom:8px; }
+  .tag-fast { background:#dcfce7;color:#15803d; }
+  .tag-rec  { background:#dbeafe;color:#1e40af; }
+  .tag-full { background:#f3e8ff;color:#7e22ce; }
+  .scope-title { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;margin:10px 0 5px; }
+  .chip { font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;display:inline-block;margin:2px; }
+  .chip-new  { background:#dbeafe;color:#1e40af; }
+  .chip-api  { background:#fef3c7;color:#b45309; }
+  .chip-none { background:#f3f4f6;color:#6b7280; }
+  .chip-warn { background:#fee2e2;color:#991b1b; }
+  .pros-cons { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px; }
+  .pros { background:#f0fdf4;border-radius:10px;padding:10px 12px; }
+  .cons { background:#fef2f2;border-radius:10px;padding:10px 12px; }
+  .pros h4 { color:#15803d;font-size:12px;margin:0 0 5px; }
+  .cons h4 { color:#b91c1c;font-size:12px;margin:0 0 5px; }
+  .pros li, .cons li { font-size:12px;color:#374151;margin-bottom:3px;padding-left:4px; }
+  p.desc { font-size:13px;color:#6b7280;margin:0 0 8px; }
+</style>
+
+<div class="options">
+
+  <div class="option" data-choice="approach-a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <span class="tag tag-fast">⚡ Fastest</span>
+      <h3 style="margin:0 0 4px">Grades only</h3>
+      <p class="desc">Build the 3 grade screens. Leave student home on mock Quran data for now.</p>
+      <div class="scope-title">New mobile screens</div>
+      <span class="chip chip-new">Teacher: grade form</span>
+      <span class="chip chip-new">Student: grades list</span>
+      <span class="chip chip-new">Teacher: student detail</span>
+      <span class="chip chip-warn">Student home: still mocked</span>
+      <div class="scope-title">New backend routes</div>
+      <span class="chip chip-none">None — grade endpoints already exist</span>
+      <div class="pros-cons">
+        <div class="pros"><h4>✓ Pros</h4><ul><li>Fastest to ship</li><li>Zero new backend work</li></ul></div>
+        <div class="cons"><h4>✗ Cons</h4><ul><li>Student home stays fake</li><li>Feels incomplete</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="approach-b" onclick="toggleSelect(this)" style="border-color:#f59e0b;background:#fffbeb;">
+    <div class="letter">B</div>
+    <div class="content">
+      <span class="tag tag-rec">⭐ Recommended</span>
+      <h3 style="margin:0 0 4px">Full academic loop</h3>
+      <p class="desc">Grades + connect student home to the real MemorizationProgress model already in the DB schema.</p>
+      <div class="scope-title">New mobile screens</div>
+      <span class="chip chip-new">Teacher: grade form</span>
+      <span class="chip chip-new">Student: grades list</span>
+      <span class="chip chip-new">Teacher: student detail</span>
+      <span class="chip chip-new">Student home: real surah progress</span>
+      <div class="scope-title">New backend routes</div>
+      <span class="chip chip-api">GET /memorization (student's progress)</span>
+      <span class="chip chip-api">PUT /memorization/:surahId (teacher updates)</span>
+      <span class="chip chip-api">GET /surahs (surah list for UI)</span>
+      <div class="pros-cons">
+        <div class="pros"><h4>✓ Pros</h4><ul><li>Student home shows real data</li><li>Schema already supports it</li><li>Complete, polished feel</li></ul></div>
+        <div class="cons"><h4>✗ Cons</h4><ul><li>3 new backend endpoints</li><li>~50% more work than A</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="approach-c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <span class="tag tag-full">🔬 Most structured</span>
+      <h3 style="margin:0 0 4px">Surah-linked grades</h3>
+      <p class="desc">Everything in B, plus the grade form uses a surah picker so every grade is tied to a specific surah for richer analytics.</p>
+      <div class="scope-title">New mobile screens</div>
+      <span class="chip chip-new">Everything in B</span>
+      <span class="chip chip-new">Grade form: surah picker</span>
+      <div class="scope-title">New backend routes</div>
+      <span class="chip chip-api">Same 3 as B</span>
+      <span class="chip chip-api">DB migration: surahId FK on grades</span>
+      <div class="pros-cons">
+        <div class="pros"><h4>✓ Pros</h4><ul><li>Structured, queryable data</li><li>Surah-level analytics possible</li></ul></div>
+        <div class="cons"><h4>✗ Cons</h4><ul><li>DB migration required</li><li>Most complex option</li><li>Teacher must always pick surah</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:1.5rem;text-align:center;">Click your preferred approach, then confirm in the terminal.</p>

@@ -18,7 +18,7 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing && !existing.deletedAt) {
       throw new AppError(409, 'Email already registered');
-     }
+    }
     if (existing?.deletedAt) {
       throw new AppError(409, 'This email has been used by a deleted account. Contact support.');
     }
@@ -43,7 +43,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !(await comparePassword(password, user.passwordHash))) {
       throw new AppError(401, 'Invalid credentials');
-     }
+    }
     if (user.deletedAt) {
       throw new AppError(403, 'Account has been deleted. Contact support.');
     }

@@ -37,7 +37,11 @@ export function useAuth() {
   }, []);
 
   const logout = useCallback(async () => {
-    try { await authApi.logout(); } catch { /* ignore */ }
+    try {
+      await authApi.logout();
+    } catch {
+      /* ignore */
+    }
     await SecureStore.deleteItemAsync('auth_token');
     await SecureStore.deleteItemAsync('refresh_token');
   }, []);

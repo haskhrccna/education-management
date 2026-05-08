@@ -5,8 +5,35 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
 import { useAuthStore } from '@/src/auth/store';
 import { useAppointments } from '@/src/hooks/useAppointments';
+import { gradesApi, memorizationApi, MemorizationEntry } from '@/src/api';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { COLORS, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { useSettingsStore } from '@/src/settings/store';
+
+type StudentProgressSummary = {
+  label: string;
+  percent: number | null;
+};
+
+function summarizeProgress(entries: MemorizationEntry[], language: string): StudentProgressSummary {
+  const active = entries.find((e) => e.memorizedAyahs > 0 && e.memorizedAyahs < e.surah.ayahCount) ?? entries[0];
+
+  if (!active) {
+    return { label: language === 'ar' ? 'لم يبدأ بعد' : 'Not started yet', percent: null };
+  }
+
+  const percent = active.surah.ayahCount > 0 ? Math.round((active.memorizedAyahs / active.surah.ayahCount) * 100) : 0;
+  return { label: language === 'ar' ? active.surah.nameAr : active.surah.nameEn, percent };
+}
+
+function classAverageCompletion(progressByStudent: Record<string, StudentProgressSummary>): string {
+  const percents = Object.values(progressByStudent)
+    .map((p) => p.percent)
+    .filter((p): p is number => typeof p === 'number');
+
+  if (percents.length === 0) return '—';
+  return `${Math.round(percents.reduce((sum, p) => sum + p, 0) / percents.length)}%`;
+}
 
 export default function TeacherHomeScreen() {
   const router = useRouter();
@@ -14,12 +41,62 @@ export default function TeacherHomeScreen() {
   const logout = useAuthStore((s) => s.logout);
   const user = useAuthStore((s) => s.user);
   const [activeTab, setActiveTab] = useState<'myStudents' | 'assignments'>('myStudents');
+  const [progressByStudent, setProgressByStudent] = useState<Record<string, StudentProgressSummary>>({});
+  const [gradeCount, setGradeCount] = useState<number | null>(null);
+  const { theme, darkMode } = useSettingsStore();
+  const COLORS = getColors(theme, darkMode);
+  const styles = createStyles(COLORS);
 
   const { appointments, isLoading, fetchAppointments } = useAppointments();
 
   React.useEffect(() => {
     fetchAppointments();
-  }, []);
+  }, [fetchAppointments]);
+
+  React.useEffect(() => {
+    const acceptedStudents = appointments
+      .filter((a: any) => a.status === 'ACCEPTED' && a.student?.id)
+      .map((a: any) => a.student.id);
+
+    if (acceptedStudents.length === 0) {
+      setProgressByStudent({});
+      setGradeCount(0);
+      return;
+    }
+
+    let isMounted = true;
+
+    Promise.all(
+      acceptedStudents.map(async (studentId: string) => {
+        const [progress, grades] = await Promise.all([
+          memorizationApi.getStudentProgress(studentId),
+          gradesApi.getStudentGrades(studentId),
+        ]);
+        return { studentId, progress: summarizeProgress(progress, i18n.language), gradesCount: grades.length };
+      })
+    )
+      .then((summaries) => {
+        if (!isMounted) return;
+        setProgressByStudent(
+          summaries.reduce<Record<string, StudentProgressSummary>>((acc, item) => {
+            acc[item.studentId] = item.progress;
+            return acc;
+          }, {})
+        );
+        setGradeCount(summaries.reduce((sum, item) => sum + item.gradesCount, 0));
+      })
+      .catch((err: any) => {
+        console.error('Failed to load teacher dashboard summaries:', err.message);
+        if (isMounted) {
+          setProgressByStudent({});
+          setGradeCount(null);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [appointments, i18n.language]);
 
   const handleLogout = async () => {
     await logout();
@@ -51,11 +128,11 @@ export default function TeacherHomeScreen() {
             <Text style={styles.statLabel}>{t('myStudents')}</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>12</Text>
+            <Text style={styles.statValue}>{gradeCount ?? '—'}</Text>
             <Text style={styles.statLabel}>{t('assignments')}</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>85%</Text>
+            <Text style={styles.statValue}>{classAverageCompletion(progressByStudent)}</Text>
             <Text style={styles.statLabel}>{i18n.language === 'ar' ? 'معدل الإنجاز' : 'Completion'}</Text>
           </View>
         </View>
@@ -81,17 +158,26 @@ export default function TeacherHomeScreen() {
         {isLoading ? (
           <Text style={styles.empty}>{t('loading')}</Text>
         ) : activeTab === 'myStudents' ? (
-          <MyStudentsTab appointments={appointments} />
+          <MyStudentsTab appointments={appointments} progressByStudent={progressByStudent} styles={styles} />
         ) : (
-          <AssignmentsTab />
+          <AssignmentsTab styles={styles} />
         )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function MyStudentsTab({ appointments }: { appointments: any[] }) {
+function MyStudentsTab({
+  appointments,
+  progressByStudent,
+  styles,
+}: {
+  appointments: any[];
+  progressByStudent: Record<string, StudentProgressSummary>;
+  styles: any;
+}) {
   const { t, i18n } = useTranslation();
+  const router = useRouter();
 
   if (appointments.length === 0) {
     return (
@@ -109,61 +195,84 @@ function MyStudentsTab({ appointments }: { appointments: any[] }) {
 
   return (
     <View style={styles.tabContent}>
-      {appointments.map((a: any, index: number) => (
-        <Animated.View key={a.id} entering={FadeInUp.duration(400).delay(index * 80)} style={styles.studentCard}>
-          <View style={styles.studentHeader}>
-            <View style={styles.studentAvatar}>
-              <Text style={styles.avatarText}>{a.student?.firstName?.[0] || '?'}</Text>
-            </View>
-            <View style={styles.studentInfo}>
-              <Text style={styles.studentName}>
-                {a.student?.firstName} {a.student?.lastName}
-              </Text>
-              <Text style={styles.studentEmail}>{a.student?.email}</Text>
-            </View>
-            <View style={[styles.statusBadge, a.status === 'ACCEPTED' && styles.statusAccepted]}>
-              <Text style={[styles.statusText, a.status === 'ACCEPTED' && styles.statusTextAccepted]}>
-                {a.status === 'REQUESTED'
-                  ? t('awaitingApproval')
-                  : a.status === 'ACCEPTED'
-                    ? t('approved')
-                    : a.status === 'REJECTED'
-                      ? t('rejected')
-                      : a.status}
-              </Text>
-            </View>
-          </View>
+      {appointments.map((a: any, index: number) => {
+        const progress = a.student?.id ? progressByStudent[a.student.id] : undefined;
+        const percent = progress?.percent;
 
-          <View style={styles.studentProgress}>
-            <View style={styles.progressRow}>
-              <Text style={styles.progressLabel}>{i18n.language === 'ar' ? 'سورة البقرة' : 'Surah Al-Baqarah'}</Text>
-              <Text style={styles.progressValue}>45%</Text>
-            </View>
-            <View style={styles.progressBarContainer}>
-              <View style={[styles.progressBar, { width: '45%' }]} />
-            </View>
-          </View>
+        return (
+          <TouchableOpacity
+            key={a.id}
+            activeOpacity={0.85}
+            onPress={() =>
+              router.push(
+                `/teacher/student-detail?id=${a.student?.id}&name=${encodeURIComponent(
+                  `${a.student?.firstName ?? ''} ${a.student?.lastName ?? ''}`.trim()
+                )}`
+              )
+            }
+          >
+            <Animated.View entering={FadeInUp.duration(400).delay(index * 80)} style={styles.studentCard}>
+              <View style={styles.studentHeader}>
+                <View style={styles.studentAvatar}>
+                  <Text style={styles.avatarText}>{a.student?.firstName?.[0] || '?'}</Text>
+                </View>
+                <View style={styles.studentInfo}>
+                  <Text style={styles.studentName}>
+                    {a.student?.firstName} {a.student?.lastName}
+                  </Text>
+                  <Text style={styles.studentEmail}>{a.student?.email}</Text>
+                </View>
+                <View style={[styles.statusBadge, a.status === 'ACCEPTED' && styles.statusAccepted]}>
+                  <Text style={[styles.statusText, a.status === 'ACCEPTED' && styles.statusTextAccepted]}>
+                    {a.status === 'REQUESTED'
+                      ? t('awaitingApproval')
+                      : a.status === 'ACCEPTED'
+                        ? t('approved')
+                        : a.status === 'REJECTED'
+                          ? t('rejected')
+                          : a.status}
+                  </Text>
+                </View>
+              </View>
 
-          <View style={styles.studentMeta}>
-            <Text style={styles.metaText}>
-              📅 {new Date(a.requestedDate).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US')}
-            </Text>
-            <Text style={styles.metaText}>🕐 {a.requestedTime}</Text>
-          </View>
-        </Animated.View>
-      ))}
+              <View style={styles.studentProgress}>
+                <View style={styles.progressRow}>
+                  <Text style={styles.progressLabel}>
+                    {progress?.label ?? (i18n.language === 'ar' ? 'جاري تحميل التقدم' : 'Loading progress')}
+                  </Text>
+                  <Text style={styles.progressValue}>{typeof percent === 'number' ? `${percent}%` : '—'}</Text>
+                </View>
+                <View style={styles.progressBarContainer}>
+                  <View style={[styles.progressBar, { width: `${percent ?? 0}%` }]} />
+                </View>
+              </View>
+
+              <View style={styles.studentMeta}>
+                <Text style={styles.metaText}>
+                  📅 {new Date(a.requestedDate).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US')}
+                </Text>
+                <Text style={styles.metaText}>🕐 {a.requestedTime}</Text>
+              </View>
+            </Animated.View>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }
 
-function AssignmentsTab() {
+function AssignmentsTab({ styles }: { styles: any }) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
 
   return (
     <View style={styles.tabContent}>
       <Animated.View entering={FadeInUp.duration(400)} style={styles.actionCard}>
-        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/teacher/grades')} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => router.push('/teacher/grade-form')}
+          activeOpacity={0.8}
+        >
           <Text style={styles.actionIcon}>📝</Text>
           <Text style={styles.actionBtnText}>{t('addReviewTask')}</Text>
           <Text style={styles.actionBtnSub}>
@@ -191,284 +300,285 @@ function AssignmentsTab() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
+const createStyles = (COLORS: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+    },
 
-  // Header
-  header: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.xl,
-    paddingTop: SPACING.lg,
-    paddingBottom: SPACING['2xl'],
-    borderBottomLeftRadius: RADIUS['2xl'],
-    borderBottomRightRadius: RADIUS['2xl'],
-    ...SHADOWS.lg,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: SPACING.lg,
-  },
-  greeting: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#fff',
-    marginBottom: SPACING.xs,
-  },
-  subGreeting: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.75)',
-    fontWeight: '500',
-  },
-  logoutBtn: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
-    borderRadius: RADIUS.md,
-  },
-  logoutText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '600',
-  },
+    // Header
+    header: {
+      backgroundColor: COLORS.primary,
+      paddingHorizontal: SPACING.xl,
+      paddingTop: SPACING.lg,
+      paddingBottom: SPACING['2xl'],
+      borderBottomLeftRadius: RADIUS['2xl'],
+      borderBottomRightRadius: RADIUS['2xl'],
+      ...SHADOWS.lg,
+    },
+    headerTop: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: SPACING.lg,
+    },
+    greeting: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: '#fff',
+      marginBottom: SPACING.xs,
+    },
+    subGreeting: {
+      fontSize: 13,
+      color: 'rgba(255,255,255,0.75)',
+      fontWeight: '500',
+    },
+    logoutBtn: {
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.xs,
+      borderRadius: RADIUS.md,
+    },
+    logoutText: {
+      color: '#fff',
+      fontSize: 13,
+      fontWeight: '600',
+    },
 
-  // Stats
-  statsRow: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: RADIUS.lg,
-    padding: SPACING.md,
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: COLORS.goldLight,
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.7)',
-    fontWeight: '500',
-  },
+    // Stats
+    statsRow: {
+      flexDirection: 'row',
+      gap: SPACING.md,
+    },
+    statCard: {
+      flex: 1,
+      backgroundColor: 'rgba(255,255,255,0.12)',
+      borderRadius: RADIUS.lg,
+      padding: SPACING.md,
+      alignItems: 'center',
+    },
+    statValue: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: COLORS.goldLight,
+      marginBottom: 2,
+    },
+    statLabel: {
+      fontSize: 12,
+      color: 'rgba(255,255,255,0.7)',
+      fontWeight: '500',
+    },
 
-  // Tabs
-  tabBar: {
-    flexDirection: 'row',
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.lg,
-    gap: SPACING.sm,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.sm,
-    borderRadius: RADIUS.lg,
-    backgroundColor: COLORS.surface,
-    alignItems: 'center',
-    ...SHADOWS.sm,
-  },
-  tabActive: {
-    backgroundColor: COLORS.primary,
-  },
-  tabText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-  },
-  tabTextActive: {
-    color: '#fff',
-  },
+    // Tabs
+    tabBar: {
+      flexDirection: 'row',
+      paddingHorizontal: SPACING.xl,
+      paddingVertical: SPACING.lg,
+      gap: SPACING.sm,
+    },
+    tab: {
+      flex: 1,
+      paddingVertical: SPACING.md,
+      paddingHorizontal: SPACING.sm,
+      borderRadius: RADIUS.lg,
+      backgroundColor: COLORS.surface,
+      alignItems: 'center',
+      ...SHADOWS.sm,
+    },
+    tabActive: {
+      backgroundColor: COLORS.primary,
+    },
+    tabText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: COLORS.textSecondary,
+    },
+    tabTextActive: {
+      color: '#fff',
+    },
 
-  // Content
-  content: {
-    flex: 1,
-    paddingHorizontal: SPACING.xl,
-  },
-  list: {
-    gap: SPACING.md,
-    paddingBottom: SPACING['4xl'],
-  },
-  tabContent: {
-    gap: SPACING.md,
-  },
+    // Content
+    content: {
+      flex: 1,
+      paddingHorizontal: SPACING.xl,
+    },
+    list: {
+      gap: SPACING.md,
+      paddingBottom: SPACING['4xl'],
+    },
+    tabContent: {
+      gap: SPACING.md,
+    },
 
-  // Empty state
-  empty: {
-    color: COLORS.textMuted,
-    textAlign: 'center',
-    marginTop: SPACING['3xl'],
-    fontSize: 16,
-  },
-  emptyCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS['2xl'],
-    padding: SPACING['3xl'],
-    alignItems: 'center',
-    ...SHADOWS.md,
-    marginTop: SPACING.xl,
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: SPACING.lg,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.sm,
-  },
-  emptyDesc: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
+    // Empty state
+    empty: {
+      color: COLORS.textMuted,
+      textAlign: 'center',
+      marginTop: SPACING['3xl'],
+      fontSize: 16,
+    },
+    emptyCard: {
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS['2xl'],
+      padding: SPACING['3xl'],
+      alignItems: 'center',
+      ...SHADOWS.md,
+      marginTop: SPACING.xl,
+    },
+    emptyIcon: {
+      fontSize: 48,
+      marginBottom: SPACING.lg,
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: COLORS.textPrimary,
+      marginBottom: SPACING.sm,
+    },
+    emptyDesc: {
+      fontSize: 14,
+      color: COLORS.textSecondary,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
 
-  // Student cards
-  studentCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.xl,
-    padding: SPACING.lg,
-    ...SHADOWS.md,
-  },
-  studentHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.md,
-    marginBottom: SPACING.lg,
-  },
-  studentAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: RADIUS.full,
-    backgroundColor: COLORS.primaryMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
-  studentInfo: {
-    flex: 1,
-  },
-  studentName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  studentEmail: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  statusBadge: {
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 4,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.warningLight,
-  },
-  statusAccepted: {
-    backgroundColor: COLORS.successLight,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.warning,
-  },
-  statusTextAccepted: {
-    color: COLORS.success,
-  },
+    // Student cards
+    studentCard: {
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS.xl,
+      padding: SPACING.lg,
+      ...SHADOWS.md,
+    },
+    studentHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.md,
+      marginBottom: SPACING.lg,
+    },
+    studentAvatar: {
+      width: 44,
+      height: 44,
+      borderRadius: RADIUS.full,
+      backgroundColor: COLORS.primaryMuted,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    avatarText: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: COLORS.primary,
+    },
+    studentInfo: {
+      flex: 1,
+    },
+    studentName: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: COLORS.textPrimary,
+    },
+    studentEmail: {
+      fontSize: 12,
+      color: COLORS.textSecondary,
+      marginTop: 2,
+    },
+    statusBadge: {
+      paddingHorizontal: SPACING.sm,
+      paddingVertical: 4,
+      borderRadius: RADIUS.md,
+      backgroundColor: COLORS.warningLight,
+    },
+    statusAccepted: {
+      backgroundColor: COLORS.successLight,
+    },
+    statusText: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: COLORS.warning,
+    },
+    statusTextAccepted: {
+      color: COLORS.success,
+    },
 
-  // Progress
-  studentProgress: {
-    marginBottom: SPACING.md,
-  },
-  progressRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.xs,
-  },
-  progressLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-  },
-  progressValue: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.primary,
-  },
-  progressBarContainer: {
-    height: 6,
-    backgroundColor: '#e7e5e4',
-    borderRadius: RADIUS.full,
-    overflow: 'hidden',
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: COLORS.primary,
-    borderRadius: RADIUS.full,
-  },
+    // Progress
+    studentProgress: {
+      marginBottom: SPACING.md,
+    },
+    progressRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: SPACING.xs,
+    },
+    progressLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: COLORS.textPrimary,
+    },
+    progressValue: {
+      fontSize: 14,
+      fontWeight: '800',
+      color: COLORS.primary,
+    },
+    progressBarContainer: {
+      height: 6,
+      backgroundColor: '#e7e5e4',
+      borderRadius: RADIUS.full,
+      overflow: 'hidden',
+    },
+    progressBar: {
+      height: '100%',
+      backgroundColor: COLORS.primary,
+      borderRadius: RADIUS.full,
+    },
 
-  // Meta
-  studentMeta: {
-    flexDirection: 'row',
-    gap: SPACING.lg,
-  },
-  metaText: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-  },
+    // Meta
+    studentMeta: {
+      flexDirection: 'row',
+      gap: SPACING.lg,
+    },
+    metaText: {
+      fontSize: 13,
+      color: COLORS.textSecondary,
+    },
 
-  // Action cards
-  actionCard: {
-    gap: SPACING.md,
-    marginTop: SPACING.xl,
-  },
-  actionBtn: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS['2xl'],
-    padding: SPACING['2xl'],
-    alignItems: 'center',
-    ...SHADOWS.md,
-    borderWidth: 2,
-    borderColor: COLORS.primaryMuted,
-  },
-  actionIcon: {
-    fontSize: 36,
-    marginBottom: SPACING.md,
-  },
-  actionBtnText: {
-    color: COLORS.primaryDark,
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: SPACING.xs,
-  },
-  actionBtnSub: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  secondaryBtn: {
-    borderColor: COLORS.goldMuted,
-  },
-  secondaryText: {
-    color: COLORS.gold,
-  },
-  secondarySub: {
-    color: COLORS.textSecondary,
-  },
-});
+    // Action cards
+    actionCard: {
+      gap: SPACING.md,
+      marginTop: SPACING.xl,
+    },
+    actionBtn: {
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS['2xl'],
+      padding: SPACING['2xl'],
+      alignItems: 'center',
+      ...SHADOWS.md,
+      borderWidth: 2,
+      borderColor: COLORS.primaryMuted,
+    },
+    actionIcon: {
+      fontSize: 36,
+      marginBottom: SPACING.md,
+    },
+    actionBtnText: {
+      color: COLORS.primaryDark,
+      fontSize: 18,
+      fontWeight: '700',
+      marginBottom: SPACING.xs,
+    },
+    actionBtnSub: {
+      color: COLORS.textSecondary,
+      fontSize: 14,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    secondaryBtn: {
+      borderColor: COLORS.goldMuted,
+    },
+    secondaryText: {
+      color: COLORS.gold,
+    },
+    secondarySub: {
+      color: COLORS.textSecondary,
+    },
+  });
