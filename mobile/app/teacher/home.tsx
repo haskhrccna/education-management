@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { useAppointments } from '@/src/hooks/useAppointments';
 import { useMessages } from '@/src/hooks/useMessages';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
 import { gradesApi, memorizationApi, MemorizationEntry } from '@/src/api';
+import { SkeletonCard } from '@/src/components/SkeletonCard';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
@@ -45,6 +46,7 @@ export default function TeacherHomeScreen() {
   const [activeTab, setActiveTab] = useState<'myStudents' | 'assignments'>('myStudents');
   const [progressByStudent, setProgressByStudent] = useState<Record<string, StudentProgressSummary>>({});
   const [gradeCount, setGradeCount] = useState<number | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
   const styles = createStyles(COLORS);
@@ -78,6 +80,7 @@ export default function TeacherHomeScreen() {
     }
 
     let isMounted = true;
+    setFetchError(null);
 
     Promise.all(
       acceptedStudents.map(async (studentId: string) => {
@@ -103,6 +106,7 @@ export default function TeacherHomeScreen() {
         if (isMounted) {
           setProgressByStudent({});
           setGradeCount(null);
+          setFetchError(t('loadFailed'));
         }
       });
 
@@ -179,11 +183,26 @@ export default function TeacherHomeScreen() {
         ))}
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchAppointments} />}
+      >
+        {fetchError && !isLoading && (
+          <TouchableOpacity onPress={fetchAppointments} style={styles.errorBanner}>
+            <Text style={styles.errorText}>{fetchError}</Text>
+          </TouchableOpacity>
+        )}
         {isLoading ? (
-          <Text style={styles.empty}>{t('loading')}</Text>
+          <><SkeletonCard lines={2} /><SkeletonCard lines={2} /><SkeletonCard lines={2} /></>
         ) : activeTab === 'myStudents' ? (
-          <MyStudentsTab appointments={appointments} progressByStudent={progressByStudent} styles={styles} pendingChanges={pendingChanges} />
+          <MyStudentsTab
+            appointments={appointments}
+            progressByStudent={progressByStudent}
+            styles={styles}
+            pendingChanges={pendingChanges}
+          />
         ) : (
           <AssignmentsTab styles={styles} />
         )}
@@ -381,15 +400,25 @@ const createStyles = (COLORS: any) =>
     },
     msgIconWrap: { position: 'relative', marginRight: 6 },
     msgIconBtn: {
-      width: 32, height: 32, backgroundColor: 'rgba(255,255,255,0.2)',
-      borderRadius: 8, alignItems: 'center', justifyContent: 'center',
+      width: 32,
+      height: 32,
+      backgroundColor: 'rgba(255,255,255,0.2)',
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     msgIconText: { fontSize: 16 },
     msgBadge: {
-      position: 'absolute', top: -4, right: -4,
-      minWidth: 16, height: 16, borderRadius: 8,
+      position: 'absolute',
+      top: -4,
+      right: -4,
+      minWidth: 16,
+      height: 16,
+      borderRadius: 8,
       backgroundColor: '#ef4444',
-      alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 3,
     },
     msgBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
 
@@ -627,6 +656,19 @@ const createStyles = (COLORS: any) =>
     },
     secondarySub: {
       color: COLORS.textSecondary,
+    },
+
+    // Error banner
+    errorBanner: {
+      backgroundColor: COLORS.errorLight,
+      borderRadius: RADIUS.md,
+      padding: SPACING.md,
+      marginBottom: SPACING.sm,
+    },
+    errorText: {
+      color: COLORS.error,
+      fontSize: 13,
+      textAlign: 'center',
     },
 
     // Change request banner
