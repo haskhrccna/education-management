@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { useAuthStore } from '@/src/auth/store';
 import { useAppointments } from '@/src/hooks/useAppointments';
 import { useMessages } from '@/src/hooks/useMessages';
+import { useTeacherChange } from '@/src/hooks/useTeacherChange';
 import { gradesApi, memorizationApi, MemorizationEntry } from '@/src/api';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
@@ -50,6 +51,8 @@ export default function TeacherHomeScreen() {
 
   const { appointments, isLoading, fetchAppointments } = useAppointments();
   const { unreadCount, fetchMessages: fetchUnreadCount } = useMessages();
+  const { requests: changeRequests, fetchRequests: fetchChangeRequests } = useTeacherChange();
+  const pendingChanges = changeRequests.filter((r: any) => r.status === 'PENDING');
 
   React.useEffect(() => {
     fetchAppointments();
@@ -57,6 +60,10 @@ export default function TeacherHomeScreen() {
 
   React.useEffect(() => {
     fetchUnreadCount();
+  }, []);
+
+  React.useEffect(() => {
+    fetchChangeRequests();
   }, []);
 
   React.useEffect(() => {
@@ -176,7 +183,7 @@ export default function TeacherHomeScreen() {
         {isLoading ? (
           <Text style={styles.empty}>{t('loading')}</Text>
         ) : activeTab === 'myStudents' ? (
-          <MyStudentsTab appointments={appointments} progressByStudent={progressByStudent} styles={styles} />
+          <MyStudentsTab appointments={appointments} progressByStudent={progressByStudent} styles={styles} pendingChanges={pendingChanges} />
         ) : (
           <AssignmentsTab styles={styles} />
         )}
@@ -189,10 +196,12 @@ function MyStudentsTab({
   appointments,
   progressByStudent,
   styles,
+  pendingChanges,
 }: {
   appointments: any[];
   progressByStudent: Record<string, StudentProgressSummary>;
   styles: any;
+  pendingChanges: any[];
 }) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
@@ -213,6 +222,13 @@ function MyStudentsTab({
 
   return (
     <View style={styles.tabContent}>
+      {pendingChanges.length > 0 && (
+        <View style={styles.changeRequestBanner}>
+          <Text style={styles.changeRequestText}>
+            ⚠️ {pendingChanges.length} {t('studentsPendingChange')}
+          </Text>
+        </View>
+      )}
       {appointments.map((a: any, index: number) => {
         const progress = a.student?.id ? progressByStudent[a.student.id] : undefined;
         const percent = progress?.percent;
@@ -612,4 +628,15 @@ const createStyles = (COLORS: any) =>
     secondarySub: {
       color: COLORS.textSecondary,
     },
+
+    // Change request banner
+    changeRequestBanner: {
+      backgroundColor: '#fef3c7',
+      borderLeftWidth: 4,
+      borderLeftColor: '#f59e0b',
+      padding: SPACING.sm,
+      marginBottom: SPACING.sm,
+      borderRadius: 6,
+    },
+    changeRequestText: { fontSize: 13, color: '#92400e', fontWeight: '600' },
   });
