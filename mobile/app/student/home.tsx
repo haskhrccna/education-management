@@ -8,6 +8,7 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 import { useMemorization } from '@/src/hooks/useMemorization';
+import { useMessages } from '@/src/hooks/useMessages';
 
 // ─── Mock Quran Data (replaced by API later) ──────────────────────────────────
 
@@ -44,6 +45,7 @@ export default function StudentHomeScreen() {
   const styles = createStyles(COLORS);
 
   const { progress, surahs: apiSurahs, isLoading: isLoadingProgress, fetchProgress } = useMemorization();
+  const { unreadCount } = useMessages();
 
   useEffect(() => {
     fetchProgress();
@@ -87,7 +89,17 @@ export default function StudentHomeScreen() {
               {i18n.language === 'ar' ? 'يا بارك الله فيك في حفظ كتابه' : 'May Allah bless your memorization'}
             </Text>
           </View>
-          <View style={{ flexDirection: 'row', gap: SPACING.sm }}>
+          <View style={{ flexDirection: 'row', gap: SPACING.sm, alignItems: 'center' }}>
+            <View style={styles.msgIconWrap}>
+              <TouchableOpacity style={styles.msgIconBtn} onPress={() => router.push('/messages')}>
+                <Text style={styles.msgIconText}>💬</Text>
+              </TouchableOpacity>
+              {unreadCount > 0 && (
+                <View style={styles.msgBadge}>
+                  <Text style={styles.msgBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                </View>
+              )}
+            </View>
             <TouchableOpacity onPress={() => router.push('/student/grades')} style={styles.logoutBtn}>
               <Text style={styles.logoutText}>{t('myGrades')}</Text>
             </TouchableOpacity>
@@ -497,6 +509,19 @@ const createStyles = (COLORS: any) =>
       fontSize: 13,
       fontWeight: '600',
     },
+    msgIconWrap: { position: 'relative', marginRight: 6 },
+    msgIconBtn: {
+      width: 32, height: 32, backgroundColor: 'rgba(255,255,255,0.2)',
+      borderRadius: 8, alignItems: 'center', justifyContent: 'center',
+    },
+    msgIconText: { fontSize: 16 },
+    msgBadge: {
+      position: 'absolute', top: -4, right: -4,
+      minWidth: 16, height: 16, borderRadius: 8,
+      backgroundColor: '#ef4444',
+      alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3,
+    },
+    msgBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
 
     // Stats row
     statsRow: { flexDirection: 'row', gap: SPACING.md },

@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
 import { useAuthStore } from '@/src/auth/store';
 import { useAppointments } from '@/src/hooks/useAppointments';
+import { useMessages } from '@/src/hooks/useMessages';
 import { gradesApi, memorizationApi, MemorizationEntry } from '@/src/api';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
@@ -48,6 +49,7 @@ export default function TeacherHomeScreen() {
   const styles = createStyles(COLORS);
 
   const { appointments, isLoading, fetchAppointments } = useAppointments();
+  const { unreadCount } = useMessages();
 
   React.useEffect(() => {
     fetchAppointments();
@@ -116,9 +118,21 @@ export default function TeacherHomeScreen() {
                 : 'May Allah reward you for teaching the Quran'}
             </Text>
           </View>
-          <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-            <Text style={styles.logoutText}>{t('logout')}</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: SPACING.sm, alignItems: 'center' }}>
+            <View style={styles.msgIconWrap}>
+              <TouchableOpacity style={styles.msgIconBtn} onPress={() => router.push('/messages')}>
+                <Text style={styles.msgIconText}>💬</Text>
+              </TouchableOpacity>
+              {unreadCount > 0 && (
+                <View style={styles.msgBadge}>
+                  <Text style={styles.msgBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                </View>
+              )}
+            </View>
+            <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+              <Text style={styles.logoutText}>{t('logout')}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Quick stats */}
@@ -345,6 +359,19 @@ const createStyles = (COLORS: any) =>
       fontSize: 13,
       fontWeight: '600',
     },
+    msgIconWrap: { position: 'relative', marginRight: 6 },
+    msgIconBtn: {
+      width: 32, height: 32, backgroundColor: 'rgba(255,255,255,0.2)',
+      borderRadius: 8, alignItems: 'center', justifyContent: 'center',
+    },
+    msgIconText: { fontSize: 16 },
+    msgBadge: {
+      position: 'absolute', top: -4, right: -4,
+      minWidth: 16, height: 16, borderRadius: 8,
+      backgroundColor: '#ef4444',
+      alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3,
+    },
+    msgBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
 
     // Stats
     statsRow: {
