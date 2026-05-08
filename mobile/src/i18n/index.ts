@@ -141,6 +141,20 @@ const arTranslations: Record<string, string> = {
   teacherHomeTitle: 'أهلاً بك، الأستاذ/ة {{name}}',
   adminHomeTitle: 'لوحة التحكم',
 
+  // Teacher change requests
+  yourTeacher: 'معلمك',
+  noTeacherAssigned: 'لم يُعيّن لك معلم بعد',
+  requestTeacherChange: 'طلب تغيير المعلم',
+  changeReason: 'سبب الطلب',
+  changeReasonPlaceholder: 'اشرح سبب رغبتك في تغيير المعلم...',
+  requestSubmitted: 'تم إرسال طلبك بنجاح',
+  pendingRequest: 'طلب قيد المراجعة',
+  requestApproved: 'تمت الموافقة على طلبك',
+  requestDenied: 'تم رفض طلبك',
+  teacherChangeRequests: 'طلبات تغيير المعلم',
+  noChangeRequests: 'لا توجد طلبات تغيير',
+  studentsPendingChange: 'طالب طلب تغيير المعلم',
+
   // Validation
   fillAllFields: 'يرجى ملء جميع الحقول',
   passwordTooShort: 'يجب أن تكون كلمة المرور 8 أحرف على الأقل',
@@ -287,6 +301,20 @@ const enTranslations: Record<string, string> = {
   studentHomeTitle: 'Welcome, {{name}}',
   teacherHomeTitle: 'Welcome, Prof. {{name}}',
   adminHomeTitle: 'Admin Dashboard',
+
+  // Teacher change requests
+  yourTeacher: 'Your Teacher',
+  noTeacherAssigned: 'No teacher assigned yet',
+  requestTeacherChange: 'Request Teacher Change',
+  changeReason: 'Reason for Change',
+  changeReasonPlaceholder: 'Explain why you want a teacher change...',
+  requestSubmitted: 'Request submitted successfully',
+  pendingRequest: 'Request Pending Review',
+  requestApproved: 'Your request was approved',
+  requestDenied: 'Your request was denied',
+  teacherChangeRequests: 'Teacher Change Requests',
+  noChangeRequests: 'No change requests',
+  studentsPendingChange: 'student(s) requested a change',
 
   // Validation
   fillAllFields: 'Please fill in all fields',
