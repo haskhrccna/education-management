@@ -9,14 +9,20 @@ const MAX_BULK_IDS = 1000;
 
 export const listUsers = async (roleFilter?: string) => {
   return await prisma.user.findMany({
-where: { ...(roleFilter ? { role: roleFilter.toUpperCase() as 'STUDENT' | 'TEACHER' | 'ADMIN' } : {}), deletedAt: null },
+    where: {
+      ...(roleFilter ? { role: roleFilter.toUpperCase() as 'STUDENT' | 'TEACHER' | 'ADMIN' } : {}),
+      deletedAt: null,
+    },
     select: { id: true, email: true, firstName: true, lastName: true, role: true, status: true, createdAt: true },
     orderBy: { createdAt: 'desc' },
   });
 };
 
 export const listUsersPaginated = async (roleFilter?: string, skip = 0, take = 20) => {
-  const where = { ...(roleFilter ? { role: roleFilter.toUpperCase() as 'STUDENT' | 'TEACHER' | 'ADMIN' } : {}), deletedAt: null };
+  const where = {
+    ...(roleFilter ? { role: roleFilter.toUpperCase() as 'STUDENT' | 'TEACHER' | 'ADMIN' } : {}),
+    deletedAt: null,
+  };
   const [users, total] = await Promise.all([
     prisma.user.findMany({
       where,
@@ -310,12 +316,12 @@ export const updateUser = async (
     const existing = await prisma.user.findUnique({ where: { email: data.email } });
     if (existing && existing.id !== userId) throw new AppError(409, 'Email already in use');
     updateData.email = data.email;
-    }
+  }
   if (data.status) updateData.status = data.status;
   if (data.role) {
     if (!['STUDENT', 'TEACHER', 'ADMIN'].includes(data.role)) throw new AppError(400, 'Invalid role');
     updateData.role = data.role;
-    }
+  }
 
   return await prisma.user.update({
     where: { id: userId },
@@ -328,10 +334,10 @@ export const deleteUser = async (userId: string) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new AppError(404, 'User not found');
 
-   // Soft-delete: anonymize PII while preserving relationship integrity and audit trail.
-   // Hard cascade via Prisma relations (onDelete: Cascade) removes child records,
-   // but we keep the user row for compliance — email + names are replaced with
-   // a deterministic "deleted" identity so foreign keys remain valid.
+  // Soft-delete: anonymize PII while preserving relationship integrity and audit trail.
+  // Hard cascade via Prisma relations (onDelete: Cascade) removes child records,
+  // but we keep the user row for compliance — email + names are replaced with
+  // a deterministic "deleted" identity so foreign keys remain valid.
   await prisma.user.update({
     where: { id: userId },
     data: {

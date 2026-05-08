@@ -31,12 +31,7 @@ export const updateProgress = async (
   if (!surah) throw new AppError(404, 'Surah not found');
 
   const resolvedStatus =
-    status ??
-    (memorizedAyahs >= surah.ayahCount
-      ? 'COMPLETE'
-      : memorizedAyahs > 0
-        ? 'IN_PROGRESS'
-        : 'NOT_STARTED');
+    status ?? (memorizedAyahs >= surah.ayahCount ? 'COMPLETE' : memorizedAyahs > 0 ? 'IN_PROGRESS' : 'NOT_STARTED');
 
   return prisma.memorizationProgress.upsert({
     where: { userId_surahId: { userId: studentId, surahId } },

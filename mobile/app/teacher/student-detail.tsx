@@ -7,8 +7,11 @@ import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 
 const TYPE_COLORS: Record<string, string> = {
-  ORAL: '#3b82f6', QUIZ: '#22c55e', EXAM: '#ef4444',
-  ASSIGNMENT: '#f59e0b', PARTICIPATION: '#8b5cf6',
+  ORAL: '#3b82f6',
+  QUIZ: '#22c55e',
+  EXAM: '#ef4444',
+  ASSIGNMENT: '#f59e0b',
+  PARTICIPATION: '#8b5cf6',
 };
 
 function avgScore(grades: Grade[]): string {
@@ -37,11 +40,11 @@ export default function TeacherStudentDetailScreen() {
 
   useEffect(() => {
     if (!studentId) return;
-    Promise.all([
-      gradesApi.getStudentGrades(studentId),
-      memorizationApi.getStudentProgress(studentId),
-    ])
-      .then(([g, m]) => { setGrades(g); setMemorization(m); })
+    Promise.all([gradesApi.getStudentGrades(studentId), memorizationApi.getStudentProgress(studentId)])
+      .then(([g, m]) => {
+        setGrades(g);
+        setMemorization(m);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setIsLoading(false));
   }, [studentId]);
@@ -58,9 +61,18 @@ export default function TeacherStudentDetailScreen() {
           <Text style={styles.title}>{displayName}</Text>
           {!isLoading && (
             <View style={styles.statsRow}>
-              <View style={styles.stat}><Text style={styles.statVal}>{avgScore(grades)}</Text><Text style={styles.statLbl}>Avg</Text></View>
-              <View style={styles.stat}><Text style={styles.statVal}>{grades.length}</Text><Text style={styles.statLbl}>Grades</Text></View>
-              <View style={styles.stat}><Text style={styles.statVal}>{memPct(memorization)}</Text><Text style={styles.statLbl}>Memorized</Text></View>
+              <View style={styles.stat}>
+                <Text style={styles.statVal}>{avgScore(grades)}</Text>
+                <Text style={styles.statLbl}>Avg</Text>
+              </View>
+              <View style={styles.stat}>
+                <Text style={styles.statVal}>{grades.length}</Text>
+                <Text style={styles.statLbl}>Grades</Text>
+              </View>
+              <View style={styles.stat}>
+                <Text style={styles.statVal}>{memPct(memorization)}</Text>
+                <Text style={styles.statLbl}>Memorized</Text>
+              </View>
             </View>
           )}
         </View>
@@ -68,7 +80,9 @@ export default function TeacherStudentDetailScreen() {
         {isLoading ? (
           <ActivityIndicator style={{ marginTop: 40 }} color={COLORS.primary} />
         ) : error ? (
-          <View style={styles.center}><Text style={{ color: COLORS.textSecondary }}>{error}</Text></View>
+          <View style={styles.center}>
+            <Text style={{ color: COLORS.textSecondary }}>{error}</Text>
+          </View>
         ) : (
           <View style={{ paddingHorizontal: SPACING.xl, gap: SPACING.md, marginTop: SPACING.lg }}>
             <Text style={[styles.sectionTitle, { color: COLORS.textPrimary }]}>Recent Grades</Text>
@@ -76,11 +90,19 @@ export default function TeacherStudentDetailScreen() {
               <Text style={{ color: COLORS.textSecondary }}>No grades recorded yet.</Text>
             ) : (
               grades.slice(0, 5).map((g) => (
-                <View key={g.id} style={[styles.gradeCard, { backgroundColor: COLORS.surface, borderLeftColor: TYPE_COLORS[g.type] ?? COLORS.primary }]}>
+                <View
+                  key={g.id}
+                  style={[
+                    styles.gradeCard,
+                    { backgroundColor: COLORS.surface, borderLeftColor: TYPE_COLORS[g.type] ?? COLORS.primary },
+                  ]}
+                >
                   <View style={styles.gradeCardTop}>
                     <View style={{ flex: 1 }}>
                       <View style={[styles.badge, { backgroundColor: (TYPE_COLORS[g.type] ?? COLORS.primary) + '22' }]}>
-                        <Text style={[styles.badgeText, { color: TYPE_COLORS[g.type] ?? COLORS.primary }]}>{g.type}</Text>
+                        <Text style={[styles.badgeText, { color: TYPE_COLORS[g.type] ?? COLORS.primary }]}>
+                          {g.type}
+                        </Text>
                       </View>
                       <Text style={[styles.subject, { color: COLORS.textPrimary }]}>{g.subject}</Text>
                       <Text style={[styles.meta, { color: COLORS.textSecondary }]}>
@@ -107,18 +129,37 @@ export default function TeacherStudentDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: { padding: SPACING.xl, paddingTop: SPACING.lg, borderBottomLeftRadius: RADIUS['2xl'], borderBottomRightRadius: RADIUS['2xl'], ...SHADOWS.lg, marginBottom: SPACING.md },
+  header: {
+    padding: SPACING.xl,
+    paddingTop: SPACING.lg,
+    borderBottomLeftRadius: RADIUS['2xl'],
+    borderBottomRightRadius: RADIUS['2xl'],
+    ...SHADOWS.lg,
+    marginBottom: SPACING.md,
+  },
   backText: { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginBottom: SPACING.sm },
   title: { fontSize: 22, fontWeight: '800', color: '#fff', marginBottom: SPACING.md },
   statsRow: { flexDirection: 'row', gap: SPACING.md },
-  stat: { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: RADIUS.lg, padding: SPACING.md, alignItems: 'center', flex: 1 },
+  stat: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
+    alignItems: 'center',
+    flex: 1,
+  },
   statVal: { fontSize: 20, fontWeight: '800', color: '#fff' },
   statLbl: { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
   center: { alignItems: 'center', padding: SPACING['3xl'] },
   sectionTitle: { fontSize: 16, fontWeight: '700' },
   gradeCard: { borderRadius: RADIUS.xl, padding: SPACING.lg, borderLeftWidth: 4, ...SHADOWS.sm },
   gradeCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  badge: { alignSelf: 'flex-start', paddingHorizontal: SPACING.sm, paddingVertical: 2, borderRadius: RADIUS.sm, marginBottom: 4 },
+  badge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 2,
+    borderRadius: RADIUS.sm,
+    marginBottom: 4,
+  },
   badgeText: { fontSize: 10, fontWeight: '700' },
   subject: { fontSize: 14, fontWeight: '700', marginBottom: 2 },
   meta: { fontSize: 12 },

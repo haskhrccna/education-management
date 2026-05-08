@@ -20,7 +20,6 @@ interface Surah {
   juz: number;
 }
 
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getProgressingJuz(surahs: Surah[]): number {
@@ -46,7 +45,9 @@ export default function StudentHomeScreen() {
 
   const { progress, surahs: apiSurahs, isLoading: isLoadingProgress, fetchProgress } = useMemorization();
 
-  useEffect(() => { fetchProgress(); }, []);
+  useEffect(() => {
+    fetchProgress();
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -134,11 +135,12 @@ export default function StudentHomeScreen() {
 
       {/* ── Content ── */}
       <ScrollView style={styles.content} contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-        {activeTab === 'surahs' && (
-          isLoadingProgress && SURAH_DATA.length === 0
-            ? <ActivityIndicator color={COLORS.primary} style={{ marginTop: 40 }} />
-            : <SurahsTab surahData={SURAH_DATA} activeJuz={currentJuz} styles={styles} />
-        )}
+        {activeTab === 'surahs' &&
+          (isLoadingProgress && SURAH_DATA.length === 0 ? (
+            <ActivityIndicator color={COLORS.primary} style={{ marginTop: 40 }} />
+          ) : (
+            <SurahsTab surahData={SURAH_DATA} activeJuz={currentJuz} styles={styles} />
+          ))}
         {activeTab === 'schedule' && <RevisionScheduleTab revisions={REVISION_SCHEDULE} styles={styles} />}
         {activeTab === 'progress' && (
           <ProgressTab
@@ -230,7 +232,13 @@ function SurahCard({ surah, styles, i18n }: { surah: Surah; styles: any; i18n: a
 
 // ─── Revision Schedule Tab ────────────────────────────────────────────────────
 
-function RevisionScheduleTab({ revisions, styles }: { revisions: Array<{ id: string; surahId: number; surahName: string; date: string; status: 'DUE' | 'UPCOMING' }>; styles: any }) {
+function RevisionScheduleTab({
+  revisions,
+  styles,
+}: {
+  revisions: Array<{ id: string; surahId: number; surahName: string; date: string; status: 'DUE' | 'UPCOMING' }>;
+  styles: any;
+}) {
   const { i18n } = useTranslation();
   const today = new Date().toISOString().split('T')[0];
 

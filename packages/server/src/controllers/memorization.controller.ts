@@ -29,7 +29,11 @@ export const updateProgress = async (req: Request, res: Response, next: NextFunc
     if (!studentId) throw new AppError(400, 'studentId is required');
     if (typeof memorizedAyahs !== 'number') throw new AppError(400, 'memorizedAyahs must be a number');
     const result = await memorizationService.updateProgress(
-      req.userId!, surahId, studentId as string, memorizedAyahs, status
+      req.userId!,
+      surahId,
+      studentId as string,
+      memorizedAyahs,
+      status
     );
     res.json(result);
   } catch (err) {

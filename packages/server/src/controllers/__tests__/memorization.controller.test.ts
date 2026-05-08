@@ -74,16 +74,12 @@ describe('memorization.controller', () => {
     });
 
     it('should return 400 when studentId missing', async () => {
-      const res = await request(makeApp('teacher-1', 'TEACHER'))
-        .put('/memorization/1')
-        .send({ memorizedAyahs: 10 });
+      const res = await request(makeApp('teacher-1', 'TEACHER')).put('/memorization/1').send({ memorizedAyahs: 10 });
       expect(res.status).toBe(400);
     });
 
     it('should propagate 403 from service', async () => {
-      mockedService.updateProgress.mockRejectedValue(
-        new AppError(403, 'No accepted appointment')
-      );
+      mockedService.updateProgress.mockRejectedValue(new AppError(403, 'No accepted appointment'));
       const res = await request(makeApp('teacher-1', 'TEACHER'))
         .put('/memorization/1')
         .send({ studentId: 'student-1', memorizedAyahs: 10 });

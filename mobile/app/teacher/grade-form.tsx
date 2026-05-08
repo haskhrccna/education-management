@@ -50,9 +50,7 @@ export default function GradeFormScreen() {
             firstName: a.student!.firstName,
             lastName: a.student!.lastName,
           }));
-        const unique = accepted.filter(
-          (s, i, arr) => arr.findIndex((x) => x.id === s.id) === i,
-        );
+        const unique = accepted.filter((s, i, arr) => arr.findIndex((x) => x.id === s.id) === i);
         setStudents(unique);
         if (!prefillId && unique.length > 0) {
           setSelectedStudentId(unique[0].id);
@@ -62,11 +60,7 @@ export default function GradeFormScreen() {
       .finally(() => setIsLoadingStudents(false));
   }, []);
 
-  const canSubmit =
-    !!selectedStudentId &&
-    subject.trim().length > 0 &&
-    score.trim().length > 0 &&
-    !isSubmitting;
+  const canSubmit = !!selectedStudentId && subject.trim().length > 0 && score.trim().length > 0 && !isSubmitting;
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -79,9 +73,7 @@ export default function GradeFormScreen() {
         type,
         notes: notes.trim() || undefined,
       });
-      Alert.alert('Grade submitted', 'The grade has been recorded.', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      Alert.alert('Grade submitted', 'The grade has been recorded.', [{ text: 'OK', onPress: () => router.back() }]);
     } catch (err: any) {
       Alert.alert('Error', err.message ?? 'Failed to submit grade');
     } finally {
@@ -91,10 +83,7 @@ export default function GradeFormScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         {/* Header */}
         <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
           <TouchableOpacity onPress={() => router.back()}>
@@ -111,9 +100,7 @@ export default function GradeFormScreen() {
           {isLoadingStudents ? (
             <ActivityIndicator color={COLORS.primary} />
           ) : students.length === 0 ? (
-            <Text style={{ color: COLORS.textSecondary, fontSize: 14 }}>
-              No accepted students yet
-            </Text>
+            <Text style={{ color: COLORS.textSecondary, fontSize: 14 }}>No accepted students yet</Text>
           ) : (
             <View style={styles.chipRow}>
               {students.map((s) => (
@@ -126,12 +113,7 @@ export default function GradeFormScreen() {
                   ]}
                   onPress={() => setSelectedStudentId(s.id)}
                 >
-                  <Text
-                    style={[
-                      styles.chipText,
-                      { color: selectedStudentId === s.id ? '#fff' : COLORS.textPrimary },
-                    ]}
-                  >
+                  <Text style={[styles.chipText, { color: selectedStudentId === s.id ? '#fff' : COLORS.textPrimary }]}>
                     {s.firstName} {s.lastName}
                   </Text>
                 </TouchableOpacity>
@@ -142,10 +124,7 @@ export default function GradeFormScreen() {
           {/* Subject */}
           <Text style={[styles.label, { color: COLORS.textSecondary }]}>Subject</Text>
           <TextInput
-            style={[
-              styles.input,
-              { backgroundColor: COLORS.surface, color: COLORS.textPrimary },
-            ]}
+            style={[styles.input, { backgroundColor: COLORS.surface, color: COLORS.textPrimary }]}
             placeholder="e.g. Al-Baqarah ayahs 1–50"
             placeholderTextColor={COLORS.textMuted}
             value={subject}
@@ -155,10 +134,7 @@ export default function GradeFormScreen() {
           {/* Score */}
           <Text style={[styles.label, { color: COLORS.textSecondary }]}>Score</Text>
           <TextInput
-            style={[
-              styles.input,
-              { backgroundColor: COLORS.surface, color: COLORS.textPrimary },
-            ]}
+            style={[styles.input, { backgroundColor: COLORS.surface, color: COLORS.textPrimary }]}
             placeholder="e.g. 87"
             placeholderTextColor={COLORS.textMuted}
             value={score}
@@ -179,28 +155,15 @@ export default function GradeFormScreen() {
                 ]}
                 onPress={() => setType(t)}
               >
-                <Text
-                  style={[
-                    styles.chipText,
-                    { color: type === t ? '#fff' : COLORS.textPrimary },
-                  ]}
-                >
-                  {t}
-                </Text>
+                <Text style={[styles.chipText, { color: type === t ? '#fff' : COLORS.textPrimary }]}>{t}</Text>
               </TouchableOpacity>
             ))}
           </View>
 
           {/* Notes */}
-          <Text style={[styles.label, { color: COLORS.textSecondary }]}>
-            Notes (optional)
-          </Text>
+          <Text style={[styles.label, { color: COLORS.textSecondary }]}>Notes (optional)</Text>
           <TextInput
-            style={[
-              styles.input,
-              styles.notesInput,
-              { backgroundColor: COLORS.surface, color: COLORS.textPrimary },
-            ]}
+            style={[styles.input, styles.notesInput, { backgroundColor: COLORS.surface, color: COLORS.textPrimary }]}
             placeholder="Any observations..."
             placeholderTextColor={COLORS.textMuted}
             value={notes}
@@ -214,20 +177,14 @@ export default function GradeFormScreen() {
             style={[
               styles.submitBtn,
               {
-                backgroundColor: canSubmit
-                  ? COLORS.primary
-                  : (COLORS.textMuted ?? '#9ca3af'),
+                backgroundColor: canSubmit ? COLORS.primary : (COLORS.textMuted ?? '#9ca3af'),
               },
             ]}
             onPress={handleSubmit}
             disabled={!canSubmit}
             activeOpacity={0.8}
           >
-            {isSubmitting ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.submitText}>Submit Grade</Text>
-            )}
+            {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>Submit Grade</Text>}
           </TouchableOpacity>
 
           {/* Cancel */}
@@ -235,9 +192,7 @@ export default function GradeFormScreen() {
             style={[styles.cancelBtn, { backgroundColor: COLORS.surface }]}
             onPress={() => router.back()}
           >
-            <Text style={[styles.cancelText, { color: COLORS.textSecondary }]}>
-              Cancel
-            </Text>
+            <Text style={[styles.cancelText, { color: COLORS.textSecondary }]}>Cancel</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

@@ -176,7 +176,11 @@ function AssignmentsTab() {
   return (
     <View style={styles.tabContent}>
       <Animated.View entering={FadeInUp.duration(400)} style={styles.actionCard}>
-        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/teacher/grade-form')} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => router.push('/teacher/grade-form')}
+          activeOpacity={0.8}
+        >
           <Text style={styles.actionIcon}>📝</Text>
           <Text style={styles.actionBtnText}>{t('addReviewTask')}</Text>
           <Text style={styles.actionBtnSub}>

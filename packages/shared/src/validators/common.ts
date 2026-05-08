@@ -17,7 +17,7 @@ export const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date 
 
 export const LoginSchema = z.object({
   email: emailSchema,
-  password: passwordSchema,
+  password: z.string().min(1, 'Password is required'),
 });
 
 export const RegisterSchema = z.object({

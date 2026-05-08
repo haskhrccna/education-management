@@ -50,15 +50,13 @@ describe('auth.controller', () => {
         status: 'PENDING',
       } as any);
 
-      const res = await request(app)
-        .post('/register')
-        .send({
-          email: 'test@example.com',
-          password: 'Password123!',
-          role: 'student',
-          firstName: 'Test',
-          lastName: 'User',
-        });
+      const res = await request(app).post('/register').send({
+        email: 'test@example.com',
+        password: 'Password123!',
+        role: 'student',
+        firstName: 'Test',
+        lastName: 'User',
+      });
 
       expect(res.status).toBe(201);
       expect(res.body.user.status).toBe('PENDING');
@@ -68,15 +66,13 @@ describe('auth.controller', () => {
     it('should reject duplicate email', async () => {
       mockedPrisma.user.findUnique.mockResolvedValue({ id: 'existing' } as any);
 
-      const res = await request(app)
-        .post('/register')
-        .send({
-          email: 'existing@test.com',
-          password: 'Password123!',
-          role: 'student',
-          firstName: 'Test',
-          lastName: 'User',
-        });
+      const res = await request(app).post('/register').send({
+        email: 'existing@test.com',
+        password: 'Password123!',
+        role: 'student',
+        firstName: 'Test',
+        lastName: 'User',
+      });
 
       expect(res.status).toBe(409);
     });

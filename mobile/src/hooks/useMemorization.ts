@@ -11,10 +11,7 @@ export function useMemorization() {
     setIsLoading(true);
     setError(null);
     try {
-      const [progressData, surahsData] = await Promise.all([
-        memorizationApi.getMine(),
-        memorizationApi.getSurahs(),
-      ]);
+      const [progressData, surahsData] = await Promise.all([memorizationApi.getMine(), memorizationApi.getSurahs()]);
       setProgress(progressData);
       setSurahs(surahsData);
     } catch (err: any) {
