@@ -72,6 +72,8 @@ model User {
   emailVerifiedAt   DateTime?
   deviceToken       String?
   refreshTokenHash  String?
+  passwordResetToken  String?
+  passwordResetExpiry DateTime?
   passwordChangedAt     DateTime?
   deletedAt             DateTime?
   createdAt         DateTime   @default(now())
