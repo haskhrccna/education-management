@@ -9,3 +9,5 @@ export { messagesApi } from './messages';
 export type { Message } from './messages';
 export { recordingsApi } from './recordings';
 export { usersApi } from './users';
+export { memorizationApi } from './memorization';
+export type { MemorizationEntry, Surah } from './memorization';
