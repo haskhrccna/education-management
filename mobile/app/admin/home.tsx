@@ -18,7 +18,7 @@ interface User {
   status: string;
 }
 
-type FilterType = 'all' | 'STUDENT' | 'TEACHER' | 'PENDING';
+type FilterType = 'all' | 'STUDENT' | 'TEACHER' | 'PENDING' | 'PENDING_AND_TEACHER';
 
 export default function AdminHomeScreen() {
   const router = useRouter();
@@ -32,7 +32,7 @@ export default function AdminHomeScreen() {
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [stats, setStats] = useState({ students: 0, teachers: 0, pending: 0 });
   const [isLoading, setIsLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [activeFilter, setActiveFilter] = useState<FilterType>('PENDING_AND_TEACHER');
 
   React.useEffect(() => {
     loadUsers();
@@ -44,7 +44,7 @@ export default function AdminHomeScreen() {
       const res = await apiClient.get('/admin/users');
       const usersData = res.data?.data?.data || [];
       setAllUsers(usersData);
-      setUsers(usersData);
+      setUsers(usersData.filter((u: User) => u.status === 'PENDING' || u.role === 'TEACHER'));
       const students = usersData.filter((u: User) => u.role === 'STUDENT').length;
       const teachers = usersData.filter((u: User) => u.role === 'TEACHER').length;
       const pending = usersData.filter((u: User) => u.status === 'PENDING').length;
@@ -62,6 +62,8 @@ export default function AdminHomeScreen() {
       setUsers(allUsers);
     } else if (filter === 'PENDING') {
       setUsers(allUsers.filter((u) => u.status === 'PENDING'));
+    } else if (filter === 'PENDING_AND_TEACHER') {
+      setUsers(allUsers.filter((u) => u.status === 'PENDING' || u.role === 'TEACHER'));
     } else {
       setUsers(allUsers.filter((u) => u.role === filter));
     }

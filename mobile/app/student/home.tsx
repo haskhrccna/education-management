@@ -89,7 +89,7 @@ export default function StudentHomeScreen() {
           </View>
           <View style={{ flexDirection: 'row', gap: SPACING.sm }}>
             <TouchableOpacity onPress={() => router.push('/student/grades')} style={styles.logoutBtn}>
-              <Text style={styles.logoutText}>My Grades</Text>
+              <Text style={styles.logoutText}>{t('myGrades')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
               <Text style={styles.logoutText}>{t('logout')}</Text>
@@ -160,7 +160,7 @@ export default function StudentHomeScreen() {
 // ─── Surahs Tab ───────────────────────────────────────────────────────────────
 
 function SurahsTab({ surahData, activeJuz, styles }: { surahData: Surah[]; activeJuz: number; styles: any }) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Group by Juz
   const juzGroups: Record<number, Surah[]> = {};
@@ -175,7 +175,7 @@ function SurahsTab({ surahData, activeJuz, styles }: { surahData: Surah[]; activ
       <Animated.View entering={FadeInUp.duration(400)} style={[styles.card, styles.highlightedCard]}>
         <Text style={styles.juzHighlightLabel}>{i18n.language === 'ar' ? 'الجزء الحالي' : 'Current Juz'}</Text>
         <Text style={styles.juzHighlightTitle}>
-          Juz {activeJuz} — {getJuzNameAr(activeJuz)}
+          {t('juz')} {activeJuz} — {getJuzNameAr(activeJuz)}
         </Text>
       </Animated.View>
 
@@ -184,7 +184,7 @@ function SurahsTab({ surahData, activeJuz, styles }: { surahData: Surah[]; activ
         .sort(([a], [b]) => Number(a) - Number(b))
         .map(([juz, surahs]) => (
           <View key={juz}>
-            <Text style={[styles.juzGroupTitle, { marginTop: SPACING.lg }]}>Juz {juz}</Text>
+            <Text style={[styles.juzGroupTitle, { marginTop: SPACING.lg }]}>{t('juz')} {juz}</Text>
             {surahs.map((surah) => (
               <SurahCard key={surah.id} surah={surah} styles={styles} i18n={i18n} />
             ))}
@@ -195,6 +195,7 @@ function SurahsTab({ surahData, activeJuz, styles }: { surahData: Surah[]; activ
 }
 
 function SurahCard({ surah, styles, i18n }: { surah: Surah; styles: any; i18n: any }) {
+  const { t } = useTranslation();
   const percent = Math.round((surah.memorizedAyahs / surah.ayahCount) * 100);
   const isComplete = percent === 100;
 
@@ -225,7 +226,7 @@ function SurahCard({ surah, styles, i18n }: { surah: Surah; styles: any; i18n: a
       </View>
 
       {/* Juz badge */}
-      <Text style={styles.juzBadge}>Juz {surah.juz}</Text>
+      <Text style={styles.juzBadge}>{t('juz')} {surah.juz}</Text>
     </Animated.View>
   );
 }
@@ -405,7 +406,7 @@ function ProgressTab({
             const percent = totalAyahsInJuz > 0 ? Math.round((memorizedInJuz / totalAyahsInJuz) * 100) : 0;
             return (
               <View key={juz} style={styles.juxRow}>
-                <Text style={styles.juxLabel}>Juz {juz}</Text>
+                <Text style={styles.juxLabel}>{t('juz')} {juz}</Text>
                 <View style={styles.miniProgressBar}>
                   <View style={[styles.miniBarFill, { width: `${percent}%` }]} />
                 </View>
