@@ -5,7 +5,7 @@ export const teacherChangeApi = {
     const res = await apiClient.post('/teacher-changes', { reason });
     return res.data;
   },
-  list: async (status?: 'PENDING') => {
+  list: async (status?: 'PENDING' | 'APPROVED' | 'DENIED') => {
     const res = await apiClient.get('/teacher-changes', { params: status ? { status } : {} });
     return res.data;
   },

@@ -298,4 +298,5 @@ model TeacherChangeRequest {
   @@index([studentId])
   @@index([currentTeacherId])
   @@index([status])
+  @@map("teacher_change_requests")
 }
