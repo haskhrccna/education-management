@@ -8,4 +8,21 @@ expo/
 ios/Pods/
 android/app/build/
 .claude/
-CLAUDE.md
+
+# Ignore Flutter/Dart build and tool files
+.dart_tool/
+.flutter-plugins-dependencies
+build/
+*.log
+
+# Ignore the specific directories you mentioned
+flappy-bird/
+lovedheart/
+mlx-community/
+
+# Ignore generated localization files (usually best to ignore these)
+lib/l10n/app_localizations*.dart
+
+# Usually good to ignore the lock file if this is a library, 
+# but keep it if it's an app. If you want it gone:
+# pubspec.lock
