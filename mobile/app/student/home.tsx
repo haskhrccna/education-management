@@ -9,6 +9,7 @@ import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 import { useMemorization } from '@/src/hooks/useMemorization';
 import { useMessages } from '@/src/hooks/useMessages';
+import { useAppointments } from '@/src/hooks/useAppointments';
 
 // ─── Mock Quran Data (replaced by API later) ──────────────────────────────────
 
@@ -46,6 +47,7 @@ export default function StudentHomeScreen() {
 
   const { progress, surahs: apiSurahs, isLoading: isLoadingProgress, fetchProgress } = useMemorization();
   const { unreadCount, fetchMessages: fetchUnreadCount } = useMessages();
+  const { appointments, fetchAppointments } = useAppointments();
 
   useEffect(() => {
     fetchProgress();
@@ -54,6 +56,12 @@ export default function StudentHomeScreen() {
   useEffect(() => {
     fetchUnreadCount();
   }, []);
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments]);
+
+  const assignedTeacher = appointments?.find((a: any) => a.status === 'ACCEPTED')?.teacher;
 
   const handleLogout = async () => {
     await logout();
@@ -130,6 +138,22 @@ export default function StudentHomeScreen() {
             <Text style={styles.statLabel}>{i18n.language === 'ar' ? 'الجزء' : 'Juz'}</Text>
           </View>
         </View>
+      </View>
+
+      {/* ── Teacher Info ── */}
+      <View style={styles.teacherCard}>
+        {assignedTeacher ? (
+          <View style={styles.teacherRow}>
+            <Text style={styles.teacherLabel}>
+              {t('yourTeacher')}: {assignedTeacher.firstName} {assignedTeacher.lastName}
+            </Text>
+            <TouchableOpacity onPress={() => router.push('/student/teacher-change')}>
+              <Text style={styles.changeLink}>{t('requestTeacherChange')}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <Text style={styles.teacherLabel}>{t('noTeacherAssigned')}</Text>
+        )}
       </View>
 
       {/* ── Tabs ── */}
@@ -754,4 +778,14 @@ const createStyles = (COLORS: any) =>
       textAlign: 'center',
       lineHeight: 22,
     },
+
+    // Teacher info
+    teacherCard: {
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.xs,
+      backgroundColor: COLORS.surface,
+    },
+    teacherRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    teacherLabel: { fontSize: 13, color: COLORS.textSecondary },
+    changeLink: { fontSize: 12, color: COLORS.primary, fontWeight: '600' },
   });
