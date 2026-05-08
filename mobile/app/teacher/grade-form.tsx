@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
+import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { appointmentsApi, gradesApi } from '@/src/api';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
@@ -26,9 +28,19 @@ interface Student {
 
 export default function GradeFormScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
+  const isRTL = useIsRTL();
   const { studentId: prefillId } = useLocalSearchParams<{ studentId?: string }>();
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
+
+  const TYPE_LABELS: Record<string, string> = {
+    QUIZ: t('gradeTypeQuiz'),
+    ASSIGNMENT: t('gradeTypeAssignment'),
+    EXAM: t('gradeTypeExam'),
+    ORAL: t('gradeTypeOral'),
+    PARTICIPATION: t('gradeTypeParticipation'),
+  };
 
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState(prefillId ?? '');
@@ -73,9 +85,9 @@ export default function GradeFormScreen() {
         type,
         notes: notes.trim() || undefined,
       });
-      Alert.alert('Grade submitted', 'The grade has been recorded.', [{ text: 'OK', onPress: () => router.back() }]);
+      Alert.alert(t('gradeSubmittedTitle'), t('gradeSubmittedMsg'), [{ text: 'OK', onPress: () => router.back() }]);
     } catch (err: any) {
-      Alert.alert('Error', err.message ?? 'Failed to submit grade');
+      Alert.alert('Error', err.message ?? t('failedToSubmitGrade'));
     } finally {
       setIsSubmitting(false);
     }
@@ -87,20 +99,20 @@ export default function GradeFormScreen() {
         {/* Header */}
         <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.backText}>← Back</Text>
+            <Text style={styles.backText}>←</Text>
           </TouchableOpacity>
-          <Text style={styles.title}>Add Grade</Text>
-          <Text style={styles.subtitle}>Assess a student's recitation</Text>
+          <Text style={styles.title}>{t('addGrade')}</Text>
+          <Text style={styles.subtitle}>{t('assessRecitation')}</Text>
         </View>
 
         {/* Form */}
         <View style={styles.form}>
           {/* Student picker */}
-          <Text style={[styles.label, { color: COLORS.textSecondary }]}>Student</Text>
+          <Text style={[styles.label, { color: COLORS.textSecondary }]}>{t('studentLabel')}</Text>
           {isLoadingStudents ? (
             <ActivityIndicator color={COLORS.primary} />
           ) : students.length === 0 ? (
-            <Text style={{ color: COLORS.textSecondary, fontSize: 14 }}>No accepted students yet</Text>
+            <Text style={{ color: COLORS.textSecondary, fontSize: 14 }}>{t('noAcceptedStudents')}</Text>
           ) : (
             <View style={styles.chipRow}>
               {students.map((s) => (
@@ -122,20 +134,20 @@ export default function GradeFormScreen() {
           )}
 
           {/* Subject */}
-          <Text style={[styles.label, { color: COLORS.textSecondary }]}>Subject</Text>
+          <Text style={[styles.label, { color: COLORS.textSecondary }]}>{t('subjectLabel')}</Text>
           <TextInput
-            style={[styles.input, { backgroundColor: COLORS.surface, color: COLORS.textPrimary }]}
-            placeholder="e.g. Al-Baqarah ayahs 1–50"
+            style={[styles.input, { backgroundColor: COLORS.surface, color: COLORS.textPrimary, textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' }]}
+            placeholder={t('subjectPlaceholder')}
             placeholderTextColor={COLORS.textMuted}
             value={subject}
             onChangeText={setSubject}
           />
 
           {/* Score */}
-          <Text style={[styles.label, { color: COLORS.textSecondary }]}>Score</Text>
+          <Text style={[styles.label, { color: COLORS.textSecondary }]}>{t('scoreLabel')}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: COLORS.surface, color: COLORS.textPrimary }]}
-            placeholder="e.g. 87"
+            placeholder={t('scorePlaceholder')}
             placeholderTextColor={COLORS.textMuted}
             value={score}
             onChangeText={setScore}
@@ -143,28 +155,28 @@ export default function GradeFormScreen() {
           />
 
           {/* Type */}
-          <Text style={[styles.label, { color: COLORS.textSecondary }]}>Type</Text>
+          <Text style={[styles.label, { color: COLORS.textSecondary }]}>{t('typeLabel')}</Text>
           <View style={styles.chipRow}>
-            {GRADE_TYPES.map((t) => (
+            {GRADE_TYPES.map((gradeType) => (
               <TouchableOpacity
-                key={t}
+                key={gradeType}
                 style={[
                   styles.chip,
                   { borderColor: COLORS.primary },
-                  type === t && { backgroundColor: COLORS.primary },
+                  type === gradeType && { backgroundColor: COLORS.primary },
                 ]}
-                onPress={() => setType(t)}
+                onPress={() => setType(gradeType)}
               >
-                <Text style={[styles.chipText, { color: type === t ? '#fff' : COLORS.textPrimary }]}>{t}</Text>
+                <Text style={[styles.chipText, { color: type === gradeType ? '#fff' : COLORS.textPrimary }]}>{TYPE_LABELS[gradeType] ?? gradeType}</Text>
               </TouchableOpacity>
             ))}
           </View>
 
           {/* Notes */}
-          <Text style={[styles.label, { color: COLORS.textSecondary }]}>Notes (optional)</Text>
+          <Text style={[styles.label, { color: COLORS.textSecondary }]}>{t('notesOptional')}</Text>
           <TextInput
-            style={[styles.input, styles.notesInput, { backgroundColor: COLORS.surface, color: COLORS.textPrimary }]}
-            placeholder="Any observations..."
+            style={[styles.input, styles.notesInput, { backgroundColor: COLORS.surface, color: COLORS.textPrimary, textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' }]}
+            placeholder={t('notesPlaceholder')}
             placeholderTextColor={COLORS.textMuted}
             value={notes}
             onChangeText={setNotes}
@@ -184,7 +196,7 @@ export default function GradeFormScreen() {
             disabled={!canSubmit}
             activeOpacity={0.8}
           >
-            {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>Submit Grade</Text>}
+            {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>{t('submitGrade')}</Text>}
           </TouchableOpacity>
 
           {/* Cancel */}
@@ -192,7 +204,7 @@ export default function GradeFormScreen() {
             style={[styles.cancelBtn, { backgroundColor: COLORS.surface }]}
             onPress={() => router.back()}
           >
-            <Text style={[styles.cancelText, { color: COLORS.textSecondary }]}>Cancel</Text>
+            <Text style={[styles.cancelText, { color: COLORS.textSecondary }]}>{t('cancel')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
+import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useGrades } from '@/src/hooks/useGrades';
 import { Grade } from '@/src/api';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
@@ -23,9 +25,19 @@ function avgScore(grades: Grade[]): string {
 
 export default function StudentGradesScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
+  const isRTL = useIsRTL();
   const { grades, isLoading, error, fetchGrades } = useGrades();
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
+
+  const GRADE_TYPE_LABELS: Record<string, string> = {
+    ORAL: t('gradeTypeOral'),
+    QUIZ: t('gradeTypeQuiz'),
+    EXAM: t('gradeTypeExam'),
+    ASSIGNMENT: t('gradeTypeAssignment'),
+    PARTICIPATION: t('gradeTypeParticipation'),
+  };
 
   useEffect(() => {
     fetchGrades();
@@ -41,16 +53,16 @@ export default function StudentGradesScreen() {
       <View style={styles.cardTop}>
         <View style={{ flex: 1 }}>
           <View style={[styles.badge, { backgroundColor: (TYPE_COLORS[item.type] ?? COLORS.primary) + '22' }]}>
-            <Text style={[styles.badgeText, { color: TYPE_COLORS[item.type] ?? COLORS.primary }]}>{item.type}</Text>
+            <Text style={[styles.badgeText, { color: TYPE_COLORS[item.type] ?? COLORS.primary }]}>{GRADE_TYPE_LABELS[item.type] ?? item.type}</Text>
           </View>
-          <Text style={[styles.subject, { color: COLORS.textPrimary }]}>{item.subject}</Text>
+          <Text style={[styles.subject, { color: COLORS.textPrimary, textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' }]}>{item.subject}</Text>
           <Text style={[styles.meta, { color: COLORS.textSecondary }]}>
             {new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
           </Text>
         </View>
         <Text style={[styles.score, { color: TYPE_COLORS[item.type] ?? COLORS.primary }]}>{item.grade}</Text>
       </View>
-      {item.notes ? <Text style={[styles.notes, { color: COLORS.textSecondary }]}>{item.notes}</Text> : null}
+      {item.notes ? <Text style={[styles.notes, { color: COLORS.textSecondary, textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' }]}>{item.notes}</Text> : null}
     </View>
   );
 
@@ -58,18 +70,18 @@ export default function StudentGradesScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>← Back</Text>
+          <Text style={styles.backText}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>My Grades</Text>
+        <Text style={styles.title}>{t('myGrades')}</Text>
         {!isLoading && (
           <View style={styles.statsRow}>
             <View style={styles.stat}>
               <Text style={styles.statVal}>{avgScore(grades)}</Text>
-              <Text style={styles.statLbl}>Avg Score</Text>
+              <Text style={styles.statLbl}>{t('avgScore')}</Text>
             </View>
             <View style={styles.stat}>
               <Text style={styles.statVal}>{grades.length}</Text>
-              <Text style={styles.statLbl}>Total</Text>
+              <Text style={styles.statLbl}>{t('totalGrades')}</Text>
             </View>
           </View>
         )}
@@ -79,7 +91,7 @@ export default function StudentGradesScreen() {
         <View style={styles.center}>
           <Text style={{ color: COLORS.textSecondary }}>{error}</Text>
           <TouchableOpacity onPress={fetchGrades} style={{ marginTop: SPACING.md }}>
-            <Text style={{ color: COLORS.primary, fontWeight: '600' }}>Retry</Text>
+            <Text style={{ color: COLORS.primary, fontWeight: '600' }}>{t('retry')}</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -95,9 +107,9 @@ export default function StudentGradesScreen() {
             ) : (
               <View style={styles.center}>
                 <Text style={{ fontSize: 36, marginBottom: 12 }}>📋</Text>
-                <Text style={[styles.emptyTitle, { color: COLORS.textPrimary }]}>No grades yet</Text>
+                <Text style={[styles.emptyTitle, { color: COLORS.textPrimary }]}>{t('noGradesYet')}</Text>
                 <Text style={{ color: COLORS.textSecondary, textAlign: 'center' }}>
-                  Your teacher hasn't recorded any grades yet.
+                  {t('noGradesDesc')}
                 </Text>
               </View>
             )

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
+import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { gradesApi, memorizationApi, Grade, MemorizationEntry } from '@/src/api';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
@@ -29,9 +31,19 @@ function memPct(entries: MemorizationEntry[]): string {
 
 export default function TeacherStudentDetailScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
+  const isRTL = useIsRTL();
   const { id: studentId, name: studentName } = useLocalSearchParams<{ id: string; name?: string }>();
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
+
+  const GRADE_TYPE_LABELS: Record<string, string> = {
+    ORAL: t('gradeTypeOral'),
+    QUIZ: t('gradeTypeQuiz'),
+    EXAM: t('gradeTypeExam'),
+    ASSIGNMENT: t('gradeTypeAssignment'),
+    PARTICIPATION: t('gradeTypeParticipation'),
+  };
 
   const [grades, setGrades] = useState<Grade[]>([]);
   const [memorization, setMemorization] = useState<MemorizationEntry[]>([]);
@@ -56,22 +68,22 @@ export default function TeacherStudentDetailScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: SPACING['4xl'] }}>
         <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.backText}>← Back</Text>
+            <Text style={styles.backText}>←</Text>
           </TouchableOpacity>
           <Text style={styles.title}>{displayName}</Text>
           {!isLoading && (
             <View style={styles.statsRow}>
               <View style={styles.stat}>
                 <Text style={styles.statVal}>{avgScore(grades)}</Text>
-                <Text style={styles.statLbl}>Avg</Text>
+                <Text style={styles.statLbl}>{t('avgLabel')}</Text>
               </View>
               <View style={styles.stat}>
                 <Text style={styles.statVal}>{grades.length}</Text>
-                <Text style={styles.statLbl}>Grades</Text>
+                <Text style={styles.statLbl}>{t('gradesCountLabel')}</Text>
               </View>
               <View style={styles.stat}>
                 <Text style={styles.statVal}>{memPct(memorization)}</Text>
-                <Text style={styles.statLbl}>Memorized</Text>
+                <Text style={styles.statLbl}>{t('memorizedLabel')}</Text>
               </View>
             </View>
           )}
@@ -85,9 +97,9 @@ export default function TeacherStudentDetailScreen() {
           </View>
         ) : (
           <View style={{ paddingHorizontal: SPACING.xl, gap: SPACING.md, marginTop: SPACING.lg }}>
-            <Text style={[styles.sectionTitle, { color: COLORS.textPrimary }]}>Recent Grades</Text>
+            <Text style={[styles.sectionTitle, { color: COLORS.textPrimary }]}>{t('recentGrades')}</Text>
             {grades.length === 0 ? (
-              <Text style={{ color: COLORS.textSecondary }}>No grades recorded yet.</Text>
+              <Text style={{ color: COLORS.textSecondary }}>{t('noGradesRecorded')}</Text>
             ) : (
               grades.slice(0, 5).map((g) => (
                 <View
@@ -101,7 +113,7 @@ export default function TeacherStudentDetailScreen() {
                     <View style={{ flex: 1 }}>
                       <View style={[styles.badge, { backgroundColor: (TYPE_COLORS[g.type] ?? COLORS.primary) + '22' }]}>
                         <Text style={[styles.badgeText, { color: TYPE_COLORS[g.type] ?? COLORS.primary }]}>
-                          {g.type}
+                          {GRADE_TYPE_LABELS[g.type] ?? g.type}
                         </Text>
                       </View>
                       <Text style={[styles.subject, { color: COLORS.textPrimary }]}>{g.subject}</Text>
@@ -119,7 +131,7 @@ export default function TeacherStudentDetailScreen() {
               onPress={() => router.push(`/teacher/grade-form?studentId=${studentId}`)}
               activeOpacity={0.8}
             >
-              <Text style={styles.addBtnText}>+ Add Grade for {displayName}</Text>
+              <Text style={styles.addBtnText}>{t('addGradeFor', { name: displayName })}</Text>
             </TouchableOpacity>
           </View>
         )}
