@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -47,7 +47,7 @@ export default function StudentHomeScreen() {
 
   useEffect(() => {
     fetchProgress();
-  }, []);
+  }, [fetchProgress]);
 
   const handleLogout = async () => {
     await logout();
@@ -134,7 +134,12 @@ export default function StudentHomeScreen() {
       </View>
 
       {/* ── Content ── */}
-      <ScrollView style={styles.content} contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isLoadingProgress} onRefresh={fetchProgress} />}
+      >
         {activeTab === 'surahs' &&
           (isLoadingProgress && SURAH_DATA.length === 0 ? (
             <ActivityIndicator color={COLORS.primary} style={{ marginTop: 40 }} />
@@ -184,7 +189,9 @@ function SurahsTab({ surahData, activeJuz, styles }: { surahData: Surah[]; activ
         .sort(([a], [b]) => Number(a) - Number(b))
         .map(([juz, surahs]) => (
           <View key={juz}>
-            <Text style={[styles.juzGroupTitle, { marginTop: SPACING.lg }]}>{t('juz')} {juz}</Text>
+            <Text style={[styles.juzGroupTitle, { marginTop: SPACING.lg }]}>
+              {t('juz')} {juz}
+            </Text>
             {surahs.map((surah) => (
               <SurahCard key={surah.id} surah={surah} styles={styles} i18n={i18n} />
             ))}
@@ -226,7 +233,9 @@ function SurahCard({ surah, styles, i18n }: { surah: Surah; styles: any; i18n: a
       </View>
 
       {/* Juz badge */}
-      <Text style={styles.juzBadge}>{t('juz')} {surah.juz}</Text>
+      <Text style={styles.juzBadge}>
+        {t('juz')} {surah.juz}
+      </Text>
     </Animated.View>
   );
 }
@@ -237,7 +246,7 @@ function RevisionScheduleTab({
   revisions,
   styles,
 }: {
-  revisions: Array<{ id: string; surahId: number; surahName: string; date: string; status: 'DUE' | 'UPCOMING' }>;
+  revisions: { id: string; surahId: number; surahName: string; date: string; status: 'DUE' | 'UPCOMING' }[];
   styles: any;
 }) {
   const { i18n } = useTranslation();
@@ -272,11 +281,13 @@ function RevisionScheduleTab({
       {revisions.length === 0 && (
         <View style={[styles.card, styles.emptyCard]}>
           <Text style={styles.emptyIcon}>📅</Text>
-          <Text style={styles.emptyTitle}>{i18n.language === 'ar' ? 'لا توجد مراجعات بعد' : 'No revisions yet'}</Text>
+          <Text style={styles.emptyTitle}>
+            {i18n.language === 'ar' ? 'جدول المراجعة قريباً' : 'Revision schedule coming soon'}
+          </Text>
           <Text style={styles.emptyDesc}>
             {i18n.language === 'ar'
-              ? 'ستظهر هنا مراجعة القادمة بمجرد تعيينها من قبل معلمك'
-              : 'Your upcoming revision schedule will appear here once set by your teacher'}
+              ? 'نعمل على تجهيز هذا القسم. حتى ذلك الحين، تابع تقدمك من تبويب مراجعتي.'
+              : 'This section is being prepared. Until then, keep following your progress from My Review.'}
           </Text>
         </View>
       )}
@@ -406,7 +417,9 @@ function ProgressTab({
             const percent = totalAyahsInJuz > 0 ? Math.round((memorizedInJuz / totalAyahsInJuz) * 100) : 0;
             return (
               <View key={juz} style={styles.juxRow}>
-                <Text style={styles.juxLabel}>{t('juz')} {juz}</Text>
+                <Text style={styles.juxLabel}>
+                  {t('juz')} {juz}
+                </Text>
                 <View style={styles.miniProgressBar}>
                   <View style={[styles.miniBarFill, { width: `${percent}%` }]} />
                 </View>

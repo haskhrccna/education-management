@@ -25,7 +25,7 @@ function avgScore(grades: Grade[]): string {
 
 export default function StudentGradesScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = useIsRTL();
   const { grades, isLoading, error, fetchGrades } = useGrades();
   const { theme, darkMode } = useSettingsStore();
@@ -41,7 +41,7 @@ export default function StudentGradesScreen() {
 
   useEffect(() => {
     fetchGrades();
-  }, []);
+  }, [fetchGrades]);
 
   const renderGrade = ({ item }: { item: Grade }) => (
     <View
@@ -53,16 +53,46 @@ export default function StudentGradesScreen() {
       <View style={styles.cardTop}>
         <View style={{ flex: 1 }}>
           <View style={[styles.badge, { backgroundColor: (TYPE_COLORS[item.type] ?? COLORS.primary) + '22' }]}>
-            <Text style={[styles.badgeText, { color: TYPE_COLORS[item.type] ?? COLORS.primary }]}>{GRADE_TYPE_LABELS[item.type] ?? item.type}</Text>
+            <Text style={[styles.badgeText, { color: TYPE_COLORS[item.type] ?? COLORS.primary }]}>
+              {GRADE_TYPE_LABELS[item.type] ?? item.type}
+            </Text>
           </View>
-          <Text style={[styles.subject, { color: COLORS.textPrimary, textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' }]}>{item.subject}</Text>
+          <Text
+            style={[
+              styles.subject,
+              {
+                color: COLORS.textPrimary,
+                textAlign: isRTL ? 'right' : 'left',
+                writingDirection: isRTL ? 'rtl' : 'ltr',
+              },
+            ]}
+          >
+            {item.subject}
+          </Text>
           <Text style={[styles.meta, { color: COLORS.textSecondary }]}>
-            {new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            {new Date(item.createdAt).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            })}
           </Text>
         </View>
         <Text style={[styles.score, { color: TYPE_COLORS[item.type] ?? COLORS.primary }]}>{item.grade}</Text>
       </View>
-      {item.notes ? <Text style={[styles.notes, { color: COLORS.textSecondary, textAlign: isRTL ? 'right' : 'left', writingDirection: isRTL ? 'rtl' : 'ltr' }]}>{item.notes}</Text> : null}
+      {item.notes ? (
+        <Text
+          style={[
+            styles.notes,
+            {
+              color: COLORS.textSecondary,
+              textAlign: isRTL ? 'right' : 'left',
+              writingDirection: isRTL ? 'rtl' : 'ltr',
+            },
+          ]}
+        >
+          {item.notes}
+        </Text>
+      ) : null}
     </View>
   );
 
@@ -108,9 +138,7 @@ export default function StudentGradesScreen() {
               <View style={styles.center}>
                 <Text style={{ fontSize: 36, marginBottom: 12 }}>📋</Text>
                 <Text style={[styles.emptyTitle, { color: COLORS.textPrimary }]}>{t('noGradesYet')}</Text>
-                <Text style={{ color: COLORS.textSecondary, textAlign: 'center' }}>
-                  {t('noGradesDesc')}
-                </Text>
+                <Text style={{ color: COLORS.textSecondary, textAlign: 'center' }}>{t('noGradesDesc')}</Text>
               </View>
             )
           }

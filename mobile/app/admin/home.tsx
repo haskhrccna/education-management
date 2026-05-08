@@ -2,7 +2,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useAuthStore } from '@/src/auth/store';
 import { apiClient } from '@/src/api';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -20,12 +20,19 @@ interface User {
 
 type FilterType = 'all' | 'STUDENT' | 'TEACHER' | 'PENDING' | 'PENDING_AND_TEACHER';
 
+function getFilteredUsers(users: User[], filter: FilterType): User[] {
+  if (filter === 'all') return users;
+  if (filter === 'PENDING') return users.filter((u) => u.status === 'PENDING');
+  if (filter === 'PENDING_AND_TEACHER') return users.filter((u) => u.status === 'PENDING' || u.role === 'TEACHER');
+  return users.filter((u) => u.role === filter);
+}
+
 export default function AdminHomeScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const logout = useAuthStore((s) => s.logout);
   const user = useAuthStore((s) => s.user);
-  const { theme, darkMode, compactView } = useSettingsStore();
+  const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
   const styles = createStyles(COLORS);
   const [users, setUsers] = useState<User[]>([]);
@@ -34,17 +41,13 @@ export default function AdminHomeScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<FilterType>('PENDING_AND_TEACHER');
 
-  React.useEffect(() => {
-    loadUsers();
-  }, []);
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await apiClient.get('/admin/users');
       const usersData = res.data?.data?.data || [];
       setAllUsers(usersData);
-      setUsers(usersData.filter((u: User) => u.status === 'PENDING' || u.role === 'TEACHER'));
+      setUsers(getFilteredUsers(usersData, 'PENDING_AND_TEACHER'));
       const students = usersData.filter((u: User) => u.role === 'STUDENT').length;
       const teachers = usersData.filter((u: User) => u.role === 'TEACHER').length;
       const pending = usersData.filter((u: User) => u.status === 'PENDING').length;
@@ -54,19 +57,15 @@ export default function AdminHomeScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  React.useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   const applyFilter = (filter: FilterType) => {
     setActiveFilter(filter);
-    if (filter === 'all') {
-      setUsers(allUsers);
-    } else if (filter === 'PENDING') {
-      setUsers(allUsers.filter((u) => u.status === 'PENDING'));
-    } else if (filter === 'PENDING_AND_TEACHER') {
-      setUsers(allUsers.filter((u) => u.status === 'PENDING' || u.role === 'TEACHER'));
-    } else {
-      setUsers(allUsers.filter((u) => u.role === filter));
-    }
+    setUsers(getFilteredUsers(allUsers, filter));
   };
 
   const approveStudent = async (id: string) => {
@@ -74,7 +73,7 @@ export default function AdminHomeScreen() {
       await apiClient.put(`/admin/users/${id}/approve`);
       const updated = allUsers.map((u) => (u.id === id ? { ...u, status: 'ACTIVE' } : u));
       setAllUsers(updated);
-      applyFilter(activeFilter);
+      setUsers(getFilteredUsers(updated, activeFilter));
       const pending = updated.filter((u) => u.status === 'PENDING').length;
       setStats((s) => ({ ...s, pending }));
     } catch (err: any) {
@@ -94,6 +93,16 @@ export default function AdminHomeScreen() {
   const navigateToSettings = () => {
     router.push('/admin/settings');
   };
+
+  const filterLabel =
+    activeFilter === 'all'
+      ? ''
+      : {
+          STUDENT: i18n.language === 'ar' ? 'عرض الطلاب' : 'Showing Students',
+          TEACHER: i18n.language === 'ar' ? 'عرض المعلمين' : 'Showing Teachers',
+          PENDING: i18n.language === 'ar' ? 'عرض المعلقة' : 'Showing Pending',
+          PENDING_AND_TEACHER: i18n.language === 'ar' ? 'عرض المعلّقين والمعلمين' : 'Showing Pending and Teachers',
+        }[activeFilter];
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -152,21 +161,7 @@ export default function AdminHomeScreen() {
       {/* Filter Badge */}
       {activeFilter !== 'all' && (
         <View style={styles.filterBadge}>
-          <Text style={styles.filterText}>
-            {activeFilter === 'STUDENT'
-              ? i18n.language === 'ar'
-                ? 'عرض الطلاب'
-                : 'Showing Students'
-              : activeFilter === 'TEACHER'
-                ? i18n.language === 'ar'
-                  ? 'عرض المعلمين'
-                  : 'Showing Teachers'
-                : activeFilter === 'PENDING'
-                  ? i18n.language === 'ar'
-                    ? 'عرض المعلقة'
-                    : 'Showing Pending'
-                  : ''}
-          </Text>
+          <Text style={styles.filterText}>{filterLabel}</Text>
           <TouchableOpacity onPress={() => applyFilter('all')}>
             <Text style={styles.filterClear}>✕</Text>
           </TouchableOpacity>
@@ -197,6 +192,17 @@ function UsersList({
   styles: any;
 }) {
   const { t, i18n } = useTranslation();
+  const roleLabels: Record<string, string> = {
+    STUDENT: i18n.language === 'ar' ? 'طالب' : 'Student',
+    TEACHER: i18n.language === 'ar' ? 'معلم' : 'Teacher',
+    ADMIN: i18n.language === 'ar' ? 'مشرف' : 'Admin',
+  };
+  const statusLabels: Record<string, string> = {
+    ACTIVE: i18n.language === 'ar' ? 'نشط' : 'Active',
+    PENDING: i18n.language === 'ar' ? 'معلق' : 'Pending',
+    INACTIVE: i18n.language === 'ar' ? 'غير نشط' : 'Inactive',
+    SUSPENDED: i18n.language === 'ar' ? 'موقوف' : 'Suspended',
+  };
 
   if (users.length === 0) {
     return (
@@ -223,11 +229,13 @@ function UsersList({
                 <Text style={styles.userEmail}>{u.email}</Text>
                 <View style={styles.userMeta}>
                   <View style={[styles.roleBadge, u.role === 'ADMIN' && styles.adminBadge]}>
-                    <Text style={[styles.roleText, u.role === 'ADMIN' && styles.adminText]}>{u.role}</Text>
+                    <Text style={[styles.roleText, u.role === 'ADMIN' && styles.adminText]}>
+                      {roleLabels[u.role] ?? u.role}
+                    </Text>
                   </View>
                   <View style={[styles.statusBadge, u.status === 'ACTIVE' && styles.activeBadge]}>
                     <Text style={[styles.statusBadgeText, u.status === 'ACTIVE' && styles.activeBadgeText]}>
-                      {u.status}
+                      {statusLabels[u.status] ?? u.status}
                     </Text>
                   </View>
                 </View>
