@@ -287,15 +287,15 @@ model RevisionSchedule {
 model TeacherChangeRequest {
   id               String              @id @default(cuid())
   studentId        String
-  currentTeacherId String
+  currentTeacherId String?
   reason           String
   status           TeacherChangeStatus @default(PENDING)
   adminNote        String?
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
 
-  student        User @relation("StudentChangeRequests", fields: [studentId], references: [id], onDelete: Cascade)
-  currentTeacher User @relation("TeacherChangeRequests", fields: [currentTeacherId], references: [id], onDelete: Cascade)
+  student        User  @relation("StudentChangeRequests", fields: [studentId], references: [id], onDelete: Cascade)
+  currentTeacher User? @relation("TeacherChangeRequests", fields: [currentTeacherId], references: [id], onDelete: SetNull)
 
   @@index([studentId])
   @@index([currentTeacherId])

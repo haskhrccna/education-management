@@ -6,7 +6,6 @@ export const submitTeacherChangeRequest = async (studentId: string, reason: stri
     where: { studentId, status: 'ACCEPTED' },
     select: { teacherId: true },
   });
-  if (!appointment) throw new AppError(400, 'You have no assigned teacher');
 
   const existing = await prisma.teacherChangeRequest.findFirst({
     where: { studentId, status: 'PENDING' },
@@ -17,7 +16,7 @@ export const submitTeacherChangeRequest = async (studentId: string, reason: stri
   return await prisma.teacherChangeRequest.create({
     data: {
       studentId,
-      currentTeacherId: appointment.teacherId,
+      currentTeacherId: appointment?.teacherId ?? null,
       reason,
       status: 'PENDING',
     },

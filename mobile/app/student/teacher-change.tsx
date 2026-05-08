@@ -15,15 +15,19 @@ import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '@/src/settings/store';
 import { getColors, SPACING, RADIUS } from '@/constants/theme';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
+import { useAppointments } from '@/src/hooks/useAppointments';
 
 export default function TeacherChangeScreen() {
   const { t } = useTranslation();
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
   const { requests, isLoading, fetchRequests, submitRequest } = useTeacherChange();
+  const { appointments } = useAppointments();
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const isAssignmentRequest = !appointments?.some((a: any) => a.status === 'ACCEPTED');
 
   useEffect(() => {
     fetchRequests();
@@ -97,7 +101,7 @@ export default function TeacherChangeScreen() {
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <Text style={styles.backText}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('requestTeacherChange')}</Text>
+        <Text style={styles.headerTitle}>{isAssignmentRequest ? t('requestTeacherAssignment') : t('requestTeacherChange')}</Text>
       </View>
       <ScrollView contentContainerStyle={styles.body}>
         {isLoading ? (
@@ -123,7 +127,7 @@ export default function TeacherChangeScreen() {
                 style={styles.textInput}
                 value={reason}
                 onChangeText={setReason}
-                placeholder={t('changeReasonPlaceholder')}
+                placeholder={isAssignmentRequest ? t('assignmentReasonPlaceholder') : t('changeReasonPlaceholder')}
                 placeholderTextColor={COLORS.textSecondary}
                 multiline
               />
@@ -138,7 +142,7 @@ export default function TeacherChangeScreen() {
               {isSubmitting ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.submitText}>{t('requestTeacherChange')}</Text>
+                <Text style={styles.submitText}>{isAssignmentRequest ? t('requestTeacherAssignment') : t('requestTeacherChange')}</Text>
               )}
             </TouchableOpacity>
           </>

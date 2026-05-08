@@ -152,7 +152,12 @@ export default function StudentHomeScreen() {
             </TouchableOpacity>
           </View>
         ) : (
-          <Text style={styles.teacherLabel}>{t('noTeacherAssigned')}</Text>
+          <View style={styles.teacherRow}>
+            <Text style={styles.teacherLabel}>{t('noTeacherAssigned')}</Text>
+            <TouchableOpacity onPress={() => router.push('/student/teacher-change')}>
+              <Text style={styles.changeLink}>{t('requestTeacherAssignment')}</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
 
