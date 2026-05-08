@@ -6,9 +6,12 @@ jest.mock('../../prisma/client', () => ({
   prisma: mockDeep<PrismaClient>(),
 }));
 
+jest.mock('../notification.service', () => ({
+  notifyNewMessage: jest.fn().mockResolvedValue(undefined),
+}));
+
 import { prisma } from '../../prisma/client';
-import { getConversations, sendMessage, markAsRead } from '../message.service';
-import { AppError } from '../../middleware/error.middleware';
+import { getConversations, getMessagesWithUser, sendMessage, markAsRead } from '../message.service';
 
 const mockedPrisma = prisma as unknown as DeepMockProxy<PrismaClient>;
 
@@ -36,7 +39,10 @@ describe('message.service', () => {
 
   describe('sendMessage', () => {
     it('should create message and notify receiver', async () => {
-      mockedPrisma.user.findUnique.mockResolvedValue({ id: 'receiver-1' } as any);
+      mockedPrisma.user.findUnique
+        .mockResolvedValueOnce({ id: 'sender-1', role: 'TEACHER' } as any)
+        .mockResolvedValueOnce({ id: 'receiver-1', role: 'STUDENT' } as any);
+      mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appointment-1' } as any);
       mockedPrisma.message.create.mockResolvedValue({
         id: 'msg-1',
         senderId: 'sender-1',
@@ -54,8 +60,60 @@ describe('message.service', () => {
     });
 
     it('should reject unknown receiver', async () => {
-      mockedPrisma.user.findUnique.mockResolvedValue(null);
+      mockedPrisma.user.findUnique
+        .mockResolvedValueOnce({ id: 'sender-1', role: 'TEACHER' } as any)
+        .mockResolvedValueOnce(null);
       await expect(sendMessage('sender-1', 'unknown', 'TEXT', 'Hello')).rejects.toThrow('Receiver not found');
+    });
+
+    it('should reject users without an accepted appointment', async () => {
+      mockedPrisma.user.findUnique
+        .mockResolvedValueOnce({ id: 'sender-1', role: 'TEACHER' } as any)
+        .mockResolvedValueOnce({ id: 'receiver-1', role: 'STUDENT' } as any);
+      mockedPrisma.appointment.findFirst.mockResolvedValue(null);
+
+      await expect(sendMessage('sender-1', 'receiver-1', 'TEXT', 'Hello')).rejects.toThrow(
+        'No accepted appointment with this user'
+      );
+      expect(mockedPrisma.message.create).not.toHaveBeenCalled();
+    });
+
+    it('should allow admin messages without an appointment', async () => {
+      mockedPrisma.user.findUnique
+        .mockResolvedValueOnce({ id: 'admin-1', role: 'ADMIN' } as any)
+        .mockResolvedValueOnce({ id: 'receiver-1', role: 'STUDENT' } as any);
+      mockedPrisma.message.create.mockResolvedValue({ id: 'msg-1' } as any);
+
+      const result = await sendMessage('admin-1', 'receiver-1', 'TEXT', 'Hello');
+
+      expect(result.id).toBe('msg-1');
+      expect(mockedPrisma.appointment.findFirst).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getMessagesWithUser', () => {
+    it('should return thread for an assigned teacher-student pair', async () => {
+      mockedPrisma.user.findUnique
+        .mockResolvedValueOnce({ id: 'teacher-1', role: 'TEACHER' } as any)
+        .mockResolvedValueOnce({ id: 'student-1', role: 'STUDENT' } as any);
+      mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appointment-1' } as any);
+      mockedPrisma.message.findMany.mockResolvedValue([{ id: 'msg-1' }] as any);
+
+      const result = await getMessagesWithUser('teacher-1', 'student-1');
+
+      expect(result).toHaveLength(1);
+    });
+
+    it('should reject thread access without an accepted appointment', async () => {
+      mockedPrisma.user.findUnique
+        .mockResolvedValueOnce({ id: 'teacher-1', role: 'TEACHER' } as any)
+        .mockResolvedValueOnce({ id: 'student-1', role: 'STUDENT' } as any);
+      mockedPrisma.appointment.findFirst.mockResolvedValue(null);
+
+      await expect(getMessagesWithUser('teacher-1', 'student-1')).rejects.toThrow(
+        'No accepted appointment with this user'
+      );
+      expect(mockedPrisma.message.findMany).not.toHaveBeenCalled();
     });
   });
 

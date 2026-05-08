@@ -8,7 +8,7 @@ jest.mock('../../prisma/client', () => ({
   prisma: mockDeep<PrismaClient>(),
 }));
 
-jest.mock('../../services/socket.service', () => ({
+jest.mock('../../services/notification.service', () => ({
   notifyNewMessage: jest.fn(),
 }));
 
@@ -50,7 +50,10 @@ describe('message.controller', () => {
 
   describe('POST /', () => {
     it('should send message to receiver', async () => {
-      mockedPrisma.user.findUnique.mockResolvedValue({ id: 'receiver-1' } as any);
+      mockedPrisma.user.findUnique
+        .mockResolvedValueOnce({ id: 'user-1', role: 'TEACHER' } as any)
+        .mockResolvedValueOnce({ id: 'receiver-1', role: 'STUDENT' } as any);
+      mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appointment-1' } as any);
       mockedPrisma.message.create.mockResolvedValue({
         id: 'msg-1',
         senderId: 'user-1',
@@ -66,7 +69,9 @@ describe('message.controller', () => {
     });
 
     it('should return 404 when messaging a deleted user', async () => {
-      mockedPrisma.user.findUnique.mockResolvedValue({ id: 'receiver-1', deletedAt: new Date() } as any);
+      mockedPrisma.user.findUnique
+        .mockResolvedValueOnce({ id: 'user-1', role: 'TEACHER' } as any)
+        .mockResolvedValueOnce({ id: 'receiver-1', role: 'STUDENT', deletedAt: new Date() } as any);
 
       const app = createTestApp('user-1');
       const res = await request(app).post('/').send({ receiverId: 'receiver-1', content: 'Hello', type: 'TEXT' });

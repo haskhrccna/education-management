@@ -23,7 +23,7 @@ export const getMyGrades = async (req: Request, res: Response, next: NextFunctio
 export const getStudentGrades = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const studentId = String(req.params.id);
-    const grades = await gradeService.getStudentGrades(req.userId!, studentId);
+    const grades = await gradeService.getStudentGrades(req.userId!, req.userRole!, studentId);
     res.json(grades);
   } catch (err) {
     next(err);

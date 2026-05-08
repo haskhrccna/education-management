@@ -3,6 +3,27 @@ import { AppError } from '../middleware/error.middleware';
 import { notifyNewMessage } from './notification.service';
 
 type MsgType = 'TEXT' | 'FILE' | 'SYSTEM';
+type MessageUser = { id: string; role: string; deletedAt?: Date | null };
+
+async function assertCanCommunicate(sender: MessageUser, receiver: MessageUser) {
+  if (sender.role === 'ADMIN' || receiver.role === 'ADMIN') return;
+
+  const isTeacherStudentPair =
+    (sender.role === 'TEACHER' && receiver.role === 'STUDENT') ||
+    (sender.role === 'STUDENT' && receiver.role === 'TEACHER');
+
+  if (!isTeacherStudentPair) {
+    throw new AppError(403, 'Messaging is limited to assigned teacher-student relationships');
+  }
+
+  const teacherId = sender.role === 'TEACHER' ? sender.id : receiver.id;
+  const studentId = sender.role === 'STUDENT' ? sender.id : receiver.id;
+  const appointment = await prisma.appointment.findFirst({
+    where: { teacherId, studentId, status: 'ACCEPTED' },
+    select: { id: true },
+  });
+  if (!appointment) throw new AppError(403, 'No accepted appointment with this user');
+}
 
 export const getConversations = async (userId: string) => {
   // Get all messages where user is sender or receiver, ordered by newest first
@@ -56,6 +77,13 @@ export const getConversations = async (userId: string) => {
 };
 
 export const getMessagesWithUser = async (userId: string, partnerId: string, skip = 0, take = 50) => {
+  const [user, partner] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { id: true, role: true, deletedAt: true } }),
+    prisma.user.findUnique({ where: { id: partnerId }, select: { id: true, role: true, deletedAt: true } }),
+  ]);
+  if (!user || user.deletedAt || !partner || partner.deletedAt) throw new AppError(404, 'User not found');
+  await assertCanCommunicate(user, partner);
+
   return await prisma.message.findMany({
     where: {
       OR: [
@@ -82,8 +110,13 @@ export const sendMessage = async (
 ) => {
   if (senderId === receiverId) throw new AppError(400, 'Cannot message yourself');
 
-  const receiver = await prisma.user.findUnique({ where: { id: receiverId } });
+  const [sender, receiver] = await Promise.all([
+    prisma.user.findUnique({ where: { id: senderId }, select: { id: true, role: true, deletedAt: true } }),
+    prisma.user.findUnique({ where: { id: receiverId }, select: { id: true, role: true, deletedAt: true } }),
+  ]);
+  if (!sender || sender.deletedAt) throw new AppError(404, 'Sender not found');
   if (!receiver || receiver.deletedAt) throw new AppError(404, 'Receiver not found');
+  await assertCanCommunicate(sender, receiver);
 
   const message = await prisma.message.create({
     data: { senderId, receiverId, type: type as MsgType, content, attachmentUrl: attachmentUrl || null },
