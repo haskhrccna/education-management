@@ -29,6 +29,12 @@ enum AppointmentStatus {
   CANCELLED
 }
 
+enum TeacherChangeStatus {
+  PENDING
+  APPROVED
+  DENIED
+}
+
 enum GradeType {
   QUIZ
   ASSIGNMENT
@@ -84,6 +90,8 @@ model User {
   memorizationProgresses MemorizationProgress[] @relation("UserMemorizations")
   revisionSchedules      RevisionSchedule[]     @relation("UserRevisions")
   auditLogs              AuditLog[]
+  teacherChangeRequestsAsStudent  TeacherChangeRequest[] @relation("StudentChangeRequests")
+  teacherChangeRequestsAsTeacher  TeacherChangeRequest[] @relation("TeacherChangeRequests")
 
   @@index([email])
   @@index([role, status])
@@ -272,4 +280,22 @@ model RevisionSchedule {
   @@index([surahId])
   @@index([scheduledFor, status])
   @@map("revision_schedule")
+}
+
+model TeacherChangeRequest {
+  id               String              @id @default(cuid())
+  studentId        String
+  currentTeacherId String
+  reason           String
+  status           TeacherChangeStatus @default(PENDING)
+  adminNote        String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  student        User @relation("StudentChangeRequests", fields: [studentId], references: [id], onDelete: Cascade)
+  currentTeacher User @relation("TeacherChangeRequests", fields: [currentTeacherId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([currentTeacherId])
+  @@index([status])
 }
