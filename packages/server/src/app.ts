@@ -14,6 +14,7 @@ import fileRoutes from './routes/file.routes';
 import exportRoutes from './routes/export.routes';
 import docsRoutes from './routes/docs.routes';
 import metricsRoutes from './routes/metrics.routes';
+import { surahRouter, memorizationRouter } from './routes/memorization.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { authenticate, authorize } from './middleware/auth.middleware';
 import { UserRole } from '@quran-review/shared';
@@ -81,6 +82,8 @@ app.use('/api/v1/recordings', uploadLimiter, recordingRoutes);
 app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/admin', adminLimiter, adminRoutes);
 app.use('/api/v1/messages', messageRoutes);
+app.use('/api/v1/surahs', surahRouter);
+app.use('/api/v1/memorization', memorizationRouter);
 app.use('/api/v1/files', fileRoutes);
 app.use('/api/v1/exports', exportRoutes);
 
