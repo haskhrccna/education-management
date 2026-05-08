@@ -14,7 +14,7 @@ export const listSurahs = async (req: Request, res: Response, next: NextFunction
 export const getProgress = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const studentId = req.query.studentId as string | undefined;
-    const progress = await memorizationService.getProgress((req as any).userId!, (req as any).userRole!, studentId);
+    const progress = await memorizationService.getProgress(req.userId!, req.userRole!, studentId);
     res.json(progress);
   } catch (err) {
     next(err);
@@ -29,7 +29,7 @@ export const updateProgress = async (req: Request, res: Response, next: NextFunc
     if (!studentId) throw new AppError(400, 'studentId is required');
     if (typeof memorizedAyahs !== 'number') throw new AppError(400, 'memorizedAyahs must be a number');
     const result = await memorizationService.updateProgress(
-      (req as any).userId!, surahId, studentId as string, memorizedAyahs, status
+      req.userId!, surahId, studentId as string, memorizedAyahs, status
     );
     res.json(result);
   } catch (err) {
