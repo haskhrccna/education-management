@@ -138,11 +138,8 @@ export const logout = async (req: Request, res: Response, next: NextFunction): P
 
 export const forgotPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const result = await forgotPasswordService(req.body.email);
-    res.json({
-      message: 'If that email is registered, a reset token was generated',
-      token: result.token,
-    });
+    await forgotPasswordService(req.body.email);
+    res.json({ message: 'If that email is registered, a password reset link has been sent' });
   } catch (err) {
     next(err);
   }

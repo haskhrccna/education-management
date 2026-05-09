@@ -82,7 +82,7 @@ describe('recording.service', () => {
 
     it('should return all for teachers', async () => {
       mockedPrisma.recording.findMany.mockResolvedValue([]);
-      await listRecordings('teacher-1', 'teacher');
+      await listRecordings('teacher-1', 'TEACHER');
       expect(mockedPrisma.recording.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: {} }));
     });
   });

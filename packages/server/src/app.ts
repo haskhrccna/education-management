@@ -21,7 +21,7 @@ import { authenticate, authorize } from './middleware/auth.middleware';
 import { UserRole } from '@quran-review/shared';
 import { requestId } from './middleware/request-id.middleware';
 import { timeout } from './middleware/timeout.middleware';
-import { sanitizeRequestBody } from './middleware/sanitize.middleware';
+import { sanitizeRequestBody, sanitizeResponse } from './middleware/sanitize.middleware';
 import { standardLimiter, authLimiter, adminLimiter, uploadLimiter } from './middleware/rate-limit.middleware';
 import { requestLogger } from './lib/logger';
 import { config } from './config';
@@ -58,6 +58,7 @@ app.use(standardLimiter);
 app.use(requestLogger);
 app.use(express.json({ limit: '512kb' }));
 app.use(sanitizeRequestBody);
+app.use(sanitizeResponse);
 
 // API Docs — admin-only outside development
 if (config.env !== 'development') {

@@ -4,6 +4,8 @@ import crypto from 'crypto';
 import { config } from '../config';
 import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
+import { sendPasswordResetEmail } from './email.service';
+import { logger } from '../lib/logger';
 
 export const hashPassword = async (password: string): Promise<string> => {
   return bcrypt.hash(password, 10);
@@ -45,13 +47,13 @@ export const verifyRefreshToken = (token: string, storedHash: string | null): bo
   }
 };
 
-export const forgotPassword = async (email: string) => {
+export const forgotPassword = async (email: string): Promise<void> => {
   const user = await prisma.user.findFirst({
     where: { email: { equals: email, mode: 'insensitive' }, deletedAt: null },
-    select: { id: true },
+    select: { id: true, email: true, firstName: true },
   });
 
-  if (!user) return { token: null };
+  if (!user) return;
 
   const token = crypto.randomBytes(32).toString('hex');
   const hash = crypto.createHash('sha256').update(token).digest('hex');
@@ -62,7 +64,13 @@ export const forgotPassword = async (email: string) => {
     data: { passwordResetToken: hash, passwordResetExpiry: expiry },
   });
 
-  return { token };
+  sendPasswordResetEmail(user.email, user.firstName, token).catch((err) =>
+    logger.error({ err }, 'Password reset email failed')
+  );
+
+  if (config.env !== 'production') {
+    logger.info({ userId: user.id, token }, 'Password reset token (dev only)');
+  }
 };
 
 export const resetPassword = async (token: string, newPassword: string) => {

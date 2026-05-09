@@ -1,4 +1,5 @@
 import { prisma } from '../prisma/client';
+import { AppError } from '../middleware/error.middleware';
 
 function escapeCsv(value: unknown): string {
   const str = String(value ?? '');
@@ -16,7 +17,23 @@ function toCsv(rows: Record<string, unknown>[], headers: string[]): string {
   return lines.join('\n');
 }
 
-export const exportGradesCsv = async (studentId?: string, teacherId?: string) => {
+async function assertTeacherCanAccessStudent(teacherId: string, studentId: string) {
+  const appt = await prisma.appointment.findFirst({
+    where: { teacherId, studentId, status: 'ACCEPTED' },
+    select: { id: true },
+  });
+  if (!appt) throw new AppError(403, 'No accepted appointment with this student');
+}
+
+export const exportGradesCsv = async (
+  studentId?: string,
+  teacherId?: string,
+  callerId?: string,
+  callerRole?: string
+) => {
+  if (callerRole === 'TEACHER' && callerId && studentId) {
+    await assertTeacherCanAccessStudent(callerId, studentId);
+  }
   const grades = await prisma.grade.findMany({
     where: {
       ...(studentId && { studentId }),

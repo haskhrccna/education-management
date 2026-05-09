@@ -26,3 +26,11 @@ export const uploadLimiter = rateLimit({
   max: 20,
   message: { error: 'Too many uploads, please try again later' },
 });
+
+export const passwordResetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: process.env.NODE_ENV === 'development' ? 1000 : 3,
+  message: { error: 'Too many password reset attempts, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});

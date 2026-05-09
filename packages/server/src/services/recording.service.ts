@@ -47,8 +47,7 @@ export const uploadRecording = async (
 };
 
 export const listRecordings = async (userId: string, userRole?: string) => {
-  // JWT stores lowercase role — compare lowercase to avoid case mismatch bug
-  const where = userRole === 'teacher' || userRole === 'admin' ? {} : { studentId: userId };
+  const where = userRole === 'TEACHER' || userRole === 'ADMIN' ? {} : { studentId: userId };
   const recordings = await prisma.recording.findMany({
     where,
     orderBy: { createdAt: 'desc' },

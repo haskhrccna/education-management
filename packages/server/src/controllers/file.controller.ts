@@ -5,6 +5,14 @@ import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
 import { uploadStorage, reportStorage } from '../lib/storage';
 
+async function assertTeacherStudentRelationship(teacherId: string, studentId: string) {
+  const appt = await prisma.appointment.findFirst({
+    where: { teacherId, studentId, status: 'ACCEPTED' },
+    select: { id: true },
+  });
+  if (!appt) throw new AppError(403, 'No accepted appointment with this student');
+}
+
 export const downloadRecording = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const recordingId = String(req.params.id);
@@ -15,10 +23,14 @@ export const downloadRecording = async (req: Request, res: Response, next: NextF
     }
 
     const isOwner = recording.studentId === req.userId;
-    const isTeacherOrAdmin = req.userRole === 'TEACHER' || req.userRole === 'ADMIN';
-    if (!isOwner && !isTeacherOrAdmin) {
+    const isAdmin = req.userRole === 'ADMIN';
+    const isTeacher = req.userRole === 'TEACHER';
+    if (!isOwner && !isAdmin && !isTeacher) {
       next(new AppError(403, 'Permission denied'));
       return;
+    }
+    if (isTeacher) {
+      await assertTeacherStudentRelationship(req.userId!, recording.studentId);
     }
 
     const fileName = recording.url.split('/').pop() || '';
@@ -45,10 +57,14 @@ export const downloadReport = async (req: Request, res: Response, next: NextFunc
     }
 
     const isOwner = report.studentId === req.userId;
-    const isTeacherOrAdmin = req.userRole === 'TEACHER' || req.userRole === 'ADMIN';
-    if (!isOwner && !isTeacherOrAdmin) {
+    const isAdmin = req.userRole === 'ADMIN';
+    const isTeacher = req.userRole === 'TEACHER';
+    if (!isOwner && !isAdmin && !isTeacher) {
       next(new AppError(403, 'Permission denied'));
       return;
+    }
+    if (isTeacher) {
+      await assertTeacherStudentRelationship(req.userId!, report.studentId);
     }
 
     const fileName = report.pdfUrl.split('/').pop() || '';
