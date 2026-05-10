@@ -45,7 +45,15 @@ describe('recording.controller', () => {
       mockedFs.unlink.mockResolvedValue(undefined as any);
       mockedPrisma.recording.create.mockResolvedValue({ id: 'rec-1' } as any);
 
-      const app = createTestApp('student-1', 'student');
+      const app = express();
+      app.use(express.json());
+      app.use((req: any, _res: any, next: any) => {
+        req.userId = 'student-1';
+        req.userRole = 'student';
+        req.file = { originalname: 'test.mp3', size: 1024, mimetype: 'audio/mpeg', path: '/tmp/test' };
+        next();
+      });
+      app.post('/', uploadRecording);
       const res = await request(app)
         .post('/')
         .send({ fileName: 'test.mp3', fileSizeBytes: 1024, contentType: 'audio/mpeg' });
@@ -75,7 +83,8 @@ describe('recording.controller', () => {
 
   describe('PUT /:id', () => {
     it('should review recording', async () => {
-      mockedPrisma.recording.findUnique.mockResolvedValue({ id: 'rec-1' } as any);
+      mockedPrisma.recording.findUnique.mockResolvedValue({ id: 'rec-1', studentId: 'student-1' } as any);
+      mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appt-1' } as any);
       mockedPrisma.recording.update.mockResolvedValue({ id: 'rec-1', approvedAt: new Date() } as any);
 
       const app = createTestApp('teacher-1', 'teacher');

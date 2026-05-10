@@ -17,16 +17,28 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     req.userId = payload.sub || payload.userId;
     req.userRole = payload.role;
 
+    // Validate user still exists, is active, and hasn't been banned/deleted
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId },
+      select: { id: true, role: true, status: true, deletedAt: true, passwordChangedAt: true },
+    });
+    if (!user) {
+      next(new AppError(401, 'User not found'));
+      return;
+    }
+    if (user.deletedAt) {
+      next(new AppError(401, 'Account has been deleted'));
+      return;
+    }
+    if (user.status === 'BANNED') {
+      next(new AppError(401, 'Account has been banned'));
+      return;
+    }
+
     // Invalidate tokens issued before last password change
-    if (payload.iat) {
-      const user = await prisma.user.findUnique({
-        where: { id: req.userId },
-        select: { passwordChangedAt: true },
-      });
-      if (user?.passwordChangedAt && new Date(payload.iat * 1000) < user.passwordChangedAt) {
-        next(new AppError(401, 'Token invalidated by password change'));
-        return;
-      }
+    if (payload.iat && user.passwordChangedAt && new Date(payload.iat * 1000) < user.passwordChangedAt) {
+      next(new AppError(401, 'Token invalidated by password change'));
+      return;
     }
 
     next();

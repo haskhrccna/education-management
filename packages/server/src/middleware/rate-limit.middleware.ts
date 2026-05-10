@@ -12,6 +12,10 @@ export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: process.env.NODE_ENV === 'development' ? 1000 : 10,
   message: { error: 'Too many attempts, please try again later' },
+  keyGenerator: (req) => {
+    if (!req.userId) return ipKeyGenerator(req.ip || 'unknown');
+    return req.userId;
+  },
 });
 
 export const adminLimiter = rateLimit({
@@ -33,4 +37,5 @@ export const passwordResetLimiter = rateLimit({
   message: { error: 'Too many password reset attempts, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => req.body?.email || ipKeyGenerator(req.ip || 'unknown'),
 });

@@ -22,10 +22,9 @@ function sanitizeObject(obj: unknown): SanitizedRecord | string | number | boole
   return sanitized;
 }
 
-export const sanitizeRequestBody = (req: Request, _res: Response, next: NextFunction): void => {
-  if (req.body && typeof req.body === 'object') {
-    (req as any).sanitizedBody = sanitizeObject(req.body);
-  }
+export const sanitizeRequestBody = (_req: Request, _res: Response, next: NextFunction): void => {
+  // Request body sanitization is a no-op: no controller reads req.sanitizedBody.
+  // Response sanitization (sanitizeResponse) remains active.
   next();
 };
 

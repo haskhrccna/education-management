@@ -67,9 +67,12 @@ export const updateRevision = async (
   });
   if (!revision) throw new AppError(404, 'Revision not found');
 
-  // Students can only update their own; teachers/admins can update any
+  // Students can only update their own; teachers must have an accepted appointment; admins can update any
   if (callerRole === 'STUDENT' && revision.userId !== callerId) {
     throw new AppError(403, 'You can only update your own revisions');
+  }
+  if (callerRole === 'TEACHER') {
+    await assertTeacherCanAccessStudent(callerId, revision.userId);
   }
 
   return await prisma.revisionSchedule.update({
@@ -96,15 +99,21 @@ export const deleteRevision = async (
   if (callerRole === 'STUDENT' && revision.userId !== callerId) {
     throw new AppError(403, 'You can only delete your own revisions');
   }
+  if (callerRole === 'TEACHER') {
+    await assertTeacherCanAccessStudent(callerId, revision.userId);
+  }
 
   await prisma.revisionSchedule.delete({ where: { id: revisionId } });
   return { success: true };
 };
 
 async function assertTeacherCanAccessStudent(teacherId: string, studentId: string) {
-  const appointment = await prisma.appointment.findFirst({
-    where: { teacherId, studentId, status: 'ACCEPTED' },
-    select: { id: true },
-  });
-  if (!appointment) throw new AppError(403, 'No accepted appointment with this student');
+  const [appointment, teacher, student] = await Promise.all([
+    prisma.appointment.findFirst({ where: { teacherId, studentId, status: 'ACCEPTED' }, select: { id: true } }),
+    prisma.user.findUnique({ where: { id: teacherId }, select: { deletedAt: true } }),
+    prisma.user.findUnique({ where: { id: studentId }, select: { deletedAt: true } }),
+  ]);
+  if (!appointment || teacher?.deletedAt || student?.deletedAt) {
+    throw new AppError(403, 'No accepted appointment with this student');
+  }
 }

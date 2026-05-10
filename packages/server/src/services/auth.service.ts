@@ -8,7 +8,7 @@ import { sendPasswordResetEmail } from './email.service';
 import { logger } from '../lib/logger';
 
 export const hashPassword = async (password: string): Promise<string> => {
-  return bcrypt.hash(password, 10);
+  return bcrypt.hash(password, 12);
 };
 
 export const comparePassword = async (password: string, hash: string): Promise<boolean> => {
@@ -69,7 +69,7 @@ export const forgotPassword = async (email: string): Promise<void> => {
   );
 
   if (config.env !== 'production') {
-    logger.info({ userId: user.id, token }, 'Password reset token (dev only)');
+    logger.info({ userId: user.id }, 'Password reset email sent (dev)');
   }
 };
 

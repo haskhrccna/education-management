@@ -78,6 +78,7 @@ describe('grade.controller', () => {
   describe('GET /student/:id', () => {
     it('should return student grades for teacher', async () => {
       mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appointment-1' } as any);
+      mockedPrisma.user.findUnique.mockResolvedValue({ deletedAt: null } as any);
       mockedPrisma.grade.findMany.mockResolvedValue([{ id: 'grade-1' }] as any);
 
       const app = createTestApp('teacher-1', 'TEACHER');

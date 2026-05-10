@@ -89,10 +89,24 @@ export const reviewRecording = async (recordingId: string, reviewerId: string, a
   return await prisma.recording.update({ where: { id: recordingId }, data: updateData });
 };
 
+async function assertTeacherCanAccessStudent(teacherId: string, studentId: string) {
+  const [appointment, teacher, student] = await Promise.all([
+    prisma.appointment.findFirst({ where: { teacherId, studentId, status: 'ACCEPTED' }, select: { id: true } }),
+    prisma.user.findUnique({ where: { id: teacherId }, select: { deletedAt: true } }),
+    prisma.user.findUnique({ where: { id: studentId }, select: { deletedAt: true } }),
+  ]);
+  if (!appointment || teacher?.deletedAt || student?.deletedAt) {
+    throw new AppError(403, 'No accepted appointment with this student');
+  }
+}
+
 export const deleteRecording = async (recordingId: string, userId: string, isTeacherOrAdmin: boolean) => {
   const recording = await prisma.recording.findUnique({ where: { id: recordingId } });
   if (!recording) throw new AppError(404, 'Recording not found');
   if (!isTeacherOrAdmin && recording.studentId !== userId) throw new AppError(403, 'Permission denied');
+  if (isTeacherOrAdmin && recording.studentId !== userId) {
+    await assertTeacherCanAccessStudent(userId, recording.studentId);
+  }
 
   const fileName = recording.url.split('/').pop() || '';
   const filePath = path.join(UPLOAD_DIR, fileName);

@@ -6,10 +6,12 @@ import { auditLog } from '../lib/audit';
 export const uploadRecording = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const file = (req as any).file;
+    if (!file) throw new AppError(400, 'Audio file is required');
+
     const { fileName, fileSizeBytes, contentType } = req.body as any;
-    const actualFileName = file?.originalname || fileName;
-    const actualSize = file?.size || fileSizeBytes || 0;
-    const actualType = file?.mimetype || contentType || 'audio/mpeg';
+    const actualFileName = file.originalname || fileName;
+    const actualSize = file.size || fileSizeBytes || 0;
+    const actualType = file.mimetype || contentType || 'audio/mpeg';
 
     if (!actualFileName) throw new AppError(400, 'fileName is required');
     const recording = await recordingService.uploadRecording(

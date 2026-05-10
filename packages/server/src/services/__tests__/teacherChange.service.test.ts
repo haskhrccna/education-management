@@ -47,14 +47,22 @@ describe('teacherChange.service', () => {
         studentId: 'student-1',
       } as any);
 
-      const result = await decideTeacherChangeRequest('req-1', 'APPROVE');
+      const result = await decideTeacherChangeRequest('req-1', 'APPROVE', 'admin-1', 'ADMIN');
       expect(result.status).toBe('APPROVED');
     });
 
     it('rejects non-pending request', async () => {
       mockedPrisma.teacherChangeRequest.findUnique.mockResolvedValue({ id: 'req-1', status: 'APPROVED' } as any);
 
-      await expect(decideTeacherChangeRequest('req-1', 'DENY')).rejects.toThrow('already decided');
+      await expect(decideTeacherChangeRequest('req-1', 'DENY', 'admin-1', 'ADMIN')).rejects.toThrow('already decided');
+    });
+
+    it('rejects non-admin caller', async () => {
+      mockedPrisma.teacherChangeRequest.findUnique.mockResolvedValue({ id: 'req-1', status: 'PENDING' } as any);
+
+      await expect(decideTeacherChangeRequest('req-1', 'APPROVE', 'teacher-1', 'TEACHER')).rejects.toThrow(
+        'Only admins can decide teacher change requests'
+      );
     });
   });
 });

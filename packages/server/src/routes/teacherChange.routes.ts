@@ -16,7 +16,7 @@ router.post(
   teacherChangeController.submitRequest
 );
 
-router.get('/', teacherChangeController.getRequests);
+router.get('/', authorize(UserRole.ADMIN, UserRole.TEACHER, UserRole.STUDENT), teacherChangeController.getRequests);
 
 router.patch(
   '/:id',

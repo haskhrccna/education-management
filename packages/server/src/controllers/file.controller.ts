@@ -41,6 +41,7 @@ export const downloadRecording = async (req: Request, res: Response, next: NextF
       return;
     }
 
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.sendFile(filePath);
   } catch (err) {
     next(err);
@@ -75,6 +76,7 @@ export const downloadReport = async (req: Request, res: Response, next: NextFunc
       return;
     }
 
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.sendFile(filePath);
   } catch (err) {
     next(err);

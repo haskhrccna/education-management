@@ -8,7 +8,7 @@ const router = Router();
 router.use(authenticate);
 router.get('/', revisionController.getMyRevisions);
 router.post('/', authorize(UserRole.TEACHER), revisionController.createRevision);
-router.put('/:id', revisionController.markRevision);
-router.delete('/:id', revisionController.deleteRevision);
+router.put('/:id', authorize(UserRole.STUDENT, UserRole.TEACHER), revisionController.markRevision);
+router.delete('/:id', authorize(UserRole.STUDENT, UserRole.TEACHER, UserRole.ADMIN), revisionController.deleteRevision);
 
 export default router;

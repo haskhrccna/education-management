@@ -18,11 +18,14 @@ function toCsv(rows: Record<string, unknown>[], headers: string[]): string {
 }
 
 async function assertTeacherCanAccessStudent(teacherId: string, studentId: string) {
-  const appt = await prisma.appointment.findFirst({
-    where: { teacherId, studentId, status: 'ACCEPTED' },
-    select: { id: true },
-  });
-  if (!appt) throw new AppError(403, 'No accepted appointment with this student');
+  const [appt, teacher, student] = await Promise.all([
+    prisma.appointment.findFirst({ where: { teacherId, studentId, status: 'ACCEPTED' }, select: { id: true } }),
+    prisma.user.findUnique({ where: { id: teacherId }, select: { deletedAt: true } }),
+    prisma.user.findUnique({ where: { id: studentId }, select: { deletedAt: true } }),
+  ]);
+  if (!appt || teacher?.deletedAt || student?.deletedAt) {
+    throw new AppError(403, 'No accepted appointment with this student');
+  }
 }
 
 export const exportGradesCsv = async (
@@ -31,8 +34,12 @@ export const exportGradesCsv = async (
   callerId?: string,
   callerRole?: string
 ) => {
-  if (callerRole === 'TEACHER' && callerId && studentId) {
-    await assertTeacherCanAccessStudent(callerId, studentId);
+  // Teachers can only export their own grades; ignore any supplied teacherId
+  if (callerRole === 'TEACHER' && callerId) {
+    teacherId = callerId;
+    if (studentId) {
+      await assertTeacherCanAccessStudent(callerId, studentId);
+    }
   }
 
   // If a teacher calls without a studentId, restrict to their own accepted students

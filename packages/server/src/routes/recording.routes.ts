@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
+import path from 'path';
 import * as recordingController from '../controllers/recording.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validate.middleware';
@@ -11,8 +12,19 @@ const upload = multer({
   dest: 'uploads/',
   limits: { fileSize: 100 * 1024 * 1024 }, // 100MB max
   fileFilter: (_req, file, cb) => {
-    const allowed = ['audio/mpeg', 'audio/mp4', 'video/mp4', 'video/webm', 'audio/ogg', 'audio/wav', 'audio/x-m4a'];
-    cb(null, allowed.includes(file.mimetype));
+    const allowedMimes = [
+      'audio/mpeg',
+      'audio/mp4',
+      'video/mp4',
+      'video/webm',
+      'audio/ogg',
+      'audio/wav',
+      'audio/x-m4a',
+    ];
+    const allowedExts = ['.mp3', '.mp4', '.webm', '.ogg', '.wav', '.m4a'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    const valid = allowedMimes.includes(file.mimetype) && allowedExts.includes(ext);
+    cb(null, valid);
   },
 });
 
@@ -23,8 +35,8 @@ router.use(authenticate);
 router.post(
   '/',
   authorize(UserRole.STUDENT),
-  upload.single('file'),
   validate(CreateRecordingSchema),
+  upload.single('file'),
   recordingController.uploadRecording
 );
 router.get('/', paginate(20, 100), recordingController.listRecordings);

@@ -68,7 +68,7 @@ export const saveDeviceToken = async (userId: string, deviceToken: string) => {
     where: { id: userId },
     data: { deviceToken },
   });
-  logger.info({ userId, token: deviceToken.slice(0, 20) }, 'Device token saved');
+  logger.info({ userId }, 'Device token saved');
 };
 
 /**
@@ -96,7 +96,7 @@ export const sendPushNotification = async (
       notification: { title, body },
       data: data ?? {},
     });
-    logger.info({ title, token: deviceToken.slice(0, 12) }, 'Push notification sent');
+    logger.info({ title }, 'Push notification sent');
   } catch (err) {
     logger.error({ err, title }, 'Push notification failed');
   }

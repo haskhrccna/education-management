@@ -81,15 +81,19 @@ describe('recording.service', () => {
     });
 
     it('should return all for teachers', async () => {
+      mockedPrisma.appointment.findMany.mockResolvedValue([{ studentId: 'student-1' }] as any);
       mockedPrisma.recording.findMany.mockResolvedValue([]);
       await listRecordings('teacher-1', 'TEACHER');
-      expect(mockedPrisma.recording.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: {} }));
+      expect(mockedPrisma.recording.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { studentId: { in: ['student-1'] } } })
+      );
     });
   });
 
   describe('reviewRecording', () => {
     it('should approve recording', async () => {
-      mockedPrisma.recording.findUnique.mockResolvedValue({ id: 'rec-1' } as any);
+      mockedPrisma.recording.findUnique.mockResolvedValue({ id: 'rec-1', studentId: 'student-1' } as any);
+      mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appt-1' } as any);
       mockedPrisma.recording.update.mockResolvedValue({ id: 'rec-1', approvedAt: new Date() } as any);
 
       const result = await reviewRecording('rec-1', 'teacher-1', true, 'Good job');

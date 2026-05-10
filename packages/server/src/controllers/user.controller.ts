@@ -77,7 +77,7 @@ export const saveDeviceToken = async (req: Request, res: Response, next: NextFun
       data: { deviceToken },
     });
 
-    logger.info({ userId: req.userId, token: deviceToken.slice(0, 20) }, 'Device token saved to DB');
+    logger.info({ userId: req.userId }, 'Device token saved to DB');
     res.json({ saved: true });
   } catch (err) {
     next(err);

@@ -27,13 +27,14 @@ describe('revision.service', () => {
       });
     });
 
-    it('should return all revisions for teachers', async () => {
+    it('should return revisions for teacher assigned students', async () => {
+      m.appointment.findMany.mockResolvedValue([{ studentId: 'student-1' }] as any);
       m.revisionSchedule.findMany.mockResolvedValue([]);
 
       await getRevisions('teacher-1', 'TEACHER');
 
       expect(m.revisionSchedule.findMany).toHaveBeenCalledWith({
-        where: {},
+        where: { userId: { in: ['student-1'] } },
         include: { surah: true },
         orderBy: { scheduledFor: 'asc' },
       });
