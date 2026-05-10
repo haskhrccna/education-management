@@ -87,7 +87,7 @@ export const resetPassword = async (token: string, newPassword: string) => {
 
   if (!user) throw new AppError(400, 'Invalid or expired reset token');
 
-  const passwordHash = await bcrypt.hash(newPassword, 10);
+  const passwordHash = await bcrypt.hash(newPassword, 12);
 
   await prisma.user.update({
     where: { id: user.id },

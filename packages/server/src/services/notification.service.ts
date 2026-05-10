@@ -1,6 +1,16 @@
 import { prisma } from '../prisma/client';
 import { logger } from '../lib/logger';
 
+function escapeHtml(text: string | undefined | null): string {
+  const safe = text ?? '';
+  return safe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Unified notification service: Email + Socket + Push
 export const notifyUser = async (options: {
   userId: string;
@@ -70,7 +80,7 @@ export const notifyAppointmentUpdate = async (studentId: string, appointment: Ap
     data: appointment,
     email: {
       subject: `Appointment ${statusText}`,
-      body: `<p>Your appointment on ${date} at ${appointment.requestedTime} has been ${statusText}.</p>`,
+      body: `<p>Your appointment on ${date} at ${escapeHtml(appointment.requestedTime)} has been ${statusText}.</p>`,
     },
     push: {
       title: `Appointment ${statusText}`,
@@ -94,7 +104,7 @@ export const notifyNewGrade = async (studentId: string, grade: GradeSummary) => 
     data: grade,
     email: {
       subject: `New grade: ${grade.subject}`,
-      body: `<p>A new grade has been posted for <strong>${grade.subject}</strong>: ${grade.grade}</p>`,
+      body: `<p>A new grade has been posted for <strong>${escapeHtml(grade.subject)}</strong>: ${escapeHtml(grade.grade)}</p>`,
     },
     push: {
       title: `New grade: ${grade.subject}`,
@@ -134,7 +144,7 @@ export const notifyTeacherChangeDecision = async (studentId: string, request: Te
     email: {
       subject: `Teacher change request ${decision}`,
       body: `<p>Your teacher change request has been <strong>${decision}</strong>.</p>${
-        request.adminNote ? `<p>Note: ${request.adminNote}</p>` : ''
+        request.adminNote ? `<p>Note: ${escapeHtml(request.adminNote)}</p>` : ''
       }`,
     },
     push: {
