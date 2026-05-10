@@ -13,7 +13,6 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Audio } from 'expo-av';
 import * as DocumentPicker from 'expo-document-picker';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useRecordings } from '@/src/hooks/useRecordings';
@@ -22,6 +21,8 @@ import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 
 type AnyColors = ReturnType<typeof getColors>;
+
+type AudioModule = typeof import('expo-av');
 
 const formatBytes = (bytes: number): string => {
   if (!bytes) return '0 B';
@@ -53,7 +54,7 @@ export default function StudentRecordingsScreen() {
   const { recordings, loading, error, refresh, upload } = useRecordings();
 
   const [uploading, setUploading] = useState(false);
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [recording, setRecording] = useState<any | null>(null);
   const [recordingMillis, setRecordingMillis] = useState(0);
   const recordingStartRef = useRef<number | null>(null);
 
@@ -65,26 +66,38 @@ export default function StudentRecordingsScreen() {
   useEffect(() => {
     return () => {
       if (recording) {
-        recording.stopAndUnloadAsync().catch(() => {});
+        recording.stopAndUnloadAsync?.().catch(() => {});
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const getAudio = async (): Promise<AudioModule | null> => {
+    try {
+      const mod = await import('expo-av');
+      return mod;
+    } catch {
+      Alert.alert(t('error'), t('audioNotAvailable'));
+      return null;
+    }
+  };
+
   const startRecording = async () => {
     try {
-      const perm = await Audio.requestPermissionsAsync();
+      const AudioMod = await getAudio();
+      if (!AudioMod) return;
+      const perm = await AudioMod.Audio.requestPermissionsAsync();
       if (!perm.granted) {
         Alert.alert(t('recordAudio'), t('micPermissionDenied'));
         return;
       }
-      await Audio.setAudioModeAsync({
+      await AudioMod.Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       });
 
-      const { recording: rec } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY,
+      const { recording: rec } = await AudioMod.Audio.Recording.createAsync(
+        AudioMod.Audio.RecordingOptionsPresets.HIGH_QUALITY,
         (status) => {
           if (status.isRecording && status.durationMillis != null) {
             setRecordingMillis(status.durationMillis);
@@ -103,6 +116,8 @@ export default function StudentRecordingsScreen() {
   const stopAndUploadRecording = async () => {
     if (!recording) return;
     try {
+      const AudioMod = await getAudio();
+      if (!AudioMod) return;
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
       setRecording(null);
@@ -113,7 +128,7 @@ export default function StudentRecordingsScreen() {
       }
 
       // Reset audio mode so playback works after recording
-      await Audio.setAudioModeAsync({
+      await AudioMod.Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         playsInSilentModeIOS: true,
       });
@@ -133,7 +148,7 @@ export default function StudentRecordingsScreen() {
   const cancelRecording = async () => {
     if (!recording) return;
     try {
-      await recording.stopAndUnloadAsync();
+      await recording.stopAndUnloadAsync?.();
     } catch {
       /* ignore */
     }

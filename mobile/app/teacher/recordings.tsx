@@ -14,7 +14,6 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Audio, AVPlaybackStatus } from 'expo-av';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useRecordings } from '@/src/hooks/useRecordings';
 import { Recording, getRecordingStatus } from '@/src/api';
@@ -23,6 +22,7 @@ import { useSettingsStore } from '@/src/settings/store';
 
 type AnyColors = ReturnType<typeof getColors>;
 type FilterStatus = 'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED';
+type AudioModule = typeof import('expo-av');
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 // Strip trailing /api/vX from base to get the server host serving /uploads
@@ -67,7 +67,7 @@ export default function TeacherRecordingsScreen() {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [playbackPosition, setPlaybackPosition] = useState(0);
   const [playbackDuration, setPlaybackDuration] = useState(0);
-  const soundRef = useRef<Audio.Sound | null>(null);
+  const soundRef = useRef<any | null>(null);
 
   // Review modal state
   const [reviewing, setReviewing] = useState<Recording | null>(null);
@@ -83,7 +83,7 @@ export default function TeacherRecordingsScreen() {
   useEffect(() => {
     return () => {
       if (soundRef.current) {
-        soundRef.current.unloadAsync().catch(() => {});
+        soundRef.current.unloadAsync?.().catch(() => {});
         soundRef.current = null;
       }
     };
@@ -122,6 +122,16 @@ export default function TeacherRecordingsScreen() {
     setPlaybackDuration(0);
   };
 
+  const getAudio = async (): Promise<AudioModule | null> => {
+    try {
+      const mod = await import('expo-av');
+      return mod;
+    } catch {
+      Alert.alert(t('error'), t('audioNotAvailable'));
+      return null;
+    }
+  };
+
   const togglePlay = async (rec: Recording) => {
     try {
       // Toggle pause/resume if same recording is loaded
@@ -142,15 +152,18 @@ export default function TeacherRecordingsScreen() {
       // Switching to a new recording — stop the previous one
       await stopPlayback();
 
-      await Audio.setAudioModeAsync({
+      const AudioMod = await getAudio();
+      if (!AudioMod) return;
+
+      await AudioMod.Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         playsInSilentModeIOS: true,
       });
 
-      const { sound } = await Audio.Sound.createAsync(
+      const { sound } = await AudioMod.Audio.Sound.createAsync(
         { uri: buildAudioUrl(rec) },
         { shouldPlay: true },
-        (status: AVPlaybackStatus) => {
+        (status) => {
           if (!status.isLoaded) return;
           setPlaybackPosition(status.positionMillis ?? 0);
           if (status.durationMillis) setPlaybackDuration(status.durationMillis);
