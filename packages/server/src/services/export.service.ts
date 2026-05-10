@@ -1,4 +1,5 @@
 import { prisma } from '../prisma/client';
+import { AppError } from '../middleware/error.middleware';
 
 function escapeCsv(value: unknown): string {
   const str = String(value ?? '');
@@ -16,11 +17,49 @@ function toCsv(rows: Record<string, unknown>[], headers: string[]): string {
   return lines.join('\n');
 }
 
-export const exportGradesCsv = async (studentId?: string, teacherId?: string) => {
+async function assertTeacherCanAccessStudent(teacherId: string, studentId: string) {
+  const [appt, teacher, student] = await Promise.all([
+    prisma.appointment.findFirst({ where: { teacherId, studentId, status: 'ACCEPTED' }, select: { id: true } }),
+    prisma.user.findUnique({ where: { id: teacherId }, select: { deletedAt: true } }),
+    prisma.user.findUnique({ where: { id: studentId }, select: { deletedAt: true } }),
+  ]);
+  if (!appt || teacher?.deletedAt || student?.deletedAt) {
+    throw new AppError(403, 'No accepted appointment with this student');
+  }
+}
+
+export const exportGradesCsv = async (
+  studentId?: string,
+  teacherId?: string,
+  callerId?: string,
+  callerRole?: string
+) => {
+  // Teachers can only export their own grades; ignore any supplied teacherId
+  if (callerRole === 'TEACHER' && callerId) {
+    teacherId = callerId;
+    if (studentId) {
+      await assertTeacherCanAccessStudent(callerId, studentId);
+    }
+  }
+
+  // If a teacher calls without a studentId, restrict to their own accepted students
+  let studentIdsFilter: string[] | undefined;
+  if (callerRole === 'TEACHER' && callerId && !studentId) {
+    const appointments = await prisma.appointment.findMany({
+      where: { teacherId: callerId, status: 'ACCEPTED' },
+      select: { studentId: true },
+    });
+    studentIdsFilter = appointments.map((a) => a.studentId);
+    if (studentIdsFilter.length === 0) {
+      return toCsv([], ['studentName', 'studentEmail', 'teacherName', 'subject', 'grade', 'type', 'notes', 'date']);
+    }
+  }
+
   const grades = await prisma.grade.findMany({
     where: {
       ...(studentId && { studentId }),
       ...(teacherId && { teacherId }),
+      ...(studentIdsFilter && { studentId: { in: studentIdsFilter } }),
     },
     include: {
       student: { select: { firstName: true, lastName: true, email: true } },

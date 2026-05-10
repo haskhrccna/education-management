@@ -14,7 +14,7 @@ router.get(
     try {
       const studentId = req.query.studentId as string | undefined;
       const teacherId = req.query.teacherId as string | undefined;
-      const csv = await exportService.exportGradesCsv(studentId, teacherId);
+      const csv = await exportService.exportGradesCsv(studentId, teacherId, req.userId, req.userRole);
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename="grades.csv"');
       res.send(csv);

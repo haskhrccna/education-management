@@ -15,17 +15,19 @@ import exportRoutes from './routes/export.routes';
 import docsRoutes from './routes/docs.routes';
 import metricsRoutes from './routes/metrics.routes';
 import { surahRouter, memorizationRouter } from './routes/memorization.routes';
+import teacherChangeRoutes from './routes/teacherChange.routes';
+import revisionRoutes from './routes/revision.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { authenticate, authorize } from './middleware/auth.middleware';
 import { UserRole } from '@quran-review/shared';
 import { requestId } from './middleware/request-id.middleware';
 import { timeout } from './middleware/timeout.middleware';
-import { sanitizeRequestBody } from './middleware/sanitize.middleware';
+import { sanitizeRequestBody, sanitizeResponse } from './middleware/sanitize.middleware';
 import { standardLimiter, authLimiter, adminLimiter, uploadLimiter } from './middleware/rate-limit.middleware';
 import { requestLogger } from './lib/logger';
 import { config } from './config';
 import { getHealthStatus } from './lib/health';
-import { successResponse } from './lib/response';
+import { successResponse, errorResponse } from './lib/response';
 
 const app: Application = express();
 
@@ -52,11 +54,11 @@ app.use(
   })
 );
 
-// Rate limiting
-app.use(standardLimiter);
+// Rate limiting — authenticated routes get user-aware keys; auth routes stay IP-based
 app.use(requestLogger);
 app.use(express.json({ limit: '512kb' }));
 app.use(sanitizeRequestBody);
+app.use(sanitizeResponse);
 
 // API Docs — admin-only outside development
 if (config.env !== 'development') {
@@ -64,7 +66,7 @@ if (config.env !== 'development') {
 } else {
   app.use('/api/docs', docsRoutes);
 }
-app.use('/metrics', metricsRoutes);
+app.use('/metrics', authenticate, authorize(UserRole.ADMIN), metricsRoutes);
 
 // Health check
 app.get('/api/health', async (_req, res) => {
@@ -75,34 +77,36 @@ app.get('/api/health', async (_req, res) => {
 
 // API v1 Routes
 app.use('/api/v1/auth', authLimiter, authRoutes);
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/appointments', appointmentRoutes);
-app.use('/api/v1/grades', gradeRoutes);
-app.use('/api/v1/recordings', uploadLimiter, recordingRoutes);
-app.use('/api/v1/reports', reportRoutes);
-app.use('/api/v1/admin', adminLimiter, adminRoutes);
-app.use('/api/v1/messages', messageRoutes);
-app.use('/api/v1/surahs', surahRouter);
-app.use('/api/v1/memorization', memorizationRouter);
-app.use('/api/v1/files', fileRoutes);
-app.use('/api/v1/exports', exportRoutes);
+app.use('/api/v1/users', authenticate, standardLimiter, userRoutes);
+app.use('/api/v1/appointments', authenticate, standardLimiter, appointmentRoutes);
+app.use('/api/v1/grades', authenticate, standardLimiter, gradeRoutes);
+app.use('/api/v1/recordings', authenticate, uploadLimiter, recordingRoutes);
+app.use('/api/v1/reports', authenticate, standardLimiter, reportRoutes);
+app.use('/api/v1/admin', authenticate, adminLimiter, adminRoutes);
+app.use('/api/v1/messages', authenticate, standardLimiter, messageRoutes);
+app.use('/api/v1/surahs', authenticate, standardLimiter, surahRouter);
+app.use('/api/v1/memorization', authenticate, standardLimiter, memorizationRouter);
+app.use('/api/v1/files', authenticate, standardLimiter, fileRoutes);
+app.use('/api/v1/exports', authenticate, standardLimiter, exportRoutes);
+app.use('/api/v1/teacher-changes', authenticate, standardLimiter, teacherChangeRoutes);
+app.use('/api/v1/revisions', authenticate, standardLimiter, revisionRoutes);
 
 // Legacy redirects (optional - remove after mobile update)
 // Mirroring exact same middleware stack as v1 for consistent protection
 app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/appointments', appointmentRoutes);
-app.use('/api/grades', gradeRoutes);
-app.use('/api/recordings', uploadLimiter, recordingRoutes);
-app.use('/api/reports', reportRoutes);
-app.use('/api/admin', adminLimiter, adminRoutes);
-app.use('/api/messages', messageRoutes);
-app.use('/api/files', fileRoutes);
-app.use('/api/exports', exportRoutes);
+app.use('/api/users', authenticate, standardLimiter, userRoutes);
+app.use('/api/appointments', authenticate, standardLimiter, appointmentRoutes);
+app.use('/api/grades', authenticate, standardLimiter, gradeRoutes);
+app.use('/api/recordings', authenticate, uploadLimiter, recordingRoutes);
+app.use('/api/reports', authenticate, standardLimiter, reportRoutes);
+app.use('/api/admin', authenticate, adminLimiter, adminRoutes);
+app.use('/api/messages', authenticate, standardLimiter, messageRoutes);
+app.use('/api/files', authenticate, standardLimiter, fileRoutes);
+app.use('/api/exports', authenticate, standardLimiter, exportRoutes);
 
 // 404 handler
-app.use('*', (_req, res) => {
-  res.status(404).json({ success: false, error: 'Not found' });
+app.use((_req, res) => {
+  res.status(404).json(errorResponse('Not found'));
 });
 
 // Centralized error handler

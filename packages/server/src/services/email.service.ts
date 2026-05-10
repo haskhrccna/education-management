@@ -122,3 +122,17 @@ export const sendPasswordChangedEmail = async (to: string, name: string, lang: '
     text: `Hi ${name}, your password has been changed.`,
   });
 };
+
+export const sendPasswordResetEmail = async (to: string, name: string, token: string, lang: 'ar' | 'en' = 'ar') => {
+  const subject = lang === 'ar' ? 'إعادة تعيين كلمة المرور' : 'Password reset request';
+  const body =
+    lang === 'ar'
+      ? `مرحباً ${name}،<br>استخدم الرمز التالي لإعادة تعيين كلمة مرورك (صالح لمدة ساعة):<br><br><strong>${token}</strong>`
+      : `Hi ${name},<br>Use the token below to reset your password (valid for 1 hour):<br><br><strong>${token}</strong>`;
+  await sendEmail({
+    to,
+    subject,
+    html: `<div style="font-family:sans-serif;padding:24px">${body}</div>`,
+    text: lang === 'ar' ? `رمز إعادة التعيين: ${token}` : `Password reset token: ${token}`,
+  });
+};

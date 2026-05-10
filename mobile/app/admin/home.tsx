@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +8,8 @@ import { apiClient } from '@/src/api';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
+import { useMessages } from '@/src/hooks/useMessages';
+import { SkeletonCard } from '@/src/components/SkeletonCard';
 
 interface User {
   id: string;
@@ -39,9 +41,12 @@ export default function AdminHomeScreen() {
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [stats, setStats] = useState({ students: 0, teachers: 0, pending: 0 });
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>('PENDING_AND_TEACHER');
+  const { unreadCount, fetchMessages: fetchUnreadCount } = useMessages();
 
   const loadUsers = useCallback(async () => {
+    setFetchError(null);
     setIsLoading(true);
     try {
       const res = await apiClient.get('/admin/users');
@@ -54,6 +59,7 @@ export default function AdminHomeScreen() {
       setStats({ students, teachers, pending });
     } catch (err: any) {
       console.error('Failed to load users:', err.message);
+      setFetchError(t('loadFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -61,6 +67,7 @@ export default function AdminHomeScreen() {
 
   React.useEffect(() => {
     loadUsers();
+    fetchUnreadCount();
   }, [loadUsers]);
 
   const applyFilter = (filter: FilterType) => {
@@ -117,6 +124,22 @@ export default function AdminHomeScreen() {
             </Text>
           </View>
           <View style={styles.headerActions}>
+            <TouchableOpacity style={styles.msgIconBtn} onPress={() => router.push('/admin/change-requests')}>
+              <Text style={styles.msgIconText}>📋</Text>
+            </TouchableOpacity>
+            <View style={styles.msgIconWrap}>
+              <TouchableOpacity style={styles.msgIconBtn} onPress={() => router.push('/messages')}>
+                <Text style={styles.msgIconText}>💬</Text>
+              </TouchableOpacity>
+              {unreadCount > 0 && (
+                <View style={styles.msgBadge}>
+                  <Text style={styles.msgBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                </View>
+              )}
+            </View>
+            <TouchableOpacity style={styles.msgIconBtn} onPress={() => router.push('/admin/broadcast')}>
+              <Text style={styles.msgIconText}>📢</Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={navigateToSettings} style={styles.iconBtn}>
               <Text style={styles.iconText}>⚙️</Text>
             </TouchableOpacity>
@@ -169,9 +192,23 @@ export default function AdminHomeScreen() {
       )}
 
       {/* Users List */}
-      <ScrollView style={styles.content} contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={loadUsers} />}
+      >
+        {fetchError && !isLoading && (
+          <TouchableOpacity onPress={loadUsers} style={styles.errorBanner}>
+            <Text style={styles.errorText}>{fetchError}</Text>
+          </TouchableOpacity>
+        )}
         {isLoading ? (
-          <Text style={styles.empty}>{t('loading')}</Text>
+          <>
+            <SkeletonCard lines={3} />
+            <SkeletonCard lines={3} />
+            <SkeletonCard lines={3} />
+          </>
         ) : (
           <UsersList users={users} onUserPress={navigateToUserDetail} onApprove={approveStudent} styles={styles} />
         )}
@@ -322,6 +359,29 @@ const createStyles = (COLORS: any) =>
       fontSize: 13,
       fontWeight: '600',
     },
+    msgIconWrap: { position: 'relative', marginRight: 6 },
+    msgIconBtn: {
+      width: 32,
+      height: 32,
+      backgroundColor: 'rgba(255,255,255,0.2)',
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    msgIconText: { fontSize: 16 },
+    msgBadge: {
+      position: 'absolute',
+      top: -4,
+      right: -4,
+      minWidth: 16,
+      height: 16,
+      borderRadius: 8,
+      backgroundColor: '#ef4444',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 3,
+    },
+    msgBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
 
     // Stats
     statsRow: {
@@ -534,5 +594,16 @@ const createStyles = (COLORS: any) =>
       fontSize: 20,
       color: COLORS.textMuted,
       fontWeight: '700',
+    },
+    errorBanner: {
+      backgroundColor: COLORS.errorLight,
+      borderRadius: RADIUS.md,
+      padding: SPACING.md,
+      marginBottom: SPACING.sm,
+    },
+    errorText: {
+      color: COLORS.error,
+      fontSize: 13,
+      textAlign: 'center',
     },
   });

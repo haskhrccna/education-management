@@ -22,7 +22,7 @@ export const generatePDFReport = async (teacherId: string, studentId: string, su
     return Promise.all([
       tx.user.findUnique({ where: { id: studentId }, select: { firstName: true, lastName: true, email: true } }),
       tx.grade.findMany({
-        where: { studentId },
+        where: { studentId, teacherId },
         select: { subject: true, grade: true, type: true, notes: true, createdAt: true },
       }),
       tx.recording.count({ where: { studentId } }),

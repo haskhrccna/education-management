@@ -47,8 +47,18 @@ export const uploadRecording = async (
 };
 
 export const listRecordings = async (userId: string, userRole?: string) => {
-  // JWT stores lowercase role — compare lowercase to avoid case mismatch bug
-  const where = userRole === 'teacher' || userRole === 'admin' ? {} : { studentId: userId };
+  let where: Record<string, unknown> = userRole === 'ADMIN' ? {} : { studentId: userId };
+
+  if (userRole === 'TEACHER') {
+    const appointments = await prisma.appointment.findMany({
+      where: { teacherId: userId, status: 'ACCEPTED' },
+      select: { studentId: true },
+    });
+    const studentIds = appointments.map((a) => a.studentId);
+    if (studentIds.length === 0) return [];
+    where = { studentId: { in: studentIds } };
+  }
+
   const recordings = await prisma.recording.findMany({
     where,
     orderBy: { createdAt: 'desc' },
@@ -62,6 +72,13 @@ export const reviewRecording = async (recordingId: string, reviewerId: string, a
   const recording = await prisma.recording.findUnique({ where: { id: recordingId } });
   if (!recording) throw new AppError(404, 'Recording not found');
 
+  // Verify the reviewer has an accepted appointment with the student
+  const appt = await prisma.appointment.findFirst({
+    where: { teacherId: reviewerId, studentId: recording.studentId, status: 'ACCEPTED' },
+    select: { id: true },
+  });
+  if (!appt) throw new AppError(403, 'No accepted appointment with this student');
+
   const updateData: Record<string, unknown> = {
     reviewedBy: reviewerId,
     reviewNotes: notes || null,
@@ -72,10 +89,24 @@ export const reviewRecording = async (recordingId: string, reviewerId: string, a
   return await prisma.recording.update({ where: { id: recordingId }, data: updateData });
 };
 
+async function assertTeacherCanAccessStudent(teacherId: string, studentId: string) {
+  const [appointment, teacher, student] = await Promise.all([
+    prisma.appointment.findFirst({ where: { teacherId, studentId, status: 'ACCEPTED' }, select: { id: true } }),
+    prisma.user.findUnique({ where: { id: teacherId }, select: { deletedAt: true } }),
+    prisma.user.findUnique({ where: { id: studentId }, select: { deletedAt: true } }),
+  ]);
+  if (!appointment || teacher?.deletedAt || student?.deletedAt) {
+    throw new AppError(403, 'No accepted appointment with this student');
+  }
+}
+
 export const deleteRecording = async (recordingId: string, userId: string, isTeacherOrAdmin: boolean) => {
   const recording = await prisma.recording.findUnique({ where: { id: recordingId } });
   if (!recording) throw new AppError(404, 'Recording not found');
   if (!isTeacherOrAdmin && recording.studentId !== userId) throw new AppError(403, 'Permission denied');
+  if (isTeacherOrAdmin && recording.studentId !== userId) {
+    await assertTeacherCanAccessStudent(userId, recording.studentId);
+  }
 
   const fileName = recording.url.split('/').pop() || '';
   const filePath = path.join(UPLOAD_DIR, fileName);

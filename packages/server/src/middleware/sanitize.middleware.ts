@@ -1,17 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 
-const SENSITIVE_FIELDS = ['password', 'passwordHash', 'token', 'authorization', 'apiKey', 'secret'];
+const SENSITIVE_FIELDS = new Set(['password', 'passwordHash', 'tokenHash', 'authorization', 'apiKey', 'clientSecret']);
 
 interface SanitizedRecord extends Record<string, unknown> {}
 
 function sanitizeObject(obj: unknown): SanitizedRecord | string | number | boolean | null {
   if (!obj || typeof obj !== 'object') return obj as string | number | boolean | null;
+  if (obj instanceof Date) return obj as unknown as SanitizedRecord;
+  if (Buffer.isBuffer(obj)) return obj as unknown as SanitizedRecord;
   if (Array.isArray(obj)) return obj.map(sanitizeObject) as unknown as SanitizedRecord;
 
   const record = obj as Record<string, unknown>;
   const sanitized: SanitizedRecord = {};
   for (const [key, value] of Object.entries(record)) {
-    if (SENSITIVE_FIELDS.some((f) => key.toLowerCase().includes(f.toLowerCase()))) {
+    if (SENSITIVE_FIELDS.has(key)) {
       sanitized[key] = '[REDACTED]';
     } else if (typeof value === 'object' && value !== null) {
       sanitized[key] = sanitizeObject(value);
@@ -22,10 +24,9 @@ function sanitizeObject(obj: unknown): SanitizedRecord | string | number | boole
   return sanitized;
 }
 
-export const sanitizeRequestBody = (req: Request, _res: Response, next: NextFunction): void => {
-  if (req.body && typeof req.body === 'object') {
-    (req as any).sanitizedBody = sanitizeObject(req.body);
-  }
+export const sanitizeRequestBody = (_req: Request, _res: Response, next: NextFunction): void => {
+  // Request body sanitization is a no-op: no controller reads req.sanitizedBody.
+  // Response sanitization (sanitizeResponse) remains active.
   next();
 };
 

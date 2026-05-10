@@ -52,8 +52,7 @@ describe('admin.controller', () => {
 
       const res = await request(createTestApp()).get('/users');
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.data).toHaveLength(1);
+      expect(res.body.data).toHaveLength(1);
     });
   });
 
@@ -67,8 +66,7 @@ describe('admin.controller', () => {
         .send({ email: 'teacher@test.com', password: 'Password123!', firstName: 'John', lastName: 'Doe' });
 
       expect(res.status).toBe(201);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.status).toBe('ACTIVE');
+      expect(res.body.status).toBe('ACTIVE');
     });
 
     it('should reject short password', async () => {
@@ -93,8 +91,7 @@ describe('admin.controller', () => {
 
       const res = await request(createTestApp()).put('/users/student-1/approve');
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.status).toBe('ACTIVE');
+      expect(res.body.status).toBe('ACTIVE');
     });
   });
 
@@ -105,8 +102,7 @@ describe('admin.controller', () => {
 
       const res = await request(createTestApp()).put('/users/user-1/deactivate');
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.status).toBe('BANNED');
+      expect(res.body.status).toBe('BANNED');
     });
   });
 
@@ -117,8 +113,7 @@ describe('admin.controller', () => {
       const res = await request(createTestApp()).post('/broadcast').send({ message: 'Hello all' });
 
       expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-      expect(res.body.data.recipients).toBe(1);
+      expect(res.body.recipients).toBe(1);
     });
 
     it('should reject empty message', async () => {

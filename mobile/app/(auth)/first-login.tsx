@@ -47,8 +47,7 @@ export default function FirstLoginPage() {
     try {
       await changePassword(currentPassword, newPassword);
       Alert.alert(t('passwordChanged'));
-      const role = user?.role ?? 'student';
-      router.replace(`/${role}/home`);
+      router.replace(`/${user?.role ?? 'student'}/home`);
     } catch {
       Alert.alert(t('passwordChangeFailed'));
     }

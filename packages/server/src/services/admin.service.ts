@@ -221,7 +221,7 @@ export const getUserById = async (userId: string) => {
       createdAt: true,
       updatedAt: true,
       emailVerifiedAt: true,
-      deviceToken: true,
+      // deviceToken intentionally excluded — push tokens are sensitive credentials
       appointmentsAsStudent: {
         select: {
           id: true,

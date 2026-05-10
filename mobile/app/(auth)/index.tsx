@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -34,7 +35,13 @@ export default function LoginPage() {
     setError(null);
     try {
       const user = await login(email.trim(), password);
-      router.replace(`/${user.role.toLowerCase()}/home`);
+      const role = user.role?.toLowerCase();
+      const allowedRoles = ['admin', 'teacher', 'student'];
+      if (!allowedRoles.includes(role)) {
+        Alert.alert(t('error'), t('unsupportedRole') ?? 'Unsupported role. Contact admin.');
+        return;
+      }
+      router.replace(`/${role}/home`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');
     }
@@ -116,6 +123,12 @@ export default function LoginPage() {
                 <Text style={styles.buttonText}>{isLoading ? t('loading') : t('login')}</Text>
                 {!isLoading && <Text style={styles.buttonIcon}>→</Text>}
               </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ marginTop: SPACING.sm, alignItems: 'center' }}
+              onPress={() => router.push('/forgot-password')}
+            >
+              <Text style={{ fontSize: 13, color: COLORS.primary }}>{t('forgotPassword')}</Text>
             </TouchableOpacity>
           </Animated.View>
 

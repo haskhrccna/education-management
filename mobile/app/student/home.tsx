@@ -8,6 +8,8 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 import { useMemorization } from '@/src/hooks/useMemorization';
+import { useMessages } from '@/src/hooks/useMessages';
+import { useAppointments } from '@/src/hooks/useAppointments';
 
 // ─── Mock Quran Data (replaced by API later) ──────────────────────────────────
 
@@ -43,11 +45,23 @@ export default function StudentHomeScreen() {
   const COLORS = getColors(theme, darkMode);
   const styles = createStyles(COLORS);
 
-  const { progress, surahs: apiSurahs, isLoading: isLoadingProgress, fetchProgress } = useMemorization();
+  const { progress, surahs: apiSurahs, isLoading: isLoadingProgress, fetchProgress, streak } = useMemorization();
+  const { unreadCount, fetchMessages: fetchUnreadCount } = useMessages();
+  const { appointments, fetchAppointments } = useAppointments();
 
   useEffect(() => {
     fetchProgress();
   }, [fetchProgress]);
+
+  useEffect(() => {
+    fetchUnreadCount();
+  }, []);
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments]);
+
+  const assignedTeacher = appointments?.find((a: any) => a.status === 'ACCEPTED')?.teacher;
 
   const handleLogout = async () => {
     await logout();
@@ -81,20 +95,43 @@ export default function StudentHomeScreen() {
       {/* ── Header ── */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.greeting}>{t('studentHomeTitle', { name: user?.firstName || '' })}</Text>
             <Text style={styles.subGreeting}>
-              {i18n.language === 'ar' ? 'يا بارك الله فيك في حفظ كتابه' : 'May Allah bless your memorization'}
+              {i18n.language === 'ar' ? 'بارك الله فيك في حفظ كتابه' : 'May Allah bless your memorization'}
             </Text>
           </View>
-          <View style={{ flexDirection: 'row', gap: SPACING.sm }}>
-            <TouchableOpacity onPress={() => router.push('/student/grades')} style={styles.logoutBtn}>
-              <Text style={styles.logoutText}>{t('myGrades')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-              <Text style={styles.logoutText}>{t('logout')}</Text>
+          <View style={{ flexDirection: 'row', gap: SPACING.sm, alignItems: 'center' }}>
+            <View style={styles.msgIconWrap}>
+              <TouchableOpacity style={styles.msgIconBtn} onPress={() => router.push('/messages')}>
+                <Text style={styles.msgIconText}>💬</Text>
+              </TouchableOpacity>
+              {unreadCount > 0 && (
+                <View style={styles.msgBadge}>
+                  <Text style={styles.msgBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                </View>
+              )}
+            </View>
+            <TouchableOpacity onPress={handleLogout} style={styles.iconBtn}>
+              <Text style={styles.iconBtnText}>🚪</Text>
             </TouchableOpacity>
           </View>
+        </View>
+
+        {/* Action chips */}
+        <View style={styles.actionRow}>
+          <TouchableOpacity onPress={() => router.push('/student/grades')} style={styles.actionChip}>
+            <Text style={styles.actionChipIcon}>📊</Text>
+            <Text style={styles.actionChipText}>{t('myGrades')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/student/recordings')} style={styles.actionChip}>
+            <Text style={styles.actionChipIcon}>🎙️</Text>
+            <Text style={styles.actionChipText}>{t('recordings')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/student/appointments')} style={styles.actionChip}>
+            <Text style={styles.actionChipIcon}>📅</Text>
+            <Text style={styles.actionChipText}>{t('appointments')}</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Quick stats row */}
@@ -114,6 +151,27 @@ export default function StudentHomeScreen() {
             <Text style={styles.statLabel}>{i18n.language === 'ar' ? 'الجزء' : 'Juz'}</Text>
           </View>
         </View>
+      </View>
+
+      {/* ── Teacher Info ── */}
+      <View style={styles.teacherCard}>
+        {assignedTeacher ? (
+          <View style={styles.teacherRow}>
+            <Text style={styles.teacherLabel}>
+              {t('yourTeacher')}: {assignedTeacher.firstName} {assignedTeacher.lastName}
+            </Text>
+            <TouchableOpacity onPress={() => router.push('/student/teacher-change')}>
+              <Text style={styles.changeLink}>{t('requestTeacherChange')}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.teacherRow}>
+            <Text style={styles.teacherLabel}>{t('noTeacherAssigned')}</Text>
+            <TouchableOpacity onPress={() => router.push('/student/teacher-change')}>
+              <Text style={styles.changeLink}>{t('requestTeacherAssignment')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       {/* ── Tabs ── */}
@@ -213,7 +271,7 @@ function SurahCard({ surah, styles, i18n }: { surah: Surah; styles: any; i18n: a
           <Text style={styles.surahNumber}>{surah.id}</Text>
           <Text style={styles.surahArabic}>{surah.nameAr}</Text>
         </View>
-        <Text style={styles.surahEnglish}>{surah.nameEn}</Text>
+        {i18n.language !== 'ar' && <Text style={styles.surahEnglish}>{surah.nameEn}</Text>}
       </View>
 
       {/* Progress bar */}
@@ -363,7 +421,7 @@ function ProgressTab({
       {/* Weekly streak */}
       <Animated.View entering={FadeInUp.duration(400)} style={[styles.card, styles.streakCard]}>
         <Text style={styles.streakIcon}>🔥</Text>
-        <Text style={styles.streakValue}>5</Text>
+        <Text style={styles.streakValue}>{5}</Text>
         <Text style={styles.streakLabel}>{i18n.language === 'ar' ? 'السجل الأسبوعي' : 'Weekly Streak'}</Text>
       </Animated.View>
 
@@ -437,18 +495,36 @@ function ProgressTab({
 function getJuzNameAr(juz: number): string {
   const names = [
     '',
-    'alif lam meem',
-    'samman',
-    'amman',
-    'qad afalah',
-    'almulk',
-    'amma',
-    'yataka tun',
-    'naw',
-    'al hajr',
-    'nur',
-    'al anfal',
-    'ahzab',
+    'آلم',
+    'سَيَقُولُ',
+    'تِلْكَ الرُّسُلُ',
+    'لَنْ تَنَالُوا',
+    'وَالْمُحْصَنَاتُ',
+    'لَا يُحِبُّ اللَّهُ',
+    'وَإِذَا سَمِعُوا',
+    'وَلَوْ أَنَّنَا',
+    'قَالَ الْمَلَأُ',
+    'وَاعْلَمُوا',
+    'يَعْتَذِرُونَ',
+    'وَمَا مِنْ دَابَّةٍ',
+    'وَمَا أُبَرِّئُ',
+    'رُبَمَا',
+    'سُبْحَانَ الَّذِي',
+    'قَالَ أَلَمْ',
+    'اقْتَرَبَتْ',
+    'قَدْ أَفْلَحَ',
+    'وَقَالَ الَّذِينَ',
+    'أَمَّنْ خَلَقَ',
+    'اتَّبِعُوا مَا',
+    'وَمَنْ يَقْنُتْ',
+    'وَمَا لِيَ',
+    'فَمَنْ أَظْلَمُ',
+    'إِلَيْهِ يُرَدُّ',
+    'حَمٌّ',
+    'قَالَ فَمَا خَطْبُكُمْ',
+    'قَدْ سَمِعَ اللَّهُ',
+    'تَبَارَكَ الَّذِي',
+    'عَمَّ يَتَسَاءَلُونَ',
   ];
   return names[juz] || '';
 }
@@ -497,6 +573,60 @@ const createStyles = (COLORS: any) =>
       fontSize: 13,
       fontWeight: '600',
     },
+    iconBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: RADIUS.md,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    iconBtnText: { fontSize: 16 },
+    actionRow: {
+      flexDirection: 'row',
+      gap: SPACING.sm,
+      marginTop: SPACING.lg,
+    },
+    actionChip: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: SPACING.xs,
+      backgroundColor: 'rgba(255,255,255,0.12)',
+      borderRadius: RADIUS.lg,
+      paddingVertical: SPACING.sm,
+      paddingHorizontal: SPACING.md,
+    },
+    actionChipIcon: { fontSize: 16 },
+    actionChipText: {
+      color: '#fff',
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    msgIconWrap: { position: 'relative', marginRight: 6 },
+    msgIconBtn: {
+      width: 32,
+      height: 32,
+      backgroundColor: 'rgba(255,255,255,0.2)',
+      borderRadius: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    msgIconText: { fontSize: 16 },
+    msgBadge: {
+      position: 'absolute',
+      top: -4,
+      right: -4,
+      minWidth: 16,
+      height: 16,
+      borderRadius: 8,
+      backgroundColor: '#ef4444',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 3,
+    },
+    msgBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
 
     // Stats row
     statsRow: { flexDirection: 'row', gap: SPACING.md },
@@ -725,4 +855,14 @@ const createStyles = (COLORS: any) =>
       textAlign: 'center',
       lineHeight: 22,
     },
+
+    // Teacher info
+    teacherCard: {
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.xs,
+      backgroundColor: COLORS.surface,
+    },
+    teacherRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    teacherLabel: { fontSize: 13, color: COLORS.textSecondary },
+    changeLink: { fontSize: 12, color: COLORS.primary, fontWeight: '600' },
   });

@@ -7,6 +7,8 @@ import {
   generateRefreshToken,
   hashRefreshToken,
   verifyRefreshToken,
+  forgotPassword as forgotPasswordService,
+  resetPassword as resetPasswordService,
 } from '../services/auth.service';
 import { AppError } from '../middleware/error.middleware';
 import { sendWelcomeEmail } from '../services/email.service';
@@ -81,6 +83,9 @@ export const refresh = async (req: Request, res: Response, next: NextFunction): 
     if (!user || !verifyRefreshToken(refreshToken, user.refreshTokenHash)) {
       throw new AppError(401, 'Invalid refresh token');
     }
+    if (user.deletedAt) {
+      throw new AppError(401, 'Account has been deleted');
+    }
     if (user.status !== 'ACTIVE') {
       throw new AppError(401, 'Account is not active');
     }
@@ -129,6 +134,24 @@ export const logout = async (req: Request, res: Response, next: NextFunction): P
       data: { refreshTokenHash: null },
     });
     res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    await forgotPasswordService(req.body.email);
+    res.json({ message: 'If that email is registered, a password reset link has been sent' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const result = await resetPasswordService(req.body.token, req.body.newPassword);
+    res.json(result);
   } catch (err) {
     next(err);
   }

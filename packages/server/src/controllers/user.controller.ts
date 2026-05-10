@@ -37,8 +37,9 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
     const user = await prisma.user.update({
       where: { id: req.userId! },
       data,
+      select: { id: true, email: true, role: true, firstName: true, lastName: true, status: true, createdAt: true },
     });
-    res.json(user);
+    res.json({ ...user, role: user.role.toLowerCase(), status: user.status.toLowerCase() });
   } catch (err) {
     next(err);
   }
@@ -76,7 +77,7 @@ export const saveDeviceToken = async (req: Request, res: Response, next: NextFun
       data: { deviceToken },
     });
 
-    logger.info({ userId: req.userId, token: deviceToken.slice(0, 20) }, 'Device token saved to DB');
+    logger.info({ userId: req.userId }, 'Device token saved to DB');
     res.json({ saved: true });
   } catch (err) {
     next(err);

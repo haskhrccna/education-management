@@ -6,14 +6,21 @@ export const getSurahs = async () => {
 };
 
 async function assertTeacherCanAccessStudent(teacherId: string, studentId: string) {
-  const appointment = await prisma.appointment.findFirst({
-    where: { teacherId, studentId, status: 'ACCEPTED' },
-    select: { id: true },
-  });
-  if (!appointment) throw new AppError(403, 'No accepted appointment with this student');
+  const [appointment, teacher, student] = await Promise.all([
+    prisma.appointment.findFirst({ where: { teacherId, studentId, status: 'ACCEPTED' }, select: { id: true } }),
+    prisma.user.findUnique({ where: { id: teacherId }, select: { deletedAt: true } }),
+    prisma.user.findUnique({ where: { id: studentId }, select: { deletedAt: true } }),
+  ]);
+  if (!appointment || teacher?.deletedAt || student?.deletedAt) {
+    throw new AppError(403, 'No accepted appointment with this student');
+  }
 }
 
 export const getProgress = async (callerId: string, callerRole: string, studentId?: string) => {
+  if (!['STUDENT', 'TEACHER', 'ADMIN'].includes(callerRole)) {
+    throw new AppError(403, 'Invalid role');
+  }
+
   const targetId = callerRole === 'STUDENT' ? callerId : studentId;
   if (!targetId) throw new AppError(400, 'studentId query param is required');
 

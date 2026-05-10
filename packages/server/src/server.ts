@@ -22,11 +22,6 @@ const httpServer = server.listen(config.port, () => {
 const shutdown = async (signal: string) => {
   logger.info({ signal }, 'Shutting down gracefully...');
 
-  // Stop accepting new connections
-  httpServer.close(() => {
-    logger.info('HTTP server closed');
-  });
-
   // Close Socket.IO connections
   try {
     await closeSocketIO();
@@ -49,13 +44,21 @@ const shutdown = async (signal: string) => {
     logger.error({ err }, 'Database disconnect failed');
   }
 
+  // Stop accepting new connections and exit
+  httpServer.close((err) => {
+    if (err) {
+      logger.error({ err }, 'HTTP server close failed');
+      process.exit(1);
+    }
+    logger.info('HTTP server closed');
+    process.exit(0);
+  });
+
   // Force exit after timeout
   setTimeout(() => {
     logger.error('Forced shutdown after timeout');
     process.exit(1);
   }, 10000).unref();
-
-  process.exit(0);
 };
 
 process.on('SIGTERM', () => shutdown('SIGTERM'));
@@ -69,6 +72,7 @@ process.on('uncaughtException', (err) => {
 
 process.on('unhandledRejection', (reason) => {
   logger.error({ reason }, 'Unhandled rejection');
+  shutdown('unhandledRejection');
 });
 
 export default httpServer;

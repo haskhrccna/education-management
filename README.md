@@ -1,170 +1,236 @@
-# التعليم الإلكتروني — Electronic Education Management System
+# Quran Review — Education Management Platform
 
-A production-ready education management platform for students, teachers, and administrators with bilingual Arabic/English support (Arabic primary, RTL).
+A full-stack Quran memorization management system for Islamic schools. Students track surah progress, teachers manage sessions and grades, and admins oversee the platform.
 
-## Features
+> **Visual map:** Open `docs/app-map.html` in any browser for an interactive screen-by-screen reference with API endpoints, navigation flows, and cross-role relationship diagrams.
 
-### Core Platform
-- **Role-based access control** — Student, Teacher, Admin roles with JWT authentication
-- **Appointment scheduling** — Time-based conflict detection, request/accept/reject workflow
-- **Grade management** — Teachers record grades; students view their progress
-- **Messaging** — Real-time chat via Socket.IO with read receipts
-- **Recording uploads** — Students upload recordings; teachers review and approve
-- **PDF report generation** — Teachers generate progress reports for students
+---
 
-### API & Backend (v1)
-- **API Versioning** — `/api/v1/*` with backward-compatible legacy routes
-- **OpenAPI/Swagger Docs** — Interactive API documentation at `/api/docs`
-- **Structured Logging** — Pino with request tracing and slow query detection
-- **Background Jobs** — BullMQ queues for broadcasts, reports, and emails
-- **Redis Caching** — Query result caching for performance
-- **Rate Limiting** — Per-role limits (auth: 10, standard: 100, admin: 300, upload: 20)
-- **Request Timeouts** — 30s default with graceful 504 handling
-- **Response Sanitization** — Passwords/tokens redacted from logs automatically
-- **Health Checks** — `/api/health` with DB latency and memory usage
-- **Prometheus Metrics** — `/metrics` with request duration histograms
+## Table of Contents
 
-### Security
-- Helmet with CSP, HSTS, and cross-origin policies
-- Zod input validation on all POST/PUT endpoints
-- Centralized error handling with typed AppError codes
-- Request ID propagation for distributed tracing
-- Graceful shutdown with connection draining
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Mobile App Screens](#mobile-app-screens)
+- [API Reference](#api-reference)
+- [Security](#security)
+- [Database Schema](#database-schema)
+- [Feature Status](#feature-status)
+- [Development Notes](#development-notes)
 
-### Mobile App
-- **Expo React Native** with expo-router file-based routing
-- **Secure token storage** via expo-secure-store
-- **Push notifications** via expo-notifications + FCM
-- **Bilingual UI** — Arabic RTL primary, English LTR
-- **Typed API layer** — Axios client with interceptors
-- **React hooks** — useAuth, useAppointments, useGrades, useMessages
+---
 
-### Notifications
-- **Unified notification service** — Email + Socket.IO + Push (FCM)
-- **Bilingual email templates** — Arabic/English with RTL support
-- **Event-driven** — Auto-notify on grade, appointment, and message events
+## Architecture
 
-### Admin Tools
-- **Paginated user management** — List, filter, approve, deactivate
-- **Bulk operations** — Bulk approve students, bulk deactivate users
-- **Progress dashboards** — Teacher and student progress analytics
-- **Broadcast messaging** — Send to all users or by role
-- **CSV exports** — Export grades, appointments, users
-- **Audit logging** — All admin actions logged with Pino
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Mobile App (Expo React Native)                                  │
+│  expo-router · Zustand · i18next (Arabic RTL primary)           │
+└───────────────────────┬─────────────────────────────────────────┘
+                        │ HTTPS / REST
+┌───────────────────────▼─────────────────────────────────────────┐
+│  Express API Server (Node.js + TypeScript)                       │
+│  JWT auth · Zod validation · Rate limiting · Sanitization        │
+└───────────┬─────────────────────────┬───────────────────────────┘
+            │                         │
+┌───────────▼──────────┐  ┌──────────▼─────────────────────────┐
+│  PostgreSQL           │  │  Redis + BullMQ                     │
+│  Prisma 6 ORM        │  │  Background jobs                     │
+└──────────────────────┘  └────────────────────────────────────┘
+```
 
-## Quick Start
+**Monorepo layout** (`npm workspaces`):
+- `packages/server` — Express API
+- `packages/shared` — Shared TypeScript types, enums, Zod validators
+- `mobile/` — Expo React Native app (standalone)
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Mobile | Expo SDK 54 · React Native · expo-router (file-based) |
+| State | Zustand |
+| i18n | i18next · Arabic (RTL) primary, English secondary |
+| API Client | Axios (typed, in `mobile/src/api/`) |
+| Server | Express 5 · TypeScript |
+| ORM | Prisma 6 · PostgreSQL |
+| Auth | JWT (access + refresh tokens) · bcrypt |
+| Queue | Redis + BullMQ |
+| Push | Firebase Cloud Messaging (FCM) · graceful no-op if unconfigured |
+| Validation | Zod (`@quran-review/shared`) |
+| Rate Limiting | express-rate-limit (tiered: standard / auth / admin / upload / password-reset) |
+| Security | helmet · cors · sanitize-html (request + response) |
+| Testing | Jest + ts-jest · 131 tests · 17 suites |
+| Logging | Pino |
+| Metrics | Prometheus (`/metrics`) |
+
+---
+
+## Project Structure
+
+```
+education_management/
+├── packages/
+│   ├── server/
+│   │   ├── src/
+│   │   │   ├── app.ts                    # Express app + middleware stack
+│   │   │   ├── config/index.ts           # Env config (DATABASE_URL, JWT, FCM)
+│   │   │   ├── controllers/              # Route handlers (thin, delegate to services)
+│   │   │   │   ├── auth.controller.ts
+│   │   │   │   ├── user.controller.ts
+│   │   │   │   ├── admin.controller.ts
+│   │   │   │   ├── appointment.controller.ts
+│   │   │   │   ├── grade.controller.ts
+│   │   │   │   ├── memorization.controller.ts
+│   │   │   │   ├── recording.controller.ts
+│   │   │   │   ├── report.controller.ts
+│   │   │   │   ├── message.controller.ts
+│   │   │   │   ├── file.controller.ts    # Tenant-guarded file download
+│   │   │   │   ├── revision.controller.ts
+│   │   │   │   └── teacherChange.controller.ts
+│   │   │   ├── services/                 # Business logic
+│   │   │   │   ├── auth.service.ts       # Login, register, forgot/reset password
+│   │   │   │   ├── email.service.ts      # Password reset email
+│   │   │   │   ├── fcm.service.ts        # Firebase push (lazy init, no-op if unconfigured)
+│   │   │   │   ├── notification.service.ts
+│   │   │   │   ├── recording.service.ts
+│   │   │   │   ├── export.service.ts     # Grades CSV (teacher-guarded)
+│   │   │   │   ├── revision.service.ts   # Revision schedule CRUD
+│   │   │   │   ├── teacherChange.service.ts
+│   │   │   │   └── __tests__/            # Service unit tests
+│   │   │   ├── routes/                   # Express Router definitions
+│   │   │   ├── middleware/
+│   │   │   │   ├── auth.middleware.ts     # authenticate() + authorize()
+│   │   │   │   ├── error.middleware.ts    # Centralized error handler
+│   │   │   │   ├── rate-limit.middleware.ts
+│   │   │   │   ├── sanitize.middleware.ts # Request + response sanitization
+│   │   │   │   ├── validate.middleware.ts # Zod schema validation
+│   │   │   │   ├── request-id.middleware.ts
+│   │   │   │   └── timeout.middleware.ts
+│   │   │   └── lib/
+│   │   │       ├── logger.ts
+│   │   │       ├── health.ts
+│   │   │       └── response.ts           # successResponse() wrapper
+│   │   └── prisma/
+│   │       ├── schema.prisma
+│   │       └── seed.ts
+│   └── shared/
+│       └── src/
+│           ├── enums/                    # UserRole, AppointmentStatus, GradeType, MessageType
+│           ├── types/                    # Appointment, Grade, Message, Recording, Report, User
+│           ├── validators/               # Zod schemas (auth, common, teacherChange)
+│           └── index.ts
+├── mobile/
+│   ├── app/
+│   │   ├── _layout.tsx                   # Root layout, auth gate, role redirect
+│   │   ├── (auth)/                       # Auth route group
+│   │   │   ├── index.tsx                 # Login
+│   │   │   ├── register.tsx
+│   │   │   ├── first-login.tsx
+│   │   │   ├── pending-approval.tsx
+│   │   │   └── forgot-password.tsx
+│   │   ├── admin/
+│   │   │   ├── home.tsx
+│   │   │   ├── user-detail.tsx
+│   │   │   ├── change-requests.tsx
+│   │   │   ├── broadcast.tsx
+│   │   │   └── settings.tsx
+│   │   ├── teacher/
+│   │   │   ├── home.tsx
+│   │   │   ├── student-detail.tsx
+│   │   │   ├── appointments.tsx
+│   │   │   ├── recordings.tsx
+│   │   │   ├── reports.tsx
+│   │   │   └── grade-form.tsx
+│   │   ├── student/
+│   │   │   ├── home.tsx
+│   │   │   ├── appointments.tsx
+│   │   │   ├── grades.tsx
+│   │   │   ├── recordings.tsx
+│   │   │   ├── reports.tsx
+│   │   │   └── teacher-change.tsx
+│   │   └── messages/
+│   │       ├── index.tsx                 # Conversation list (all roles)
+│   │       └── conversation.tsx
+│   └── src/
+│       ├── api/                          # Typed Axios clients
+│       ├── hooks/                        # Custom React hooks
+│       ├── auth/                         # Zustand auth store
+│       ├── settings/                     # Zustand settings (language, theme)
+│       ├── i18n/                         # i18next + translation keys (ar, en)
+│       └── components/                   # Shared UI components (SkeletonCard, etc.)
+├── docs/
+│   └── app-map.html                      # Interactive screen map (open in browser)
+└── CLAUDE.md
+```
+
+---
+
+## Getting Started
 
 ### Prerequisites
-- Node.js 22+
-- PostgreSQL 17
-- Redis 7 (optional, for queues and caching)
 
-### 1. Database
+- Node.js 20+
+- PostgreSQL 15+
+- Redis 7+
+- Expo Go app or iOS/Android simulator
+
+### Environment Variables
+
+Create `packages/server/.env`:
+
+```env
+DATABASE_URL="postgresql://user:pass@localhost:5432/quran_review"
+JWT_SECRET="your-secret"
+JWT_REFRESH_SECRET="your-refresh-secret"
+REDIS_URL="redis://localhost:6379"
+CLIENT_URL="http://localhost:8081"
+NODE_ENV="development"
+
+# Email (for password reset)
+SMTP_HOST="smtp.example.com"
+SMTP_PORT="587"
+SMTP_USER="user@example.com"
+SMTP_PASS="password"
+EMAIL_FROM="noreply@example.com"
+
+# Firebase (optional — push notifications no-op if absent)
+FIREBASE_PROJECT_ID=""
+FIREBASE_CLIENT_EMAIL=""
+FIREBASE_PRIVATE_KEY=""
+```
+
+### Install & Run
+
 ```bash
-brew services start postgresql@17
-brew services start redis
+# Install all workspaces
+npm install
+
+# Run database migrations + seed
 cd packages/server
-cp .env.example .env    # update DATABASE_URL if needed
-npx prisma migrate dev   # run migrations
-npx prisma db seed       # seed admin + teacher + students
+npx prisma migrate dev
+npx prisma db seed
+
+# Start server (port 4000)
+npm run dev
+
+# Start mobile app
+cd ../../mobile
+npm start
 ```
 
-### 2. Backend Server
+### Run Tests
+
 ```bash
-cd packages/server
-npm run dev              # starts on :4000
-# Or with workers:
-ENABLE_WORKERS=true npm run dev
+npm run test:server          # from repo root
+cd packages/server && npm test -- --watch   # watch mode
 ```
 
-### 3. Mobile App
-```bash
-cd mobile
-npm start                # Expo dev tools open
-# Press 'a' for Android, 'i' for iOS simulator
-```
+### Seeded Users
 
-## API Endpoints
-
-### Auth
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/v1/auth/register` | public | Student/teacher self-register |
-| POST | `/api/v1/auth/login` | public | Login all roles |
-| POST | `/api/v1/auth/verify-email` | auth | Verify email address |
-| POST | `/api/v1/auth/resend-verification` | auth | Resend verification email |
-
-### Users
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/v1/users/profile` | auth | Get my profile |
-| PUT | `/api/v1/users/profile` | auth | Update profile |
-| PUT | `/api/v1/users/change-password` | auth | Change password |
-| POST | `/api/v1/users/device-token` | auth | Register push token |
-
-### Appointments
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/v1/appointments` | auth | List my appointments |
-| POST | `/api/v1/appointments` | student | Create appointment |
-| PUT | `/api/v1/appointments/:id` | teacher/admin | Manage appointment |
-
-### Grades
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/v1/grades` | auth | View grades |
-| POST | `/api/v1/grades` | teacher | Create grade entry |
-| GET | `/api/v1/grades/student/:id` | teacher/admin | View student grades |
-
-### Messages
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/v1/messages` | auth | List conversations |
-| POST | `/api/v1/messages` | auth | Send message |
-| PUT | `/api/v1/messages/:id/read` | auth | Mark as read |
-
-### Recordings
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/v1/recordings` | auth | List recordings |
-| POST | `/api/v1/recordings` | student | Upload recording |
-| PUT | `/api/v1/recordings/:id` | teacher/admin | Review recording |
-| DELETE | `/api/v1/recordings/:id` | teacher/admin | Delete recording |
-
-### Reports
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/v1/reports` | teacher | Generate PDF report |
-| GET | `/api/v1/reports` | teacher/admin | List my reports |
-
-### Admin
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/v1/admin/users` | admin | List users (paginated) |
-| POST | `/api/v1/admin/teachers` | admin | Create teacher |
-| PUT | `/api/v1/admin/users/:id/approve` | admin | Approve student |
-| PUT | `/api/v1/admin/users/:id/deactivate` | admin | Ban user |
-| POST | `/api/v1/admin/broadcast` | admin | Broadcast message |
-| POST | `/api/v1/admin/bulk/approve` | admin | Bulk approve students |
-| POST | `/api/v1/admin/bulk/deactivate` | admin | Bulk deactivate users |
-| GET | `/api/v1/admin/progress/teachers` | admin | Teacher progress |
-| GET | `/api/v1/admin/progress/students` | admin | Student progress |
-
-### Exports
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/v1/exports/grades` | teacher/admin | Export grades CSV |
-| GET | `/api/v1/exports/appointments` | auth | Export appointments CSV |
-| GET | `/api/v1/exports/users` | admin | Export users CSV |
-
-### System
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/health` | public | Health check |
-| GET | `/metrics` | public | Prometheus metrics |
-| GET | `/api/docs` | public | Swagger UI |
-
-## Seeded Users
 | Email | Password | Role | Status |
 |-------|----------|------|--------|
 | admin@education.com | Admin1234! | ADMIN | ACTIVE |
@@ -172,53 +238,288 @@ npm start                # Expo dev tools open
 | ali@education.com | Student1234! | STUDENT | ACTIVE |
 | fatima@education.com | Student1234! | STUDENT | PENDING |
 
-## Tech Stack
-| Layer | Choice |
-|-------|--------|
-| Mobile | Expo 54 + React Native 0.81, expo-router |
-| Backend | Node.js 22 + Express + TypeScript |
-| Database | PostgreSQL 17 + Prisma 6 |
-| Cache/Queue | Redis 7 + BullMQ |
-| Auth | JWT (expo-secure-store on mobile) |
-| State | Zustand |
-| i18n | i18next (Arabic RTL primary) |
-| Logging | Pino |
-| Metrics | Prometheus |
-| Testing | Jest 30 + ts-jest + supertest |
-| CI/CD | GitHub Actions |
+---
 
-## Environment Variables
+## Mobile App Screens
 
-See `packages/server/.env.example` for all required variables. Key variables:
+### Authentication Flow
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `JWT_SECRET` | Yes | Secret for JWT signing |
-| `REDIS_URL` | No | Redis connection (queues/cache) |
-| `EMAIL_HOST` | No | SMTP host for email notifications |
-| `EMAIL_USER` | No | SMTP username |
-| `EMAIL_PASS` | No | SMTP password |
-| `FCM_SERVICE_ACCOUNT_KEY` | No | Firebase Cloud Messaging credentials |
-| `ENABLE_WORKERS` | No | Set to `true` to enable BullMQ workers |
+```
+Login ──► JWT issued ──► role-based redirect
+                              ├── ADMIN   → admin/home
+                              ├── TEACHER → teacher/home
+                              └── STUDENT → student/home
 
-## Testing
-
-```bash
-cd packages/server
-npm test              # Run all tests
-npm run test:coverage # With coverage report
+Register → PENDING status → pending-approval (wait for admin)
+Admin approves → user can log in normally
 ```
 
-## Docker
+### Admin (5 screens)
 
-```bash
-cd packages/server
-docker-compose up --build
+| Screen | File | Purpose |
+|--------|------|---------|
+| Dashboard | `admin/home.tsx` | User list, filter by role/status, approve pending accounts |
+| User Detail | `admin/user-detail.tsx` | Edit role/status, assign teacher to student |
+| Change Requests | `admin/change-requests.tsx` | Approve/reject student teacher-change requests |
+| Broadcast | `admin/broadcast.tsx` | Send message to all users or role group |
+| Settings | `admin/settings.tsx` | Profile, password, language toggle, logout |
+
+### Teacher (6 screens)
+
+| Screen | File | Purpose |
+|--------|------|---------|
+| Dashboard | `teacher/home.tsx` | Student roster with live memorization progress |
+| Student Detail | `teacher/student-detail.tsx` | Surah progress, grade history |
+| Appointments | `teacher/appointments.tsx` | Accept/reject student session requests |
+| Recordings | `teacher/recordings.tsx` | Review student recitation audio, add notes |
+| Reports | `teacher/reports.tsx` | Create/export progress reports |
+| Grade Form | `teacher/grade-form.tsx` | Record session grade per surah |
+
+> **Relationship Guard:** Teachers can only access student data when an `Appointment` with `status = 'ACCEPTED'` exists between them. Enforced server-side on all student-data endpoints.
+
+### Student (6 screens)
+
+| Screen | File | Purpose |
+|--------|------|---------|
+| Dashboard | `student/home.tsx` | Memorization progress, streak, assigned teacher |
+| Appointments | `student/appointments.tsx` | Request/view sessions with teacher |
+| Grades | `student/grades.tsx` | Grade history with locale-aware dates (ar-SA / en-US) |
+| Recordings | `student/recordings.tsx` | Upload recitation audio, view teacher feedback |
+| Reports | `student/reports.tsx` | View/download teacher progress reports |
+| Teacher Change | `student/teacher-change.tsx` | Request reassignment to different teacher |
+
+### Shared (2 screens — all roles)
+
+| Screen | File | Purpose |
+|--------|------|---------|
+| Messages List | `messages/index.tsx` | All conversations |
+| Conversation | `messages/conversation.tsx` | Message thread |
+
+---
+
+## API Reference
+
+All endpoints under `/api/v1/`. Legacy paths `/api/*` supported for backward compatibility.
+
+### Auth (public, rate-limited)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/auth/register` | Register → PENDING status |
+| POST | `/auth/login` | Login, returns JWT access + refresh tokens |
+| POST | `/auth/refresh` | Refresh access token |
+| POST | `/auth/forgot-password` | Email reset link (3/hr in production) |
+| POST | `/auth/reset-password` | Reset password with token |
+| POST | `/auth/first-login` | Set password on first login |
+| POST | `/auth/logout` | Invalidate refresh token |
+
+### Users (authenticated, all roles)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/users/profile` | Get own profile |
+| PUT | `/users/profile` | Update profile (safe fields only) |
+| PUT | `/users/change-password` | Change own password |
+| POST | `/users/device-token` | Register FCM device token |
+
+### Admin (ADMIN only)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/admin/users` | List users (filterable by role/status) |
+| GET | `/admin/users/:id` | User detail |
+| PUT | `/admin/users/:id` | Update user (role, status, teacher) |
+| PUT | `/admin/users/:id/approve` | Approve pending registration |
+
+### Appointments
+
+| Method | Path | Roles |
+|--------|------|-------|
+| GET | `/appointments` | TEACHER, STUDENT |
+| POST | `/appointments` | STUDENT |
+| PUT | `/appointments/:id` | TEACHER (accept/reject) |
+| DELETE | `/appointments/:id` | STUDENT (cancel) |
+
+### Grades & Memorization
+
+| Method | Path | Roles |
+|--------|------|-------|
+| GET | `/grades` | TEACHER, STUDENT |
+| POST/PUT/DELETE | `/grades[/:id]` | TEACHER |
+| GET | `/surahs` | ALL |
+| GET | `/memorization` | TEACHER, STUDENT |
+| POST/PUT | `/memorization[/:id]` | TEACHER |
+
+### Recordings
+
+| Method | Path | Roles |
+|--------|------|-------|
+| GET | `/recordings` | TEACHER, STUDENT |
+| POST | `/recordings` | STUDENT (upload) |
+| PUT | `/recordings/:id` | TEACHER (approve/reject + notes) |
+| GET | `/files/recordings/:id` | TEACHER, STUDENT |
+
+### Reports & Exports
+
+| Method | Path | Roles |
+|--------|------|-------|
+| GET | `/reports` | TEACHER, STUDENT |
+| POST | `/reports` | TEACHER |
+| GET | `/files/reports/:id` | TEACHER, STUDENT |
+| GET | `/exports/grades-csv` | ADMIN, TEACHER (teacher-guarded) |
+
+### Messages
+
+| Method | Path | Roles |
+|--------|------|-------|
+| GET | `/messages` | ALL |
+| POST | `/messages` | ALL |
+| POST | `/messages/broadcast` | ADMIN |
+
+### Teacher Changes & Revisions
+
+| Method | Path | Roles |
+|--------|------|-------|
+| GET/POST | `/teacher-changes` | ADMIN / STUDENT |
+| PUT | `/teacher-changes/:id` | ADMIN |
+| GET/POST | `/revisions` | TEACHER / STUDENT |
+| PUT/DELETE | `/revisions/:id` | TEACHER / STUDENT / ADMIN |
+
+### System
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/health` | public | Health check (DB + memory) |
+| GET | `/metrics` | public | Prometheus metrics |
+| GET | `/api/docs` | admin (prod) / public (dev) | Swagger UI |
+
+---
+
+## Security
+
+### Implemented Controls
+
+| Control | Detail |
+|---------|--------|
+| JWT auth | Access + refresh tokens · `ADMIN\|TEACHER\|STUDENT` in payload (uppercase) |
+| Relationship guard | `assertTeacherCanAccessStudent` — requires `ACCEPTED` appointment |
+| Tenant isolation | File downloads verify ownership before serving |
+| Rate limiting | 5 tiers: standard · auth · admin · upload · password-reset (3/hr) |
+| Input sanitization | `sanitizeRequestBody` + `sanitizeResponse` in middleware chain |
+| Zod validation | All POST/PUT bodies validated via `validate()` middleware |
+| Helmet | CSP, HSTS (maxAge 1yr), cross-origin policies — strict in production |
+| Password reset | Token only sent via email; never in HTTP response body |
+| Export guard | CSV export checks teacher-student relationship before serving |
+| Safe profile update | Prisma `select` prevents returning sensitive fields |
+
+### Authorization Matrix
+
+```
+ADMIN   → Full platform (admin routes, admin rate limit)
+TEACHER → Own classroom data + students with ACCEPTED appointment only
+STUDENT → Own data only
 ```
 
-Includes: API server, PostgreSQL 17, Redis 7
+JWT payload contains `userId` (string) and `role` (uppercase string). Mobile auth store normalizes role to lowercase for display only — never use lowercase in server-side comparisons.
 
-## License
+---
 
-MIT
+## Database Schema
+
+Key models (`packages/server/prisma/schema.prisma`):
+
+```
+User              id, name, email, passwordHash, role, status, teacherId, deviceToken
+
+Appointment       id, studentId, teacherId, status (PENDING|ACCEPTED|REJECTED),
+                  scheduledFor, notes
+
+Grade             id, studentId, teacherId, surahId, score,
+                  type (HIFZ|REVISION|TAJWEED), notes
+
+Memorization      id, studentId, surahId,
+                  status (NOT_STARTED|IN_PROGRESS|COMPLETED|NEEDS_REVIEW),
+                  progress (0-100), startDate, completedDate
+
+Recording         id, studentId, teacherId, surahId, filePath,
+                  status (PENDING|APPROVED|REJECTED), teacherNotes
+
+Report            id, studentId, teacherId, type, period, filePath
+
+Message           id, senderId, receiverId, content, type (DIRECT|BROADCAST), read
+
+TeacherChange     id, studentId, currentTeacherId, requestedTeacherId, reason,
+                  status (PENDING|APPROVED|REJECTED)
+
+RevisionSchedule  id, studentId, teacherId, surahId, scheduledFor,
+                  status (PENDING|COMPLETED|MISSED)
+
+Surah             id (1-114), name (Arabic), englishName, juzNumber, verseCount
+```
+
+---
+
+## Feature Status
+
+| Feature | Backend | Mobile | Notes |
+|---------|:-------:|:------:|-------|
+| Auth (login/register/reset) | ✅ | ✅ | Reset token in email only |
+| Admin user management | ✅ | ✅ | Filter, approve, deactivate, teacher assign |
+| Admin broadcast | ✅ | ✅ | ALL / STUDENTS / TEACHERS |
+| Teacher change requests | ✅ | ✅ | FCM push on admin decision |
+| Appointments | ✅ | ✅ | Creates teacher-student relationship |
+| Grades | ✅ | ✅ | Teacher records, student views |
+| Memorization progress | ✅ | ✅ | 114 surahs, 4-state status |
+| Recordings | ✅ | ✅ | Student uploads, teacher reviews |
+| Reports | ✅ | ✅ | Teacher creates, student downloads |
+| Messaging | ✅ | ✅ | Direct + broadcast |
+| Revision schedules | ✅ | ⬜ | Backend complete; mobile screen not yet built |
+| Push notifications (FCM) | ✅ | ✅ | No-op until firebase-admin configured |
+| Grades CSV export | ✅ | ✅ | Teacher-relationship-guarded |
+| Skeleton loading | — | ✅ | All home screens |
+| Pull-to-refresh | — | ✅ | All home screens |
+| Dark mode | — | ✅ | Via `getColors()` |
+| Tab navigator | — | ⬜ | Currently flat stack |
+| Offline support | — | ⬜ | Not implemented |
+
+---
+
+## Development Notes
+
+### Adding a New API Endpoint
+
+1. Route file in `packages/server/src/routes/`
+2. Controller in `packages/server/src/controllers/`
+3. Service in `packages/server/src/services/`
+4. Zod validator in `packages/shared/src/validators/` if new body shape needed
+5. Mount in `packages/server/src/app.ts`
+
+### Adding a New Mobile Screen
+
+1. Create `mobile/app/<role>/screen-name.tsx`
+2. Add typed API client in `mobile/src/api/`
+3. Add hook in `mobile/src/hooks/`
+4. Add i18n keys to `mobile/src/i18n/index.ts` (both `ar` and `en`)
+
+### i18n
+
+Primary language is Arabic (RTL). All user-facing strings must have both `ar` and `en` entries. Use `useTranslation()` hook — never hardcode display strings.
+
+### Role Case Convention
+
+| Context | Format | Example |
+|---------|--------|---------|
+| DB / Prisma | UPPERCASE | `ADMIN` |
+| JWT payload | UPPERCASE | `TEACHER` |
+| Server middleware (`authorize()`) | UPPERCASE comparisons | `UserRole.ADMIN` |
+| Mobile display / auth store | lowercase (normalized) | `student` |
+
+### Environment-specific Behavior
+
+| Setting | Development | Production |
+|---------|-------------|------------|
+| Password reset token | Logged to server console | Sent via email only |
+| CORS | `*` (all origins) | `CLIENT_URL` only |
+| API Docs (`/api/docs`) | Public | Admin-only |
+| Content Security Policy | Off | On (Helmet) |
+| Rate limits | High / relaxed | Enforced |

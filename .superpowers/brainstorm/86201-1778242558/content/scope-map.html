@@ -1,0 +1,122 @@
+<h2>Scope Map — What You Asked For</h2>
+<p class="subtitle">5 independent bundles identified. We'll design each separately. Tell me if the priority or scope looks right.</p>
+
+<style>
+  .bundles { display: flex; flex-direction: column; gap: 14px; margin-top: 20px; }
+  .bundle { background: #f9fafb; border: 1.5px solid #e5e7eb; border-radius: 14px; padding: 16px 18px; }
+  .bundle.hot  { border-color: #ef4444; background: #fff5f5; }
+  .bundle.sec  { border-color: #f59e0b; background: #fffbeb; }
+  .bundle.comm { border-color: #6366f1; background: #f5f3ff; }
+  .bundle.rel  { border-color: #10b981; background: #f0fdf4; }
+  .bundle.ux   { border-color: #3b82f6; background: #eff6ff; }
+  .bundle-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .bnum { font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 99px; }
+  .b-red    { background:#fee2e2;color:#b91c1c; }
+  .b-amber  { background:#fef3c7;color:#b45309; }
+  .b-indigo { background:#e0e7ff;color:#4338ca; }
+  .b-green  { background:#d1fae5;color:#065f46; }
+  .b-blue   { background:#dbeafe;color:#1d4ed8; }
+  .bundle-title  { font-size:14px;font-weight:800;color:#111827; }
+  .bundle-effort { font-size:11px;color:#6b7280;margin-left:auto; }
+  .items { display:flex;flex-wrap:wrap;gap:7px; }
+  .item { font-size:12px;background:white;border:1px solid #e5e7eb;border-radius:8px;padding:3px 9px;color:#374151; }
+  .item.req { font-weight:700;color:#111827; }
+  .note { font-size:11px;color:#6b7280;margin-top:8px;font-style:italic; }
+  .rec { margin-top:20px;padding:14px;background:#f0fdf4;border-radius:12px;border:1px solid #bbf7d0; }
+</style>
+
+<div class="bundles">
+
+  <div class="bundle hot">
+    <div class="bundle-header">
+      <span class="bnum b-red">BUNDLE A</span>
+      <span class="bundle-title">Critical Bug Fixes + Code Integrity</span>
+      <span class="bundle-effort">~2 hrs</span>
+    </div>
+    <div class="items">
+      <span class="item req">🔴 Teacher home: hardcoded 45% progress bar</span>
+      <span class="item req">🔴 Teacher home: dark mode broken (static COLORS import)</span>
+      <span class="item req">🔴 Admin filter badge blank for new default filter</span>
+      <span class="item req">🔴 Grade dates always show en-US locale</span>
+      <span class="item">Role/status badges show raw enum (STUDENT, ACTIVE)</span>
+      <span class="item">Teacher stats row hardcoded (12 assignments, 85%)</span>
+      <span class="item">Revision schedule tab permanently empty</span>
+      <span class="item">Progress Report button links to nonexistent /teacher/reports</span>
+    </div>
+    <p class="note">All identified this session — straightforward, high visual impact</p>
+  </div>
+
+  <div class="bundle sec">
+    <div class="bundle-header">
+      <span class="bnum b-amber">BUNDLE B</span>
+      <span class="bundle-title">Security Hardening</span>
+      <span class="bundle-effort">~4 hrs</span>
+    </div>
+    <div class="items">
+      <span class="item req">🔐 Soft-delete for users (hard delete = data loss risk)</span>
+      <span class="item req">🔐 Authorization gaps on file/recording endpoints</span>
+      <span class="item req">🔐 JWT refresh token rotation (prevent token reuse)</span>
+      <span class="item req">🔐 Password reset flow (currently no forgot-password)</span>
+      <span class="item">Grade actions missing from audit log</span>
+      <span class="item">Input length limits on free-text fields (notes, subject)</span>
+    </div>
+    <p class="note">Remaining phases from Phase 1 security audit</p>
+  </div>
+
+  <div class="bundle comm">
+    <div class="bundle-header">
+      <span class="bnum b-indigo">BUNDLE C</span>
+      <span class="bundle-title">Communication System (you requested)</span>
+      <span class="bundle-effort">~1 day</span>
+    </div>
+    <div class="items">
+      <span class="item req">💬 Student ↔ Teacher direct messaging</span>
+      <span class="item req">💬 Teacher ↔ Admin messaging</span>
+      <span class="item req">📢 Admin broadcast to all users or by role</span>
+      <span class="item">Unread message badge / dot indicator</span>
+      <span class="item">Push notification on new message</span>
+      <span class="item">Message timestamps + read receipts</span>
+    </div>
+    <p class="note">Backend message API + useMessages hook already exist — need the mobile UI screens</p>
+  </div>
+
+  <div class="bundle rel">
+    <div class="bundle-header">
+      <span class="bnum b-green">BUNDLE D</span>
+      <span class="bundle-title">Teacher Relationship Features (you requested)</span>
+      <span class="bundle-effort">~6 hrs</span>
+    </div>
+    <div class="items">
+      <span class="item req">👤 Student sees assigned teacher's name + info on home</span>
+      <span class="item req">📝 Student submits teacher-change request with reason</span>
+      <span class="item req">🔔 Admin sees + processes change requests (approve/deny)</span>
+      <span class="item">Teacher sees students who requested a change</span>
+      <span class="item">Change request status visible to student (pending/decided)</span>
+    </div>
+    <p class="note">Needs new DB model TeacherChangeRequest — no backend exists yet</p>
+  </div>
+
+  <div class="bundle ux">
+    <div class="bundle-header">
+      <span class="bnum b-blue">BUNDLE E</span>
+      <span class="bundle-title">UX + Navigation Improvements (my recommendations)</span>
+      <span class="bundle-effort">~1 day</span>
+    </div>
+    <div class="items">
+      <span class="item">📱 Bottom tab bar for student (Home · Review · Grades · Messages)</span>
+      <span class="item">👤 Profile screen — logout moves here</span>
+      <span class="item">🔄 Pull-to-refresh on student home</span>
+      <span class="item">⏳ Skeleton loading screens</span>
+      <span class="item">📖 "Review due" next-up card on student home</span>
+      <span class="item">🎉 Surah completion celebration moment</span>
+      <span class="item">🔑 Forgot Password screen (mobile)</span>
+    </div>
+    <p class="note">Biggest visible quality jump — what separates apps that feel professional</p>
+  </div>
+
+</div>
+
+<div class="rec">
+  <p style="font-size:13px;font-weight:800;color:#065f46;margin:0 0 4px;">Recommended order: A → C → D → B → E</p>
+  <p style="font-size:12px;color:#047857;margin:0;">Fix what's broken first (A), then communication + teacher relationship (C, D) since these are user-visible and you requested them, then security hardening (B), then polish (E).</p>
+</div>

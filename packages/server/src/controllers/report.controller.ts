@@ -8,9 +8,12 @@ export const generateReport = async (req: Request, res: Response, next: NextFunc
     const { studentId, summary } = req.body as any;
     if (!studentId) throw new AppError(400, 'studentId is required');
 
-    // Verify teacher has grades for this student before generating report
-    const gradeCount = await prisma.grade.count({ where: { teacherId: req.userId!, studentId } });
-    if (gradeCount === 0) throw new AppError(403, 'No grades found for this student');
+    // Verify teacher has an accepted appointment with this student
+    const appt = await prisma.appointment.findFirst({
+      where: { teacherId: req.userId!, studentId, status: 'ACCEPTED' },
+      select: { id: true },
+    });
+    if (!appt) throw new AppError(403, 'No accepted appointment with this student');
 
     const pdfUrl = await reportService.generatePDFReport(req.userId!, studentId, summary || '');
     const report = await prisma.report.create({

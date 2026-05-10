@@ -1,5 +1,27 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { memorizationApi, MemorizationEntry, Surah } from '../api';
+
+function computeStreak(entries: MemorizationEntry[]): number {
+  const activeDates = new Set(
+    entries
+      .map((e) => e.lastRecitedAt)
+      .filter(Boolean)
+      .map((d) => new Date(d!).toISOString().split('T')[0])
+  );
+  if (activeDates.size === 0) return 0;
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 365; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    if (activeDates.has(date.toISOString().split('T')[0])) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
 
 export function useMemorization() {
   const [progress, setProgress] = useState<MemorizationEntry[]>([]);
@@ -21,5 +43,7 @@ export function useMemorization() {
     }
   }, []);
 
-  return { progress, surahs, isLoading, error, fetchProgress };
+  const streak = useMemo(() => computeStreak(progress), [progress]);
+
+  return { progress, surahs, isLoading, error, fetchProgress, streak };
 }

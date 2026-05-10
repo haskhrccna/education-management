@@ -1,0 +1,127 @@
+<h2>Bundle C — Messaging: Where Does It Live?</h2>
+<p class="subtitle">The messaging backend (API + useMessages hook) already exists. We need to decide how the UI is surfaced. Pick the navigation pattern.</p>
+
+<style>
+  .phone { width:160px;border:2px solid #d1d5db;border-radius:20px;overflow:hidden;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.10);font-size:10px; }
+  .ph { padding:10px 10px 8px;color:#fff;font-size:11px;font-weight:700; }
+  .pb { padding:8px; }
+  .tab-bar { display:flex;border-top:1px solid #e5e7eb;padding:6px 0 2px; }
+  .tab-item { flex:1;text-align:center;font-size:9px;color:#9ca3af; }
+  .tab-item.active { color:#4f46e5;font-weight:700; }
+  .tab-dot { width:6px;height:6px;background:#ef4444;border-radius:99px;margin:0 auto 2px; }
+  .msg-row { display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f3f4f6; }
+  .avatar { width:28px;height:28px;border-radius:99px;background:#4f46e5;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:11px;flex-shrink:0; }
+  .msg-info { flex:1; }
+  .msg-name { font-weight:700;color:#111827;font-size:10px; }
+  .msg-preview { color:#6b7280;font-size:9px; }
+  .unread { width:8px;height:8px;background:#4f46e5;border-radius:99px; }
+  .notif-dot { width:8px;height:8px;background:#ef4444;border-radius:99px;position:absolute;top:-2px;right:-2px; }
+  .icon-btn { width:22px;height:22px;background:rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;position:relative; }
+  .screens { display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin:20px 0; }
+  .screen-wrap { display:flex;flex-direction:column;align-items:center;gap:8px; }
+  .pros-cons { font-size:11px;color:#6b7280;max-width:165px;text-align:center;line-height:1.6; }
+  .pro { color:#15803d; }
+  .con { color:#b91c1c; }
+</style>
+
+<div class="screens">
+
+  <!-- Option A: Bottom Tab -->
+  <div class="screen-wrap">
+    <div class="option" data-choice="a" onclick="toggleSelect(this)" style="border-radius:16px;padding:10px 12px;margin-bottom:8px;">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>Bottom Tab Bar</h3>
+        <p>Messages gets its own permanent tab. Biggest visibility, requires nav refactor (Bundle E scope).</p>
+      </div>
+    </div>
+    <div class="phone">
+      <div class="ph" style="background:#1e3a5f;">مراجعتي</div>
+      <div class="pb">
+        <div class="msg-row"><div class="avatar">أ</div><div class="msg-info"><div class="msg-name">الأستاذ علي</div><div class="msg-preview">أحسنت في مراجعة...</div></div><div class="unread"></div></div>
+        <div class="msg-row"><div class="avatar" style="background:#10b981;">ن</div><div class="msg-info"><div class="msg-name">نظام</div><div class="msg-preview">تم قبول طلبك</div></div></div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item">🏠<br>الرئيسية</div>
+        <div class="tab-item">📖<br>مراجعة</div>
+        <div class="tab-item">📊<br>درجات</div>
+        <div class="tab-item active"><div class="tab-dot"></div>💬<br>رسائل</div>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <span class="pro">✓ Always visible</span><br>
+      <span class="pro">✓ Unread dot on tab</span><br>
+      <span class="con">✗ Requires full nav refactor</span><br>
+      <span class="con">✗ Larger scope</span>
+    </div>
+  </div>
+
+  <!-- Option B: Header Icon (Recommended) -->
+  <div class="screen-wrap">
+    <div class="option" data-choice="b" onclick="toggleSelect(this)" style="border-radius:16px;padding:10px 12px;margin-bottom:8px;">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>Header Icon ⭐ Recommended</h3>
+        <p>💬 button in the home screen header. Unread count badge. Works for all 3 roles immediately.</p>
+      </div>
+    </div>
+    <div class="phone">
+      <div class="ph" style="background:#1e3a5f;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div>مرحباً، أحمد</div>
+            <div style="font-size:9px;opacity:.7;">بارك الله في حفظك</div>
+          </div>
+          <div style="display:flex;gap:5px;align-items:center;">
+            <div class="icon-btn" style="font-size:12px;">💬<div class="notif-dot"></div></div>
+            <div class="icon-btn" style="font-size:11px;">📊</div>
+            <div class="icon-btn" style="font-size:11px;">خروج</div>
+          </div>
+        </div>
+      </div>
+      <div class="pb">
+        <div class="msg-row"><div class="avatar">1</div><div class="msg-info"><div class="msg-name">الفاتحة</div></div><div style="font-size:9px;color:#22c55e;">✓</div></div>
+        <div class="msg-row"><div class="avatar">2</div><div class="msg-info"><div class="msg-name">البقرة</div></div><div style="font-size:9px;color:#6b7280;">45%</div></div>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <span class="pro">✓ Ships fast, no nav refactor</span><br>
+      <span class="pro">✓ Unread badge visible</span><br>
+      <span class="pro">✓ Works on all 3 role screens</span><br>
+      <span class="con">✗ Header gets a bit crowded</span>
+    </div>
+  </div>
+
+  <!-- Option C: Home Dashboard Card -->
+  <div class="screen-wrap">
+    <div class="option" data-choice="c" onclick="toggleSelect(this)" style="border-radius:16px;padding:10px 12px;margin-bottom:8px;">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>Dashboard Card</h3>
+        <p>A "New messages" card on the home screen. Contextual but less discoverable.</p>
+      </div>
+    </div>
+    <div class="phone">
+      <div class="ph" style="background:#1e3a5f;">مرحباً، أحمد</div>
+      <div class="pb">
+        <div style="background:#eef2ff;border-radius:10px;padding:8px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-weight:700;font-size:10px;color:#4338ca;">💬 رسالة جديدة</div>
+            <div style="font-size:9px;color:#6366f1;">الأستاذ علي: أحسنت في...</div>
+          </div>
+          <div class="unread"></div>
+        </div>
+        <div class="msg-row"><div class="avatar">1</div><div class="msg-info"><div class="msg-name">الفاتحة</div></div><div style="font-size:9px;color:#22c55e;">✓</div></div>
+        <div class="msg-row"><div class="avatar">2</div><div class="msg-info"><div class="msg-name">البقرة</div></div><div style="font-size:9px;color:#6b7280;">45%</div></div>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <span class="pro">✓ Contextual, no nav change</span><br>
+      <span class="con">✗ Only visible when there are messages</span><br>
+      <span class="con">✗ Less discoverable</span>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle">Check <strong>http://localhost:54173</strong> — click your preferred option, or reply in the terminal.</p>
