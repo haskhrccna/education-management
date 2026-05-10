@@ -93,6 +93,7 @@ export const resetPassword = async (token: string, newPassword: string) => {
     where: { id: user.id },
     data: {
       passwordHash,
+      passwordChangedAt: new Date(),
       passwordResetToken: null,
       passwordResetExpiry: null,
       refreshTokenHash: null,
