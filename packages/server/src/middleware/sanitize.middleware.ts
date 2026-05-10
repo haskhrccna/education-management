@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 
-const SENSITIVE_FIELDS = ['password', 'passwordHash', 'token', 'authorization', 'apiKey', 'secret'];
+const SENSITIVE_FIELDS = ['password', 'passwordHash', 'tokenHash', 'authorization', 'apiKey', 'secret'];
 
 interface SanitizedRecord extends Record<string, unknown> {}
 
