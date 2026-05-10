@@ -118,6 +118,9 @@ export default function StudentHomeScreen() {
             <TouchableOpacity onPress={() => router.push('/student/recordings')} style={styles.logoutBtn}>
               <Text style={styles.logoutText}>{t('recordings')}</Text>
             </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/student/appointments')} style={styles.logoutBtn}>
+              <Text style={styles.logoutText}>{t('appointments')}</Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
               <Text style={styles.logoutText}>{t('logout')}</Text>
             </TouchableOpacity>
