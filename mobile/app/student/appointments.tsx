@@ -22,7 +22,7 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 
 export default function StudentAppointmentsScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = useIsRTL();
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
@@ -94,39 +94,50 @@ export default function StudentAppointmentsScreen() {
   const pending = appointments.filter((a) => a.status === 'PENDING');
   const decided = appointments.filter((a) => a.status !== 'PENDING');
 
-  const renderAppointment = (item: Appointment) => (
-    <View key={item.id} style={styles.card}>
-      <View style={styles.row}>
-        <Text style={styles.teacherName}>
-          {item.teacher?.firstName} {item.teacher?.lastName}
-        </Text>
-        <View
-          style={[
-            styles.badge,
-            {
-              backgroundColor:
-                item.status === 'ACCEPTED' ? '#22c55e' : item.status === 'REJECTED' ? '#ef4444' : '#f59e0b',
-            },
-          ]}
-        >
-          <Text style={styles.badgeText}>{t(item.status.toLowerCase())}</Text>
+  const renderAppointment = (item: Appointment) => {
+    const statusKey = item.status?.toUpperCase?.() ?? '';
+    const statusColor = statusKey === 'ACCEPTED' ? '#22c55e' : statusKey === 'REJECTED' ? '#ef4444' : '#f59e0b';
+    const statusLabel =
+      statusKey === 'ACCEPTED' ? t('approved') : statusKey === 'REJECTED' ? t('rejected') : t('awaitingApproval');
+    const dateText = item.requestedDate
+      ? new Date(item.requestedDate).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        })
+      : '';
+
+    return (
+      <View key={item.id} style={styles.card}>
+        <View style={styles.row}>
+          <Text style={styles.teacherName}>
+            {item.teacher?.firstName} {item.teacher?.lastName}
+          </Text>
+          <View style={[styles.badge, { backgroundColor: statusColor }]}>
+            <Text style={styles.badgeText}>{statusLabel}</Text>
+          </View>
         </View>
+        <Text style={styles.meta}>
+          {dateText} · {item.requestedTime ?? ''} · {item.durationMinutes ?? 0} {t('minutes')}
+        </Text>
       </View>
-      <Text style={styles.meta}>
-        {item.requestedDate} · {item.requestedTime} · {item.durationMinutes}
-        {t('minutes')}
-      </Text>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
+      <View style={[styles.topBar, { backgroundColor: COLORS.primary }]}>
+        <TouchableOpacity onPress={() => router.back()} accessibilityRole="button">
+          <Text style={[styles.backText, { color: '#fff' }]}>{isRTL ? '→' : '←'}</Text>
+        </TouchableOpacity>
+        <Text style={[styles.topTitle, { color: '#fff' }]}>{t('myAppointments')}</Text>
+        <View style={{ width: 32 }} />
+      </View>
       <ScrollView
         contentContainerStyle={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         <Animated.View entering={FadeInUp.delay(100)}>
-          <Text style={styles.header}>{t('myAppointments')}</Text>
           <TouchableOpacity style={styles.primaryButton} onPress={() => setShowForm(!showForm)}>
             <Text style={styles.primaryButtonText}>{showForm ? t('cancel') : t('requestSession')}</Text>
           </TouchableOpacity>
@@ -197,7 +208,17 @@ export default function StudentAppointmentsScreen() {
 const createStyles = (COLORS: any) =>
   StyleSheet.create({
     container: { padding: SPACING.md, paddingBottom: SPACING.xl },
-    header: { fontSize: 24, fontWeight: '700', color: COLORS.text, marginBottom: SPACING.md },
+    topBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.sm,
+      borderBottomLeftRadius: RADIUS.lg,
+      borderBottomRightRadius: RADIUS.lg,
+    },
+    backText: { fontSize: 20, fontWeight: '700' },
+    topTitle: { fontSize: 18, fontWeight: '700' },
     primaryButton: {
       backgroundColor: COLORS.primary,
       paddingVertical: SPACING.sm,

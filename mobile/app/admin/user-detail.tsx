@@ -8,7 +8,8 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
+import { useRequiredParam } from '@/src/hooks/useRequiredParam';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
@@ -19,7 +20,7 @@ import { useSettingsStore } from '@/src/settings/store';
 
 export default function UserDetailScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const id = useRequiredParam('id');
   const { t, i18n } = useTranslation();
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
@@ -30,6 +31,17 @@ export default function UserDetailScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', status: '', role: '' });
+
+  if (!id) {
+    return (
+      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ color: COLORS.textSecondary }}>{t('notFound')}</Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
+          <Text style={{ color: COLORS.primary }}>{t('goBack')}</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   useEffect(() => {
     fetchUser();

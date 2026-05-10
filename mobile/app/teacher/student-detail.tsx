@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRequiredParam } from '@/src/hooks/useRequiredParam';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
@@ -33,7 +34,8 @@ export default function TeacherStudentDetailScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const isRTL = useIsRTL();
-  const { id: studentId, name: studentName } = useLocalSearchParams<{ id: string; name?: string }>();
+  const studentId = useRequiredParam('id');
+  const { name: studentName } = useLocalSearchParams<{ name?: string }>();
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
 
@@ -49,6 +51,17 @@ export default function TeacherStudentDetailScreen() {
   const [memorization, setMemorization] = useState<MemorizationEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  if (!studentId) {
+    return (
+      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ color: COLORS.textSecondary }}>{t('notFound')}</Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
+          <Text style={{ color: COLORS.primary }}>{t('goBack')}</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   useEffect(() => {
     if (!studentId) return;

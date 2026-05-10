@@ -95,10 +95,10 @@ export default function StudentHomeScreen() {
       {/* ── Header ── */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.greeting}>{t('studentHomeTitle', { name: user?.firstName || '' })}</Text>
             <Text style={styles.subGreeting}>
-              {i18n.language === 'ar' ? 'يا بارك الله فيك في حفظ كتابه' : 'May Allah bless your memorization'}
+              {i18n.language === 'ar' ? 'بارك الله فيك في حفظ كتابه' : 'May Allah bless your memorization'}
             </Text>
           </View>
           <View style={{ flexDirection: 'row', gap: SPACING.sm, alignItems: 'center' }}>
@@ -112,19 +112,26 @@ export default function StudentHomeScreen() {
                 </View>
               )}
             </View>
-            <TouchableOpacity onPress={() => router.push('/student/grades')} style={styles.logoutBtn}>
-              <Text style={styles.logoutText}>{t('myGrades')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/student/recordings')} style={styles.logoutBtn}>
-              <Text style={styles.logoutText}>{t('recordings')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/student/appointments')} style={styles.logoutBtn}>
-              <Text style={styles.logoutText}>{t('appointments')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-              <Text style={styles.logoutText}>{t('logout')}</Text>
+            <TouchableOpacity onPress={handleLogout} style={styles.iconBtn}>
+              <Text style={styles.iconBtnText}>🚪</Text>
             </TouchableOpacity>
           </View>
+        </View>
+
+        {/* Action chips */}
+        <View style={styles.actionRow}>
+          <TouchableOpacity onPress={() => router.push('/student/grades')} style={styles.actionChip}>
+            <Text style={styles.actionChipIcon}>📊</Text>
+            <Text style={styles.actionChipText}>{t('myGrades')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/student/recordings')} style={styles.actionChip}>
+            <Text style={styles.actionChipIcon}>🎙️</Text>
+            <Text style={styles.actionChipText}>{t('recordings')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/student/appointments')} style={styles.actionChip}>
+            <Text style={styles.actionChipIcon}>📅</Text>
+            <Text style={styles.actionChipText}>{t('appointments')}</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Quick stats row */}
@@ -264,7 +271,7 @@ function SurahCard({ surah, styles, i18n }: { surah: Surah; styles: any; i18n: a
           <Text style={styles.surahNumber}>{surah.id}</Text>
           <Text style={styles.surahArabic}>{surah.nameAr}</Text>
         </View>
-        <Text style={styles.surahEnglish}>{surah.nameEn}</Text>
+        {i18n.language !== 'ar' && <Text style={styles.surahEnglish}>{surah.nameEn}</Text>}
       </View>
 
       {/* Progress bar */}
@@ -488,18 +495,36 @@ function ProgressTab({
 function getJuzNameAr(juz: number): string {
   const names = [
     '',
-    'alif lam meem',
-    'samman',
-    'amman',
-    'qad afalah',
-    'almulk',
-    'amma',
-    'yataka tun',
-    'naw',
-    'al hajr',
-    'nur',
-    'al anfal',
-    'ahzab',
+    'آلم',
+    'سَيَقُولُ',
+    'تِلْكَ الرُّسُلُ',
+    'لَنْ تَنَالُوا',
+    'وَالْمُحْصَنَاتُ',
+    'لَا يُحِبُّ اللَّهُ',
+    'وَإِذَا سَمِعُوا',
+    'وَلَوْ أَنَّنَا',
+    'قَالَ الْمَلَأُ',
+    'وَاعْلَمُوا',
+    'يَعْتَذِرُونَ',
+    'وَمَا مِنْ دَابَّةٍ',
+    'وَمَا أُبَرِّئُ',
+    'رُبَمَا',
+    'سُبْحَانَ الَّذِي',
+    'قَالَ أَلَمْ',
+    'اقْتَرَبَتْ',
+    'قَدْ أَفْلَحَ',
+    'وَقَالَ الَّذِينَ',
+    'أَمَّنْ خَلَقَ',
+    'اتَّبِعُوا مَا',
+    'وَمَنْ يَقْنُتْ',
+    'وَمَا لِيَ',
+    'فَمَنْ أَظْلَمُ',
+    'إِلَيْهِ يُرَدُّ',
+    'حَمٌّ',
+    'قَالَ فَمَا خَطْبُكُمْ',
+    'قَدْ سَمِعَ اللَّهُ',
+    'تَبَارَكَ الَّذِي',
+    'عَمَّ يَتَسَاءَلُونَ',
   ];
   return names[juz] || '';
 }
@@ -544,6 +569,37 @@ const createStyles = (COLORS: any) =>
       borderRadius: RADIUS.md,
     },
     logoutText: {
+      color: '#fff',
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    iconBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: RADIUS.md,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    iconBtnText: { fontSize: 16 },
+    actionRow: {
+      flexDirection: 'row',
+      gap: SPACING.sm,
+      marginTop: SPACING.lg,
+    },
+    actionChip: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: SPACING.xs,
+      backgroundColor: 'rgba(255,255,255,0.12)',
+      borderRadius: RADIUS.lg,
+      paddingVertical: SPACING.sm,
+      paddingHorizontal: SPACING.md,
+    },
+    actionChipIcon: { fontSize: 16 },
+    actionChipText: {
       color: '#fff',
       fontSize: 13,
       fontWeight: '600',

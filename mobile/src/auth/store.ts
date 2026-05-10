@@ -106,8 +106,9 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Never retry the refresh endpoint itself — prevents infinite loop
-    if (originalRequest?.url?.includes('/auth/refresh')) {
+    // Never retry auth endpoints — prevents login/register 401s from triggering refresh
+    const url = originalRequest?.url ?? '';
+    if (url.includes('/auth/refresh') || url.includes('/auth/login') || url.includes('/auth/register')) {
       return Promise.reject(error);
     }
 
@@ -124,19 +125,20 @@ apiClient.interceptors.response.use(
           })();
         }
         const { token: newToken, refreshToken: newRefreshToken } = await refreshPromise;
-        refreshPromise = null;
         await SecureStore.setItemAsync('auth_token', newToken);
         await SecureStore.setItemAsync('refresh_token', newRefreshToken);
         apiClient.defaults.headers.common.Authorization = `Bearer ${newToken}`;
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return apiClient(originalRequest);
-      } catch {
-        refreshPromise = null;
+      } catch (refreshError) {
         await SecureStore.deleteItemAsync('auth_token');
         await SecureStore.deleteItemAsync('refresh_token');
         delete apiClient.defaults.headers.common.Authorization;
         // Clear in-memory state so UI redirects to login
         useAuthStore.setState({ user: null, token: null });
+        return Promise.reject(refreshError);
+      } finally {
+        refreshPromise = null;
       }
     }
     return Promise.reject(error);

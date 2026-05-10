@@ -11,7 +11,8 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRequiredParam } from '@/src/hooks/useRequiredParam';
 import { useConversation } from '@/src/hooks/useConversation';
 import { useAuthStore } from '@/src/auth/store';
 import { useSettingsStore } from '@/src/settings/store';
@@ -21,10 +22,8 @@ const BORDER_LIGHT = '#e5e7eb';
 const BORDER_DARK = '#334155';
 
 export default function ConversationScreen() {
-  const { partnerId, partnerName } = useLocalSearchParams<{
-    partnerId: string;
-    partnerName: string;
-  }>();
+  const partnerId = useRequiredParam('partnerId');
+  const { partnerName } = useLocalSearchParams<{ partnerName?: string }>();
   const router = useRouter();
   const { user } = useAuthStore();
   const { theme, darkMode } = useSettingsStore();
@@ -94,6 +93,22 @@ export default function ConversationScreen() {
       </View>
     );
   };
+
+  if (!partnerId) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
+        <Text style={{ color: COLORS.textSecondary }}>Not found</Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
+          <Text style={{ color: COLORS.primary }}>Go back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView

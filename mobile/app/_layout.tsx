@@ -1,16 +1,20 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { I18nManager } from 'react-native';
+import { Stack, useRouter, useSegments } from 'expo-router';
+import { I18nManager, View, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import i18n from '@/src/i18n';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSettingsStore } from '@/src/settings/store';
+import { useAuthStore } from '@/src/auth/store';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const { loadSettings, darkMode, isLoaded, language } = useSettingsStore();
+  const { loadSession, user, isLoading: authLoading } = useAuthStore();
+  const router = useRouter();
+  const segments = useSegments();
 
   // Force RTL layout for Arabic locale
   useEffect(() => {
@@ -23,8 +27,35 @@ export default function RootLayout() {
   useEffect(() => {
     loadSettings();
   }, []);
+  useEffect(() => {
+    loadSession();
+  }, []);
 
-  if (!isLoaded) return null;
+  // Auth gate: redirect based on session state once settings are loaded
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    // Any route segment that starts with a protected role folder is protected;
+    // everything else (login, register, forgot-password, pending-approval, index) is public.
+    const protectedRoots = new Set(['student', 'teacher', 'admin', 'messages']);
+    const inProtectedScreen = protectedRoots.has(segments[0]);
+
+    if (!user) {
+      if (inProtectedScreen) {
+        router.replace('/');
+      }
+    } else if (user.status === 'pending') {
+      router.replace('/pending-approval');
+    }
+  }, [isLoaded, user, segments]);
+
+  if (!isLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <ThemeProvider value={darkMode ? DarkTheme : DefaultTheme}>

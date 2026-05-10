@@ -101,7 +101,9 @@ export default function TeacherChangeScreen() {
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <Text style={styles.backText}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{isAssignmentRequest ? t('requestTeacherAssignment') : t('requestTeacherChange')}</Text>
+        <Text style={styles.headerTitle}>
+          {isAssignmentRequest ? t('requestTeacherAssignment') : t('requestTeacherChange')}
+        </Text>
       </View>
       <ScrollView contentContainerStyle={styles.body}>
         {isLoading ? (
@@ -142,7 +144,9 @@ export default function TeacherChangeScreen() {
               {isSubmitting ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.submitText}>{isAssignmentRequest ? t('requestTeacherAssignment') : t('requestTeacherChange')}</Text>
+                <Text style={styles.submitText}>
+                  {isAssignmentRequest ? t('requestTeacherAssignment') : t('requestTeacherChange')}
+                </Text>
               )}
             </TouchableOpacity>
           </>

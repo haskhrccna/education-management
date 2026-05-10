@@ -13,16 +13,15 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import * as DocumentPicker from 'expo-document-picker';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useRecordings } from '@/src/hooks/useRecordings';
 import { Recording, getRecordingStatus } from '@/src/api';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
+import * as DocumentPicker from 'expo-document-picker';
+import { Audio } from 'expo-av';
 
 type AnyColors = ReturnType<typeof getColors>;
-
-type AudioModule = typeof import('expo-av');
 
 const formatBytes = (bytes: number): string => {
   if (!bytes) return '0 B';
@@ -72,32 +71,24 @@ export default function StudentRecordingsScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const getAudio = async (): Promise<AudioModule | null> => {
-    try {
-      const mod = await import('expo-av');
-      return mod;
-    } catch {
-      Alert.alert(t('error'), t('audioNotAvailable'));
-      return null;
-    }
-  };
-
   const startRecording = async () => {
     try {
-      const AudioMod = await getAudio();
-      if (!AudioMod) return;
-      const perm = await AudioMod.Audio.requestPermissionsAsync();
+      if (!Audio?.requestPermissionsAsync) {
+        Alert.alert(t('error'), t('audioNotAvailable'));
+        return;
+      }
+      const perm = await Audio.requestPermissionsAsync();
       if (!perm.granted) {
         Alert.alert(t('recordAudio'), t('micPermissionDenied'));
         return;
       }
-      await AudioMod.Audio.setAudioModeAsync({
+      await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       });
 
-      const { recording: rec } = await AudioMod.Audio.Recording.createAsync(
-        AudioMod.Audio.RecordingOptionsPresets.HIGH_QUALITY,
+      const { recording: rec } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY,
         (status) => {
           if (status.isRecording && status.durationMillis != null) {
             setRecordingMillis(status.durationMillis);
@@ -109,15 +100,13 @@ export default function StudentRecordingsScreen() {
       setRecording(rec);
       setRecordingMillis(0);
     } catch (err: any) {
-      Alert.alert(t('uploadFailed'), err?.message ?? String(err));
+      Alert.alert(t('error'), err?.message ?? String(err));
     }
   };
 
   const stopAndUploadRecording = async () => {
     if (!recording) return;
     try {
-      const AudioMod = await getAudio();
-      if (!AudioMod) return;
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
       setRecording(null);
@@ -128,10 +117,12 @@ export default function StudentRecordingsScreen() {
       }
 
       // Reset audio mode so playback works after recording
-      await AudioMod.Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        playsInSilentModeIOS: true,
-      });
+      if (Audio?.setAudioModeAsync) {
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          playsInSilentModeIOS: true,
+        });
+      }
 
       const ext = (uri.split('.').pop() ?? 'm4a').toLowerCase();
       const fileName = `recitation-${new Date().toISOString().replace(/[:.]/g, '-')}.${ext}`;
@@ -158,6 +149,11 @@ export default function StudentRecordingsScreen() {
 
   const pickAudio = async () => {
     try {
+      // Guard against missing native module (Expo Go without expo-document-picker)
+      if (!DocumentPicker.getDocumentAsync) {
+        Alert.alert(t('error'), t('documentPickerNotAvailable') ?? 'File picker is not available in this environment.');
+        return;
+      }
       const result = await DocumentPicker.getDocumentAsync({
         type: 'audio/*',
         copyToCacheDirectory: true,

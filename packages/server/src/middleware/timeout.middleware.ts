@@ -6,7 +6,8 @@ const DEFAULT_TIMEOUT_MS = 30000;
 export const timeout = (ms: number = DEFAULT_TIMEOUT_MS) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     const timer = setTimeout(() => {
-      if (!res.headersSent) {
+      if (!res.headersSent && !(req as any).timedOut) {
+        (req as any).timedOut = true;
         next(new AppError(504, `Request timeout after ${ms}ms`));
       }
     }, ms);

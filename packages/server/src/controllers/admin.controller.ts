@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import * as adminService from '../services/admin.service';
 import { AppError } from '../middleware/error.middleware';
 import { PaginatedRequest, paginatedResponse } from '../middleware/pagination.middleware';
-import { successResponse } from '../lib/response';
 import { auditLog } from '../lib/audit';
 
 export const listUsers = async (req: PaginatedRequest, res: Response, next: NextFunction): Promise<void> => {
@@ -10,7 +9,7 @@ export const listUsers = async (req: PaginatedRequest, res: Response, next: Next
     const roleFilter = req.query.role as string | undefined;
     const { page = 1, limit = 20, skip = 0 } = req.pagination || {};
     const { users, total } = await adminService.listUsersPaginated(roleFilter, skip, limit);
-    res.json(successResponse(paginatedResponse(users, total, page, limit)));
+    res.json(paginatedResponse(users, total, page, limit));
   } catch (err) {
     next(err);
   }
@@ -35,7 +34,7 @@ export const createTeacher = async (req: Request, res: Response, next: NextFunct
       details: { email },
       ipAddress: req.ip,
     });
-    res.status(201).json(successResponse(teacher));
+    res.status(201).json(teacher);
   } catch (err) {
     next(err);
   }
@@ -52,7 +51,7 @@ export const approveStudent = async (req: Request, res: Response, next: NextFunc
       resourceId: studentId,
       ipAddress: req.ip,
     });
-    res.json(successResponse(user));
+    res.json(user);
   } catch (err) {
     next(err);
   }
@@ -69,7 +68,7 @@ export const deactivateUser = async (req: Request, res: Response, next: NextFunc
       resourceId: userId,
       ipAddress: req.ip,
     });
-    res.json(successResponse(user));
+    res.json(user);
   } catch (err) {
     next(err);
   }
@@ -79,7 +78,7 @@ export const getTeacherProgress = async (req: Request, res: Response, next: Next
   try {
     const teacherId = req.query.teacherId as string | undefined;
     const progress = await adminService.getTeacherProgress(teacherId);
-    res.json(successResponse(progress));
+    res.json(progress);
   } catch (err) {
     next(err);
   }
@@ -89,7 +88,7 @@ export const getStudentProgress = async (req: Request, res: Response, next: Next
   try {
     const studentId = req.query.studentId as string | undefined;
     const progress = await adminService.getStudentProgress(studentId);
-    res.json(successResponse(progress));
+    res.json(progress);
   } catch (err) {
     next(err);
   }
@@ -108,7 +107,7 @@ export const broadcastMessage = async (req: Request, res: Response, next: NextFu
       details: { targetRole, messageLength: message.length },
       ipAddress: req.ip,
     });
-    res.json(successResponse(result));
+    res.json(result);
   } catch (err) {
     next(err);
   }
@@ -125,7 +124,7 @@ export const bulkApprove = async (req: Request, res: Response, next: NextFunctio
       details: { count: studentIds.length },
       ipAddress: req.ip,
     });
-    res.json(successResponse(results));
+    res.json(results);
   } catch (err) {
     next(err);
   }
@@ -135,7 +134,7 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
   try {
     const userId = String(req.params.id);
     const result = await adminService.getUserById(userId);
-    res.json(successResponse(result));
+    res.json(result);
   } catch (err) {
     next(err);
   }
@@ -154,7 +153,7 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
       details: { firstName, lastName, email, status, role },
       ipAddress: req.ip,
     });
-    res.json(successResponse(user));
+    res.json(user);
   } catch (err) {
     next(err);
   }
@@ -171,7 +170,7 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
       resourceId: userId,
       ipAddress: req.ip,
     });
-    res.json(successResponse(result));
+    res.json(result);
   } catch (err) {
     next(err);
   }
@@ -188,7 +187,7 @@ export const bulkDeactivate = async (req: Request, res: Response, next: NextFunc
       details: { count: userIds.length },
       ipAddress: req.ip,
     });
-    res.json(successResponse(results));
+    res.json(results);
   } catch (err) {
     next(err);
   }

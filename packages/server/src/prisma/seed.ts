@@ -286,7 +286,7 @@ async function main() {
       email: 'student@education.com',
       passwordHash: studentPass,
       role: 'STUDENT',
-      firstName: 'Student',
+      firstName: 'Omar',
       lastName: 'Demo',
       status: 'ACTIVE',
       emailVerifiedAt: new Date(),
@@ -355,9 +355,24 @@ async function main() {
   const surahMap = new Map(surahs.map((s) => [s.number, s.id]));
   await prisma.revisionSchedule.createMany({
     data: [
-      { userId: student1.id, surahId: surahMap.get(1)!, scheduledFor: new Date(Date.now() + 86400000), status: 'PENDING' },
-      { userId: student1.id, surahId: surahMap.get(2)!, scheduledFor: new Date('2026-05-10T00:00:00Z'), status: 'PENDING' },
-      { userId: student1.id, surahId: surahMap.get(3)!, scheduledFor: new Date(Date.now() + 86400000 * 3), status: 'PENDING' },
+      {
+        userId: student1.id,
+        surahId: surahMap.get(1)!,
+        scheduledFor: new Date(Date.now() + 86400000),
+        status: 'PENDING',
+      },
+      {
+        userId: student1.id,
+        surahId: surahMap.get(2)!,
+        scheduledFor: new Date('2026-05-10T00:00:00Z'),
+        status: 'PENDING',
+      },
+      {
+        userId: student1.id,
+        surahId: surahMap.get(3)!,
+        scheduledFor: new Date(Date.now() + 86400000 * 3),
+        status: 'PENDING',
+      },
     ],
     skipDuplicates: true,
   });

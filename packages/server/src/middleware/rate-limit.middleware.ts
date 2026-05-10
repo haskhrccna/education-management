@@ -23,12 +23,14 @@ export const adminLimiter = rateLimit({
   max: 300,
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => req.userId ?? ipKeyGenerator(req.ip || 'unknown'),
 });
 
 export const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
   message: { error: 'Too many uploads, please try again later' },
+  keyGenerator: (req) => req.userId ?? ipKeyGenerator(req.ip || 'unknown'),
 });
 
 export const passwordResetLimiter = rateLimit({

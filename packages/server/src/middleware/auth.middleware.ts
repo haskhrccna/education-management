@@ -35,8 +35,8 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    // Invalidate tokens issued before last password change
-    if (payload.iat && user.passwordChangedAt && new Date(payload.iat * 1000) < user.passwordChangedAt) {
+    // Invalidate tokens issued before last password change (compare in whole seconds)
+    if (payload.iat && user.passwordChangedAt && Math.floor(user.passwordChangedAt.getTime() / 1000) > payload.iat) {
       next(new AppError(401, 'Token invalidated by password change'));
       return;
     }

@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quran Review — App Screen Map</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --border: #2d3147;
+    --admin: #f59e0b;
+    --admin-dim: #78350f;
+    --teacher: #3b82f6;
+    --teacher-dim: #1e3a5f;
+    --student: #10b981;
+    --student-dim: #064e3b;
+    --auth: #8b5cf6;
+    --auth-dim: #3b2267;
+    --shared: #ec4899;
+    --shared-dim: #831843;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --api: #f97316;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 60px 0;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; }
+  header .subtitle { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .main {
+    padding: 32px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 32px;
+    background: var(--surface);
+    padding: 6px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    width: fit-content;
+  }
+
+  .tab {
+    padding: 8px 20px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--muted);
+    transition: all 0.15s;
+    border: none;
+    background: none;
+  }
+
+  .tab:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+  .tab.active { color: var(--bg); font-weight: 600; }
+  .tab[data-role="overview"].active { background: var(--text); }
+  .tab[data-role="admin"].active { background: var(--admin); }
+  .tab[data-role="teacher"].active { background: var(--teacher); }
+  .tab[data-role="student"].active { background: var(--student); }
+  .tab[data-role="api"].active { background: var(--api); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .role-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .role-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .role-header h2 { font-size: 1.1rem; font-weight: 600; }
+
+  .screens-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .screen-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+
+  .screen-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  .screen-top-bar { height: 5px; }
+  .screen-body { padding: 16px; }
+
+  .screen-path {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+    padding: 3px 6px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 4px;
+    display: inline-block;
+  }
+
+  .screen-name { font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; }
+  .screen-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+
+  .screen-features { list-style: none; margin-bottom: 12px; }
+  .screen-features li {
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding: 2px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .screen-features li::before { content: '›'; color: var(--teacher); flex-shrink: 0; margin-top: 1px; }
+
+  .screen-apis { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+
+  .api-chip {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(249, 115, 22, 0.12);
+    color: var(--api);
+    border: 1px solid rgba(249, 115, 22, 0.2);
+  }
+
+  .navigates-to { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .nav-chip {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .overview-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  .overview-role-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .overview-role-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .overview-role-icon { font-size: 1.5rem; }
+  .overview-role-title { font-size: 1rem; font-weight: 600; }
+  .overview-role-count { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+  .overview-screen-list { padding: 0 20px 16px; list-style: none; }
+  .overview-screen-list li {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .overview-screen-list li:last-child { border-bottom: none; }
+  .overview-screen-list li span.status {
+    margin-left: auto;
+    font-size: 0.65rem;
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+
+  .status-done { background: rgba(16, 185, 129, 0.15); color: var(--student); }
+  .status-stub { background: rgba(245, 158, 11, 0.15); color: var(--admin); }
+
+  .relationship-section { margin-bottom: 40px; }
+
+  .section-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 16px;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .relation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  .relation-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .relation-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 12px; }
+
+  .relation-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 0.78rem;
+  }
+
+  .relation-from, .relation-to {
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .relation-verb { color: var(--muted); font-size: 0.7rem; text-align: center; flex-shrink: 0; }
+  .relation-arrow { color: var(--muted); font-size: 0.9rem; flex-shrink: 0; }
+
+  .auth-flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    max-width: 500px;
+    margin: 0 auto 40px auto;
+  }
+
+  .auth-node {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 24px;
+    text-align: center;
+    width: 100%;
+  }
+
+  .auth-node .node-title { font-size: 0.9rem; font-weight: 600; }
+  .auth-node .node-sub { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+
+  .auth-branches { display: flex; gap: 16px; width: 100%; }
+
+  .auth-branch {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    text-align: center;
+  }
+
+  .auth-branch .branch-title { font-size: 0.8rem; font-weight: 600; }
+  .auth-branch .branch-sub { font-size: 0.68rem; color: var(--muted); margin-top: 3px; }
+
+  .arrow-down { font-size: 1.2rem; color: var(--muted); margin: 0; }
+
+  .api-table-wrap { overflow-x: auto; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+
+  th {
+    text-align: left;
+    padding: 10px 16px;
+    background: var(--surface);
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  td { padding: 10px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .method {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  .method-GET { background: rgba(16,185,129,0.15); color: #34d399; }
+  .method-POST { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .method-PUT { background: rgba(245,158,11,0.15); color: #fbbf24; }
+  .method-DELETE { background: rgba(239,68,68,0.15); color: #f87171; }
+
+  .route-path { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.72rem; color: var(--text); }
+
+  .roles-cell { display: flex; flex-wrap: wrap; gap: 3px; }
+  .role-tag { font-size: 0.6rem; padding: 1px 5px; border-radius: 3px; font-weight: 600; }
+  .role-tag-ADMIN { background: rgba(245,158,11,0.15); color: var(--admin); }
+  .role-tag-TEACHER { background: rgba(59,130,246,0.15); color: var(--teacher); }
+  .role-tag-STUDENT { background: rgba(16,185,129,0.15); color: var(--student); }
+  .role-tag-ALL { background: rgba(255,255,255,0.08); color: var(--text); }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>📖 Quran Review — App Architecture Map</h1>
+    <div class="subtitle">education_management platform · branch: main-upgrade · 131 tests passing</div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--auth)"></div>Auth</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--admin)"></div>Admin</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--teacher)"></div>Teacher</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--student)"></div>Student</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--shared)"></div>Shared</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--api)"></div>API</div>
+  </div>
+</header>
+
+<div class="main">
+
+  <div class="tabs">
+    <button class="tab active" data-role="overview" onclick="switchTab('overview',this)">Overview</button>
+    <button class="tab" data-role="admin" onclick="switchTab('admin',this)">Admin</button>
+    <button class="tab" data-role="teacher" onclick="switchTab('teacher',this)">Teacher</button>
+    <button class="tab" data-role="student" onclick="switchTab('student',this)">Student</button>
+    <button class="tab" data-role="api" onclick="switchTab('api',this)">API Reference</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="panel-overview" class="panel active">
+
+    <div class="section-title">Authentication Flow</div>
+
+    <div class="auth-flow">
+      <div class="auth-node" style="border-color:var(--auth)">
+        <div class="node-title">🔐 Login Screen</div>
+        <div class="node-sub">app/(auth)/index.tsx · POST /api/v1/auth/login</div>
+      </div>
+      <div class="arrow-down">↓</div>
+      <div class="auth-node">
+        <div class="node-title">JWT Issued · Role in Payload</div>
+        <div class="node-sub">ADMIN | TEACHER | STUDENT (uppercase in DB/JWT)</div>
+      </div>
+      <div class="arrow-down">↓ role-based redirect</div>
+      <div class="auth-branches">
+        <div class="auth-branch" style="border-color:var(--admin)">
+          <div class="branch-title" style="color:var(--admin)">👑 Admin</div>
+          <div class="branch-sub">admin/home.tsx</div>
+        </div>
+        <div class="auth-branch" style="border-color:var(--teacher)">
+          <div class="branch-title" style="color:var(--teacher)">👨‍🏫 Teacher</div>
+          <div class="branch-sub">teacher/home.tsx</div>
+        </div>
+        <div class="auth-branch" style="border-color:var(--student)">
+          <div class="branch-title" style="color:var(--student)">🎓 Student</div>
+          <div class="branch-sub">student/home.tsx</div>
+        </div>
+      </div>
+      <div style="margin-top:8px;padding:10px;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);border-radius:8px;font-size:0.75rem;color:var(--muted);width:100%;text-align:center">
+        New registrations → <strong>PENDING</strong> status → pending-approval.tsx · Admin approves in admin/home.tsx
+      </div>
+    </div>
+
+    <div class="section-title">Auth Screens</div>
+    <div class="screens-grid" style="margin-bottom:32px">
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--auth)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/(auth)/index.tsx</div>
+          <div class="screen-name">🔐 Login</div>
+          <div class="screen-desc">Email/password login with JWT. Redirects based on role after auth.</div>
+          <ul class="screen-features">
+            <li>Email + password form</li>
+            <li>Forgot password link</li>
+            <li>Role-based post-login redirect</li>
+          </ul>
+          <div class="screen-apis"><span class="api-chip">POST /auth/login</span></div>
+        </div>
+      </div>
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--auth)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/(auth)/register.tsx</div>
+          <div class="screen-name">📝 Register</div>
+          <div class="screen-desc">New user registration. Account created with PENDING status awaiting admin approval.</div>
+          <div class="screen-apis"><span class="api-chip">POST /auth/register</span></div>
+        </div>
+      </div>
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--auth)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/(auth)/pending-approval.tsx</div>
+          <div class="screen-name">⏳ Pending Approval</div>
+          <div class="screen-desc">Shown to users whose account is PENDING. Polls or displays wait message.</div>
+        </div>
+      </div>
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--auth)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/(auth)/first-login.tsx</div>
+          <div class="screen-name">🔑 First Login</div>
+          <div class="screen-desc">Set a permanent password on first login after admin-created account.</div>
+          <div class="screen-apis"><span class="api-chip">POST /auth/first-login</span></div>
+        </div>
+      </div>
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--auth)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/(auth)/forgot-password.tsx</div>
+          <div class="screen-name">🔓 Forgot Password</div>
+          <div class="screen-desc">Enter email to receive a password reset link. Rate limited 3/hr. No token exposed in response.</div>
+          <div class="screen-apis"><span class="api-chip">POST /auth/forgot-password</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Role Screen Overview</div>
+
+    <div class="overview-grid">
+      <div class="overview-role-card">
+        <div class="overview-role-header" style="background:rgba(245,158,11,0.08)">
+          <span class="overview-role-icon">👑</span>
+          <div>
+            <div class="overview-role-title">Admin</div>
+            <div class="overview-role-count">5 screens · platform management</div>
+          </div>
+        </div>
+        <ul class="overview-screen-list">
+          <li>🏠 Home — dashboard + user list <span class="status status-done">done</span></li>
+          <li>👤 User Detail <span class="status status-done">done</span></li>
+          <li>🔄 Change Requests <span class="status status-done">done</span></li>
+          <li>📢 Broadcast Message <span class="status status-done">done</span></li>
+          <li>⚙️ Settings <span class="status status-done">done</span></li>
+        </ul>
+      </div>
+
+      <div class="overview-role-card">
+        <div class="overview-role-header" style="background:rgba(59,130,246,0.08)">
+          <span class="overview-role-icon">👨‍🏫</span>
+          <div>
+            <div class="overview-role-title">Teacher</div>
+            <div class="overview-role-count">6 screens · classroom management</div>
+          </div>
+        </div>
+        <ul class="overview-screen-list">
+          <li>🏠 Home — student roster <span class="status status-done">done</span></li>
+          <li>👤 Student Detail <span class="status status-done">done</span></li>
+          <li>📅 Appointments <span class="status status-done">done</span></li>
+          <li>🎙 Recordings Review <span class="status status-done">done</span></li>
+          <li>📋 Reports Create <span class="status status-done">done</span></li>
+          <li>✏️ Grade Form <span class="status status-done">done</span></li>
+        </ul>
+      </div>
+
+      <div class="overview-role-card">
+        <div class="overview-role-header" style="background:rgba(16,185,129,0.08)">
+          <span class="overview-role-icon">🎓</span>
+          <div>
+            <div class="overview-role-title">Student</div>
+            <div class="overview-role-count">6 screens · learning journey</div>
+          </div>
+        </div>
+        <ul class="overview-screen-list">
+          <li>🏠 Home — memorization progress <span class="status status-done">done</span></li>
+          <li>📅 Appointments <span class="status status-done">done</span></li>
+          <li>📊 Grades <span class="status status-done">done</span></li>
+          <li>🎙 Recordings Upload <span class="status status-done">done</span></li>
+          <li>📋 Reports View <span class="status status-done">done</span></li>
+          <li>🔀 Teacher Change Request <span class="status status-done">done</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section-title">Cross-Role Relationships &amp; Interactions</div>
+
+    <div class="relation-grid">
+      <div class="relation-card">
+        <div class="relation-title">📅 Appointment System</div>
+        <div class="relation-row">
+          <div class="relation-from" style="background:rgba(16,185,129,0.1);color:var(--student)">Student</div>
+          <div class="relation-verb">requests session</div>
+          <div class="relation-arrow">→</div>
+          <div class="relation-to" style="background:rgba(59,130,246,0.1);color:var(--teacher)">Teacher</div>
+        </div>
+        <div class="relation-row">
+          <div class="relation-from" style="background:rgba(59,130,246,0.1);color:var(--teacher)">Teacher</div>
+          <div class="relation-verb">accepts / rejects</div>
+          <div class="relation-arrow">→</div>
+          <div class="relation-to" style="background:rgba(16,185,129,0.1);color:var(--student)">Student</div>
+        </div>
+        <div style="font-size:0.7rem;color:var(--muted);margin-top:8px">
+          ACCEPTED status unlocks teacher access to student data (relationship guard enforced server-side)
+        </div>
+      </div>
+
+      <div class="relation-card">
+        <div class="relation-title">🎙 Recording Workflow</div>
+        <div class="relation-row">
+          <div class="relation-from" style="background:rgba(16,185,129,0.1);color:var(--student)">Student</div>
+          <div class="relation-verb">uploads recitation audio</div>
+          <div class="relation-arrow">→</div>
+          <div class="relation-to" style="background:rgba(59,130,246,0.1);color:var(--teacher)">Teacher</div>
+        </div>
+        <div class="relation-row">
+          <div class="relation-from" style="background:rgba(59,130,246,0.1);color:var(--teacher)">Teacher</div>
+          <div class="relation-verb">reviews + adds notes</div>
+          <div class="relation-arrow">→</div>
+          <div class="relation-to" style="background:rgba(16,185,129,0.1);color:var(--student)">Student</div>
+        </div>
+      </div>
+
+      <div class="relation-card">
+        <div class="relation-title">📋 Report Workflow</div>
+        <div class="relation-row">
+          <div class="relation-from" style="background:rgba(59,130,246,0.1);color:var(--teacher)">Teacher</div>
+          <div class="relation-verb">creates progress report</div>
+          <div class="relation-arrow">→</div>
+          <div class="relation-to" style="background:rgba(16,185,129,0.1);color:var(--student)">Student</div>
+        </div>
+        <div class="relation-row">
+          <div class="relation-from" style="background:rgba(16,185,129,0.1);color:var(--student)">Student</div>
+          <div class="relation-verb">views + downloads PDF</div>
+        </div>
+      </div>
+
+      <div class="relation-card">
+        <div class="relation-title">📊 Grades &amp; Memorization</div>
+        <div class="relation-row">
+          <div class="relation-from" style="background:rgba(59,130,246,0.1);color:var(--teacher)">Teacher</div>
+          <div class="relation-verb">records grade per surah</div>
+          <div class="relation-arrow">→</div>
+          <div class="relation-to" style="background:rgba(16,185,129,0.1);color:var(--student)">Student</div>
+        </div>
+        <div style="font-size:0.7rem;color:var(--muted);margin-top:8px">
+          Memorization status: NOT_STARTED → IN_PROGRESS → COMPLETED → NEEDS_REVIEW
+        </div>
+      </div>
+
+      <div class="relation-card">
+        <div class="relation-title">🔀 Teacher Change Request</div>
+        <div class="relation-row">
+          <div class="relation-from" style="background:rgba(16,185,129,0.1);color:var(--student)">Student</div>
+          <div class="relation-verb">submits request + reason</div>
+          <div class="relation-arrow">→</div>
+          <div class="relation-to" style="background:rgba(245,158,11,0.1);color:var(--admin)">Admin</div>
+        </div>
+        <div class="relation-row">
+          <div class="relation-from" style="background:rgba(245,158,11,0.1);color:var(--admin)">Admin</div>
+          <div class="relation-verb">approves / rejects → FCM push</div>
+          <div class="relation-arrow">→</div>
+          <div class="relation-to" style="background:rgba(16,185,129,0.1);color:var(--student)">Student</div>
+        </div>
+      </div>
+
+      <div class="relation-card">
+        <div class="relation-title">✉️ Messaging</div>
+        <div class="relation-row">
+          <div class="relation-from" style="background:rgba(16,185,129,0.1);color:var(--student)">Student</div>
+          <div class="relation-verb">sends / receives</div>
+          <div class="relation-arrow">⇄</div>
+          <div class="relation-to" style="background:rgba(59,130,246,0.1);color:var(--teacher)">Teacher</div>
+        </div>
+        <div class="relation-row">
+          <div class="relation-from" style="background:rgba(245,158,11,0.1);color:var(--admin)">Admin</div>
+          <div class="relation-verb">broadcasts to all / role group</div>
+        </div>
+        <div style="font-size:0.7rem;color:var(--muted);margin-top:8px">
+          Shared screens: messages/index.tsx → messages/conversation.tsx
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ADMIN -->
+  <div id="panel-admin" class="panel">
+    <div class="role-header">
+      <div class="role-badge" style="background:rgba(245,158,11,0.15);color:var(--admin)">ADMIN</div>
+      <h2>Admin Screens — Platform Management</h2>
+    </div>
+    <div class="screens-grid">
+
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--admin)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/admin/home.tsx</div>
+          <div class="screen-name">🏠 Admin Dashboard</div>
+          <div class="screen-desc">Main hub with user list, filtering by role/status, and inline approval actions. Skeleton loading, pull-to-refresh, error state.</div>
+          <ul class="screen-features">
+            <li>Filter: ALL / STUDENT / TEACHER / ADMIN / PENDING / PENDING_AND_TEACHER</li>
+            <li>User list with localized role/status badges</li>
+            <li>Approve / reject pending registrations inline</li>
+            <li>Skeleton loading + pull-to-refresh</li>
+          </ul>
+          <div class="screen-apis">
+            <span class="api-chip">GET /api/v1/admin/users</span>
+            <span class="api-chip">PUT /api/v1/admin/users/:id/approve</span>
+          </div>
+          <div class="navigates-to">
+            <span class="nav-chip">→ user-detail</span>
+            <span class="nav-chip">→ broadcast</span>
+            <span class="nav-chip">→ change-requests</span>
+            <span class="nav-chip">→ settings</span>
+            <span class="nav-chip">→ messages</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--admin)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/admin/user-detail.tsx</div>
+          <div class="screen-name">👤 User Detail</div>
+          <div class="screen-desc">Full profile for any user with admin actions: role change, status toggle, teacher assignment for students.</div>
+          <ul class="screen-features">
+            <li>View full user profile</li>
+            <li>Activate / deactivate account</li>
+            <li>Assign / change teacher for students</li>
+            <li>Promote user to teacher role</li>
+          </ul>
+          <div class="screen-apis">
+            <span class="api-chip">GET /api/v1/admin/users/:id</span>
+            <span class="api-chip">PUT /api/v1/admin/users/:id</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--admin)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/admin/change-requests.tsx</div>
+          <div class="screen-name">🔄 Teacher Change Requests</div>
+          <div class="screen-desc">Queue of student requests to change assigned teacher. Approve triggers teacher reassignment and FCM push.</div>
+          <ul class="screen-features">
+            <li>Paginated request queue</li>
+            <li>Student + current teacher + requested teacher</li>
+            <li>Approve (reassigns) or Reject</li>
+            <li>FCM push notification on decision</li>
+          </ul>
+          <div class="screen-apis">
+            <span class="api-chip">GET /api/v1/teacher-changes</span>
+            <span class="api-chip">PUT /api/v1/teacher-changes/:id</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--admin)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/admin/broadcast.tsx</div>
+          <div class="screen-name">📢 Broadcast Message</div>
+          <div class="screen-desc">Send a system message to all users or a specific role group.</div>
+          <ul class="screen-features">
+            <li>Target: ALL / STUDENTS / TEACHERS</li>
+            <li>Compose message body</li>
+            <li>Send system announcement</li>
+          </ul>
+          <div class="screen-apis">
+            <span class="api-chip">POST /api/v1/messages/broadcast</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--admin)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/admin/settings.tsx</div>
+          <div class="screen-name">⚙️ Settings</div>
+          <div class="screen-desc">Profile management, password change, language toggle, and logout for admin.</div>
+          <ul class="screen-features">
+            <li>Edit own profile</li>
+            <li>Change password</li>
+            <li>Language toggle (Arabic / English)</li>
+            <li>Logout</li>
+          </ul>
+          <div class="screen-apis">
+            <span class="api-chip">PUT /api/v1/users/profile</span>
+            <span class="api-chip">PUT /api/v1/users/change-password</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TEACHER -->
+  <div id="panel-teacher" class="panel">
+    <div class="role-header">
+      <div class="role-badge" style="background:rgba(59,130,246,0.15);color:var(--teacher)">TEACHER</div>
+      <h2>Teacher Screens — Classroom Management</h2>
+    </div>
+
+    <div style="margin-bottom:16px;padding:12px 16px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:8px;font-size:0.78rem;color:var(--muted)">
+      🔒 <strong>Relationship Guard:</strong> Teachers can only access student data when an <code>Appointment</code> record has <code>status = 'ACCEPTED'</code>. Enforced server-side on grades, recordings, reports, and file downloads via <code>assertTeacherCanAccessStudent</code>.
+    </div>
+
+    <div class="screens-grid">
+
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--teacher)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/teacher/home.tsx</div>
+          <div class="screen-name">🏠 Teacher Dashboard</div>
+          <div class="screen-desc">Student roster with live memorization progress. Dark mode, skeleton loading, pull-to-refresh.</div>
+          <ul class="screen-features">
+            <li>List of assigned students</li>
+            <li>Live memorization progress % per student</li>
+            <li>Skeleton loading + pull-to-refresh</li>
+            <li>Dark mode via getColors()</li>
+          </ul>
+          <div class="screen-apis">
+            <span class="api-chip">GET /api/v1/admin/users</span>
+            <span class="api-chip">GET /api/v1/memorization</span>
+          </div>
+          <div class="navigates-to">
+            <span class="nav-chip">→ student-detail</span>
+            <span class="nav-chip">→ appointments</span>
+            <span class="nav-chip">→ messages</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--teacher)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/teacher/student-detail.tsx</div>
+          <div class="screen-name">👤 Student Detail</div>
+          <div class="screen-desc">Full academic profile: surah progress, grade history, quick actions.</div>
+          <ul class="screen-features">
+            <li>Memorization progress per surah</li>
+            <li>Grade history list</li>
+            <li>Navigate to grade form</li>
+            <li>View student recordings</li>
+          </ul>
+          <div class="screen-apis">
+            <span class="api-chip">GET /api/v1/memorization?studentId=</span>
+            <span class="api-chip">GET /api/v1/grades?studentId=</span>
+          </div>
+          <div class="navigates-to">
+            <span class="nav-chip">→ grade-form</span>
+            <span class="nav-chip">→ recordings</span>
+            <span class="nav-chip">→ reports</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--teacher)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/teacher/appointments.tsx</div>
+          <div class="screen-name">📅 Appointments</div>
+          <div class="screen-desc">Manage incoming appointment requests. Accept creates the relationship that unlocks data access.</div>
+          <ul class="screen-features">
+            <li>List pending + upcoming appointments</li>
+            <li>Accept (creates ACCEPTED relationship)</li>
+            <li>Reject with optional reason</li>
+          </ul>
+          <div class="screen-apis">
+            <span class="api-chip">GET /api/v1/appointments</span>
+            <span class="api-chip">PUT /api/v1/appointments/:id</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--teacher)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/teacher/recordings.tsx</div>
+          <div class="screen-name">🎙 Recording Review</div>
+          <div class="screen-desc">Review student recitation recordings. Approve/reject with feedback notes.</div>
+          <ul class="screen-features">
+            <li>List student recordings with status</li>
+            <li>Play audio recording</li>
+            <li>APPROVED or REJECTED with notes</li>
+            <li>Tenant-guarded download</li>
+          </ul>
+          <div class="screen-apis">
+            <span class="api-chip">GET /api/v1/recordings</span>
+            <span class="api-chip">PUT /api/v1/recordings/:id</span>
+            <span class="api-chip">GET /api/v1/files/recordings/:id</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--teacher)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/teacher/reports.tsx</div>
+          <div class="screen-name">📋 Reports</div>
+          <div class="screen-desc">Create progress reports for students. View sent report history and export.</div>
+          <ul class="screen-features">
+            <li>Create new report for student</li>
+            <li>Choose type and period</li>
+            <li>List sent reports</li>
+            <li>Export grades CSV</li>
+          </ul>
+          <div class="screen-apis">
+            <span class="api-chip">GET /api/v1/reports</span>
+            <span class="api-chip">POST /api/v1/reports</span>
+            <span class="api-chip">GET /api/v1/exports/grades-csv</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--teacher)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/teacher/grade-form.tsx</div>
+          <div class="screen-name">✏️ Grade Form</div>
+          <div class="screen-desc">Record a grade for a student recitation session, linked to surah.</div>
+          <ul class="screen-features">
+            <li>Select student from roster</li>
+            <li>Select surah</li>
+            <li>Enter score + grade type</li>
+            <li>Optional notes</li>
+          </ul>
+          <div class="screen-apis">
+            <span class="api-chip">POST /api/v1/grades</span>
+            <span class="api-chip">PUT /api/v1/grades/:id</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- STUDENT -->
+  <div id="panel-student" class="panel">
+    <div class="role-header">
+      <div class="role-badge" style="background:rgba(16,185,129,0.15);color:var(--student)">STUDENT</div>
+      <h2>Student Screens — Learning Journey</h2>
+    </div>
+    <div class="screens-grid">
+
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--student)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/student/home.tsx</div>
+          <div class="screen-name">🏠 Student Dashboard</div>
+          <div class="screen-desc">Central hub: memorization progress, assigned teacher, streak. Pull-to-refresh, skeleton loading.</div>
+          <ul class="screen-features">
+            <li>Assigned teacher name + change request shortcut</li>
+            <li>Surah list with memorization status badges</li>
+            <li>Progress % per surah</li>
+            <li>Current memorization streak</li>
+            <li>Pull-to-refresh + skeleton loading</li>
+          </ul>
+          <div class="screen-apis">
+            <span class="api-chip">GET /api/v1/memorization</span>
+            <span class="api-chip">GET /api/v1/surahs</span>
+            <span class="api-chip">GET /api/v1/users/profile</span>
+          </div>
+          <div class="navigates-to">
+            <span class="nav-chip">→ grades</span>
+            <span class="nav-chip">→ appointments</span>
+            <span class="nav-chip">→ teacher-change</span>
+            <span class="nav-chip">→ messages</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--student)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/student/appointments.tsx</div>
+          <div class="screen-name">📅 Appointments</div>
+          <div class="screen-desc">View and request sessions with assigned teacher.</div>
+          <ul class="screen-features">
+            <li>List upcoming/past appointments</li>
+            <li>Request new session</li>
+            <li>View status (PENDING / ACCEPTED / REJECTED)</li>
+            <li>Cancel pending requests</li>
+          </ul>
+          <div class="screen-apis">
+            <span class="api-chip">GET /api/v1/appointments</span>
+            <span class="api-chip">POST /api/v1/appointments</span>
+            <span class="api-chip">DELETE /api/v1/appointments/:id</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--student)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/student/grades.tsx</div>
+          <div class="screen-name">📊 Grades</div>
+          <div class="screen-desc">Grade history across all sessions. Dates localized to app language (ar-SA / en-US).</div>
+          <ul class="screen-features">
+            <li>Grades sorted by date</li>
+            <li>Surah name + grade type + score</li>
+            <li>Date in app locale</li>
+            <li>Filter by surah</li>
+          </ul>
+          <div class="screen-apis">
+            <span class="api-chip">GET /api/v1/grades</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--student)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/student/recordings.tsx</div>
+          <div class="screen-name">🎙 Recordings Upload</div>
+          <div class="screen-desc">Upload recitation recordings for teacher review. View feedback after review.</div>
+          <ul class="screen-features">
+            <li>Upload audio from device</li>
+            <li>Tag with surah + date</li>
+            <li>List submissions with status</li>
+            <li>Read teacher feedback notes</li>
+          </ul>
+          <div class="screen-apis">
+            <span class="api-chip">GET /api/v1/recordings</span>
+            <span class="api-chip">POST /api/v1/recordings</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--student)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/student/reports.tsx</div>
+          <div class="screen-name">📋 Reports View</div>
+          <div class="screen-desc">View progress reports created by teacher. Download PDF.</div>
+          <ul class="screen-features">
+            <li>List reports by teacher</li>
+            <li>Report period + type</li>
+            <li>Download report file</li>
+          </ul>
+          <div class="screen-apis">
+            <span class="api-chip">GET /api/v1/reports</span>
+            <span class="api-chip">GET /api/v1/files/reports/:id</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-card">
+        <div class="screen-top-bar" style="background:var(--student)"></div>
+        <div class="screen-body">
+          <div class="screen-path">app/student/teacher-change.tsx</div>
+          <div class="screen-name">🔀 Teacher Change</div>
+          <div class="screen-desc">Request reassignment to a different teacher. Admin reviews and decides with push notification.</div>
+          <ul class="screen-features">
+            <li>View current assigned teacher</li>
+            <li>Select new teacher</li>
+            <li>Submit request with reason</li>
+            <li>View request status</li>
+            <li>FCM push on admin decision</li>
+          </ul>
+          <div class="screen-apis">
+            <span class="api-chip">GET /api/v1/teacher-changes</span>
+            <span class="api-chip">POST /api/v1/teacher-changes</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- API REFERENCE -->
+  <div id="panel-api" class="panel">
+
+    <div class="section-title">Authentication · Rate-limited</div>
+    <div class="api-table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th><th>Roles</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method method-POST">POST</span></td><td class="route-path">/api/v1/auth/register</td><td>Register → PENDING status</td><td><div class="roles-cell"><span class="role-tag role-tag-ALL">PUBLIC</span></div></td></tr>
+          <tr><td><span class="method method-POST">POST</span></td><td class="route-path">/api/v1/auth/login</td><td>Login, returns JWT access + refresh tokens</td><td><div class="roles-cell"><span class="role-tag role-tag-ALL">PUBLIC</span></div></td></tr>
+          <tr><td><span class="method method-POST">POST</span></td><td class="route-path">/api/v1/auth/refresh</td><td>Refresh access token</td><td><div class="roles-cell"><span class="role-tag role-tag-ALL">PUBLIC</span></div></td></tr>
+          <tr><td><span class="method method-POST">POST</span></td><td class="route-path">/api/v1/auth/forgot-password</td><td>Email reset link (3/hr rate limit in prod)</td><td><div class="roles-cell"><span class="role-tag role-tag-ALL">PUBLIC</span></div></td></tr>
+          <tr><td><span class="method method-POST">POST</span></td><td class="route-path">/api/v1/auth/reset-password</td><td>Reset password with token</td><td><div class="roles-cell"><span class="role-tag role-tag-ALL">PUBLIC</span></div></td></tr>
+          <tr><td><span class="method method-POST">POST</span></td><td class="route-path">/api/v1/auth/first-login</td><td>Set password on first login</td><td><div class="roles-cell"><span class="role-tag role-tag-ALL">AUTH</span></div></td></tr>
+          <tr><td><span class="method method-POST">POST</span></td><td class="route-path">/api/v1/auth/logout</td><td>Invalidate refresh token</td><td><div class="roles-cell"><span class="role-tag role-tag-ALL">AUTH</span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title" style="margin-top:28px">User &amp; Profile</div>
+    <div class="api-table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th><th>Roles</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method method-GET">GET</span></td><td class="route-path">/api/v1/users/profile</td><td>Get own profile</td><td><div class="roles-cell"><span class="role-tag role-tag-ADMIN">ADMIN</span><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-PUT">PUT</span></td><td class="route-path">/api/v1/users/profile</td><td>Update profile (safe fields, lowercased output)</td><td><div class="roles-cell"><span class="role-tag role-tag-ADMIN">ADMIN</span><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-PUT">PUT</span></td><td class="route-path">/api/v1/users/change-password</td><td>Change own password</td><td><div class="roles-cell"><span class="role-tag role-tag-ADMIN">ADMIN</span><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-POST">POST</span></td><td class="route-path">/api/v1/users/device-token</td><td>Register FCM device token for push</td><td><div class="roles-cell"><span class="role-tag role-tag-ADMIN">ADMIN</span><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title" style="margin-top:28px">Admin</div>
+    <div class="api-table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th><th>Roles</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method method-GET">GET</span></td><td class="route-path">/api/v1/admin/users</td><td>List all users (filterable by role/status)</td><td><div class="roles-cell"><span class="role-tag role-tag-ADMIN">ADMIN</span></div></td></tr>
+          <tr><td><span class="method method-GET">GET</span></td><td class="route-path">/api/v1/admin/users/:id</td><td>Get user detail</td><td><div class="roles-cell"><span class="role-tag role-tag-ADMIN">ADMIN</span></div></td></tr>
+          <tr><td><span class="method method-PUT">PUT</span></td><td class="route-path">/api/v1/admin/users/:id</td><td>Update user (role, status, teacher)</td><td><div class="roles-cell"><span class="role-tag role-tag-ADMIN">ADMIN</span></div></td></tr>
+          <tr><td><span class="method method-PUT">PUT</span></td><td class="route-path">/api/v1/admin/users/:id/approve</td><td>Approve pending registration</td><td><div class="roles-cell"><span class="role-tag role-tag-ADMIN">ADMIN</span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title" style="margin-top:28px">Appointments</div>
+    <div class="api-table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th><th>Roles</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method method-GET">GET</span></td><td class="route-path">/api/v1/appointments</td><td>List own appointments</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-POST">POST</span></td><td class="route-path">/api/v1/appointments</td><td>Create appointment request</td><td><div class="roles-cell"><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-PUT">PUT</span></td><td class="route-path">/api/v1/appointments/:id</td><td>Accept / reject appointment</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span></div></td></tr>
+          <tr><td><span class="method method-DELETE">DELETE</span></td><td class="route-path">/api/v1/appointments/:id</td><td>Cancel appointment</td><td><div class="roles-cell"><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title" style="margin-top:28px">Grades &amp; Memorization</div>
+    <div class="api-table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th><th>Roles</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method method-GET">GET</span></td><td class="route-path">/api/v1/grades</td><td>List grades (own or student's — relationship-guarded)</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-POST">POST</span></td><td class="route-path">/api/v1/grades</td><td>Create grade for student</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span></div></td></tr>
+          <tr><td><span class="method method-PUT">PUT</span></td><td class="route-path">/api/v1/grades/:id</td><td>Update grade</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span></div></td></tr>
+          <tr><td><span class="method method-DELETE">DELETE</span></td><td class="route-path">/api/v1/grades/:id</td><td>Delete grade</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span></div></td></tr>
+          <tr><td><span class="method method-GET">GET</span></td><td class="route-path">/api/v1/surahs</td><td>List all 114 surahs</td><td><div class="roles-cell"><span class="role-tag role-tag-ADMIN">ADMIN</span><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-GET">GET</span></td><td class="route-path">/api/v1/memorization</td><td>Get memorization records</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-POST">POST</span></td><td class="route-path">/api/v1/memorization</td><td>Create memorization record</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span></div></td></tr>
+          <tr><td><span class="method method-PUT">PUT</span></td><td class="route-path">/api/v1/memorization/:id</td><td>Update memorization status</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title" style="margin-top:28px">Recordings</div>
+    <div class="api-table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th><th>Roles</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method method-GET">GET</span></td><td class="route-path">/api/v1/recordings</td><td>List recordings (relationship-guarded)</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-POST">POST</span></td><td class="route-path">/api/v1/recordings</td><td>Upload recording metadata</td><td><div class="roles-cell"><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-PUT">PUT</span></td><td class="route-path">/api/v1/recordings/:id</td><td>Approve/reject + notes</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span></div></td></tr>
+          <tr><td><span class="method method-GET">GET</span></td><td class="route-path">/api/v1/files/recordings/:id</td><td>Download file (tenant-guarded)</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title" style="margin-top:28px">Reports &amp; Exports</div>
+    <div class="api-table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th><th>Roles</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method method-GET">GET</span></td><td class="route-path">/api/v1/reports</td><td>List reports</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-POST">POST</span></td><td class="route-path">/api/v1/reports</td><td>Create report</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span></div></td></tr>
+          <tr><td><span class="method method-GET">GET</span></td><td class="route-path">/api/v1/files/reports/:id</td><td>Download report file</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-GET">GET</span></td><td class="route-path">/api/v1/exports/grades-csv</td><td>Export grades CSV (teacher-guarded)</td><td><div class="roles-cell"><span class="role-tag role-tag-ADMIN">ADMIN</span><span class="role-tag role-tag-TEACHER">TEACHER</span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title" style="margin-top:28px">Messages</div>
+    <div class="api-table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th><th>Roles</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method method-GET">GET</span></td><td class="route-path">/api/v1/messages</td><td>List conversations</td><td><div class="roles-cell"><span class="role-tag role-tag-ADMIN">ADMIN</span><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-GET">GET</span></td><td class="route-path">/api/v1/messages/:id</td><td>Get conversation messages</td><td><div class="roles-cell"><span class="role-tag role-tag-ADMIN">ADMIN</span><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-POST">POST</span></td><td class="route-path">/api/v1/messages</td><td>Send message</td><td><div class="roles-cell"><span class="role-tag role-tag-ADMIN">ADMIN</span><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-POST">POST</span></td><td class="route-path">/api/v1/messages/broadcast</td><td>Broadcast to role group</td><td><div class="roles-cell"><span class="role-tag role-tag-ADMIN">ADMIN</span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title" style="margin-top:28px">Teacher Changes &amp; Revisions</div>
+    <div class="api-table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th><th>Roles</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method method-GET">GET</span></td><td class="route-path">/api/v1/teacher-changes</td><td>List teacher change requests</td><td><div class="roles-cell"><span class="role-tag role-tag-ADMIN">ADMIN</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-POST">POST</span></td><td class="route-path">/api/v1/teacher-changes</td><td>Submit change request</td><td><div class="roles-cell"><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-PUT">PUT</span></td><td class="route-path">/api/v1/teacher-changes/:id</td><td>Approve / reject · FCM push on decision</td><td><div class="roles-cell"><span class="role-tag role-tag-ADMIN">ADMIN</span></div></td></tr>
+          <tr><td><span class="method method-GET">GET</span></td><td class="route-path">/api/v1/revisions</td><td>List revision schedules (per surah optional)</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-POST">POST</span></td><td class="route-path">/api/v1/revisions</td><td>Schedule a revision session</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span></div></td></tr>
+          <tr><td><span class="method method-PUT">PUT</span></td><td class="route-path">/api/v1/revisions/:id</td><td>Mark revision status (PENDING/COMPLETED/MISSED)</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-STUDENT">STUDENT</span></div></td></tr>
+          <tr><td><span class="method method-DELETE">DELETE</span></td><td class="route-path">/api/v1/revisions/:id</td><td>Delete revision</td><td><div class="roles-cell"><span class="role-tag role-tag-TEACHER">TEACHER</span><span class="role-tag role-tag-ADMIN">ADMIN</span></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function switchTab(role, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + role).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
