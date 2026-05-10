@@ -33,11 +33,34 @@ export default function RootLayout() {
         <Stack.Screen name="register" />
         <Stack.Screen name="first-login" />
         <Stack.Screen name="pending-approval" />
+        <Stack.Screen name="forgot-password" />
+
+        {/* Student */}
         <Stack.Screen name="student/home" />
+        <Stack.Screen name="student/grades" />
+        <Stack.Screen name="student/recordings" />
+        <Stack.Screen name="student/reports" />
+        <Stack.Screen name="student/appointments" />
+        <Stack.Screen name="student/teacher-change" />
+
+        {/* Teacher */}
         <Stack.Screen name="teacher/home" />
+        <Stack.Screen name="teacher/student-detail" />
+        <Stack.Screen name="teacher/grade-form" />
+        <Stack.Screen name="teacher/recordings" />
+        <Stack.Screen name="teacher/reports" />
+        <Stack.Screen name="teacher/appointments" />
+
+        {/* Admin */}
         <Stack.Screen name="admin/home" />
         <Stack.Screen name="admin/user-detail" />
         <Stack.Screen name="admin/settings" />
+        <Stack.Screen name="admin/broadcast" />
+        <Stack.Screen name="admin/change-requests" />
+
+        {/* Messages */}
+        <Stack.Screen name="messages/index" />
+        <Stack.Screen name="messages/conversation" />
       </Stack>
       <StatusBar style={darkMode ? 'light' : 'dark'} />
     </ThemeProvider>

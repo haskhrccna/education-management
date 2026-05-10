@@ -64,7 +64,7 @@ export const decideTeacherChangeRequest = async (id: string, action: 'APPROVE' |
   if (!request) throw new AppError(404, 'Request not found');
   if (request.status !== 'PENDING') throw new AppError(409, 'Request already decided');
 
-  return await prisma.teacherChangeRequest.update({
+  const updated = await prisma.teacherChangeRequest.update({
     where: { id },
     data: {
       status: action === 'APPROVE' ? 'APPROVED' : 'DENIED',
@@ -75,4 +75,10 @@ export const decideTeacherChangeRequest = async (id: string, action: 'APPROVE' |
       currentTeacher: { select: { id: true, firstName: true, lastName: true } },
     },
   });
+
+  // Notify the student of the decision (socket + email + push)
+  const { notifyTeacherChangeDecision } = await import('./notification.service');
+  await notifyTeacherChangeDecision(updated.studentId, updated);
+
+  return updated;
 };

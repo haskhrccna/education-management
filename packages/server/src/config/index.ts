@@ -43,6 +43,10 @@ export const config = {
   emailPass: process.env.EMAIL_PASS || '',
   emailFrom: process.env.EMAIL_FROM || 'noreply@education-app.com',
   clientUrl: process.env.CLIENT_URL,
+  // Firebase Cloud Messaging — all optional; if any is missing, FCM is disabled gracefully
+  firebaseProjectId: process.env.FIREBASE_PROJECT_ID || '',
+  firebaseClientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
+  firebasePrivateKey: process.env.FIREBASE_PRIVATE_KEY || '',
 };
 
 // Validate CLIENT_URL in production to prevent silent CORS failures

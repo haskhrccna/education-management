@@ -35,8 +35,15 @@ export const notifyUser = async (options: {
   // 3. Push notification (FCM)
   if (push) {
     try {
-      // TODO: Fetch device token from DB and send via FCM
-      logger.debug({ userId, push }, 'Push notification queued');
+      const { sendPushToUser } = await import('./fcm.service');
+      // FCM requires data values to be strings — coerce non-string entries
+      const stringData: Record<string, string> = { event };
+      for (const [k, v] of Object.entries(data)) {
+        if (v !== undefined && v !== null) {
+          stringData[k] = typeof v === 'string' ? v : JSON.stringify(v);
+        }
+      }
+      await sendPushToUser(userId, push.title, push.body, stringData);
     } catch (err) {
       logger.error({ err, userId }, 'Push notification failed');
     }
@@ -109,6 +116,32 @@ export const notifyNewMessage = async (receiverId: string, message: MessageSumma
     push: {
       title: `New message from ${message.sender?.firstName || 'Someone'}`,
       body: message.content?.substring(0, 100) ?? '',
+    },
+  });
+};
+
+interface TeacherChangeSummary extends Record<string, unknown> {
+  status?: string;
+  adminNote?: string | null;
+}
+
+export const notifyTeacherChangeDecision = async (studentId: string, request: TeacherChangeSummary) => {
+  const decision = request.status === 'APPROVED' ? 'approved' : 'denied';
+  await notifyUser({
+    userId: studentId,
+    event: 'teacher_change_decision',
+    data: request,
+    email: {
+      subject: `Teacher change request ${decision}`,
+      body: `<p>Your teacher change request has been <strong>${decision}</strong>.</p>${
+        request.adminNote ? `<p>Note: ${request.adminNote}</p>` : ''
+      }`,
+    },
+    push: {
+      title: `Teacher change request ${decision}`,
+      body: request.adminNote
+        ? `${decision[0].toUpperCase() + decision.slice(1)}: ${request.adminNote}`
+        : `Your teacher change request has been ${decision}.`,
     },
   });
 };

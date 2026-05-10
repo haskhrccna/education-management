@@ -45,7 +45,7 @@ export default function StudentHomeScreen() {
   const COLORS = getColors(theme, darkMode);
   const styles = createStyles(COLORS);
 
-  const { progress, surahs: apiSurahs, isLoading: isLoadingProgress, fetchProgress } = useMemorization();
+  const { progress, surahs: apiSurahs, isLoading: isLoadingProgress, fetchProgress, streak } = useMemorization();
   const { unreadCount, fetchMessages: fetchUnreadCount } = useMessages();
   const { appointments, fetchAppointments } = useAppointments();
 
@@ -114,6 +114,9 @@ export default function StudentHomeScreen() {
             </View>
             <TouchableOpacity onPress={() => router.push('/student/grades')} style={styles.logoutBtn}>
               <Text style={styles.logoutText}>{t('myGrades')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/student/recordings')} style={styles.logoutBtn}>
+              <Text style={styles.logoutText}>{t('recordings')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
               <Text style={styles.logoutText}>{t('logout')}</Text>
@@ -408,7 +411,7 @@ function ProgressTab({
       {/* Weekly streak */}
       <Animated.View entering={FadeInUp.duration(400)} style={[styles.card, styles.streakCard]}>
         <Text style={styles.streakIcon}>🔥</Text>
-        <Text style={styles.streakValue}>5</Text>
+        <Text style={styles.streakValue}>{5}</Text>
         <Text style={styles.streakLabel}>{i18n.language === 'ar' ? 'السجل الأسبوعي' : 'Weekly Streak'}</Text>
       </Animated.View>
 
