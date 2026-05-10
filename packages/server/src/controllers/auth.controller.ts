@@ -83,6 +83,9 @@ export const refresh = async (req: Request, res: Response, next: NextFunction): 
     if (!user || !verifyRefreshToken(refreshToken, user.refreshTokenHash)) {
       throw new AppError(401, 'Invalid refresh token');
     }
+    if (user.deletedAt) {
+      throw new AppError(401, 'Account has been deleted');
+    }
     if (user.status !== 'ACTIVE') {
       throw new AppError(401, 'Account is not active');
     }

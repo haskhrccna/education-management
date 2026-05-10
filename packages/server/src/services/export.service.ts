@@ -34,10 +34,25 @@ export const exportGradesCsv = async (
   if (callerRole === 'TEACHER' && callerId && studentId) {
     await assertTeacherCanAccessStudent(callerId, studentId);
   }
+
+  // If a teacher calls without a studentId, restrict to their own accepted students
+  let studentIdsFilter: string[] | undefined;
+  if (callerRole === 'TEACHER' && callerId && !studentId) {
+    const appointments = await prisma.appointment.findMany({
+      where: { teacherId: callerId, status: 'ACCEPTED' },
+      select: { studentId: true },
+    });
+    studentIdsFilter = appointments.map((a) => a.studentId);
+    if (studentIdsFilter.length === 0) {
+      return toCsv([], ['studentName', 'studentEmail', 'teacherName', 'subject', 'grade', 'type', 'notes', 'date']);
+    }
+  }
+
   const grades = await prisma.grade.findMany({
     where: {
       ...(studentId && { studentId }),
       ...(teacherId && { teacherId }),
+      ...(studentIdsFilter && { studentId: { in: studentIdsFilter } }),
     },
     include: {
       student: { select: { firstName: true, lastName: true, email: true } },

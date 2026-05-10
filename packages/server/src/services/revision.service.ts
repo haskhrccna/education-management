@@ -4,15 +4,22 @@ import { AppError } from '../middleware/error.middleware';
 export type RevisionStatus = 'PENDING' | 'COMPLETED' | 'MISSED';
 
 /**
- * Fetch revision schedules for a user (student view: own only; teacher view: all students).
+ * Fetch revision schedules for a user (student view: own only; teacher view: assigned students only).
  */
 export const getRevisions = async (userId: string, userRole: 'STUDENT' | 'TEACHER', surahId?: number) => {
   const where: Record<string, unknown> = {};
 
   if (userRole === 'STUDENT') {
     where.userId = userId;
+  } else if (userRole === 'TEACHER') {
+    const appointments = await prisma.appointment.findMany({
+      where: { teacherId: userId, status: 'ACCEPTED' },
+      select: { studentId: true },
+    });
+    const studentIds = appointments.map((a) => a.studentId);
+    if (studentIds.length === 0) return [];
+    where.userId = { in: studentIds };
   }
-  // TEACHER sees all — no userId filter needed
 
   if (surahId) {
     where.surahId = surahId;

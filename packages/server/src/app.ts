@@ -67,7 +67,7 @@ if (config.env !== 'development') {
 } else {
   app.use('/api/docs', docsRoutes);
 }
-app.use('/metrics', metricsRoutes);
+app.use('/metrics', authenticate, authorize(UserRole.ADMIN), metricsRoutes);
 
 // Health check
 app.get('/api/health', async (_req, res) => {
