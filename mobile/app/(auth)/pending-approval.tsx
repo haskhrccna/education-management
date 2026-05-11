@@ -29,7 +29,8 @@ export default function PendingApprovalPage() {
           <View style={styles.steps}>
             <View style={styles.step}>
               <View style={[styles.stepDot, styles.stepActive]} />
-              <Text style={styles.stepText}>✓ {t('submitted')}</Text>
+              <Ionicons name="checkmark-circle-outline" size={16} color={COLORS.success} />
+              <Text style={styles.stepText}>{t('submitted')}</Text>
             </View>
             <View style={styles.stepLine} />
             <View style={styles.step}>

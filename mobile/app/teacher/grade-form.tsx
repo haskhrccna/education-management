@@ -13,6 +13,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
+import { Ionicons } from '@expo/vector-icons';
 import { appointmentsApi, gradesApi } from '@/src/api';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
@@ -99,7 +100,12 @@ export default function GradeFormScreen() {
         {/* Header */}
         <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.backText}>←</Text>
+            <Ionicons
+              name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
+              size={22}
+              color="rgba(255,255,255,0.85)"
+              style={styles.backText}
+            />
           </TouchableOpacity>
           <Text style={styles.title}>{t('addGrade')}</Text>
           <Text style={styles.subtitle}>{t('assessRecitation')}</Text>

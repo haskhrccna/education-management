@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
+import { Ionicons } from '@expo/vector-icons';
 import { appointmentsApi, reportsApi, Report } from '@/src/api';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
@@ -137,7 +138,12 @@ export default function TeacherReportsScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>{isRTL ? '→' : '←'}</Text>
+          <Ionicons
+            name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
+            size={22}
+            color="rgba(255,255,255,0.85)"
+            style={styles.backText}
+          />
         </TouchableOpacity>
         <View style={styles.headerRow}>
           <Text style={styles.title}>{t('reports')}</Text>
@@ -331,7 +337,7 @@ const createStyles = (COLORS: any) =>
       borderRadius: RADIUS.md,
     },
     headerActionText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-    scroll: { padding: SPACING.xl, gap: SPACING.md, paddingBottom: SPACING['4xl'] },
+    scroll: { padding: SPACING.xl, gap: SPACING.md, paddingBottom: SPACING['3xl'] },
     formCard: {
       borderRadius: RADIUS.xl,
       padding: SPACING.lg,
@@ -399,7 +405,7 @@ const createStyles = (COLORS: any) =>
     center: {
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: SPACING['4xl'],
+      paddingVertical: SPACING['3xl'],
     },
     emptyTitle: { fontSize: 18, fontWeight: '700', marginBottom: SPACING.xs },
     emptyDesc: { fontSize: 14, textAlign: 'center', maxWidth: 320, lineHeight: 20 },

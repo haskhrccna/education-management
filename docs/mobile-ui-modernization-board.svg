@@ -1,0 +1,297 @@
+<svg width="1500" height="1060" viewBox="0 0 1500 1060" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadowSoft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#12352A" flood-opacity="0.13"/>
+    </filter>
+    <filter id="shadowCard" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#143127" flood-opacity="0.10"/>
+    </filter>
+    <linearGradient id="headerGreen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0F5132"/>
+      <stop offset="1" stop-color="#1B7A4A"/>
+    </linearGradient>
+    <linearGradient id="goldWash" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFF7DD"/>
+      <stop offset="1" stop-color="#F3FAF0"/>
+    </linearGradient>
+    <style>
+      .page { fill: #F6F8F5; }
+      .title { font: 800 42px Inter, Arial, sans-serif; fill: #10231C; letter-spacing: 0; }
+      .subtitle { font: 500 18px Inter, Arial, sans-serif; fill: #597067; letter-spacing: 0; }
+      .label { font: 700 13px Inter, Arial, sans-serif; fill: #0F5132; letter-spacing: 0; }
+      .small { font: 500 12px Inter, Arial, sans-serif; fill: #687A73; letter-spacing: 0; }
+      .tiny { font: 700 10px Inter, Arial, sans-serif; fill: #72847B; letter-spacing: 0; }
+      .phoneTitle { font: 800 17px Inter, Arial, sans-serif; fill: #10231C; letter-spacing: 0; }
+      .phoneSub { font: 500 11px Inter, Arial, sans-serif; fill: #6C7B75; letter-spacing: 0; }
+      .whiteTitle { font: 800 18px Inter, Arial, sans-serif; fill: #FFFFFF; letter-spacing: 0; }
+      .whiteSub { font: 500 11px Inter, Arial, sans-serif; fill: rgba(255,255,255,0.78); letter-spacing: 0; }
+      .metric { font: 800 24px Inter, Arial, sans-serif; fill: #10231C; letter-spacing: 0; }
+      .chipText { font: 700 10px Inter, Arial, sans-serif; letter-spacing: 0; }
+      .body { font: 600 12px Inter, Arial, sans-serif; fill: #21372F; letter-spacing: 0; }
+      .muted { font: 500 10px Inter, Arial, sans-serif; fill: #788881; letter-spacing: 0; }
+      .screenBg { fill: #F7F8F5; }
+      .surface { fill: #FFFFFF; }
+      .line { stroke: #E4E9E3; }
+      .green { fill: #0F6B3E; }
+      .greenText { fill: #0F6B3E; }
+      .gold { fill: #F2B84B; }
+      .warning { fill: #F59E0B; }
+      .error { fill: #D83A3A; }
+      .success { fill: #2B8A4B; }
+    </style>
+  </defs>
+
+  <rect class="page" width="1500" height="1060"/>
+  <rect x="52" y="44" width="1396" height="146" rx="28" fill="#FFFFFF" filter="url(#shadowCard)"/>
+  <text x="86" y="102" class="title">Quran Review Mobile UI Modernization</text>
+  <text x="88" y="136" class="subtitle">Proposed role-first direction: calmer dashboards, clearer workflows, stronger Arabic-ready components, and fewer competing card styles.</text>
+  <g transform="translate(1045 78)">
+    <rect x="0" y="0" width="105" height="32" rx="16" fill="#EAF5EE"/>
+    <circle cx="20" cy="16" r="7" fill="#0F6B3E"/>
+    <text x="34" y="20" class="tiny" fill="#0F6B3E">Brand calm</text>
+    <rect x="120" y="0" width="112" height="32" rx="16" fill="#FFF4D8"/>
+    <circle cx="141" cy="16" r="7" fill="#F2B84B"/>
+    <text x="156" y="20" class="tiny" fill="#9A6310">Warm signal</text>
+  </g>
+
+  <!-- Phone frame helper groups -->
+  <g transform="translate(70 238)">
+    <text x="0" y="-28" class="label">Proposed Student Dashboard</text>
+    <rect x="0" y="0" width="310" height="650" rx="42" fill="#12231D" filter="url(#shadowSoft)"/>
+    <rect x="12" y="12" width="286" height="626" rx="32" class="screenBg"/>
+    <rect x="116" y="22" width="78" height="7" rx="4" fill="#223A31" opacity="0.22"/>
+
+    <rect x="28" y="44" width="254" height="126" rx="24" fill="url(#headerGreen)"/>
+    <text x="48" y="83" class="whiteSub">Today</text>
+    <text x="48" y="108" class="whiteTitle">Hi, Ahmed</text>
+    <text x="48" y="133" class="whiteSub">Next review starts at 4:30 PM</text>
+    <circle cx="235" cy="107" r="34" fill="rgba(255,255,255,0.16)"/>
+    <circle cx="235" cy="107" r="24" stroke="#FFFFFF" stroke-opacity="0.26" stroke-width="8"/>
+    <path d="M235 83 A24 24 0 1 1 214 119" stroke="#F2B84B" stroke-width="8" stroke-linecap="round"/>
+    <text x="223" y="112" font-family="Inter, Arial" font-size="13" font-weight="800" fill="#FFFFFF">72%</text>
+
+    <rect x="28" y="188" width="254" height="92" rx="18" class="surface" filter="url(#shadowCard)"/>
+    <rect x="48" y="208" width="46" height="46" rx="14" fill="#EAF5EE"/>
+    <path d="M62 232 h18 M62 224 h18 M62 240 h12" stroke="#0F6B3E" stroke-width="3" stroke-linecap="round"/>
+    <text x="108" y="222" class="body">Current memorization</text>
+    <text x="108" y="242" class="phoneTitle">Surah Al-Mulk</text>
+    <text x="108" y="260" class="muted">18 of 30 ayahs complete</text>
+    <rect x="108" y="267" width="132" height="5" rx="3" fill="#E7EEE8"/>
+    <rect x="108" y="267" width="79" height="5" rx="3" fill="#0F6B3E"/>
+
+    <g transform="translate(28 300)">
+      <rect x="0" y="0" width="119" height="86" rx="18" fill="#FFFFFF" filter="url(#shadowCard)"/>
+      <rect x="15" y="14" width="32" height="32" rx="11" fill="#EAF5EE"/>
+      <path d="M26 30 h11 M31.5 24 v12" stroke="#0F6B3E" stroke-width="3" stroke-linecap="round"/>
+      <text x="15" y="63" class="body">Book session</text>
+      <text x="15" y="77" class="muted">Teacher calendar</text>
+
+      <rect x="135" y="0" width="119" height="86" rx="18" fill="#FFFFFF" filter="url(#shadowCard)"/>
+      <rect x="150" y="14" width="32" height="32" rx="11" fill="#FFF4D8"/>
+      <path d="M163 35 c8 5 17 0 17-8 c0-7-9-11-17-6" stroke="#B7791F" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <text x="150" y="63" class="body">Record</text>
+      <text x="150" y="77" class="muted">Submit recitation</text>
+
+      <rect x="0" y="102" width="119" height="86" rx="18" fill="#FFFFFF" filter="url(#shadowCard)"/>
+      <rect x="15" y="116" width="32" height="32" rx="11" fill="#E8F0FF"/>
+      <path d="M25 139 h12 M25 132 h18 M25 125 h10" stroke="#2B61C3" stroke-width="3" stroke-linecap="round"/>
+      <text x="15" y="165" class="body">Grades</text>
+      <text x="15" y="179" class="muted">Latest feedback</text>
+
+      <rect x="135" y="102" width="119" height="86" rx="18" fill="#FFFFFF" filter="url(#shadowCard)"/>
+      <rect x="150" y="116" width="32" height="32" rx="11" fill="#FEECEC"/>
+      <path d="M160 127 h14 a7 7 0 0 1 0 14 h-8 l-6 6 v-6" stroke="#D83A3A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <text x="150" y="165" class="body">Teacher</text>
+      <text x="150" y="179" class="muted">Message now</text>
+    </g>
+
+    <rect x="28" y="510" width="254" height="64" rx="18" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <circle cx="61" cy="542" r="18" fill="#EAF5EE"/>
+    <text x="55" y="547" font-family="Inter, Arial" font-size="13" font-weight="800" fill="#0F6B3E">FA</text>
+    <text x="90" y="535" class="body">Fatima Alim</text>
+    <text x="90" y="552" class="muted">Teacher assigned - 2 unread</text>
+    <rect x="226" y="527" width="38" height="30" rx="15" fill="#0F6B3E"/>
+    <path d="M239 542 h10 M245 536 l7 6 l-7 6" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <rect x="28" y="594" width="254" height="36" rx="18" fill="#FFFFFF"/>
+    <circle cx="64" cy="612" r="5" fill="#0F6B3E"/>
+    <circle cx="111" cy="612" r="4" fill="#9AAAA3"/>
+    <circle cx="158" cy="612" r="4" fill="#9AAAA3"/>
+    <circle cx="205" cy="612" r="4" fill="#9AAAA3"/>
+    <circle cx="252" cy="612" r="4" fill="#9AAAA3"/>
+  </g>
+
+  <g transform="translate(430 238)">
+    <text x="0" y="-28" class="label">Proposed Teacher Workspace</text>
+    <rect x="0" y="0" width="310" height="650" rx="42" fill="#12231D" filter="url(#shadowSoft)"/>
+    <rect x="12" y="12" width="286" height="626" rx="32" class="screenBg"/>
+    <rect x="116" y="22" width="78" height="7" rx="4" fill="#223A31" opacity="0.22"/>
+
+    <rect x="28" y="46" width="254" height="72" rx="22" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <text x="48" y="77" class="phoneTitle">Teaching</text>
+    <text x="48" y="96" class="phoneSub">4 items need a decision</text>
+    <circle cx="247" cy="82" r="18" fill="#0F6B3E"/>
+    <text x="240" y="87" font-family="Inter, Arial" font-size="13" font-weight="800" fill="#FFFFFF">MS</text>
+
+    <g transform="translate(28 136)">
+      <rect x="0" y="0" width="78" height="76" rx="18" fill="#0F6B3E"/>
+      <text x="17" y="34" font-family="Inter, Arial" font-size="24" font-weight="800" fill="#FFFFFF">12</text>
+      <text x="15" y="55" class="whiteSub">Students</text>
+      <rect x="88" y="0" width="78" height="76" rx="18" fill="#FFF4D8"/>
+      <text x="112" y="34" font-family="Inter, Arial" font-size="24" font-weight="800" fill="#7A4D10">4</text>
+      <text x="106" y="55" class="muted">Pending</text>
+      <rect x="176" y="0" width="78" height="76" rx="18" fill="#E8F0FF"/>
+      <text x="197" y="34" font-family="Inter, Arial" font-size="24" font-weight="800" fill="#2B61C3">8</text>
+      <text x="195" y="55" class="muted">Reviews</text>
+    </g>
+
+    <text x="28" y="247" class="phoneTitle">Priority queue</text>
+    <rect x="28" y="264" width="254" height="84" rx="18" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="46" y="285" width="38" height="38" rx="14" fill="#FFF4D8"/>
+    <text x="58" y="309" font-family="Inter, Arial" font-size="13" font-weight="800" fill="#9A6310">A</text>
+    <text x="98" y="293" class="body">Aisha requested a session</text>
+    <text x="98" y="311" class="muted">Today, 4:30 PM - 30 min</text>
+    <rect x="98" y="322" width="62" height="18" rx="9" fill="#EAF5EE"/>
+    <text x="111" y="335" class="chipText" fill="#0F6B3E">Accept</text>
+    <rect x="168" y="322" width="62" height="18" rx="9" fill="#FEECEC"/>
+    <text x="181" y="335" class="chipText" fill="#D83A3A">Decline</text>
+
+    <rect x="28" y="362" width="254" height="84" rx="18" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="46" y="383" width="38" height="38" rx="14" fill="#E8F0FF"/>
+    <path d="M58 407 h14 M58 400 h18 M58 393 h10" stroke="#2B61C3" stroke-width="3" stroke-linecap="round"/>
+    <text x="98" y="391" class="body">New recitation to review</text>
+    <text x="98" y="409" class="muted">Surah Al-Kahf - 2:14 audio</text>
+    <rect x="98" y="420" width="88" height="18" rx="9" fill="#0F6B3E"/>
+    <text x="116" y="433" class="chipText" fill="#FFFFFF">Review now</text>
+
+    <text x="28" y="482" class="phoneTitle">Students needing attention</text>
+    <g transform="translate(28 500)">
+      <rect x="0" y="0" width="254" height="54" rx="16" fill="#FFFFFF" filter="url(#shadowCard)"/>
+      <circle cx="27" cy="27" r="16" fill="#EAF5EE"/>
+      <text x="22" y="32" font-family="Inter, Arial" font-size="11" font-weight="800" fill="#0F6B3E">O</text>
+      <text x="53" y="22" class="body">Omar Hassan</text>
+      <rect x="53" y="33" width="112" height="5" rx="3" fill="#E7EEE8"/>
+      <rect x="53" y="33" width="82" height="5" rx="3" fill="#0F6B3E"/>
+      <text x="209" y="32" class="body">73%</text>
+      <rect x="0" y="66" width="254" height="54" rx="16" fill="#FFFFFF" filter="url(#shadowCard)"/>
+      <circle cx="27" cy="93" r="16" fill="#FFF4D8"/>
+      <text x="22" y="98" font-family="Inter, Arial" font-size="11" font-weight="800" fill="#9A6310">M</text>
+      <text x="53" y="88" class="body">Mariam Said</text>
+      <rect x="53" y="99" width="112" height="5" rx="3" fill="#E7EEE8"/>
+      <rect x="53" y="99" width="42" height="5" rx="3" fill="#F2B84B"/>
+      <text x="209" y="98" class="body">38%</text>
+    </g>
+  </g>
+
+  <g transform="translate(790 238)">
+    <text x="0" y="-28" class="label">Proposed Admin Control Center</text>
+    <rect x="0" y="0" width="310" height="650" rx="42" fill="#12231D" filter="url(#shadowSoft)"/>
+    <rect x="12" y="12" width="286" height="626" rx="32" class="screenBg"/>
+    <rect x="116" y="22" width="78" height="7" rx="4" fill="#223A31" opacity="0.22"/>
+
+    <rect x="28" y="44" width="254" height="116" rx="24" fill="url(#headerGreen)"/>
+    <text x="48" y="80" class="whiteTitle">Approvals</text>
+    <text x="48" y="101" class="whiteSub">Pending users and teacher changes</text>
+    <rect x="48" y="121" width="66" height="24" rx="12" fill="rgba(255,255,255,0.20)"/>
+    <text x="62" y="137" class="chipText" fill="#FFFFFF">Pending</text>
+    <rect x="122" y="121" width="70" height="24" rx="12" fill="rgba(255,255,255,0.10)"/>
+    <text x="139" y="137" class="chipText" fill="#FFFFFF">Teachers</text>
+    <rect x="200" y="121" width="48" height="24" rx="12" fill="rgba(255,255,255,0.10)"/>
+    <text x="215" y="137" class="chipText" fill="#FFFFFF">All</text>
+
+    <g transform="translate(28 178)">
+      <rect x="0" y="0" width="78" height="70" rx="18" fill="#FFFFFF" filter="url(#shadowCard)"/>
+      <text x="18" y="31" class="metric">46</text>
+      <text x="15" y="51" class="muted">Students</text>
+      <rect x="88" y="0" width="78" height="70" rx="18" fill="#FFFFFF" filter="url(#shadowCard)"/>
+      <text x="112" y="31" class="metric">7</text>
+      <text x="105" y="51" class="muted">Teachers</text>
+      <rect x="176" y="0" width="78" height="70" rx="18" fill="#FFFFFF" filter="url(#shadowCard)"/>
+      <text x="200" y="31" class="metric">5</text>
+      <text x="193" y="51" class="muted">Pending</text>
+    </g>
+
+    <rect x="28" y="268" width="254" height="62" rx="18" fill="#FFF4D8"/>
+    <circle cx="57" cy="299" r="15" fill="#F2B84B"/>
+    <path d="M50 299 h14 M57 292 v14" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/>
+    <text x="86" y="296" class="body">2 teacher change requests</text>
+    <text x="86" y="313" class="muted">Review assignments</text>
+
+    <text x="28" y="366" class="phoneTitle">Approval queue</text>
+    <g transform="translate(28 384)">
+      <rect x="0" y="0" width="254" height="72" rx="18" fill="#FFFFFF" filter="url(#shadowCard)"/>
+      <circle cx="29" cy="36" r="18" fill="#EAF5EE"/>
+      <text x="24" y="41" font-family="Inter, Arial" font-size="12" font-weight="800" fill="#0F6B3E">S</text>
+      <text x="59" y="28" class="body">Sara Yusuf</text>
+      <rect x="59" y="39" width="52" height="18" rx="9" fill="#E8F0FF"/>
+      <text x="73" y="52" class="chipText" fill="#2B61C3">Student</text>
+      <rect x="167" y="21" width="58" height="30" rx="15" fill="#0F6B3E"/>
+      <path d="M185 36 l7 7 l16 -18" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <rect x="0" y="86" width="254" height="72" rx="18" fill="#FFFFFF" filter="url(#shadowCard)"/>
+      <circle cx="29" cy="122" r="18" fill="#FFF4D8"/>
+      <text x="24" y="127" font-family="Inter, Arial" font-size="12" font-weight="800" fill="#9A6310">Y</text>
+      <text x="59" y="114" class="body">Yousef Ali</text>
+      <rect x="59" y="125" width="58" height="18" rx="9" fill="#FFF4D8"/>
+      <text x="72" y="138" class="chipText" fill="#9A6310">Teacher</text>
+      <rect x="167" y="107" width="58" height="30" rx="15" fill="#0F6B3E"/>
+      <path d="M185 122 l7 7 l16 -18" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <rect x="0" y="172" width="254" height="72" rx="18" fill="#FFFFFF" filter="url(#shadowCard)"/>
+      <circle cx="29" cy="208" r="18" fill="#FEECEC"/>
+      <text x="24" y="213" font-family="Inter, Arial" font-size="12" font-weight="800" fill="#D83A3A">N</text>
+      <text x="59" y="200" class="body">Noor Ahmed</text>
+      <rect x="59" y="211" width="52" height="18" rx="9" fill="#E8F0FF"/>
+      <text x="73" y="224" class="chipText" fill="#2B61C3">Student</text>
+      <rect x="167" y="193" width="58" height="30" rx="15" fill="#0F6B3E"/>
+      <path d="M185 208 l7 7 l16 -18" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <g transform="translate(1150 238)">
+    <text x="0" y="-28" class="label">Proposed Messaging Flow</text>
+    <rect x="0" y="0" width="310" height="650" rx="42" fill="#12231D" filter="url(#shadowSoft)"/>
+    <rect x="12" y="12" width="286" height="626" rx="32" class="screenBg"/>
+    <rect x="116" y="22" width="78" height="7" rx="4" fill="#223A31" opacity="0.22"/>
+
+    <rect x="28" y="44" width="254" height="64" rx="22" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <circle cx="60" cy="76" r="18" fill="#EAF5EE"/>
+    <text x="54" y="81" font-family="Inter, Arial" font-size="12" font-weight="800" fill="#0F6B3E">FA</text>
+    <text x="91" y="72" class="phoneTitle">Fatima Alim</text>
+    <text x="91" y="91" class="phoneSub">Teacher - usually replies soon</text>
+
+    <rect x="28" y="142" width="176" height="58" rx="18" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <text x="46" y="166" class="body">Assalamu alaikum.</text>
+    <text x="46" y="184" class="muted">Please upload today's recitation.</text>
+
+    <rect x="96" y="222" width="186" height="58" rx="18" fill="#0F6B3E"/>
+    <text x="116" y="247" font-family="Inter, Arial" font-size="12" font-weight="600" fill="#FFFFFF">Wa alaikum assalam.</text>
+    <text x="116" y="265" font-family="Inter, Arial" font-size="10" font-weight="500" fill="rgba(255,255,255,0.75)">I will record it now.</text>
+
+    <rect x="28" y="312" width="212" height="72" rx="18" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="46" y="334" width="34" height="30" rx="15" fill="#FFF4D8"/>
+    <path d="M58 349 h10 M63 344 v10" stroke="#9A6310" stroke-width="2.4" stroke-linecap="round"/>
+    <text x="92" y="344" class="body">Voice note received</text>
+    <rect x="92" y="356" width="98" height="5" rx="3" fill="#E7EEE8"/>
+    <rect x="92" y="356" width="56" height="5" rx="3" fill="#F2B84B"/>
+    <text x="196" y="361" class="muted">2:14</text>
+
+    <rect x="28" y="412" width="254" height="62" rx="18" fill="#EAF5EE"/>
+    <text x="48" y="438" class="body">Design note</text>
+    <text x="48" y="456" class="muted">Clear status, timestamps, attachment support</text>
+
+    <rect x="28" y="554" width="254" height="54" rx="22" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <rect x="46" y="568" width="162" height="26" rx="13" fill="#F1F4F1"/>
+    <text x="62" y="586" class="muted">Type a message...</text>
+    <circle cx="236" cy="581" r="18" fill="#0F6B3E"/>
+    <path d="M228 581 h12 M236 575 l8 6 l-8 6" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <g transform="translate(70 940)">
+    <rect x="0" y="0" width="1390" height="74" rx="24" fill="#FFFFFF" filter="url(#shadowCard)"/>
+    <text x="28" y="31" class="label">Implementation sequence</text>
+    <text x="28" y="54" class="small">1. Fix tokens and shared primitives  2. Replace symbol controls with icon buttons  3. Redesign role dashboards  4. Upgrade appointments and recordings  5. Audit RTL and accessibility</text>
+    <rect x="1112" y="20" width="230" height="34" rx="17" fill="#0F6B3E"/>
+    <text x="1160" y="42" font-family="Inter, Arial" font-size="13" font-weight="800" fill="#FFFFFF">Recommended: Option B</text>
+  </g>
+</svg>

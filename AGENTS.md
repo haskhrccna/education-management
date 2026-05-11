@@ -1,22 +1,16 @@
 <claude-mem-context>
 # Memory Context
 
-# [education_management] recent context, 2026-05-08 2:42pm GMT+4
+# [education_management] recent context, 2026-05-11 10:04pm GMT+4
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision 🚨security_alert 🔐security_note
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 50 obs (22,681t read) | 1,394,478t work | 98% savings
+Stats: 50 obs (22,991t read) | 2,531,443t work | 99% savings
 
 ### May 7, 2026
-70 12:16a 🔵 .env is gitignored — JWT secret not committed to version control
-71 12:17a 🔴 C1 Fixed — Seed passwords moved to env vars with production guard
-72 " ✅ .env.example updated with JWT secret generation instructions and seed password vars
-73 " 🔵 JWT_SECRET referenced only in config/index.ts — length validation impact is minimal
-74 12:18a 🔵 Test suite reads JWT_SECRET from real .env — length validation will break tests
-80 12:19a 🔴 C2 Fixed — JWT secret validated for minimum length and known weak values at startup
-81 " 🔵 Role case inconsistency is pervasive — mixed uppercase/lowercase comparisons across codebase
+81 12:19a 🔵 Role case inconsistency is pervasive — mixed uppercase/lowercase comparisons across codebase
 87 " 🔵 UserRole enum is uppercase-valued — JWT lowercase normalization would break server authorize() middleware
 88 12:20a 🔵 file.controller.ts has live authorization bug — teachers blocked from downloading recordings/reports
 89 " 🔴 H2 Fixed — Login response normalizes role/status to lowercase without changing JWT payload
@@ -25,7 +19,6 @@ Stats: 50 obs (22,681t read) | 1,394,478t work | 98% savings
 96 3:35p ⚖️ Comprehensive Codebase Review + Mobile App Upgrade Plan Requested
 97 3:38p ⚖️ Parallel Security Audit Agents Launched for education_management Platform
 98 " 🔵 education_management Server — Current Security Posture from Code Reads
-S40 Comprehensive security audit, code review, vulnerability analysis, and upgrade roadmap for education_management (Quran memorization) platform — full plan with phased implementation and test coverage (May 7 at 3:39 PM)
 S41 Comprehensive codebase review — vulnerabilities, logic issues, and full upgrade plan with phased implementation and tests for education_management (Quran memorization) platform (May 7 at 3:41 PM)
 99 4:26p ⚖️ Comprehensive Upgrade Plan Commissioned for education_management Platform
 S42 7-Phase Security & Quality Remediation Roadmap Approved for education_management (May 7 at 4:28 PM)
@@ -44,9 +37,9 @@ S46 7-Phase Security & Quality Remediation Roadmap Approved for education_manage
 108 " 🔵 5 Key Risks Identified for Remediation Plan Execution
 S47 Execute the 7-phase security and quality remediation plan for the education_management (Quran memorization) platform — user approved the full design and requested implementation to begin (May 7 at 8:26 PM)
 S48 Review codebase and follow previous upgrade plan for education_management (Quran memorization) platform (May 7 at 8:28 PM)
+S49 7-Phase Security & Quality Remediation Plan Approved for education_management (May 7 at 8:32 PM)
 109 8:34p ⚖️ 7-Phase Security & Quality Remediation Plan Approved for education_management
 110 " 🔵 10 P0 Bugs Catalogued with Exact File Locations and Fix Specifications
-S49 7-Phase Security & Quality Remediation Plan Approved for education_management (May 7 at 8:34 PM)
 ### May 8, 2026
 111 1:54p 🔵 Mobile App UX Audit — 15 Bugs and Gaps Identified Across Teacher/Student/Admin Screens
 112 " 🔵 Mobile UX Audit — 15 Bugs and UX Gaps Identified in education_management App
@@ -71,6 +64,21 @@ S49 7-Phase Security & Quality Remediation Plan Approved for education_managemen
 133 " 🔵 Server Role/Status Case Design — JWT and Prisma Use Uppercase, Login Response Lowercases for Mobile
 134 " 🔵 Mobile Navigation Uses Flat Stack — No Tab Navigator Exists Yet
 135 " 🔵 education_management Full Stack Architecture Summary
+137 3:14p 🟣 Server-Side Relationship Guards Enforced for Grades, Memorization, and Messaging
+138 " 🟣 New memorization.service.test.ts — 4 Tests for Access Guard Logic
+139 " 🔴 Existing grade and message tests broken by new relationship guards — fixed with mock updates
+140 " 🔴 CI Workflow Fixed for Monorepo — workspace-aware npm commands replace cwd defaults
+141 " 🔵 Full Server Test Suite Requires Network Binding — sandbox blocks Supertest EPERM
+142 " ✅ Commit: "Enforce classroom access boundaries" — branch main-upgrade, hash 4ceab5b
+S56 Oh My Posh installation location after `brew install jandedobbeleer/oh-my-posh/oh-my-posh` (May 8 at 10:02 PM)
+**Investigated**: Homebrew installation paths for oh-my-posh on macOS (both Apple Silicon and Intel architectures)
 
-Access 1394k tokens of past work via get_observations([IDs]) or mem-search skill.
+**Learned**: Oh My Posh installs as a single binary via Homebrew: `/opt/homebrew/bin/oh-my-posh` on Apple Silicon Macs, or `/usr/local/bin/oh-my-posh` on Intel Macs. There is no dedicated installation folder — it is a self-contained binary. Configuration is done via shell rc files (e.g., `~/.zshrc`) using `eval "$(oh-my-posh init bash --config ...)"`, and theme/config files are user-defined and placed wherever the user chooses (commonly `~/.poshrp.json` or similar).
+
+**Completed**: Answered a one-off question about oh-my-posh Homebrew installation path. No code changes or project modifications were made.
+
+**Next Steps**: No active development trajectory from this request — it was a standalone informational query unrelated to the education_management project.
+
+
+Access 2531k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

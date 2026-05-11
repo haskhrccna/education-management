@@ -33,6 +33,12 @@
       "expo-localization",
       "expo-secure-store",
       [
+        "expo-av",
+        {
+          "microphonePermission": "يحتاج التطبيق إلى الميكروفون لتسجيل التلاوة القرآنية."
+        }
+      ],
+      [
         "expo-notifications",
         {
           "icon": "./assets/icon.png",

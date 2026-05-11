@@ -76,9 +76,12 @@ model User {
   passwordResetExpiry DateTime?
   passwordChangedAt     DateTime?
   deletedAt             DateTime?
+  assignedTeacherId     String?
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
+  assignedTeacher        User?                  @relation("StudentTeacherAssignment", fields: [assignedTeacherId], references: [id], onDelete: SetNull)
+  assignedStudents       User[]                 @relation("StudentTeacherAssignment")
   appointmentsAsStudent  Appointment[]          @relation("StudentAppointments")
   appointmentsAsTeacher  Appointment[]          @relation("TeacherAppointments")
   gradesGiven            Grade[]                @relation("TeacherGrades")

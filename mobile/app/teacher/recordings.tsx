@@ -15,6 +15,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
+import { Ionicons } from '@expo/vector-icons';
 import { useRecordings } from '@/src/hooks/useRecordings';
 import { Recording, getRecordingStatus } from '@/src/api';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
@@ -55,7 +56,7 @@ const buildAudioUrl = (recording: Recording): string => {
 
 export default function TeacherRecordingsScreen() {
   const router = useRouter();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const isRTL = useIsRTL();
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
@@ -239,7 +240,12 @@ export default function TeacherRecordingsScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
         <TouchableOpacity onPress={() => router.back()} accessibilityRole="button">
-          <Text style={[styles.backText, { transform: [{ scaleX: isRTL ? -1 : 1 }] }]}>←</Text>
+          <Ionicons
+            name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
+            size={22}
+            color="rgba(255,255,255,0.85)"
+            style={styles.backText}
+          />
         </TouchableOpacity>
         <Text style={styles.title}>{t('recordings')}</Text>
         <Text style={styles.subtitle}>
@@ -543,7 +549,7 @@ const createStyles = (COLORS: AnyColors) =>
     },
     chipText: { fontSize: 12, fontWeight: '600' },
 
-    list: { padding: SPACING.xl, gap: SPACING.md, paddingBottom: SPACING['4xl'] },
+    list: { padding: SPACING.xl, gap: SPACING.md, paddingBottom: SPACING['3xl'] },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: SPACING['3xl'] },
     emptyTitle: { fontSize: 18, fontWeight: '700', marginBottom: SPACING.sm },
 

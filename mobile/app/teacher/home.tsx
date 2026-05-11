@@ -1,696 +1,591 @@
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import React, { useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
+import { memorizationApi, MemorizationEntry, getRecordingStatus } from '@/src/api';
 import { useAuthStore } from '@/src/auth/store';
 import { useAppointments } from '@/src/hooks/useAppointments';
 import { useMessages } from '@/src/hooks/useMessages';
+import { useRecordings } from '@/src/hooks/useRecordings';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
-import { gradesApi, memorizationApi, MemorizationEntry } from '@/src/api';
-import { SkeletonCard } from '@/src/components/SkeletonCard';
-import Animated, { FadeInUp } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
-import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
+import {
+  AppCard,
+  Avatar,
+  EmptyState,
+  IconButton,
+  MetricTile,
+  ProgressBar,
+  SectionHeader,
+  StatusPill,
+} from '@/src/components/design';
+import { BottomNav } from '@/src/components/BottomNav';
+import type { Appointment } from '@/src/api';
 
-type StudentProgressSummary = {
-  label: string;
-  percent: number | null;
-};
+type ProgressSummary = { label: string; percent: number | null };
 
-function summarizeProgress(entries: MemorizationEntry[], language: string): StudentProgressSummary {
-  const active = entries.find((e) => e.memorizedAyahs > 0 && e.memorizedAyahs < e.surah.ayahCount) ?? entries[0];
-
-  if (!active) {
-    return { label: language === 'ar' ? 'لم يبدأ بعد' : 'Not started yet', percent: null };
-  }
-
+function summarizeProgress(entries: MemorizationEntry[], isAr: boolean): ProgressSummary {
+  const active =
+    entries.find((entry) => entry.memorizedAyahs > 0 && entry.memorizedAyahs < entry.surah.ayahCount) ?? entries[0];
+  if (!active) return { label: isAr ? 'لم يبدأ بعد' : 'Not started', percent: null };
   const percent = active.surah.ayahCount > 0 ? Math.round((active.memorizedAyahs / active.surah.ayahCount) * 100) : 0;
-  return { label: language === 'ar' ? active.surah.nameAr : active.surah.nameEn, percent };
+  return { label: isAr ? active.surah.nameAr : active.surah.nameEn, percent };
 }
 
-function classAverageCompletion(progressByStudent: Record<string, StudentProgressSummary>): string {
-  const percents = Object.values(progressByStudent)
-    .map((p) => p.percent)
-    .filter((p): p is number => typeof p === 'number');
+function fullName(person?: { firstName?: string; lastName?: string } | null): string {
+  return `${person?.firstName ?? ''} ${person?.lastName ?? ''}`.trim() || '?';
+}
 
-  if (percents.length === 0) return '—';
-  return `${Math.round(percents.reduce((sum, p) => sum + p, 0) / percents.length)}%`;
+function formatDate(dateStr: string | undefined, lang: string): string {
+  if (!dateStr) return '';
+  try {
+    return new Date(dateStr).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch {
+    return dateStr;
+  }
+}
+
+function isPendingAppointment(appointment: Appointment): boolean {
+  const status = appointment.status?.toUpperCase();
+  return status === 'PENDING' || status === 'REQUESTED';
 }
 
 export default function TeacherHomeScreen() {
   const router = useRouter();
-  const { t, i18n } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const { i18n } = useTranslation();
+  const isAr = i18n.language === 'ar';
   const logout = useAuthStore((s) => s.logout);
-  const user = useAuthStore((s) => s.user);
-  const [activeTab, setActiveTab] = useState<'myStudents' | 'assignments'>('myStudents');
-  const [progressByStudent, setProgressByStudent] = useState<Record<string, StudentProgressSummary>>({});
-  const [gradeCount, setGradeCount] = useState<number | null>(null);
-  const [fetchError, setFetchError] = useState<string | null>(null);
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
   const styles = createStyles(COLORS);
 
-  const { appointments, isLoading, fetchAppointments } = useAppointments();
-  const { unreadCount, fetchMessages: fetchUnreadCount } = useMessages();
-  const { requests: changeRequests, fetchRequests: fetchChangeRequests } = useTeacherChange();
-  const pendingChanges = changeRequests.filter((r: any) => r.status === 'PENDING');
+  const { appointments, isLoading: isLoadingAppointments, fetchAppointments } = useAppointments();
+  const { unreadCount, fetchMessages } = useMessages();
+  const { requests: changeRequests, fetchRequests } = useTeacherChange();
+  const { recordings, loading: isLoadingRecordings, refresh: refreshRecordings } = useRecordings();
+  const [progressByStudent, setProgressByStudent] = useState<Record<string, ProgressSummary>>({});
 
-  React.useEffect(() => {
+  const pendingAppointments = useMemo(() => appointments.filter(isPendingAppointment), [appointments]);
+  const acceptedAppointments = useMemo(
+    () => appointments.filter((appointment) => appointment.status?.toUpperCase() === 'ACCEPTED'),
+    [appointments]
+  );
+  const students = useMemo(() => {
+    const byId = new Map<string, NonNullable<Appointment['student']>>();
+    acceptedAppointments.forEach((appointment) => {
+      if (appointment.student?.id) byId.set(appointment.student.id, appointment.student);
+    });
+    return Array.from(byId.values());
+  }, [acceptedAppointments]);
+  const pendingChanges = changeRequests.filter((request: any) => request.status === 'PENDING');
+  const pendingRecordings = recordings.filter((recording) => getRecordingStatus(recording) === 'PENDING');
+
+  const refreshAll = useCallback(() => {
     fetchAppointments();
-  }, [fetchAppointments]);
+    fetchMessages();
+    fetchRequests();
+    refreshRecordings();
+  }, [fetchAppointments, fetchMessages, fetchRequests, refreshRecordings]);
 
-  React.useEffect(() => {
-    fetchUnreadCount();
-  }, []);
+  useEffect(() => {
+    refreshAll();
+  }, [refreshAll]);
 
-  React.useEffect(() => {
-    fetchChangeRequests();
-  }, []);
-
-  React.useEffect(() => {
-    const acceptedStudents = appointments
-      .filter((a: any) => a.status === 'ACCEPTED' && a.student?.id)
-      .map((a: any) => a.student.id);
-
-    if (acceptedStudents.length === 0) {
+  useEffect(() => {
+    const studentIds = students.map((student) => student.id).filter(Boolean);
+    if (studentIds.length === 0) {
       setProgressByStudent({});
-      setGradeCount(0);
       return;
     }
 
-    let isMounted = true;
-    setFetchError(null);
-
+    let mounted = true;
     Promise.all(
-      acceptedStudents.map(async (studentId: string) => {
-        const [progress, grades] = await Promise.all([
-          memorizationApi.getStudentProgress(studentId),
-          gradesApi.getStudentGrades(studentId),
-        ]);
-        return { studentId, progress: summarizeProgress(progress, i18n.language), gradesCount: grades.length };
-      })
+      studentIds.map(async (id) => ({
+        id,
+        progress: summarizeProgress(await memorizationApi.getStudentProgress(id), isAr),
+      }))
     )
-      .then((summaries) => {
-        if (!isMounted) return;
+      .then((results) => {
+        if (!mounted) return;
         setProgressByStudent(
-          summaries.reduce<Record<string, StudentProgressSummary>>((acc, item) => {
-            acc[item.studentId] = item.progress;
+          results.reduce<Record<string, ProgressSummary>>((acc, item) => {
+            acc[item.id] = item.progress;
             return acc;
           }, {})
         );
-        setGradeCount(summaries.reduce((sum, item) => sum + item.gradesCount, 0));
       })
-      .catch((err: any) => {
-        console.error('Failed to load teacher dashboard summaries:', err.message);
-        if (isMounted) {
-          setProgressByStudent({});
-          setGradeCount(null);
-          setFetchError(t('loadFailed'));
-        }
+      .catch(() => {
+        if (mounted) setProgressByStudent({});
       });
 
     return () => {
-      isMounted = false;
+      mounted = false;
     };
-  }, [appointments, i18n.language]);
+  }, [students, isAr]);
 
   const handleLogout = async () => {
     await logout();
     router.replace('/');
   };
 
+  const isRefreshing = isLoadingAppointments || isLoadingRecordings;
+  const priorityAppointments = pendingAppointments.slice(0, 2);
+  const priorityRecordings = pendingRecordings.slice(0, 2);
+
+  const actionTiles = [
+    {
+      id: 'requests',
+      title: isAr ? 'الطلبات' : 'Requests',
+      subtitle: isAr ? 'إدارة المواعيد' : 'Manage sessions',
+      icon: 'calendar-outline' as const,
+      route: '/teacher/appointments',
+      tone: 'primary',
+    },
+    {
+      id: 'grade',
+      title: isAr ? 'منح درجة' : 'Give grade',
+      subtitle: isAr ? 'تقييم سريع' : 'Quick assessment',
+      icon: 'create-outline' as const,
+      route: '/teacher/grade-form',
+      tone: 'gold',
+    },
+    {
+      id: 'reviews',
+      title: isAr ? 'المراجعات' : 'Reviews',
+      subtitle: isAr ? 'تسجيلات الطلاب' : 'Student recordings',
+      icon: 'mic-outline' as const,
+      route: '/teacher/recordings',
+      tone: 'info',
+    },
+    {
+      id: 'reports',
+      title: isAr ? 'التقارير' : 'Reports',
+      subtitle: isAr ? 'تقدم الطلاب' : 'Student progress',
+      icon: 'document-text-outline' as const,
+      route: '/teacher/reports',
+      tone: 'danger',
+    },
+  ];
+
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
+    <View style={[styles.screen, { backgroundColor: COLORS.background }]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACING.lg }]}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refreshAll} tintColor={COLORS.primary} />}
+      >
+        <View style={styles.topCard}>
           <View>
-            <Text style={styles.greeting}>{t('teacherHomeTitle', { name: user?.firstName || '' })}</Text>
-            <Text style={styles.subGreeting}>
-              {i18n.language === 'ar'
-                ? 'جزاك الله خيراً على تعليم القرآن'
-                : 'May Allah reward you for teaching the Quran'}
+            <Text style={styles.eyebrow}>{isAr ? 'مساحة المعلم' : 'Teacher workspace'}</Text>
+            <Text style={styles.title}>{isAr ? 'التدريس' : 'Teaching'}</Text>
+            <Text style={styles.subtitle}>
+              {isAr
+                ? `${pendingAppointments.length + pendingChanges.length + pendingRecordings.length} عناصر تحتاج قراراً`
+                : `${pendingAppointments.length + pendingChanges.length + pendingRecordings.length} items need attention`}
             </Text>
           </View>
-          <View style={{ flexDirection: 'row', gap: SPACING.sm, alignItems: 'center' }}>
-            <View style={styles.msgIconWrap}>
-              <TouchableOpacity style={styles.msgIconBtn} onPress={() => router.push('/messages')}>
-                <Ionicons name="chatbubble-outline" size={22} color={COLORS.textOnPrimary} />
-              </TouchableOpacity>
-              {unreadCount > 0 && (
-                <View style={styles.msgBadge}>
-                  <Text style={styles.msgBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+          <View style={styles.headerActions}>
+            <View>
+              <IconButton
+                colors={COLORS}
+                icon="chatbubble-outline"
+                accessibilityLabel={isAr ? 'الرسائل' : 'Messages'}
+                onPress={() => router.push('/messages')}
+              />
+              {unreadCount > 0 ? (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
                 </View>
-              )}
+              ) : null}
             </View>
-            <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-              <Text style={styles.logoutText}>{t('logout')}</Text>
-            </TouchableOpacity>
+            <IconButton
+              colors={COLORS}
+              icon="log-out-outline"
+              tone="primary"
+              accessibilityLabel={isAr ? 'تسجيل الخروج' : 'Log out'}
+              onPress={handleLogout}
+            />
           </View>
         </View>
 
-        {/* Quick stats */}
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{appointments.length}</Text>
-            <Text style={styles.statLabel}>{t('myStudents')}</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{gradeCount ?? '—'}</Text>
-            <Text style={styles.statLabel}>{t('assignments')}</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{classAverageCompletion(progressByStudent)}</Text>
-            <Text style={styles.statLabel}>{i18n.language === 'ar' ? 'معدل الإنجاز' : 'Completion'}</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Tabs */}
-      <View style={styles.tabBar}>
-        {[
-          { key: 'myStudents' as const, label: t('myStudents') },
-          { key: 'assignments' as const, label: t('assignments') },
-        ].map((tab) => (
-          <TouchableOpacity
-            key={tab.key}
-            style={[styles.tab, activeTab === tab.key && styles.tabActive]}
-            onPress={() => setActiveTab(tab.key)}
-          >
-            <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>{tab.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <ScrollView
-        style={styles.content}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchAppointments} />}
-      >
-        {fetchError && !isLoading && (
-          <TouchableOpacity onPress={fetchAppointments} style={styles.errorBanner}>
-            <Text style={styles.errorText}>{fetchError}</Text>
-          </TouchableOpacity>
-        )}
-        {isLoading ? (
-          <>
-            <SkeletonCard lines={2} />
-            <SkeletonCard lines={2} />
-            <SkeletonCard lines={2} />
-          </>
-        ) : activeTab === 'myStudents' ? (
-          <MyStudentsTab
-            appointments={appointments}
-            progressByStudent={progressByStudent}
-            styles={styles}
-            pendingChanges={pendingChanges}
+        <View style={styles.metricsRow}>
+          <MetricTile colors={COLORS} value={students.length} label={isAr ? 'طلاب' : 'Students'} />
+          <MetricTile
+            colors={COLORS}
+            value={pendingAppointments.length + pendingChanges.length}
+            label={isAr ? 'طلبات' : 'Pending'}
+            tone="gold"
           />
+          <MetricTile
+            colors={COLORS}
+            value={pendingRecordings.length}
+            label={isAr ? 'تسجيلات' : 'Reviews'}
+            tone="info"
+          />
+        </View>
+
+        <View style={styles.quickGrid}>
+          {actionTiles.map((action) => (
+            <TouchableOpacity
+              key={action.id}
+              activeOpacity={0.85}
+              style={styles.actionTile}
+              onPress={() => router.push(action.route as any)}
+            >
+              <View
+                style={[
+                  styles.actionIcon,
+                  action.tone === 'gold' && styles.actionIconGold,
+                  action.tone === 'info' && styles.actionIconInfo,
+                  action.tone === 'danger' && styles.actionIconDanger,
+                ]}
+              >
+                <Ionicons
+                  name={action.icon}
+                  size={22}
+                  color={
+                    action.tone === 'gold'
+                      ? COLORS.warning
+                      : action.tone === 'info'
+                        ? COLORS.info
+                        : action.tone === 'danger'
+                          ? COLORS.error
+                          : COLORS.primary
+                  }
+                />
+              </View>
+              <Text style={styles.actionTitle}>{action.title}</Text>
+              <Text style={styles.actionSubtitle}>{action.subtitle}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <SectionHeader title={isAr ? 'قائمة الأولويات' : 'Priority queue'} colors={COLORS} />
+        {priorityAppointments.length === 0 && priorityRecordings.length === 0 && pendingChanges.length === 0 ? (
+          <AppCard colors={COLORS}>
+            <EmptyState
+              colors={COLORS}
+              icon="checkmark-circle-outline"
+              title={isAr ? 'لا توجد عناصر عاجلة' : 'No urgent items'}
+              description={isAr ? 'كل شيء مستقر حالياً.' : 'Everything is clear for now.'}
+            />
+          </AppCard>
         ) : (
-          <AssignmentsTab styles={styles} />
+          <View style={styles.listStack}>
+            {priorityAppointments.map((appointment) => {
+              const name = fullName(appointment.student);
+              return (
+                <TouchableOpacity
+                  key={appointment.id}
+                  activeOpacity={0.85}
+                  onPress={() => router.push('/teacher/appointments')}
+                >
+                  <AppCard colors={COLORS} style={styles.queueCard}>
+                    <Avatar colors={COLORS} label={name} />
+                    <View style={styles.queueInfo}>
+                      <Text style={styles.rowTitle}>{isAr ? `${name} طلب موعداً` : `${name} requested a session`}</Text>
+                      <Text style={styles.rowMeta}>
+                        {formatDate(appointment.requestedDate, i18n.language)} - {appointment.requestedTime ?? ''}
+                      </Text>
+                      <View style={styles.pillRow}>
+                        <StatusPill colors={COLORS} label={isAr ? 'مراجعة' : 'Review'} status="warning" />
+                      </View>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+                  </AppCard>
+                </TouchableOpacity>
+              );
+            })}
+
+            {priorityRecordings.map((recording) => {
+              const name = fullName(recording.student);
+              return (
+                <TouchableOpacity
+                  key={recording.id}
+                  activeOpacity={0.85}
+                  onPress={() => router.push('/teacher/recordings')}
+                >
+                  <AppCard colors={COLORS} style={styles.queueCard}>
+                    <View style={styles.recordingIcon}>
+                      <Ionicons name="mic-outline" size={22} color={COLORS.info} />
+                    </View>
+                    <View style={styles.queueInfo}>
+                      <Text style={styles.rowTitle}>{isAr ? 'تسجيل جديد للمراجعة' : 'New recitation to review'}</Text>
+                      <Text style={styles.rowMeta}>
+                        {name} - {recording.fileName}
+                      </Text>
+                      <StatusPill colors={COLORS} label={isAr ? 'مراجعة الآن' : 'Review now'} status="info" />
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+                  </AppCard>
+                </TouchableOpacity>
+              );
+            })}
+
+            {pendingChanges.slice(0, 1).map((request: any) => {
+              const name = fullName(request.student);
+              return (
+                <TouchableOpacity
+                  key={request.id}
+                  activeOpacity={0.85}
+                  onPress={() => router.push('/teacher/appointments')}
+                >
+                  <AppCard colors={COLORS} style={styles.queueCard}>
+                    <View style={styles.changeIcon}>
+                      <Ionicons name="swap-horizontal-outline" size={22} color={COLORS.warning} />
+                    </View>
+                    <View style={styles.queueInfo}>
+                      <Text style={styles.rowTitle}>{name}</Text>
+                      <Text style={styles.rowMeta}>{isAr ? 'طلب تغيير معلم' : 'Teacher change request'}</Text>
+                    </View>
+                    <StatusPill colors={COLORS} label={isAr ? 'بانتظار' : 'Pending'} status="warning" />
+                  </AppCard>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+
+        <SectionHeader
+          title={isAr ? 'طلاب يحتاجون متابعة' : 'Students needing attention'}
+          actionLabel={isAr ? 'عرض الكل' : 'View all'}
+          onActionPress={() => router.push('/teacher/appointments')}
+          colors={COLORS}
+        />
+        {students.length > 0 ? (
+          <View style={styles.listStack}>
+            {students.slice(0, 5).map((student, index) => {
+              const name = fullName(student);
+              const progress = progressByStudent[student.id];
+              const tone = index % 2 === 0 ? 'primary' : 'gold';
+              return (
+                <TouchableOpacity
+                  key={student.id}
+                  activeOpacity={0.85}
+                  onPress={() =>
+                    router.push(`/teacher/student-detail?id=${student.id}&name=${encodeURIComponent(name)}`)
+                  }
+                >
+                  <AppCard colors={COLORS} style={styles.studentCard}>
+                    <Avatar colors={COLORS} label={name} size={38} />
+                    <View style={styles.studentInfo}>
+                      <View style={styles.studentTop}>
+                        <Text style={styles.rowTitle}>{name}</Text>
+                        {progress?.percent != null ? <Text style={styles.percentText}>{progress.percent}%</Text> : null}
+                      </View>
+                      <Text style={styles.rowMeta}>
+                        {progress?.label ?? (isAr ? 'جار تحميل التقدم' : 'Loading progress')}
+                      </Text>
+                      {progress?.percent != null ? (
+                        <ProgressBar
+                          colors={COLORS}
+                          percent={progress.percent}
+                          tone={tone === 'gold' ? 'gold' : 'primary'}
+                        />
+                      ) : null}
+                    </View>
+                  </AppCard>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ) : (
+          <AppCard colors={COLORS}>
+            <EmptyState
+              colors={COLORS}
+              icon="people-outline"
+              title={isAr ? 'لا يوجد طلاب بعد' : 'No students yet'}
+              description={
+                isAr ? 'سيظهر الطلاب بعد قبول المواعيد.' : 'Students appear here after sessions are accepted.'
+              }
+            />
+          </AppCard>
         )}
       </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-function MyStudentsTab({
-  appointments,
-  progressByStudent,
-  styles,
-  pendingChanges,
-}: {
-  appointments: any[];
-  progressByStudent: Record<string, StudentProgressSummary>;
-  styles: any;
-  pendingChanges: any[];
-}) {
-  const { t, i18n } = useTranslation();
-  const router = useRouter();
-  const { theme, darkMode } = useSettingsStore();
-  const COLORS = getColors(theme, darkMode);
-
-  if (appointments.length === 0) {
-    return (
-      <Animated.View entering={FadeInUp.duration(400)} style={styles.emptyCard}>
-        <Ionicons name="school-outline" size={56} color={COLORS.textSecondary} />
-        <Text style={styles.emptyTitle}>{t('noStudentsYet')}</Text>
-        <Text style={styles.emptyDesc}>
-          {i18n.language === 'ar'
-            ? 'ستظهر هنا قائمة طلابك بمجرد تعيينهم إليك'
-            : 'Your student list will appear here once assigned'}
-        </Text>
-      </Animated.View>
-    );
-  }
-
-  return (
-    <View style={styles.tabContent}>
-      {pendingChanges.length > 0 && (
-        <View style={styles.changeRequestBanner}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Ionicons name="warning-outline" size={16} color={COLORS.warning} />
-            <Text style={styles.changeRequestText}>
-              {pendingChanges.length} {t('studentsPendingChange')}
-            </Text>
-          </View>
-        </View>
-      )}
-      {appointments.map((a: any, index: number) => {
-        const progress = a.student?.id ? progressByStudent[a.student.id] : undefined;
-        const percent = progress?.percent;
-
-        return (
-          <TouchableOpacity
-            key={a.id}
-            activeOpacity={0.85}
-            onPress={() =>
-              router.push(
-                `/teacher/student-detail?id=${a.student?.id}&name=${encodeURIComponent(
-                  `${a.student?.firstName ?? ''} ${a.student?.lastName ?? ''}`.trim()
-                )}`
-              )
-            }
-          >
-            <Animated.View entering={FadeInUp.duration(400).delay(index * 80)} style={styles.studentCard}>
-              <View style={styles.studentHeader}>
-                <View style={styles.studentAvatar}>
-                  <Text style={styles.avatarText}>{a.student?.firstName?.[0] || '?'}</Text>
-                </View>
-                <View style={styles.studentInfo}>
-                  <Text style={styles.studentName}>
-                    {a.student?.firstName} {a.student?.lastName}
-                  </Text>
-                  <Text style={styles.studentEmail}>{a.student?.email}</Text>
-                </View>
-                <View style={[styles.statusBadge, a.status === 'ACCEPTED' && styles.statusAccepted]}>
-                  <Text style={[styles.statusText, a.status === 'ACCEPTED' && styles.statusTextAccepted]}>
-                    {a.status === 'REQUESTED'
-                      ? t('awaitingApproval')
-                      : a.status === 'ACCEPTED'
-                        ? t('approved')
-                        : a.status === 'REJECTED'
-                          ? t('rejected')
-                          : a.status}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.studentProgress}>
-                <View style={styles.progressRow}>
-                  <Text style={styles.progressLabel}>
-                    {progress?.label ?? (i18n.language === 'ar' ? 'جاري تحميل التقدم' : 'Loading progress')}
-                  </Text>
-                  <Text style={styles.progressValue}>{typeof percent === 'number' ? `${percent}%` : '—'}</Text>
-                </View>
-                <View style={styles.progressBarContainer}>
-                  <View style={[styles.progressBar, { width: `${percent ?? 0}%` }]} />
-                </View>
-              </View>
-
-              <View style={styles.studentMeta}>
-                <Text style={styles.metaText}>
-                  {new Date(a.requestedDate).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US')}
-                </Text>
-                <Text style={styles.metaText}>{a.requestedTime}</Text>
-              </View>
-            </Animated.View>
-          </TouchableOpacity>
-        );
-      })}
+      <BottomNav role="teacher" active="home" />
     </View>
   );
 }
 
-function AssignmentsTab({ styles }: { styles: any }) {
-  const { t, i18n } = useTranslation();
-  const router = useRouter();
-  const { theme, darkMode } = useSettingsStore();
-  const COLORS = getColors(theme, darkMode);
-
-  return (
-    <View style={styles.tabContent}>
-      <Animated.View entering={FadeInUp.duration(400)} style={styles.actionCard}>
-        <TouchableOpacity
-          style={styles.actionBtn}
-          onPress={() => router.push('/teacher/grade-form')}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="document-text-outline" size={28} color={COLORS.primary} />
-          <Text style={styles.actionBtnText}>{t('addReviewTask')}</Text>
-          <Text style={styles.actionBtnSub}>
-            {i18n.language === 'ar' ? 'تعيين سورة أو جزء لمراجعة الطالب' : 'Assign a Surah or Juz for student review'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionBtn, styles.secondaryBtn]}
-          onPress={() => router.push('/teacher/reports')}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="bar-chart-outline" size={28} color={COLORS.primaryLight} />
-          <Text style={[styles.actionBtnText, styles.secondaryText]}>
-            {i18n.language === 'ar' ? 'تقرير التقدم' : 'Progress Report'}
-          </Text>
-          <Text style={[styles.actionBtnSub, styles.secondarySub]}>
-            {i18n.language === 'ar'
-              ? 'عرض تقرير شامل عن تقدم طلابك'
-              : "View comprehensive report of your students' progress"}
-          </Text>
-        </TouchableOpacity>
-      </Animated.View>
-    </View>
-  );
-}
-
-const createStyles = (COLORS: any) =>
+const createStyles = (COLORS: ReturnType<typeof getColors>) =>
   StyleSheet.create({
-    container: {
+    screen: {
       flex: 1,
-      backgroundColor: COLORS.background,
     },
-
-    // Header
-    header: {
-      backgroundColor: COLORS.primary,
-      paddingHorizontal: SPACING.xl,
-      paddingTop: SPACING.lg,
-      paddingBottom: SPACING['2xl'],
-      borderBottomLeftRadius: RADIUS['2xl'],
-      borderBottomRightRadius: RADIUS['2xl'],
-      ...SHADOWS.lg,
+    content: {
+      paddingHorizontal: SPACING.lg,
+      paddingBottom: SPACING['3xl'],
+      gap: SPACING.lg,
     },
-    headerTop: {
+    topCard: {
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS['2xl'],
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: COLORS.darkMode ? COLORS.divider : '#E7ECE6',
+      padding: SPACING.xl,
       flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      marginBottom: SPACING.lg,
-    },
-    greeting: {
-      fontSize: 22,
-      fontWeight: '800',
-      color: '#fff',
-      marginBottom: SPACING.xs,
-    },
-    subGreeting: {
-      fontSize: 13,
-      color: 'rgba(255,255,255,0.75)',
-      fontWeight: '500',
-    },
-    logoutBtn: {
-      backgroundColor: 'rgba(255,255,255,0.15)',
-      paddingHorizontal: SPACING.md,
-      paddingVertical: SPACING.xs,
-      borderRadius: RADIUS.md,
-    },
-    logoutText: {
-      color: '#fff',
-      fontSize: 13,
-      fontWeight: '600',
-    },
-    msgIconWrap: { position: 'relative', marginRight: 6 },
-    msgIconBtn: {
-      width: 32,
-      height: 32,
-      backgroundColor: 'rgba(255,255,255,0.2)',
-      borderRadius: 8,
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'space-between',
+      gap: SPACING.md,
+      ...SHADOWS.md,
     },
-    msgIconText: { fontSize: 16 },
-    msgBadge: {
+    eyebrow: {
+      color: COLORS.primary,
+      fontSize: 12,
+      fontWeight: '800',
+      marginBottom: 3,
+    },
+    title: {
+      color: COLORS.textPrimary,
+      fontSize: 26,
+      fontWeight: '800',
+      lineHeight: 32,
+    },
+    subtitle: {
+      color: COLORS.textSecondary,
+      fontSize: 12,
+      fontWeight: '600',
+      marginTop: 3,
+    },
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.sm,
+    },
+    badge: {
       position: 'absolute',
       top: -4,
       right: -4,
-      minWidth: 16,
-      height: 16,
-      borderRadius: 8,
-      backgroundColor: '#ef4444',
+      minWidth: 18,
+      height: 18,
+      borderRadius: 9,
+      backgroundColor: COLORS.error,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingHorizontal: 3,
+      paddingHorizontal: 4,
     },
-    msgBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
-
-    // Stats
-    statsRow: {
+    badgeText: {
+      color: '#FFFFFF',
+      fontSize: 10,
+      fontWeight: '800',
+    },
+    metricsRow: {
       flexDirection: 'row',
       gap: SPACING.md,
     },
-    statCard: {
-      flex: 1,
-      backgroundColor: 'rgba(255,255,255,0.12)',
-      borderRadius: RADIUS.lg,
-      padding: SPACING.md,
-      alignItems: 'center',
-    },
-    statValue: {
-      fontSize: 22,
-      fontWeight: '800',
-      color: COLORS.goldLight,
-      marginBottom: 2,
-    },
-    statLabel: {
-      fontSize: 12,
-      color: 'rgba(255,255,255,0.7)',
-      fontWeight: '500',
-    },
-
-    // Tabs
-    tabBar: {
+    quickGrid: {
       flexDirection: 'row',
-      paddingHorizontal: SPACING.xl,
-      paddingVertical: SPACING.lg,
-      gap: SPACING.sm,
+      flexWrap: 'wrap',
+      gap: SPACING.md,
     },
-    tab: {
-      flex: 1,
-      paddingVertical: SPACING.md,
-      paddingHorizontal: SPACING.sm,
-      borderRadius: RADIUS.lg,
+    actionTile: {
+      width: '47.8%',
+      minHeight: 104,
+      borderRadius: RADIUS.md,
       backgroundColor: COLORS.surface,
-      alignItems: 'center',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: COLORS.darkMode ? COLORS.divider : '#E7ECE6',
+      padding: SPACING.lg,
+      justifyContent: 'center',
       ...SHADOWS.sm,
     },
-    tabActive: {
-      backgroundColor: COLORS.primary,
-    },
-    tabText: {
-      fontSize: 13,
-      fontWeight: '600',
-      color: COLORS.textSecondary,
-    },
-    tabTextActive: {
-      color: '#fff',
-    },
-
-    // Content
-    content: {
-      flex: 1,
-      paddingHorizontal: SPACING.xl,
-    },
-    list: {
-      gap: SPACING.md,
-      paddingBottom: SPACING['4xl'],
-    },
-    tabContent: {
-      gap: SPACING.md,
-    },
-
-    // Empty state
-    empty: {
-      color: COLORS.textMuted,
-      textAlign: 'center',
-      marginTop: SPACING['3xl'],
-      fontSize: 16,
-    },
-    emptyCard: {
-      backgroundColor: COLORS.surface,
-      borderRadius: RADIUS['2xl'],
-      padding: SPACING['3xl'],
+    actionIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: RADIUS.md,
       alignItems: 'center',
-      ...SHADOWS.md,
-      marginTop: SPACING.xl,
-    },
-    emptyIcon: {
-      fontSize: 48,
-      marginBottom: SPACING.lg,
-    },
-    emptyTitle: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: COLORS.textPrimary,
+      justifyContent: 'center',
+      backgroundColor: COLORS.primaryMuted,
       marginBottom: SPACING.sm,
     },
-    emptyDesc: {
-      fontSize: 14,
+    actionIconGold: {
+      backgroundColor: COLORS.goldMuted,
+    },
+    actionIconInfo: {
+      backgroundColor: COLORS.infoLight,
+    },
+    actionIconDanger: {
+      backgroundColor: COLORS.errorLight,
+    },
+    actionTitle: {
+      color: COLORS.textPrimary,
+      fontSize: 13,
+      fontWeight: '800',
+    },
+    actionSubtitle: {
       color: COLORS.textSecondary,
-      textAlign: 'center',
-      lineHeight: 22,
+      fontSize: 11,
+      fontWeight: '600',
+      marginTop: 2,
     },
-
-    // Student cards
-    studentCard: {
-      backgroundColor: COLORS.surface,
-      borderRadius: RADIUS.xl,
-      padding: SPACING.lg,
-      ...SHADOWS.md,
+    listStack: {
+      gap: SPACING.md,
     },
-    studentHeader: {
+    queueCard: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: SPACING.md,
-      marginBottom: SPACING.lg,
     },
-    studentAvatar: {
-      width: 44,
-      height: 44,
-      borderRadius: RADIUS.full,
-      backgroundColor: COLORS.primaryMuted,
-      justifyContent: 'center',
+    queueInfo: {
+      flex: 1,
+      gap: 5,
+    },
+    rowTitle: {
+      color: COLORS.textPrimary,
+      fontSize: 14,
+      fontWeight: '800',
+    },
+    rowMeta: {
+      color: COLORS.textSecondary,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    pillRow: {
+      flexDirection: 'row',
+      gap: SPACING.sm,
+    },
+    recordingIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: RADIUS.md,
       alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: COLORS.infoLight,
     },
-    avatarText: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: COLORS.primary,
+    changeIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: RADIUS.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: COLORS.warningLight,
+    },
+    studentCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.md,
     },
     studentInfo: {
       flex: 1,
+      gap: 5,
     },
-    studentName: {
-      fontSize: 16,
-      fontWeight: '700',
-      color: COLORS.textPrimary,
-    },
-    studentEmail: {
-      fontSize: 12,
-      color: COLORS.textSecondary,
-      marginTop: 2,
-    },
-    statusBadge: {
-      paddingHorizontal: SPACING.sm,
-      paddingVertical: 4,
-      borderRadius: RADIUS.md,
-      backgroundColor: COLORS.warningLight,
-    },
-    statusAccepted: {
-      backgroundColor: COLORS.successLight,
-    },
-    statusText: {
-      fontSize: 11,
-      fontWeight: '700',
-      color: COLORS.warning,
-    },
-    statusTextAccepted: {
-      color: COLORS.success,
-    },
-
-    // Progress
-    studentProgress: {
-      marginBottom: SPACING.md,
-    },
-    progressRow: {
+    studentTop: {
       flexDirection: 'row',
+      alignItems: 'center',
       justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: SPACING.xs,
-    },
-    progressLabel: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: COLORS.textPrimary,
-    },
-    progressValue: {
-      fontSize: 14,
-      fontWeight: '800',
-      color: COLORS.primary,
-    },
-    progressBarContainer: {
-      height: 6,
-      backgroundColor: '#e7e5e4',
-      borderRadius: RADIUS.full,
-      overflow: 'hidden',
-    },
-    progressBar: {
-      height: '100%',
-      backgroundColor: COLORS.primary,
-      borderRadius: RADIUS.full,
-    },
-
-    // Meta
-    studentMeta: {
-      flexDirection: 'row',
-      gap: SPACING.lg,
-    },
-    metaText: {
-      fontSize: 13,
-      color: COLORS.textSecondary,
-    },
-
-    // Action cards
-    actionCard: {
       gap: SPACING.md,
-      marginTop: SPACING.xl,
     },
-    actionBtn: {
-      backgroundColor: COLORS.surface,
-      borderRadius: RADIUS['2xl'],
-      padding: SPACING['2xl'],
-      alignItems: 'center',
-      ...SHADOWS.md,
-      borderWidth: 2,
-      borderColor: COLORS.primaryMuted,
-    },
-    actionIcon: {
-      fontSize: 36,
-      marginBottom: SPACING.md,
-    },
-    actionBtnText: {
-      color: COLORS.primaryDark,
-      fontSize: 18,
-      fontWeight: '700',
-      marginBottom: SPACING.xs,
-    },
-    actionBtnSub: {
-      color: COLORS.textSecondary,
-      fontSize: 14,
-      textAlign: 'center',
-      lineHeight: 20,
-    },
-    secondaryBtn: {
-      borderColor: COLORS.goldMuted,
-    },
-    secondaryText: {
-      color: COLORS.gold,
-    },
-    secondarySub: {
-      color: COLORS.textSecondary,
-    },
-
-    // Error banner
-    errorBanner: {
-      backgroundColor: COLORS.errorLight,
-      borderRadius: RADIUS.md,
-      padding: SPACING.md,
-      marginBottom: SPACING.sm,
-    },
-    errorText: {
-      color: COLORS.error,
+    percentText: {
+      color: COLORS.primary,
       fontSize: 13,
-      textAlign: 'center',
+      fontWeight: '800',
     },
-
-    // Change request banner
-    changeRequestBanner: {
-      backgroundColor: '#fef3c7',
-      borderLeftWidth: 4,
-      borderLeftColor: '#f59e0b',
-      padding: SPACING.sm,
-      marginBottom: SPACING.sm,
-      borderRadius: 6,
-    },
-    changeRequestText: { fontSize: 13, color: '#92400e', fontWeight: '600' },
   });

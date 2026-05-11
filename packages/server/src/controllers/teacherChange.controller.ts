@@ -22,13 +22,14 @@ export const getRequests = async (req: Request, res: Response, next: NextFunctio
 
 export const decideRequest = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { action, adminNote } = req.body;
+    const { action, adminNote, newTeacherId } = req.body;
     const result = await teacherChangeService.decideTeacherChangeRequest(
       String(req.params.id),
       action,
       req.userId,
       req.userRole,
-      adminNote
+      adminNote,
+      newTeacherId
     );
     res.json(result);
   } catch (err) {

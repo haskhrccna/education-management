@@ -9,8 +9,12 @@ export const teacherChangeApi = {
     const res = await apiClient.get('/teacher-changes', { params: status ? { status } : {} });
     return res.data;
   },
-  decide: async (id: string, action: 'APPROVE' | 'DENY', adminNote?: string) => {
-    const res = await apiClient.patch(`/teacher-changes/${id}`, { action, adminNote });
+  decide: async (id: string, action: 'APPROVE' | 'DENY', adminNote?: string, newTeacherId?: string) => {
+    const res = await apiClient.patch(`/teacher-changes/${id}`, { action, adminNote, newTeacherId });
+    return res.data;
+  },
+  listTeachers: async (): Promise<{ id: string; firstName: string; lastName: string }[]> => {
+    const res = await apiClient.get('/users', { params: { role: 'TEACHER', status: 'APPROVED' } });
     return res.data;
   },
 };

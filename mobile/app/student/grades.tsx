@@ -101,7 +101,11 @@ export default function StudentGradesScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>←</Text>
+          <Ionicons
+            name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
+            size={22}
+            color="rgba(255,255,255,0.85)"
+          />
         </TouchableOpacity>
         <Text style={styles.title}>{t('myGrades')}</Text>
         {!isLoading && (
@@ -175,7 +179,7 @@ const styles = StyleSheet.create({
   },
   statVal: { fontSize: 22, fontWeight: '800', color: '#fff' },
   statLbl: { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
-  list: { padding: SPACING.xl, gap: SPACING.md, paddingBottom: SPACING['4xl'] },
+  list: { padding: SPACING.xl, gap: SPACING.md, paddingBottom: SPACING['3xl'] },
   card: { borderRadius: RADIUS.xl, padding: SPACING.lg, borderLeftWidth: 4, ...SHADOWS.sm },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   badge: {

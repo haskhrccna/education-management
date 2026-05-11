@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
+import { Ionicons } from '@expo/vector-icons';
 import { reportsApi, Report } from '@/src/api';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
@@ -75,7 +76,12 @@ export default function StudentReportsScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>{isRTL ? '→' : '←'}</Text>
+          <Ionicons
+            name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
+            size={22}
+            color="rgba(255,255,255,0.85)"
+            style={styles.backText}
+          />
         </TouchableOpacity>
         <Text style={styles.title}>{t('reports')}</Text>
         <Text style={styles.subtitle}>
@@ -176,7 +182,7 @@ const createStyles = (COLORS: any) =>
     backText: { color: 'rgba(255,255,255,0.85)', fontSize: 16, marginBottom: SPACING.sm },
     title: { fontSize: 22, fontWeight: '800', color: '#fff' },
     subtitle: { color: 'rgba(255,255,255,0.75)', fontSize: 12, marginTop: SPACING.xs },
-    scroll: { padding: SPACING.xl, gap: SPACING.md, paddingBottom: SPACING['4xl'] },
+    scroll: { padding: SPACING.xl, gap: SPACING.md, paddingBottom: SPACING['3xl'] },
     card: { borderRadius: RADIUS.xl, padding: SPACING.lg, ...SHADOWS.sm, gap: SPACING.sm },
     cardHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.md },
     dateLarge: { fontSize: 16, fontWeight: '700' },
@@ -199,7 +205,7 @@ const createStyles = (COLORS: any) =>
     center: {
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: SPACING['4xl'],
+      paddingVertical: SPACING['3xl'],
     },
     emptyTitle: { fontSize: 18, fontWeight: '700', marginBottom: SPACING.xs },
     emptyDesc: { fontSize: 14, textAlign: 'center', maxWidth: 320, lineHeight: 20 },

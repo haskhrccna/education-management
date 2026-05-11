@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { useSettingsStore } from '@/src/settings/store';
 import { getColors, SPACING, RADIUS } from '@/constants/theme';
 import { apiClient } from '@/src/api/client';
@@ -49,7 +50,7 @@ export default function ForgotPasswordScreen() {
       borderBottomColor: '#e5e7eb',
     },
     backBtn: { marginRight: SPACING.sm, padding: 4 },
-    backText: { fontSize: 20, color: COLORS.primary },
+    backIcon: { marginVertical: 2 },
     headerTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary },
     body: { padding: SPACING.md, gap: SPACING.md },
     label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary, marginBottom: 4 },
@@ -66,21 +67,25 @@ export default function ForgotPasswordScreen() {
     btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
     errorText: { color: '#ef4444', fontSize: 13 },
     successCard: { backgroundColor: COLORS.surface, borderRadius: RADIUS.md, padding: SPACING.md },
-    successTitle: { fontSize: 16, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 8 },
+    successRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+    successTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: COLORS.textPrimary },
   });
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={styles.backText}>←</Text>
+          <Ionicons name="arrow-back-outline" size={22} color={COLORS.primary} style={styles.backIcon} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('forgotPassword')}</Text>
       </View>
       <ScrollView contentContainerStyle={styles.body}>
         {submitted ? (
           <View style={styles.successCard}>
-            <Text style={styles.successTitle}>✓ {t('resetLinkSent')}</Text>
+            <View style={styles.successRow}>
+              <Ionicons name="checkmark-circle-outline" size={22} color={COLORS.success} />
+              <Text style={styles.successTitle}>{t('resetLinkSent')}</Text>
+            </View>
           </View>
         ) : (
           <>

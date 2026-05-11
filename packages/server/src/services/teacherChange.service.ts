@@ -64,12 +64,50 @@ export const decideTeacherChangeRequest = async (
   action: 'APPROVE' | 'DENY',
   adminId?: string,
   callerRole?: string,
-  adminNote?: string
+  adminNote?: string,
+  newTeacherId?: string
 ) => {
   if (callerRole !== 'ADMIN') throw new AppError(403, 'Only admins can decide teacher change requests');
   const request = await prisma.teacherChangeRequest.findUnique({ where: { id } });
   if (!request) throw new AppError(404, 'Request not found');
   if (request.status !== 'PENDING') throw new AppError(409, 'Request already decided');
+
+  if (action === 'APPROVE' && newTeacherId) {
+    const teacher = await prisma.user.findFirst({ where: { id: newTeacherId, role: 'TEACHER' } });
+    if (!teacher) throw new AppError(400, 'Invalid teacher');
+
+    // Persist canonical teacher assignment on the student record
+    await prisma.user.update({
+      where: { id: request.studentId },
+      data: { assignedTeacherId: newTeacherId },
+    });
+
+    // Reassign existing ACCEPTED & REQUESTED appointments to the new teacher
+    await prisma.appointment.updateMany({
+      where: { studentId: request.studentId, status: { in: ['ACCEPTED', 'REQUESTED'] } },
+      data: { teacherId: newTeacherId },
+    });
+
+    // If no ACCEPTED appointment exists, create one so both sides can discover each other
+    const existingAccepted = await prisma.appointment.findFirst({
+      where: { studentId: request.studentId, status: 'ACCEPTED' },
+    });
+    if (!existingAccepted) {
+      const assignmentDate = new Date();
+      assignmentDate.setFullYear(assignmentDate.getFullYear() + 1);
+      await prisma.appointment.create({
+        data: {
+          studentId: request.studentId,
+          teacherId: newTeacherId,
+          requestedDate: assignmentDate,
+          requestedTime: '00:00',
+          durationMinutes: 60,
+          status: 'ACCEPTED',
+          approvedAt: new Date(),
+        },
+      });
+    }
+  }
 
   const updated = await prisma.teacherChangeRequest.update({
     where: { id },
@@ -83,7 +121,6 @@ export const decideTeacherChangeRequest = async (
     },
   });
 
-  // Notify the student of the decision (socket + email + push)
   const { notifyTeacherChangeDecision } = await import('./notification.service');
   await notifyTeacherChangeDecision(updated.studentId, updated);
 

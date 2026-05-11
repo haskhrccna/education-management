@@ -1,127 +1,61 @@
 import React, { useEffect, useMemo } from 'react';
-import { SafeAreaView, FlatList, TouchableOpacity, Text, View, StyleSheet, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { useSettingsStore } from '@/src/settings/store';
-import { Ionicons } from '@expo/vector-icons';
 import { getColors, SPACING } from '@/constants/theme';
-import { useMessages } from '@/src/hooks/useMessages';
 import { useAuthStore } from '@/src/auth/store';
+import { AppCard, Avatar, EmptyState, IconButton } from '@/src/components/design';
+import { useMessages } from '@/src/hooks/useMessages';
+import { useSettingsStore } from '@/src/settings/store';
 
 interface Conversation {
   partnerId: string;
   partnerName: string;
-  partnerInitial: string;
   lastMessageContent: string;
   hasUnread: boolean;
+  isOutgoing: boolean;
 }
 
 export default function MessagesScreen() {
-  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === 'ar';
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
+  const styles = createStyles(COLORS);
   const { messages, isLoading, fetchMessages } = useMessages();
   const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
     fetchMessages();
-  }, []);
+  }, [fetchMessages]);
 
-  // Group flat messages into conversations by partner
   const conversations = useMemo<Conversation[]>(() => {
     if (!user) return [];
 
     const byPartner = new Map<string, Conversation>();
-
-    // Iterate oldest-first so that the last set wins as the latest message
     [...messages].reverse().forEach((msg: any) => {
       const isOutgoing = msg.senderId === user.id;
       const partner = isOutgoing ? msg.receiver : msg.sender;
-      if (!partner) return;
+      if (!partner?.id) return;
 
-      const partnerId: string = partner.id;
-      const partnerName = `${partner.firstName ?? ''} ${partner.lastName ?? ''}`.trim();
-      const partnerInitial = partner.firstName?.[0]?.toUpperCase() ?? '?';
-      const hasUnread = !msg.readAt && msg.receiverId === user.id;
-
-      byPartner.set(partnerId, {
-        partnerId,
+      const partnerName = `${partner.firstName ?? ''} ${partner.lastName ?? ''}`.trim() || '?';
+      byPartner.set(partner.id, {
+        partnerId: partner.id,
         partnerName,
-        partnerInitial,
         lastMessageContent: msg.content ?? '',
-        hasUnread,
+        hasUnread: !msg.readAt && msg.receiverId === user.id,
+        isOutgoing,
       });
     });
 
-    // Reverse back so newest conversation appears first
     return Array.from(byPartner.values()).reverse();
   }, [messages, user]);
 
-  const borderColor = darkMode ? '#334155' : '#e7e5e4';
-
-  const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.background },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: SPACING.md,
-      paddingVertical: SPACING.sm,
-      borderBottomWidth: 1,
-      borderBottomColor: borderColor,
-    },
-    backBtn: { marginRight: SPACING.sm, padding: 4 },
-    backText: { fontSize: 20, color: COLORS.primary },
-    headerTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary },
-    row: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: SPACING.md,
-      paddingVertical: SPACING.sm,
-      borderBottomWidth: 1,
-      borderBottomColor: borderColor,
-    },
-    avatar: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: COLORS.primary,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginRight: SPACING.sm,
-    },
-    avatarText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-    info: { flex: 1 },
-    name: { fontSize: 15, fontWeight: '700', color: COLORS.textPrimary },
-    preview: { fontSize: 13, color: COLORS.textSecondary, marginTop: 2 },
-    unreadDot: {
-      width: 10,
-      height: 10,
-      borderRadius: 5,
-      backgroundColor: COLORS.primary,
-    },
-    emptyContainer: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: SPACING.xl,
-    },
-    emptyIcon: { fontSize: 48, marginBottom: SPACING.md },
-    emptyTitle: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: COLORS.textPrimary,
-      marginBottom: SPACING.xs,
-    },
-    emptyDesc: {
-      fontSize: 14,
-      color: COLORS.textSecondary,
-      textAlign: 'center',
-    },
-  });
-
   const renderItem = ({ item }: { item: Conversation }) => (
     <TouchableOpacity
-      style={styles.row}
+      activeOpacity={0.85}
       onPress={() =>
         router.push({
           pathname: '/messages/conversation',
@@ -129,38 +63,154 @@ export default function MessagesScreen() {
         })
       }
     >
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{item.partnerInitial}</Text>
-      </View>
-      <View style={styles.info}>
-        <Text style={styles.name}>{item.partnerName}</Text>
-        <Text style={styles.preview} numberOfLines={1}>
-          {item.lastMessageContent}
-        </Text>
-      </View>
-      {item.hasUnread && <View style={styles.unreadDot} />}
+      <AppCard colors={COLORS} style={styles.conversationCard}>
+        <Avatar colors={COLORS} label={item.partnerName} size={48} />
+        <View style={styles.conversationInfo}>
+          <View style={styles.conversationTop}>
+            <Text style={styles.name} numberOfLines={1}>
+              {item.partnerName}
+            </Text>
+            {item.hasUnread ? <View style={styles.unreadDot} /> : null}
+          </View>
+          <Text style={[styles.preview, item.hasUnread && styles.previewUnread]} numberOfLines={1}>
+            {item.isOutgoing ? (isAr ? 'أنت: ' : 'You: ') : ''}
+            {item.lastMessageContent}
+          </Text>
+        </View>
+        <IconButton
+          colors={COLORS}
+          icon={isAr ? 'chevron-back-outline' : 'chevron-forward-outline'}
+          accessibilityLabel={isAr ? 'فتح المحادثة' : 'Open conversation'}
+          size={34}
+          onPress={() =>
+            router.push({
+              pathname: '/messages/conversation',
+              params: { partnerId: item.partnerId, partnerName: item.partnerName },
+            })
+          }
+        />
+      </AppCard>
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.screen, { paddingTop: insets.top + SPACING.lg }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={styles.backText}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('messages')}</Text>
-      </View>
-      {isLoading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} color={COLORS.primary} />
-      ) : conversations.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="chatbubble-outline" size={56} color={COLORS.textSecondary} />
-          <Text style={styles.emptyTitle}>{t('noConversations')}</Text>
-          <Text style={styles.emptyDesc}>{t('noConversationsDesc')}</Text>
+        <IconButton
+          colors={COLORS}
+          icon={isAr ? 'arrow-forward-outline' : 'arrow-back-outline'}
+          accessibilityLabel={isAr ? 'رجوع' : 'Back'}
+          onPress={() => router.back()}
+        />
+        <View style={styles.headerText}>
+          <Text style={styles.eyebrow}>{isAr ? 'المحادثات' : 'Conversations'}</Text>
+          <Text style={styles.title}>{t('messages')}</Text>
         </View>
+      </View>
+
+      {isLoading && conversations.length === 0 ? (
+        <View style={styles.center}>
+          <ActivityIndicator color={COLORS.primary} />
+        </View>
+      ) : conversations.length === 0 ? (
+        <AppCard colors={COLORS} style={styles.emptyCard}>
+          <EmptyState
+            colors={COLORS}
+            icon="chatbubble-outline"
+            title={t('noConversations')}
+            description={t('noConversationsDesc')}
+          />
+        </AppCard>
       ) : (
-        <FlatList data={conversations} keyExtractor={(item) => item.partnerId} renderItem={renderItem} />
+        <FlatList
+          data={conversations}
+          keyExtractor={(item) => item.partnerId}
+          renderItem={renderItem}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={isLoading} onRefresh={fetchMessages} tintColor={COLORS.primary} />
+          }
+        />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
+
+const createStyles = (COLORS: ReturnType<typeof getColors>) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+      paddingHorizontal: SPACING.lg,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.md,
+      marginBottom: SPACING.lg,
+    },
+    headerText: {
+      flex: 1,
+    },
+    eyebrow: {
+      color: COLORS.primary,
+      fontSize: 12,
+      fontWeight: '800',
+      marginBottom: 2,
+    },
+    title: {
+      color: COLORS.textPrimary,
+      fontSize: 25,
+      fontWeight: '800',
+      lineHeight: 31,
+    },
+    list: {
+      gap: SPACING.md,
+      paddingBottom: SPACING['3xl'],
+    },
+    conversationCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.md,
+    },
+    conversationInfo: {
+      flex: 1,
+    },
+    conversationTop: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: SPACING.md,
+    },
+    name: {
+      flex: 1,
+      color: COLORS.textPrimary,
+      fontSize: 15,
+      fontWeight: '800',
+    },
+    preview: {
+      color: COLORS.textSecondary,
+      fontSize: 13,
+      fontWeight: '600',
+      marginTop: 4,
+    },
+    previewUnread: {
+      color: COLORS.textPrimary,
+      fontWeight: '800',
+    },
+    unreadDot: {
+      width: 9,
+      height: 9,
+      borderRadius: 5,
+      backgroundColor: COLORS.primary,
+    },
+    center: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    emptyCard: {
+      marginTop: SPACING['2xl'],
+    },
+  });

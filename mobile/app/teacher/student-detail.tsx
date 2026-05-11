@@ -5,6 +5,7 @@ import { useRequiredParam } from '@/src/hooks/useRequiredParam';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
+import { Ionicons } from '@expo/vector-icons';
 import { gradesApi, memorizationApi, Grade, MemorizationEntry } from '@/src/api';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
@@ -52,17 +53,6 @@ export default function TeacherStudentDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  if (!studentId) {
-    return (
-      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text style={{ color: COLORS.textSecondary }}>{t('notFound')}</Text>
-        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
-          <Text style={{ color: COLORS.primary }}>{t('goBack')}</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
-
   useEffect(() => {
     if (!studentId) return;
     Promise.all([gradesApi.getStudentGrades(studentId), memorizationApi.getStudentProgress(studentId)])
@@ -74,14 +64,30 @@ export default function TeacherStudentDetailScreen() {
       .finally(() => setIsLoading(false));
   }, [studentId]);
 
+  if (!studentId) {
+    return (
+      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ color: COLORS.textSecondary }}>{t('notFound')}</Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
+          <Text style={{ color: COLORS.primary }}>{t('goBack')}</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
   const displayName = studentName ?? 'Student';
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
-      <ScrollView contentContainerStyle={{ paddingBottom: SPACING['4xl'] }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: SPACING['3xl'] }}>
         <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.backText}>←</Text>
+            <Ionicons
+              name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
+              size={22}
+              color="rgba(255,255,255,0.85)"
+              style={styles.backText}
+            />
           </TouchableOpacity>
           <Text style={styles.title}>{displayName}</Text>
           {!isLoading && (

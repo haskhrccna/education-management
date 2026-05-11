@@ -3,11 +3,14 @@
 
 export type ThemeColor = 'green' | 'blue' | 'purple' | 'dark';
 
-const THEME_PALETTES: Record<ThemeColor, { primary: string; primaryLight: string; primaryDark: string; primaryMuted: string }> = {
+const THEME_PALETTES: Record<
+  ThemeColor,
+  { primary: string; primaryLight: string; primaryDark: string; primaryMuted: string }
+> = {
   green: {
-    primary: '#1B5E20',      // Material Green 900 — Islamic green anchor
+    primary: '#1B5E20', // Material Green 900 — Islamic green anchor
     primaryLight: '#4C8C4A', // Green 700 tint
-    primaryDark: '#003300',  // Deep green
+    primaryDark: '#003300', // Deep green
     primaryMuted: '#E8F5E9', // Green 50 — light surface tint
   },
   blue: {
@@ -48,12 +51,14 @@ export const getColors = (theme: ThemeColor = 'green', isDark: boolean = false) 
       surface: '#1E1E1E',
       surfaceAlt: '#2C2C2C',
       surfaceGreen: '#1A2E1B',
+      card: '#1E1E1E',
       // Text
       textPrimary: '#F5F5F5',
       textSecondary: '#9E9E9E',
       textMuted: '#757575',
       textOnPrimary: '#FFFFFF',
       textOnGold: '#33260A',
+      text: '#F5F5F5',
       // Status
       success: '#66BB6A',
       successLight: '#1A2E1B',
@@ -69,6 +74,8 @@ export const getColors = (theme: ThemeColor = 'green', isDark: boolean = false) 
       parchment: '#2C2C2C',
       midnight: '#030712',
       divider: '#2C2C2C',
+      border: '#2C2C2C',
+      darkMode: true,
     };
   }
 
@@ -82,16 +89,18 @@ export const getColors = (theme: ThemeColor = 'green', isDark: boolean = false) 
     goldLight: '#FFD54F',
     goldMuted: '#FFF8E1',
     // Surfaces
-    background: '#F5F5F5',   // scaffold — design spec
+    background: '#F5F5F5', // scaffold — design spec
     surface: '#FFFFFF',
     surfaceAlt: '#FFF8E1',
     surfaceGreen: '#E8F5E9',
+    card: '#FFFFFF',
     // Text
-    textPrimary: '#212121',   // design spec
+    textPrimary: '#212121', // design spec
     textSecondary: '#757575', // design spec
     textMuted: '#9E9E9E',
     textOnPrimary: '#FFFFFF',
     textOnGold: '#3E2723',
+    text: '#212121',
     // Status — Material Design palette, design spec
     success: '#388E3C',
     successLight: '#E8F5E9',
@@ -106,7 +115,9 @@ export const getColors = (theme: ThemeColor = 'green', isDark: boolean = false) 
     cream: '#FFFDE7',
     parchment: '#FFF9C4',
     midnight: '#212121',
-    divider: '#BDBDBD',      // design spec — input borders, separators
+    divider: '#BDBDBD', // design spec — input borders, separators
+    border: '#BDBDBD',
+    darkMode: false,
   };
 };
 
@@ -127,14 +138,14 @@ export const SHADOWS = {
   md: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.10,
+    shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2, // card default — elevation 2 per design spec
   },
   lg: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.10,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
   },
@@ -151,9 +162,9 @@ export const SHADOWS = {
 // Design spec: buttons/inputs 8 · cards 12 · badges/chips 16 (pill)
 
 export const RADIUS = {
-  sm: 8,   // buttons, inputs, icon tiles
-  md: 12,  // cards
-  lg: 16,  // badges, chips (pill)
+  sm: 8, // buttons, inputs, icon tiles
+  md: 12, // cards
+  lg: 16, // badges, chips (pill)
   xl: 20,
   '2xl': 24,
   full: 9999,
@@ -175,16 +186,16 @@ export const SPACING = {
 // Mirrors AppTheme.textTheme from Flutter source (app_config.dart)
 
 export const TYPOGRAPHY = {
-  headlineLarge:  { fontSize: 28, fontWeight: '700' as const, lineHeight: 36 },
+  headlineLarge: { fontSize: 28, fontWeight: '700' as const, lineHeight: 36 },
   headlineMedium: { fontSize: 24, fontWeight: '700' as const, lineHeight: 32 },
-  headlineSmall:  { fontSize: 20, fontWeight: '600' as const, lineHeight: 28 },
-  titleLarge:     { fontSize: 18, fontWeight: '600' as const, lineHeight: 26 },
-  titleMedium:    { fontSize: 16, fontWeight: '500' as const, lineHeight: 24 },
-  titleSmall:     { fontSize: 14, fontWeight: '500' as const, lineHeight: 20 },
-  bodyLarge:      { fontSize: 16, fontWeight: '400' as const, lineHeight: 24 },
-  bodyMedium:     { fontSize: 14, fontWeight: '400' as const, lineHeight: 20 },
-  bodySmall:      { fontSize: 12, fontWeight: '400' as const, lineHeight: 16 },
-  labelLarge:     { fontSize: 14, fontWeight: '500' as const, lineHeight: 20 },
+  headlineSmall: { fontSize: 20, fontWeight: '600' as const, lineHeight: 28 },
+  titleLarge: { fontSize: 18, fontWeight: '600' as const, lineHeight: 26 },
+  titleMedium: { fontSize: 16, fontWeight: '500' as const, lineHeight: 24 },
+  titleSmall: { fontSize: 14, fontWeight: '500' as const, lineHeight: 20 },
+  bodyLarge: { fontSize: 16, fontWeight: '400' as const, lineHeight: 24 },
+  bodyMedium: { fontSize: 14, fontWeight: '400' as const, lineHeight: 20 },
+  bodySmall: { fontSize: 12, fontWeight: '400' as const, lineHeight: 16 },
+  labelLarge: { fontSize: 14, fontWeight: '500' as const, lineHeight: 20 },
 };
 
 // ─── Font families ────────────────────────────────────────────────────────────
@@ -201,9 +212,9 @@ export const FONTS = {
 // These are kept minimal for optional decorative use only.
 
 export const GRADIENTS = {
-  primary: ['#1B5E20', '#2E7D32'] as const,    // subtle green — nearly solid
+  primary: ['#1B5E20', '#2E7D32'] as const, // subtle green — nearly solid
   gold: ['#F57F17', '#FFC107', '#FFD54F'] as const,
-  header: ['#1B5E20', '#2E7D32'] as const,      // app bar — near-solid green
+  header: ['#1B5E20', '#2E7D32'] as const, // app bar — near-solid green
   hero: ['#E8F5E9', '#FFFFFF'] as const,
   darkHeader: ['#0f172a', '#1e293b'] as const,
 };
