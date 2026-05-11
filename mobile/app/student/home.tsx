@@ -309,6 +309,8 @@ function RevisionScheduleTab({
   styles: any;
 }) {
   const { i18n } = useTranslation();
+  const { theme, darkMode } = useSettingsStore();
+  const COLORS = getColors(theme, darkMode);
   const today = new Date().toISOString().split('T')[0];
 
   const dueRevisions = revisions.filter((r) => r.date <= today);
