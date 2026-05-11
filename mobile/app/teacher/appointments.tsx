@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
+import { Ionicons } from '@expo/vector-icons';
 import { appointmentsApi, Appointment } from '@/src/api';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
@@ -93,7 +94,12 @@ export default function TeacherAppointmentsScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>{isRTL ? '→' : '←'}</Text>
+          <Ionicons
+            name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
+            size={22}
+            color="rgba(255,255,255,0.85)"
+            style={styles.backText}
+          />
         </TouchableOpacity>
         <Text style={styles.title}>{t('appointments')}</Text>
         <View style={styles.statsRow}>
@@ -217,9 +223,9 @@ function AppointmentCard({
         <View style={{ flex: 1 }}>
           <Text style={[styles.studentName, { color: COLORS.textPrimary }]}>{studentName}</Text>
           <Text style={[styles.metaText, { color: COLORS.textSecondary }]}>
-            📅 {dateStr} 🕐 {appt.requestedTime}
+            {dateStr} · {appt.requestedTime}
           </Text>
-          <Text style={[styles.metaText, { color: COLORS.textSecondary }]}>⏱ {appt.durationMinutes} min</Text>
+          <Text style={[styles.metaText, { color: COLORS.textSecondary }]}>{appt.durationMinutes} min</Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: colors.bg }]}>
           <Text style={[styles.statusText, { color: colors.fg }]}>{statusLabel(appt.status, t)}</Text>
@@ -279,7 +285,7 @@ const createStyles = (COLORS: any) =>
     },
     statVal: { fontSize: 20, fontWeight: '800', color: '#fff' },
     statLbl: { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
-    scroll: { padding: SPACING.xl, gap: SPACING.md, paddingBottom: SPACING['4xl'] },
+    scroll: { padding: SPACING.xl, gap: SPACING.md, paddingBottom: SPACING['3xl'] },
     sectionTitle: { fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
     card: { borderRadius: RADIUS.xl, padding: SPACING.lg, ...SHADOWS.sm, gap: SPACING.md },
     cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.md },
@@ -311,7 +317,7 @@ const createStyles = (COLORS: any) =>
     rejectBtn: { borderWidth: 1.5, backgroundColor: 'transparent' },
     acceptText: { color: '#fff', fontWeight: '700', fontSize: 14 },
     rejectText: { fontWeight: '700', fontSize: 14 },
-    center: { alignItems: 'center', justifyContent: 'center', paddingVertical: SPACING['4xl'] },
+    center: { alignItems: 'center', justifyContent: 'center', paddingVertical: SPACING['3xl'] },
     emptyTitle: { fontSize: 18, fontWeight: '700', marginBottom: SPACING.xs },
     emptyDesc: { fontSize: 14, textAlign: 'center', maxWidth: 320, lineHeight: 20 },
   });

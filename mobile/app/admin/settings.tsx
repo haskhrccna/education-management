@@ -2,13 +2,14 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Switch } from 're
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useSettingsStore, ThemeColor, FontSize } from '@/src/settings/store';
 import { getColors, FONT_SCALE, SPACING_SCALE } from '@/constants/theme';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
 export default function AdminSettingsScreen() {
   const router = useRouter();
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const settings = useSettingsStore();
   const COLORS = getColors(settings.theme, settings.darkMode);
   const fontScale = FONT_SCALE[settings.fontSize];
@@ -48,7 +49,7 @@ export default function AdminSettingsScreen() {
       <View style={dynamicStyles.header}>
         <View style={dynamicStyles.headerTop}>
           <TouchableOpacity onPress={() => router.back()} style={dynamicStyles.backBtn}>
-            <Text style={dynamicStyles.backText}>←</Text>
+            <Ionicons name="arrow-back-outline" size={20} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={[dynamicStyles.headerTitle, { fontSize: 18 * fontScale }]}>
             {i18n.language === 'ar' ? 'إعدادات المشرف' : 'Admin Settings'}
@@ -64,9 +65,12 @@ export default function AdminSettingsScreen() {
       >
         {/* Theme Selection */}
         <Animated.View entering={FadeInUp.duration(400)} style={dynamicStyles.sectionCard}>
-          <Text style={[dynamicStyles.sectionTitle, { fontSize: 16 * fontScale }]}>
-            {i18n.language === 'ar' ? '🎨 المظهر والألوان' : '🎨 Theme & Colors'}
-          </Text>
+          <View style={dynamicStyles.sectionTitleRow}>
+            <Ionicons name="color-palette-outline" size={20} color={COLORS.primary} />
+            <Text style={[dynamicStyles.sectionTitle, { fontSize: 16 * fontScale }]}>
+              {i18n.language === 'ar' ? 'المظهر والألوان' : 'Theme & Colors'}
+            </Text>
+          </View>
           <Text style={[dynamicStyles.sectionDesc, { fontSize: 13 * fontScale }]}>
             {i18n.language === 'ar' ? 'اختر لون التطبيق المفضل' : 'Choose your preferred app color'}
           </Text>
@@ -91,7 +95,7 @@ export default function AdminSettingsScreen() {
                 </Text>
                 {settings.theme === theme.key && (
                   <View style={[dynamicStyles.themeCheck, { backgroundColor: COLORS.primary }]}>
-                    <Text style={dynamicStyles.themeCheckText}>✓</Text>
+                    <Ionicons name="checkmark-outline" size={14} color="#FFFFFF" />
                   </View>
                 )}
               </TouchableOpacity>
@@ -101,9 +105,12 @@ export default function AdminSettingsScreen() {
 
         {/* Font Size */}
         <Animated.View entering={FadeInUp.duration(400).delay(100)} style={dynamicStyles.sectionCard}>
-          <Text style={[dynamicStyles.sectionTitle, { fontSize: 16 * fontScale }]}>
-            {i18n.language === 'ar' ? '🔤 حجم الخط' : '🔤 Font Size'}
-          </Text>
+          <View style={dynamicStyles.sectionTitleRow}>
+            <Ionicons name="text-outline" size={20} color={COLORS.primary} />
+            <Text style={[dynamicStyles.sectionTitle, { fontSize: 16 * fontScale }]}>
+              {i18n.language === 'ar' ? 'حجم الخط' : 'Font Size'}
+            </Text>
+          </View>
           <View style={dynamicStyles.fontSizeRow}>
             {fontSizes.map((fs) => (
               <TouchableOpacity
@@ -139,7 +146,7 @@ export default function AdminSettingsScreen() {
         {/* Toggle Options */}
         <Animated.View entering={FadeInUp.duration(400).delay(200)} style={dynamicStyles.sectionCard}>
           <Text style={[dynamicStyles.sectionTitle, { fontSize: 16 * fontScale }]}>
-            {i18n.language === 'ar' ? '⚙️ الخيارات العامة' : '⚙️ General Options'}
+            {i18n.language === 'ar' ? 'الخيارات العامة' : 'General Options'}
           </Text>
 
           <View style={dynamicStyles.toggleItem}>
@@ -196,9 +203,12 @@ export default function AdminSettingsScreen() {
 
         {/* Language */}
         <Animated.View entering={FadeInUp.duration(400).delay(300)} style={dynamicStyles.sectionCard}>
-          <Text style={[dynamicStyles.sectionTitle, { fontSize: 16 * fontScale }]}>
-            {i18n.language === 'ar' ? '🌐 اللغة' : '🌐 Language'}
-          </Text>
+          <View style={dynamicStyles.sectionTitleRow}>
+            <Ionicons name="language-outline" size={20} color={COLORS.primary} />
+            <Text style={[dynamicStyles.sectionTitle, { fontSize: 16 * fontScale }]}>
+              {i18n.language === 'ar' ? 'اللغة' : 'Language'}
+            </Text>
+          </View>
           <View style={dynamicStyles.langRow}>
             <TouchableOpacity
               style={[dynamicStyles.langBtn, i18n.language === 'ar' && { borderColor: COLORS.primary, borderWidth: 2 }]}
@@ -293,10 +303,15 @@ function createStyles(COLORS: any, fontScale: number, spacingScale: number) {
       shadowRadius: 6,
       elevation: 3,
     },
+    sectionTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: s(8),
+      marginBottom: 4,
+    },
     sectionTitle: {
       fontWeight: '700',
       color: COLORS.textPrimary,
-      marginBottom: 4,
       textAlign: 'right',
     },
     sectionDesc: {

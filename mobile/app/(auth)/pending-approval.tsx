@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 
@@ -18,7 +19,7 @@ export default function PendingApprovalPage() {
       <View style={styles.content}>
         <Animated.View entering={FadeInUp.duration(600)} style={styles.card}>
           <View style={styles.iconContainer}>
-            <Text style={styles.hourglass}>⏳</Text>
+            <Ionicons name="time-outline" size={64} color={COLORS.primary} />
             <Animated.View entering={FadeIn.delay(400).duration(800)} style={styles.pulseRing} />
           </View>
 
@@ -28,7 +29,8 @@ export default function PendingApprovalPage() {
           <View style={styles.steps}>
             <View style={styles.step}>
               <View style={[styles.stepDot, styles.stepActive]} />
-              <Text style={styles.stepText}>✓ {t('submitted')}</Text>
+              <Ionicons name="checkmark-circle-outline" size={16} color={COLORS.success} />
+              <Text style={styles.stepText}>{t('submitted')}</Text>
             </View>
             <View style={styles.stepLine} />
             <View style={styles.step}>

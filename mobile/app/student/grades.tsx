@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useGrades } from '@/src/hooks/useGrades';
 import { Grade } from '@/src/api';
+import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 
@@ -100,7 +101,11 @@ export default function StudentGradesScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>←</Text>
+          <Ionicons
+            name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
+            size={22}
+            color="rgba(255,255,255,0.85)"
+          />
         </TouchableOpacity>
         <Text style={styles.title}>{t('myGrades')}</Text>
         {!isLoading && (
@@ -136,7 +141,12 @@ export default function StudentGradesScreen() {
               <ActivityIndicator style={{ marginTop: 40 }} color={COLORS.primary} />
             ) : (
               <View style={styles.center}>
-                <Text style={{ fontSize: 36, marginBottom: 12 }}>📋</Text>
+                <Ionicons
+                  name="document-text-outline"
+                  size={48}
+                  color={COLORS.textSecondary}
+                  style={{ marginBottom: 12 }}
+                />
                 <Text style={[styles.emptyTitle, { color: COLORS.textPrimary }]}>{t('noGradesYet')}</Text>
                 <Text style={{ color: COLORS.textSecondary, textAlign: 'center' }}>{t('noGradesDesc')}</Text>
               </View>
@@ -169,7 +179,7 @@ const styles = StyleSheet.create({
   },
   statVal: { fontSize: 22, fontWeight: '800', color: '#fff' },
   statLbl: { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
-  list: { padding: SPACING.xl, gap: SPACING.md, paddingBottom: SPACING['4xl'] },
+  list: { padding: SPACING.xl, gap: SPACING.md, paddingBottom: SPACING['3xl'] },
   card: { borderRadius: RADIUS.xl, padding: SPACING.lg, borderLeftWidth: 4, ...SHADOWS.sm },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   badge: {

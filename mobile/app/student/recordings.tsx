@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Platform,
   RefreshControl,
   StyleSheet,
   Text,
@@ -16,10 +15,10 @@ import { useTranslation } from 'react-i18next';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useRecordings } from '@/src/hooks/useRecordings';
 import { Recording, getRecordingStatus } from '@/src/api';
+import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
-import * as DocumentPicker from 'expo-document-picker';
-import { Audio } from 'expo-av';
+type AudioModule = typeof import('expo-av');
 
 type AnyColors = ReturnType<typeof getColors>;
 
@@ -44,7 +43,7 @@ const formatDuration = (millis: number): string => {
 
 export default function StudentRecordingsScreen() {
   const router = useRouter();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const isRTL = useIsRTL();
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
@@ -71,21 +70,32 @@ export default function StudentRecordingsScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const getAudio = async (): Promise<AudioModule | null> => {
+    try {
+      return await import('expo-av');
+    } catch {
+      Alert.alert(t('error'), t('audioNotAvailable'));
+      return null;
+    }
+  };
+
   const startRecording = async () => {
     try {
-      if (!Audio?.requestPermissionsAsync) {
-        Alert.alert(t('error'), t('audioNotAvailable'));
-        return;
-      }
+      const av = await getAudio();
+      if (!av) return;
+      const { Audio } = av;
+
       const perm = await Audio.requestPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert(t('recordAudio'), t('micPermissionDenied'));
+        if (!perm.canAskAgain) {
+          Alert.alert(t('recordAudio'), 'يرجى السماح للتطبيق باستخدام الميكروفون من إعدادات الهاتف.');
+        } else {
+          Alert.alert(t('recordAudio'), t('micPermissionDenied'));
+        }
         return;
       }
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
+
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
 
       const { recording: rec } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY,
@@ -100,7 +110,9 @@ export default function StudentRecordingsScreen() {
       setRecording(rec);
       setRecordingMillis(0);
     } catch (err: any) {
-      Alert.alert(t('error'), err?.message ?? String(err));
+      const msg = err?.message ?? String(err);
+      const isSimulator = msg.includes('OSStatus') || msg.includes('AVAudioSession') || msg.includes('1852797029');
+      Alert.alert(t('error'), isSimulator ? 'التسجيل الصوتي غير متوفر في المحاكي. يرجى الاختبار على جهاز حقيقي.' : msg);
     }
   };
 
@@ -116,9 +128,9 @@ export default function StudentRecordingsScreen() {
         return;
       }
 
-      // Reset audio mode so playback works after recording
-      if (Audio?.setAudioModeAsync) {
-        await Audio.setAudioModeAsync({
+      const av = await getAudio();
+      if (av) {
+        await av.Audio.setAudioModeAsync({
           allowsRecordingIOS: false,
           playsInSilentModeIOS: true,
         });
@@ -149,8 +161,10 @@ export default function StudentRecordingsScreen() {
 
   const pickAudio = async () => {
     try {
-      // Guard against missing native module (Expo Go without expo-document-picker)
-      if (!DocumentPicker.getDocumentAsync) {
+      let DocumentPicker: typeof import('expo-document-picker');
+      try {
+        DocumentPicker = await import('expo-document-picker');
+      } catch {
         Alert.alert(t('error'), t('documentPickerNotAvailable') ?? 'File picker is not available in this environment.');
         return;
       }
@@ -176,7 +190,7 @@ export default function StudentRecordingsScreen() {
     try {
       const formData = new FormData();
       formData.append('file', {
-        uri: Platform.OS === 'ios' ? uri.replace(/^file:\/\//, '') : uri,
+        uri,
         name: fileName,
         type: contentType,
       } as unknown as Blob);
@@ -202,7 +216,12 @@ export default function StudentRecordingsScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
         <TouchableOpacity onPress={() => router.back()} accessibilityRole="button">
-          <Text style={[styles.backText, { transform: [{ scaleX: isRTL ? -1 : 1 }] }]}>←</Text>
+          <Ionicons
+            name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
+            size={22}
+            color="rgba(255,255,255,0.85)"
+            style={styles.backIcon}
+          />
         </TouchableOpacity>
         <Text style={styles.title}>{t('recordings')}</Text>
         <Text style={styles.subtitle}>
@@ -226,7 +245,7 @@ export default function StudentRecordingsScreen() {
               style={[styles.smallBtn, { backgroundColor: COLORS.surface, borderColor: COLORS.error }]}
               accessibilityLabel={t('cancel')}
             >
-              <Text style={[styles.smallBtnText, { color: COLORS.error }]}>✕</Text>
+              <Ionicons name="close-outline" size={22} color={COLORS.error} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={stopAndUploadRecording}
@@ -236,7 +255,7 @@ export default function StudentRecordingsScreen() {
               ]}
               accessibilityLabel={t('stopRecording')}
             >
-              <Text style={[styles.smallBtnText, { color: '#fff' }]}>■</Text>
+              <Ionicons name="stop-outline" size={22} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         ) : (
@@ -247,7 +266,7 @@ export default function StudentRecordingsScreen() {
               activeOpacity={0.85}
               style={[styles.actionBtn, { backgroundColor: COLORS.primary, opacity: uploading ? 0.5 : 1 }]}
             >
-              <Text style={styles.actionIcon}>●</Text>
+              <Ionicons name="radio-button-on-outline" size={24} color="#FFFFFF" style={styles.actionIcon} />
               <Text style={styles.actionLabel}>{t('recordAudio')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -260,7 +279,7 @@ export default function StudentRecordingsScreen() {
                 { backgroundColor: COLORS.surface, borderColor: COLORS.primary, opacity: uploading ? 0.5 : 1 },
               ]}
             >
-              <Text style={[styles.actionIcon, { color: COLORS.primary }]}>♪</Text>
+              <Ionicons name="musical-note-outline" size={24} color={COLORS.primary} style={styles.actionIcon} />
               <Text style={[styles.actionLabel, { color: COLORS.primary }]}>{t('pickAudioFile')}</Text>
             </TouchableOpacity>
           </View>
@@ -293,7 +312,12 @@ export default function StudentRecordingsScreen() {
               <ActivityIndicator style={{ marginTop: 40 }} color={COLORS.primary} />
             ) : (
               <View style={styles.center}>
-                <Text style={{ fontSize: 40, marginBottom: SPACING.md }}>🎙️</Text>
+                <Ionicons
+                  name="mic-outline"
+                  size={48}
+                  color={COLORS.textSecondary}
+                  style={{ marginBottom: SPACING.md }}
+                />
                 <Text style={[styles.emptyTitle, { color: COLORS.textPrimary }]}>{t('noRecordings')}</Text>
                 <Text style={{ color: COLORS.textSecondary, textAlign: 'center', lineHeight: 20 }}>
                   {t('noRecordingsDesc')}
@@ -391,7 +415,7 @@ const createStyles = (COLORS: AnyColors) =>
       borderBottomRightRadius: RADIUS['2xl'],
       ...SHADOWS.lg,
     },
-    backText: { color: 'rgba(255,255,255,0.85)', fontSize: 16, marginBottom: SPACING.sm },
+    backIcon: { marginBottom: SPACING.sm },
     title: { fontSize: 22, fontWeight: '800', color: '#fff', marginBottom: 2 },
     subtitle: { fontSize: 13, color: 'rgba(255,255,255,0.75)', fontWeight: '500' },
 
@@ -406,7 +430,7 @@ const createStyles = (COLORS: AnyColors) =>
       ...SHADOWS.sm,
     },
     actionBtnAlt: { borderWidth: 1.5 },
-    actionIcon: { fontSize: 22, color: '#fff', marginBottom: 4 },
+    actionIcon: { marginBottom: 4 },
     actionLabel: { color: '#fff', fontSize: 13, fontWeight: '700' },
 
     recordingBanner: {
@@ -427,7 +451,6 @@ const createStyles = (COLORS: AnyColors) =>
       justifyContent: 'center',
       borderWidth: 1.5,
     },
-    smallBtnText: { fontSize: 16, fontWeight: '800' },
 
     uploadingBar: {
       flexDirection: 'row',
@@ -438,7 +461,7 @@ const createStyles = (COLORS: AnyColors) =>
     },
     uploadingText: { fontSize: 13, fontWeight: '600' },
 
-    list: { padding: SPACING.xl, gap: SPACING.md, paddingBottom: SPACING['4xl'] },
+    list: { padding: SPACING.xl, gap: SPACING.md, paddingBottom: SPACING['3xl'] },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: SPACING['3xl'] },
     emptyTitle: { fontSize: 18, fontWeight: '700', marginBottom: SPACING.sm },
   });

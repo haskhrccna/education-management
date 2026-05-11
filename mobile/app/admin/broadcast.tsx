@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 import { messagesApi } from '@/src/api/messages';
@@ -55,7 +56,7 @@ export default function BroadcastScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
-          <Text style={styles.backArrow}>{'←'}</Text>
+          <Ionicons name="arrow-back-outline" size={22} color={COLORS.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('broadcastMessage')}</Text>
         <View style={styles.headerSpacer} />

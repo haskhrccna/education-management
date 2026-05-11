@@ -24,12 +24,16 @@ export function useTeacherChange() {
   }, []);
 
   const decideRequest = useCallback(
-    async (id: string, action: 'APPROVE' | 'DENY', adminNote?: string) => {
-      await teacherChangeApi.decide(id, action, adminNote);
+    async (id: string, action: 'APPROVE' | 'DENY', adminNote?: string, newTeacherId?: string) => {
+      await teacherChangeApi.decide(id, action, adminNote, newTeacherId);
       await fetchRequests();
     },
     [fetchRequests]
   );
 
-  return { requests, isLoading, error, fetchRequests, submitRequest, decideRequest };
+  const fetchTeachers = useCallback(async () => {
+    return teacherChangeApi.listTeachers();
+  }, []);
+
+  return { requests, isLoading, error, fetchRequests, submitRequest, decideRequest, fetchTeachers };
 }

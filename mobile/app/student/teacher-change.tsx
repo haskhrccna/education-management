@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { useSettingsStore } from '@/src/settings/store';
 import { getColors, SPACING, RADIUS } from '@/constants/theme';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
@@ -99,7 +100,7 @@ export default function TeacherChangeScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={styles.backText}>←</Text>
+          <Ionicons name="arrow-back-outline" size={22} color={COLORS.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
           {isAssignmentRequest ? t('requestTeacherAssignment') : t('requestTeacherChange')}
@@ -110,13 +111,13 @@ export default function TeacherChangeScreen() {
           <ActivityIndicator color={COLORS.primary} />
         ) : pendingRequest ? (
           <View style={styles.statusCard}>
-            <Text style={styles.statusTitle}>⏳ {t('pendingRequest')}</Text>
+            <Text style={styles.statusTitle}>{t('pendingRequest')}</Text>
             <Text style={styles.statusDesc}>{pendingRequest.reason}</Text>
           </View>
         ) : decidedRequest ? (
           <View style={styles.statusCard}>
             <Text style={styles.statusTitle}>
-              {decidedRequest.status === 'APPROVED' ? `✅ ${t('requestApproved')}` : `❌ ${t('requestDenied')}`}
+              {decidedRequest.status === 'APPROVED' ? t('requestApproved') : t('requestDenied')}
             </Text>
             <Text style={styles.statusDesc}>{decidedRequest.reason}</Text>
             {decidedRequest.adminNote && <Text style={styles.adminNote}>{decidedRequest.adminNote}</Text>}

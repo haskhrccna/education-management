@@ -13,9 +13,10 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuthStore } from '@/src/auth/store';
 import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 
@@ -66,11 +67,11 @@ export default function LoginPage() {
           {/* Logo & Title */}
           <Animated.View entering={FadeInUp.duration(600).delay(100)} style={styles.header}>
             <View style={styles.iconContainer}>
-              <Text style={styles.quranIcon}>📖</Text>
+              <Ionicons name="book-outline" size={72} color={COLORS.primary} />
               <View style={styles.iconGlow} />
             </View>
             <Text style={styles.title}>{t('appName')}</Text>
-            <Text style={styles.tagline}>{t('appTagline')}</Text>
+            <Text style={styles.tagline}>{i18n.language === 'ar' ? 'مرحباً بعودتك' : 'Welcome back'}</Text>
           </Animated.View>
 
           {/* Form */}
@@ -83,34 +84,38 @@ export default function LoginPage() {
 
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>{t('email')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="example@email.com"
-                placeholderTextColor={COLORS.textMuted}
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                returnKeyType="next"
-                textAlign={i18n.language === 'ar' ? 'right' : 'left'}
-              />
-              <View style={styles.inputUnderline} />
+              <View style={styles.inputWrap}>
+                <Ionicons name="mail-outline" size={20} color={COLORS.textSecondary} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="example@email.com"
+                  placeholderTextColor={COLORS.textMuted}
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  returnKeyType="next"
+                  textAlign={i18n.language === 'ar' ? 'right' : 'left'}
+                />
+              </View>
             </View>
 
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>{t('password')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="••••••••"
-                placeholderTextColor={COLORS.textMuted}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                returnKeyType="send"
-                onSubmitEditing={handleLogin}
-                textAlign={i18n.language === 'ar' ? 'right' : 'left'}
-              />
-              <View style={styles.inputUnderline} />
+              <View style={styles.inputWrap}>
+                <Ionicons name="lock-closed-outline" size={20} color={COLORS.textSecondary} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="••••••••"
+                  placeholderTextColor={COLORS.textMuted}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  returnKeyType="send"
+                  onSubmitEditing={handleLogin}
+                  textAlign={i18n.language === 'ar' ? 'right' : 'left'}
+                />
+              </View>
             </View>
 
             <TouchableOpacity
@@ -121,7 +126,7 @@ export default function LoginPage() {
             >
               <View style={styles.buttonInner}>
                 <Text style={styles.buttonText}>{isLoading ? t('loading') : t('login')}</Text>
-                {!isLoading && <Text style={styles.buttonIcon}>→</Text>}
+                {!isLoading && <Ionicons name="arrow-forward-outline" size={19} color={COLORS.goldLight} />}
               </View>
             </TouchableOpacity>
             <TouchableOpacity
@@ -262,29 +267,29 @@ const createStyles = (COLORS: any) =>
       gap: SPACING.xs,
     },
     inputLabel: {
-      fontSize: 13,
-      fontWeight: '600',
-      color: COLORS.textSecondary,
+      fontSize: 14,
+      fontWeight: '500',
+      color: COLORS.textPrimary,
       marginBottom: SPACING.xs,
-      textAlign: 'right',
+    },
+    inputWrap: {
+      position: 'relative',
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS.sm,
+      borderWidth: 1,
+      borderColor: COLORS.divider,
+    },
+    inputIcon: {
+      marginStart: SPACING.md,
     },
     input: {
-      backgroundColor: COLORS.surface,
-      borderRadius: RADIUS.lg,
-      padding: SPACING.lg,
-      fontSize: 16,
+      flex: 1,
+      paddingVertical: SPACING.md,
+      paddingHorizontal: SPACING.md,
+      fontSize: 14,
       color: COLORS.textPrimary,
-      borderWidth: 1,
-      borderColor: '#e7e5e4',
-      textAlign: 'right',
-    },
-    inputUnderline: {
-      height: 2,
-      backgroundColor: COLORS.primary,
-      opacity: 0.15,
-      marginTop: -2,
-      borderBottomLeftRadius: RADIUS.lg,
-      borderBottomRightRadius: RADIUS.lg,
     },
     button: {
       backgroundColor: COLORS.primary,

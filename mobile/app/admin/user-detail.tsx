@@ -12,9 +12,10 @@ import { useRouter } from 'expo-router';
 import { useRequiredParam } from '@/src/hooks/useRequiredParam';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/src/api';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 
@@ -32,22 +33,8 @@ export default function UserDetailScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', status: '', role: '' });
 
-  if (!id) {
-    return (
-      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text style={{ color: COLORS.textSecondary }}>{t('notFound')}</Text>
-        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
-          <Text style={{ color: COLORS.primary }}>{t('goBack')}</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
-
-  useEffect(() => {
-    fetchUser();
-  }, [id]);
-
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
+    if (!id) return;
     setIsLoading(true);
     try {
       const res = await apiClient.get(`/admin/users/${id}`);
@@ -66,7 +53,22 @@ export default function UserDetailScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  if (!id) {
+    return (
+      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ color: COLORS.textSecondary }}>{t('notFound')}</Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
+          <Text style={{ color: COLORS.primary }}>{t('goBack')}</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -131,7 +133,7 @@ export default function UserDetailScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Text style={styles.backText}>←</Text>
+            <Ionicons name="arrow-back-outline" size={20} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
             {isEditing
@@ -141,7 +143,7 @@ export default function UserDetailScreen() {
               : user.firstName + ' ' + user.lastName}
           </Text>
           <TouchableOpacity onPress={() => setIsEditing(!isEditing)} style={styles.editBtn}>
-            <Text style={styles.editText}>{isEditing ? '✕' : '✎'}</Text>
+            <Ionicons name={isEditing ? 'close-outline' : 'create-outline'} size={19} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </View>
@@ -224,7 +226,7 @@ export default function UserDetailScreen() {
               </View>
               {/* Joining Date */}
               <View style={styles.joinDateRow}>
-                <Text style={styles.joinDateIcon}>📅</Text>
+                <Ionicons name="calendar-outline" size={16} color={COLORS.textSecondary} />
                 <Text style={styles.joinDateLabel}>{i18n.language === 'ar' ? 'تاريخ الانضمام:' : 'Join Date:'}</Text>
                 <Text style={styles.joinDateValue}>{joinDate}</Text>
               </View>
@@ -235,7 +237,7 @@ export default function UserDetailScreen() {
         {/* Student's Teachers */}
         {isStudent && analytics?.teachers && analytics.teachers.length > 0 && (
           <Animated.View entering={FadeInUp.duration(400).delay(100)} style={styles.relationsCard}>
-            <Text style={styles.relationsTitle}>{i18n.language === 'ar' ? '👨‍🏫 المعلمون' : '👨‍🏫 Teachers'}</Text>
+            <Text style={styles.relationsTitle}>{i18n.language === 'ar' ? 'المعلمون' : 'Teachers'}</Text>
             {analytics.teachers.map((teacher: any) => (
               <View key={teacher.id} style={styles.relationItem}>
                 <View style={styles.relationAvatar}>
@@ -255,7 +257,7 @@ export default function UserDetailScreen() {
         {/* Teacher's Students */}
         {isTeacher && analytics?.students && analytics.students.length > 0 && (
           <Animated.View entering={FadeInUp.duration(400).delay(100)} style={styles.relationsCard}>
-            <Text style={styles.relationsTitle}>{i18n.language === 'ar' ? '👨‍🎓 الطلاب' : '👨‍🎓 Students'}</Text>
+            <Text style={styles.relationsTitle}>{i18n.language === 'ar' ? 'الطلاب' : 'Students'}</Text>
             {analytics.students.map((student: any) => (
               <View key={student.id} style={styles.relationItem}>
                 <View style={styles.relationAvatar}>
@@ -320,7 +322,7 @@ export default function UserDetailScreen() {
           <Animated.View entering={FadeInUp.duration(400).delay(200)} style={styles.activityCard}>
             <Text style={styles.activityTitle}>{i18n.language === 'ar' ? 'ملخص النشاط' : 'Activity Summary'}</Text>
             <View style={styles.activityItem}>
-              <Text style={styles.activityIcon}>📅</Text>
+              <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
               <View style={styles.activityContent}>
                 <Text style={styles.activityLabel}>{i18n.language === 'ar' ? 'آخر موعد' : 'Last Appointment'}</Text>
                 <Text style={styles.activityValue}>
@@ -335,7 +337,7 @@ export default function UserDetailScreen() {
               </View>
             </View>
             <View style={styles.activityItem}>
-              <Text style={styles.activityIcon}>📊</Text>
+              <Ionicons name="bar-chart-outline" size={20} color={COLORS.primary} />
               <View style={styles.activityContent}>
                 <Text style={styles.activityLabel}>
                   {i18n.language === 'ar' ? 'مستوى الأداء' : 'Performance Level'}
@@ -356,7 +358,9 @@ export default function UserDetailScreen() {
               </View>
             </View>
             <View style={styles.activityItem}>
-              <Text style={styles.activityIcon}>🔥</Text>
+              <View style={[styles.activityGlyph, { backgroundColor: COLORS.warningLight }]}>
+                <Ionicons name="flame-outline" size={20} color={COLORS.warning} />
+              </View>
               <View style={styles.activityContent}>
                 <Text style={styles.activityLabel}>{i18n.language === 'ar' ? 'معدل التفاعل' : 'Engagement Rate'}</Text>
                 <Text style={styles.activityValue}>
@@ -377,7 +381,8 @@ export default function UserDetailScreen() {
         {!isEditing && (
           <Animated.View entering={FadeInUp.duration(400).delay(250)}>
             <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
-              <Text style={styles.deleteText}>{i18n.language === 'ar' ? '🗑️ حذف المستخدم' : '🗑️ Delete User'}</Text>
+              <Ionicons name="trash-outline" size={20} color={COLORS.error} />
+              <Text style={styles.deleteText}>{i18n.language === 'ar' ? 'حذف المستخدم' : 'Delete User'}</Text>
             </TouchableOpacity>
           </Animated.View>
         )}
@@ -452,7 +457,7 @@ const createStyles = (COLORS: any) =>
     list: {
       gap: SPACING.md,
       paddingVertical: SPACING.lg,
-      paddingBottom: SPACING['4xl'],
+      paddingBottom: SPACING['3xl'],
     },
 
     // Profile Card
@@ -736,6 +741,13 @@ const createStyles = (COLORS: any) =>
       borderBottomWidth: 1,
       borderBottomColor: '#f1f5f9',
     },
+    activityGlyph: {
+      width: 40,
+      height: 40,
+      borderRadius: RADIUS.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     activityIcon: {
       fontSize: 24,
     },
@@ -757,10 +769,13 @@ const createStyles = (COLORS: any) =>
 
     // Delete
     deleteBtn: {
+      flexDirection: 'row',
+      gap: SPACING.sm,
       backgroundColor: COLORS.errorLight,
       borderRadius: RADIUS.lg,
       padding: SPACING.lg,
       alignItems: 'center',
+      justifyContent: 'center',
       marginTop: SPACING.md,
       borderWidth: 1,
       borderColor: COLORS.error,

@@ -7,6 +7,8 @@ export interface AuthUser {
   firstName: string;
   lastName: string;
   status: 'pending' | 'active' | 'banned';
+  assignedTeacher?: { id: string; firstName: string; lastName: string } | null;
+  assignedStudents?: { id: string; firstName: string; lastName: string }[];
 }
 
 export const authApi = {

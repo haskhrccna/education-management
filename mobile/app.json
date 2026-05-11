@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#065f46"
+      "backgroundColor": "#1B5E20"
     },
     "ios": {
       "supportsTablet": true,
@@ -21,7 +21,7 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
-        "backgroundColor": "#065f46"
+        "backgroundColor": "#1B5E20"
       },
       "package": "com.quranreview.app",
       "usesCleartextTraffic": false
@@ -33,10 +33,16 @@
       "expo-localization",
       "expo-secure-store",
       [
+        "expo-av",
+        {
+          "microphonePermission": "يحتاج التطبيق إلى الميكروفون لتسجيل التلاوة القرآنية."
+        }
+      ],
+      [
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#065f46",
+          "color": "#1B5E20",
           "defaultChannel": "default"
         }
       ]

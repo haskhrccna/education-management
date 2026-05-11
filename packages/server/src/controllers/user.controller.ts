@@ -17,10 +17,11 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
         status: true,
         emailVerifiedAt: true,
         createdAt: true,
+        assignedTeacher: { select: { id: true, firstName: true, lastName: true } },
+        assignedStudents: { select: { id: true, firstName: true, lastName: true } },
       },
     });
     if (!user) throw new AppError(404, 'User not found');
-    // Mobile expects lowercase role/status; server-internal canonical is uppercase.
     res.json({ ...user, role: user.role.toLowerCase(), status: user.status.toLowerCase() });
   } catch (err) {
     next(err);

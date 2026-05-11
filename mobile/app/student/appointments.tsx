@@ -1,64 +1,142 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
-  ActivityIndicator,
-  RefreshControl,
-  Alert,
-  TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { useIsRTL } from '@/src/i18n/useIsRTL';
-import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
-import { useSettingsStore } from '@/src/settings/store';
+import { Ionicons } from '@expo/vector-icons';
+import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { appointmentsApi, Appointment } from '@/src/api';
 import { useAuthStore } from '@/src/auth/store';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import { useTeacherChange } from '@/src/hooks/useTeacherChange';
+import { AppCard, Avatar, EmptyState, IconButton, SectionHeader, StatusPill } from '@/src/components/design';
+import { useSettingsStore } from '@/src/settings/store';
+
+interface TeacherOption {
+  id: string;
+  firstName: string;
+  lastName: string;
+}
+
+function fullName(person?: { firstName?: string; lastName?: string } | null): string {
+  return `${person?.firstName ?? ''} ${person?.lastName ?? ''}`.trim() || '?';
+}
+
+function statusTone(status?: string): 'success' | 'warning' | 'error' | 'neutral' {
+  const normalized = status?.toUpperCase();
+  if (normalized === 'ACCEPTED') return 'success';
+  if (normalized === 'REJECTED') return 'error';
+  if (normalized === 'PENDING' || normalized === 'REQUESTED') return 'warning';
+  return 'neutral';
+}
+
+function statusLabel(status: string | undefined, isAr: boolean): string {
+  const normalized = status?.toUpperCase();
+  if (normalized === 'ACCEPTED') return isAr ? 'مقبول' : 'Accepted';
+  if (normalized === 'REJECTED') return isAr ? 'مرفوض' : 'Rejected';
+  if (normalized === 'PENDING' || normalized === 'REQUESTED') return isAr ? 'بانتظار' : 'Pending';
+  return status ?? '';
+}
+
+function formatDate(dateStr: string | undefined, lang: string): string {
+  if (!dateStr) return '';
+  try {
+    return new Date(dateStr).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  } catch {
+    return dateStr;
+  }
+}
 
 export default function StudentAppointmentsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
-  const isRTL = useIsRTL();
+  const isAr = i18n.language === 'ar';
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
-  const styles = useMemo(() => createStyles(COLORS), [COLORS]);
+  const styles = createStyles(COLORS);
   const { user } = useAuthStore();
+  const { fetchTeachers } = useTeacherChange();
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [teacherId, setTeacherId] = useState('');
+  const [teachers, setTeachers] = useState<TeacherOption[]>([]);
+  const [selectedTeacherId, setSelectedTeacherId] = useState(user?.assignedTeacher?.id ?? '');
+  const [manualTeacherId, setManualTeacherId] = useState('');
   const [dateStr, setDateStr] = useState('');
   const [timeStr, setTimeStr] = useState('');
   const [duration, setDuration] = useState('30');
+  const [isLoading, setIsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const fetchAppointments = async () => {
+  const teacherOptions = useMemo(() => {
+    const map = new Map<string, TeacherOption>();
+    teachers.forEach((teacher) => map.set(teacher.id, teacher));
+    if (user?.assignedTeacher?.id) {
+      map.set(user.assignedTeacher.id, {
+        id: user.assignedTeacher.id,
+        firstName: user.assignedTeacher.firstName,
+        lastName: user.assignedTeacher.lastName,
+      });
+    }
+    return Array.from(map.values());
+  }, [teachers, user?.assignedTeacher]);
+
+  const fetchAppointments = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await appointmentsApi.getMine();
-      setAppointments(data);
+      setAppointments(await appointmentsApi.getMine());
     } catch (err: any) {
       Alert.alert(t('error'), err.message || t('fetchError'));
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [t]);
+
+  const loadTeachers = useCallback(async () => {
+    try {
+      const data = await fetchTeachers();
+      if (Array.isArray(data)) setTeachers(data);
+    } catch {
+      setTeachers([]);
+    }
+  }, [fetchTeachers]);
+
+  useEffect(() => {
+    fetchAppointments();
+    loadTeachers();
+  }, [fetchAppointments, loadTeachers]);
+
+  useEffect(() => {
+    if (!selectedTeacherId && teacherOptions[0]?.id) {
+      setSelectedTeacherId(teacherOptions[0].id);
+    }
+  }, [teacherOptions, selectedTeacherId]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchAppointments();
+    await Promise.all([fetchAppointments(), loadTeachers()]);
     setRefreshing(false);
   };
 
   const handleSubmit = async () => {
-    if (!teacherId.trim()) {
+    const teacherId = selectedTeacherId || manualTeacherId.trim();
+    if (!teacherId) {
       Alert.alert(t('error'), t('teacherIdRequired'));
       return;
     }
@@ -66,19 +144,20 @@ export default function StudentAppointmentsScreen() {
       Alert.alert(t('error'), t('dateTimeRequired'));
       return;
     }
+
     setSubmitting(true);
     try {
       await appointmentsApi.create({
-        teacherId: teacherId.trim(),
+        teacherId,
         requestedDate: dateStr.trim(),
         requestedTime: timeStr.trim(),
         durationMinutes: parseInt(duration, 10) || 30,
       });
-      Alert.alert(t('success'), t('appointmentRequested'));
       setShowForm(false);
-      setTeacherId('');
       setDateStr('');
       setTimeStr('');
+      setDuration('30');
+      setManualTeacherId('');
       await fetchAppointments();
     } catch (err: any) {
       Alert.alert(t('error'), err.message || t('requestFailed'));
@@ -87,178 +166,420 @@ export default function StudentAppointmentsScreen() {
     }
   };
 
-  useEffect(() => {
-    fetchAppointments();
-  }, []);
-
-  const pending = appointments.filter((a) => a.status === 'PENDING');
-  const decided = appointments.filter((a) => a.status !== 'PENDING');
+  const pending = appointments.filter((appointment) => {
+    const status = appointment.status?.toUpperCase();
+    return status === 'PENDING' || status === 'REQUESTED';
+  });
+  const decided = appointments.filter((appointment) => {
+    const status = appointment.status?.toUpperCase();
+    return status !== 'PENDING' && status !== 'REQUESTED';
+  });
 
   const renderAppointment = (item: Appointment) => {
-    const statusKey = item.status?.toUpperCase?.() ?? '';
-    const statusColor = statusKey === 'ACCEPTED' ? '#22c55e' : statusKey === 'REJECTED' ? '#ef4444' : '#f59e0b';
-    const statusLabel =
-      statusKey === 'ACCEPTED' ? t('approved') : statusKey === 'REJECTED' ? t('rejected') : t('awaitingApproval');
-    const dateText = item.requestedDate
-      ? new Date(item.requestedDate).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-        })
-      : '';
-
+    const teacherName = fullName(item.teacher);
     return (
-      <View key={item.id} style={styles.card}>
-        <View style={styles.row}>
-          <Text style={styles.teacherName}>
-            {item.teacher?.firstName} {item.teacher?.lastName}
+      <AppCard key={item.id} colors={COLORS} style={styles.appointmentCard}>
+        <Avatar colors={COLORS} label={teacherName} size={42} />
+        <View style={styles.appointmentInfo}>
+          <Text style={styles.rowTitle}>{teacherName}</Text>
+          <Text style={styles.rowMeta}>
+            {formatDate(item.requestedDate, i18n.language)} - {item.requestedTime ?? ''} - {item.durationMinutes ?? 30}{' '}
+            {t('minutes')}
           </Text>
-          <View style={[styles.badge, { backgroundColor: statusColor }]}>
-            <Text style={styles.badgeText}>{statusLabel}</Text>
-          </View>
         </View>
-        <Text style={styles.meta}>
-          {dateText} · {item.requestedTime ?? ''} · {item.durationMinutes ?? 0} {t('minutes')}
-        </Text>
-      </View>
+        <StatusPill colors={COLORS} label={statusLabel(item.status, isAr)} status={statusTone(item.status)} />
+      </AppCard>
     );
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
-      <View style={[styles.topBar, { backgroundColor: COLORS.primary }]}>
-        <TouchableOpacity onPress={() => router.back()} accessibilityRole="button">
-          <Text style={[styles.backText, { color: '#fff' }]}>{isRTL ? '→' : '←'}</Text>
-        </TouchableOpacity>
-        <Text style={[styles.topTitle, { color: '#fff' }]}>{t('myAppointments')}</Text>
-        <View style={{ width: 32 }} />
-      </View>
+    <View style={styles.screen}>
       <ScrollView
-        contentContainerStyle={styles.container}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACING.lg }]}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
       >
-        <Animated.View entering={FadeInUp.delay(100)}>
-          <TouchableOpacity style={styles.primaryButton} onPress={() => setShowForm(!showForm)}>
-            <Text style={styles.primaryButtonText}>{showForm ? t('cancel') : t('requestSession')}</Text>
-          </TouchableOpacity>
-        </Animated.View>
+        <View style={styles.header}>
+          <IconButton
+            colors={COLORS}
+            icon={isAr ? 'arrow-forward-outline' : 'arrow-back-outline'}
+            accessibilityLabel={isAr ? 'رجوع' : 'Back'}
+            onPress={() => router.back()}
+          />
+          <View style={styles.headerText}>
+            <Text style={styles.eyebrow}>{isAr ? 'جلسات المراجعة' : 'Review sessions'}</Text>
+            <Text style={styles.title}>{t('myAppointments')}</Text>
+          </View>
+        </View>
 
-        {showForm && (
-          <Animated.View entering={FadeInUp.delay(200)} style={styles.formCard}>
-            <Text style={styles.label}>{t('teacherId')}</Text>
-            <TextInput
-              style={styles.input}
-              value={teacherId}
-              onChangeText={setTeacherId}
-              placeholder={t('enterTeacherId')}
-              placeholderTextColor={COLORS.textSecondary}
-            />
-            <Text style={styles.label}>{t('date')}</Text>
-            <TextInput
-              style={styles.input}
-              value={dateStr}
-              onChangeText={setDateStr}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={COLORS.textSecondary}
-            />
-            <Text style={styles.label}>{t('time')}</Text>
-            <TextInput
-              style={styles.input}
-              value={timeStr}
-              onChangeText={setTimeStr}
-              placeholder="HH:MM"
-              placeholderTextColor={COLORS.textSecondary}
-            />
+        <View style={styles.hero}>
+          <View style={styles.heroIcon}>
+            <Ionicons name="calendar-outline" size={28} color={COLORS.textOnPrimary} />
+          </View>
+          <View style={styles.heroText}>
+            <Text style={styles.heroTitle}>{isAr ? 'احجز موعدك القادم' : 'Book your next session'}</Text>
+            <Text style={styles.heroSubtitle}>
+              {isAr
+                ? 'اختر المعلم والوقت بوضوح قبل إرسال الطلب.'
+                : 'Choose the teacher, time, and duration before sending.'}
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          activeOpacity={0.85}
+          style={[styles.primaryButton, showForm && styles.secondaryButton]}
+          onPress={() => setShowForm((current) => !current)}
+        >
+          <Ionicons
+            name={showForm ? 'close-outline' : 'add-outline'}
+            size={20}
+            color={showForm ? COLORS.primary : '#FFFFFF'}
+          />
+          <Text style={[styles.primaryButtonText, showForm && styles.secondaryButtonText]}>
+            {showForm ? t('cancel') : t('requestSession')}
+          </Text>
+        </TouchableOpacity>
+
+        {showForm ? (
+          <AppCard colors={COLORS} style={styles.formCard}>
+            <SectionHeader title={isAr ? 'تفاصيل الجلسة' : 'Session details'} colors={COLORS} />
+
+            <Text style={styles.label}>{t('selectTeacher')}</Text>
+            {teacherOptions.length > 0 ? (
+              <View style={styles.teacherGrid}>
+                {teacherOptions.map((teacher) => {
+                  const selected = selectedTeacherId === teacher.id;
+                  const name = fullName(teacher);
+                  return (
+                    <TouchableOpacity
+                      key={teacher.id}
+                      activeOpacity={0.85}
+                      onPress={() => setSelectedTeacherId(teacher.id)}
+                      style={[styles.teacherChip, selected && styles.teacherChipActive]}
+                    >
+                      <Avatar colors={COLORS} label={name} size={32} />
+                      <Text
+                        style={[styles.teacherChipText, selected && styles.teacherChipTextActive]}
+                        numberOfLines={1}
+                      >
+                        {name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ) : (
+              <TextInput
+                style={styles.input}
+                value={manualTeacherId}
+                onChangeText={setManualTeacherId}
+                placeholder={t('enterTeacherId')}
+                placeholderTextColor={COLORS.textMuted}
+                textAlign={isAr ? 'right' : 'left'}
+              />
+            )}
+
+            <View style={styles.inputRow}>
+              <View style={styles.inputHalf}>
+                <Text style={styles.label}>{t('date')}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={dateStr}
+                  onChangeText={setDateStr}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor={COLORS.textMuted}
+                  textAlign="center"
+                />
+              </View>
+              <View style={styles.inputHalf}>
+                <Text style={styles.label}>{t('time')}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={timeStr}
+                  onChangeText={setTimeStr}
+                  placeholder="HH:MM"
+                  placeholderTextColor={COLORS.textMuted}
+                  textAlign="center"
+                />
+              </View>
+            </View>
+
             <Text style={styles.label}>{t('durationMinutes')}</Text>
-            <TextInput style={styles.input} value={duration} onChangeText={setDuration} keyboardType="numeric" />
+            <View style={styles.durationRow}>
+              {['30', '45', '60'].map((value) => {
+                const selected = duration === value;
+                return (
+                  <TouchableOpacity
+                    key={value}
+                    activeOpacity={0.85}
+                    onPress={() => setDuration(value)}
+                    style={[styles.durationChip, selected && styles.durationChipActive]}
+                  >
+                    <Text style={[styles.durationText, selected && styles.durationTextActive]}>
+                      {value} {t('minutes')}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
             <TouchableOpacity
-              style={[styles.primaryButton, submitting && styles.disabled]}
+              activeOpacity={0.85}
+              style={[styles.submitButton, submitting && styles.disabled]}
               onPress={handleSubmit}
               disabled={submitting}
             >
-              <Text style={styles.primaryButtonText}>{submitting ? t('submitting') : t('submitRequest')}</Text>
+              {submitting ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.submitText}>{t('submitRequest')}</Text>
+              )}
             </TouchableOpacity>
-          </Animated.View>
-        )}
+          </AppCard>
+        ) : null}
 
         {isLoading && !refreshing ? (
-          <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
+          <ActivityIndicator color={COLORS.primary} style={styles.loader} />
         ) : (
           <>
-            {pending.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{t('pendingAppointments')}</Text>
-                {pending.map(renderAppointment)}
-              </View>
+            <SectionHeader title={t('pendingAppointments')} colors={COLORS} />
+            {pending.length > 0 ? (
+              <View style={styles.listStack}>{pending.map(renderAppointment)}</View>
+            ) : (
+              <AppCard colors={COLORS}>
+                <EmptyState
+                  colors={COLORS}
+                  icon="time-outline"
+                  title={isAr ? 'لا توجد مواعيد معلقة' : 'No pending sessions'}
+                  description={isAr ? 'أي طلب جديد سيظهر هنا.' : 'New requests will appear here.'}
+                />
+              </AppCard>
             )}
-            {decided.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{t('history')}</Text>
-                {decided.map(renderAppointment)}
-              </View>
+
+            <SectionHeader title={t('history')} colors={COLORS} />
+            {decided.length > 0 ? (
+              <View style={styles.listStack}>{decided.map(renderAppointment)}</View>
+            ) : (
+              <AppCard colors={COLORS}>
+                <Text style={styles.emptyLine}>{t('noAppointments')}</Text>
+              </AppCard>
             )}
-            {appointments.length === 0 && !isLoading && <Text style={styles.empty}>{t('noAppointments')}</Text>}
           </>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
-const createStyles = (COLORS: any) =>
+const createStyles = (COLORS: ReturnType<typeof getColors>) =>
   StyleSheet.create({
-    container: { padding: SPACING.md, paddingBottom: SPACING.xl },
-    topBar: {
+    screen: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+    },
+    content: {
+      paddingHorizontal: SPACING.lg,
+      paddingBottom: SPACING['3xl'],
+      gap: SPACING.lg,
+    },
+    header: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: SPACING.md,
-      paddingVertical: SPACING.sm,
-      borderBottomLeftRadius: RADIUS.lg,
-      borderBottomRightRadius: RADIUS.lg,
+      gap: SPACING.md,
     },
-    backText: { fontSize: 20, fontWeight: '700' },
-    topTitle: { fontSize: 18, fontWeight: '700' },
-    primaryButton: {
+    headerText: {
+      flex: 1,
+    },
+    eyebrow: {
+      color: COLORS.primary,
+      fontSize: 12,
+      fontWeight: '800',
+      marginBottom: 2,
+    },
+    title: {
+      color: COLORS.textPrimary,
+      fontSize: 25,
+      fontWeight: '800',
+      lineHeight: 31,
+    },
+    hero: {
       backgroundColor: COLORS.primary,
-      paddingVertical: SPACING.sm,
-      paddingHorizontal: SPACING.md,
-      borderRadius: RADIUS.md,
+      borderRadius: RADIUS['2xl'],
+      padding: SPACING.xl,
+      flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: SPACING.md,
-    },
-    primaryButtonText: { color: '#fff', fontWeight: '600' },
-    disabled: { opacity: 0.6 },
-    formCard: {
-      backgroundColor: COLORS.card,
-      borderRadius: RADIUS.lg,
-      padding: SPACING.md,
-      marginBottom: SPACING.md,
+      gap: SPACING.lg,
       ...SHADOWS.md,
     },
-    label: { color: COLORS.text, fontWeight: '600', marginBottom: SPACING.xs },
-    input: {
-      borderWidth: 1,
-      borderColor: COLORS.border,
-      borderRadius: RADIUS.md,
-      padding: SPACING.sm,
-      color: COLORS.text,
-      marginBottom: SPACING.sm,
-    },
-    card: {
-      backgroundColor: COLORS.card,
+    heroIcon: {
+      width: 54,
+      height: 54,
       borderRadius: RADIUS.lg,
-      padding: SPACING.md,
-      marginBottom: SPACING.sm,
-      ...SHADOWS.sm,
+      backgroundColor: 'rgba(255,255,255,0.16)',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-    row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    teacherName: { fontSize: 16, fontWeight: '700', color: COLORS.text },
-    badge: { paddingVertical: 4, paddingHorizontal: 8, borderRadius: RADIUS.full },
-    badgeText: { color: '#fff', fontSize: 12, fontWeight: '600' },
-    meta: { color: COLORS.textSecondary, marginTop: 4 },
-    notes: { color: COLORS.textSecondary, marginTop: 4, fontStyle: 'italic' },
-    section: { marginTop: SPACING.md },
-    sectionTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginBottom: SPACING.sm },
-    empty: { textAlign: 'center', color: COLORS.textSecondary, marginTop: 40 },
+    heroText: {
+      flex: 1,
+    },
+    heroTitle: {
+      color: '#FFFFFF',
+      fontSize: 19,
+      fontWeight: '800',
+      lineHeight: 25,
+    },
+    heroSubtitle: {
+      color: 'rgba(255,255,255,0.78)',
+      fontSize: 12,
+      fontWeight: '600',
+      lineHeight: 18,
+      marginTop: 4,
+    },
+    primaryButton: {
+      alignSelf: 'flex-start',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.sm,
+      backgroundColor: COLORS.primary,
+      borderRadius: RADIUS.full,
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.md,
+    },
+    primaryButtonText: {
+      color: '#FFFFFF',
+      fontSize: 13,
+      fontWeight: '800',
+    },
+    secondaryButton: {
+      backgroundColor: COLORS.primaryMuted,
+    },
+    secondaryButtonText: {
+      color: COLORS.primary,
+    },
+    formCard: {
+      gap: SPACING.md,
+    },
+    label: {
+      color: COLORS.textSecondary,
+      fontSize: 12,
+      fontWeight: '800',
+    },
+    teacherGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: SPACING.sm,
+    },
+    teacherChip: {
+      width: '48%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.sm,
+      borderRadius: RADIUS.md,
+      backgroundColor: COLORS.darkMode ? COLORS.surfaceAlt : '#F2F5F1',
+      padding: SPACING.sm,
+      borderWidth: 1,
+      borderColor: 'transparent',
+    },
+    teacherChipActive: {
+      backgroundColor: COLORS.primaryMuted,
+      borderColor: COLORS.primary,
+    },
+    teacherChipText: {
+      flex: 1,
+      color: COLORS.textPrimary,
+      fontSize: 12,
+      fontWeight: '700',
+    },
+    teacherChipTextActive: {
+      color: COLORS.primary,
+    },
+    inputRow: {
+      flexDirection: 'row',
+      gap: SPACING.md,
+    },
+    inputHalf: {
+      flex: 1,
+      gap: SPACING.xs,
+    },
+    input: {
+      minHeight: 48,
+      borderRadius: RADIUS.md,
+      borderWidth: 1,
+      borderColor: COLORS.darkMode ? COLORS.divider : '#DDE5DC',
+      backgroundColor: COLORS.darkMode ? COLORS.surfaceAlt : '#F8FAF7',
+      color: COLORS.textPrimary,
+      paddingHorizontal: SPACING.md,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    durationRow: {
+      flexDirection: 'row',
+      gap: SPACING.sm,
+    },
+    durationChip: {
+      flex: 1,
+      borderRadius: RADIUS.full,
+      paddingVertical: SPACING.sm,
+      alignItems: 'center',
+      backgroundColor: COLORS.darkMode ? COLORS.surfaceAlt : '#F2F5F1',
+    },
+    durationChipActive: {
+      backgroundColor: COLORS.primary,
+    },
+    durationText: {
+      color: COLORS.textSecondary,
+      fontSize: 12,
+      fontWeight: '800',
+    },
+    durationTextActive: {
+      color: COLORS.textOnPrimary,
+    },
+    submitButton: {
+      backgroundColor: COLORS.primary,
+      borderRadius: RADIUS.md,
+      minHeight: 48,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: SPACING.xs,
+    },
+    submitText: {
+      color: COLORS.textOnPrimary,
+      fontSize: 14,
+      fontWeight: '800',
+    },
+    disabled: {
+      opacity: 0.6,
+    },
+    loader: {
+      marginTop: SPACING.xl,
+    },
+    listStack: {
+      gap: SPACING.md,
+    },
+    appointmentCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.md,
+    },
+    appointmentInfo: {
+      flex: 1,
+    },
+    rowTitle: {
+      color: COLORS.textPrimary,
+      fontSize: 14,
+      fontWeight: '800',
+    },
+    rowMeta: {
+      color: COLORS.textSecondary,
+      fontSize: 12,
+      fontWeight: '600',
+      marginTop: 3,
+    },
+    emptyLine: {
+      color: COLORS.textSecondary,
+      fontSize: 13,
+      fontWeight: '700',
+      textAlign: 'center',
+    },
   });

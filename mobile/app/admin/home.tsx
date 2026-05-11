@@ -1,15 +1,18 @@
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import React, { useCallback, useState } from 'react';
-import { useAuthStore } from '@/src/auth/store';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { apiClient } from '@/src/api';
-import Animated, { FadeInUp } from 'react-native-reanimated';
-import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
-import { useSettingsStore } from '@/src/settings/store';
+import { useAuthStore } from '@/src/auth/store';
 import { useMessages } from '@/src/hooks/useMessages';
+import { useTeacherChange } from '@/src/hooks/useTeacherChange';
+import { useSettingsStore } from '@/src/settings/store';
+import { AppCard, Avatar, IconButton, MetricTile, SectionHeader, StatusPill } from '@/src/components/design';
 import { SkeletonCard } from '@/src/components/SkeletonCard';
+import { BottomNav } from '@/src/components/BottomNav';
 
 interface User {
   id: string;
@@ -20,71 +23,91 @@ interface User {
   status: string;
 }
 
-type FilterType = 'all' | 'STUDENT' | 'TEACHER' | 'PENDING' | 'PENDING_AND_TEACHER';
+type FilterType = 'PENDING' | 'TEACHER' | 'STUDENT' | 'all';
+
+function fullName(user: Pick<User, 'firstName' | 'lastName'>): string {
+  return `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || '?';
+}
 
 function getFilteredUsers(users: User[], filter: FilterType): User[] {
   if (filter === 'all') return users;
-  if (filter === 'PENDING') return users.filter((u) => u.status === 'PENDING');
-  if (filter === 'PENDING_AND_TEACHER') return users.filter((u) => u.status === 'PENDING' || u.role === 'TEACHER');
-  return users.filter((u) => u.role === filter);
+  if (filter === 'PENDING') return users.filter((user) => user.status === 'PENDING');
+  return users.filter((user) => user.role === filter);
+}
+
+function roleLabel(role: string, isAr: boolean): string {
+  if (role === 'STUDENT') return isAr ? 'طالب' : 'Student';
+  if (role === 'TEACHER') return isAr ? 'معلم' : 'Teacher';
+  if (role === 'ADMIN') return isAr ? 'مشرف' : 'Admin';
+  return role;
+}
+
+function statusLabel(status: string, isAr: boolean): string {
+  if (status === 'ACTIVE') return isAr ? 'نشط' : 'Active';
+  if (status === 'PENDING') return isAr ? 'معلق' : 'Pending';
+  if (status === 'SUSPENDED') return isAr ? 'موقوف' : 'Suspended';
+  if (status === 'INACTIVE') return isAr ? 'غير نشط' : 'Inactive';
+  return status;
 }
 
 export default function AdminHomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
+  const isAr = i18n.language === 'ar';
   const logout = useAuthStore((s) => s.logout);
-  const user = useAuthStore((s) => s.user);
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
   const styles = createStyles(COLORS);
-  const [users, setUsers] = useState<User[]>([]);
+
   const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [stats, setStats] = useState({ students: 0, teachers: 0, pending: 0 });
+  const [activeFilter, setActiveFilter] = useState<FilterType>('PENDING');
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState<FilterType>('PENDING_AND_TEACHER');
-  const { unreadCount, fetchMessages: fetchUnreadCount } = useMessages();
+  const { unreadCount, fetchMessages } = useMessages();
+  const { requests: changeRequests, fetchRequests } = useTeacherChange();
+
+  const pendingChangeCount = changeRequests.filter((request: any) => request.status === 'PENDING').length;
+  const users = useMemo(() => getFilteredUsers(allUsers, activeFilter), [allUsers, activeFilter]);
+  const stats = useMemo(
+    () => ({
+      students: allUsers.filter((user) => user.role === 'STUDENT').length,
+      teachers: allUsers.filter((user) => user.role === 'TEACHER').length,
+      pending: allUsers.filter((user) => user.status === 'PENDING').length,
+    }),
+    [allUsers]
+  );
 
   const loadUsers = useCallback(async () => {
     setFetchError(null);
     setIsLoading(true);
     try {
       const res = await apiClient.get('/admin/users');
-      const usersData = res.data?.data?.data || [];
-      setAllUsers(usersData);
-      setUsers(getFilteredUsers(usersData, 'PENDING_AND_TEACHER'));
-      const students = usersData.filter((u: User) => u.role === 'STUDENT').length;
-      const teachers = usersData.filter((u: User) => u.role === 'TEACHER').length;
-      const pending = usersData.filter((u: User) => u.status === 'PENDING').length;
-      setStats({ students, teachers, pending });
+      setAllUsers(res.data?.data?.data ?? []);
     } catch (err: any) {
       console.error('Failed to load users:', err.message);
       setFetchError(t('loadFailed'));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
-  React.useEffect(() => {
+  const refreshAll = useCallback(() => {
     loadUsers();
-    fetchUnreadCount();
-  }, [loadUsers]);
+    fetchMessages();
+    fetchRequests();
+  }, [loadUsers, fetchMessages, fetchRequests]);
 
-  const applyFilter = (filter: FilterType) => {
-    setActiveFilter(filter);
-    setUsers(getFilteredUsers(allUsers, filter));
-  };
+  useEffect(() => {
+    refreshAll();
+  }, [refreshAll]);
 
   const approveStudent = async (id: string) => {
     try {
       await apiClient.put(`/admin/users/${id}/approve`);
-      const updated = allUsers.map((u) => (u.id === id ? { ...u, status: 'ACTIVE' } : u));
-      setAllUsers(updated);
-      setUsers(getFilteredUsers(updated, activeFilter));
-      const pending = updated.filter((u) => u.status === 'PENDING').length;
-      setStats((s) => ({ ...s, pending }));
+      setAllUsers((current) => current.map((user) => (user.id === id ? { ...user, status: 'ACTIVE' } : user)));
     } catch (err: any) {
-      alert(err.message);
+      setFetchError(err?.message ?? t('loadFailed'));
     }
   };
 
@@ -93,517 +116,379 @@ export default function AdminHomeScreen() {
     router.replace('/');
   };
 
-  const navigateToUserDetail = (userId: string) => {
-    router.push(`/admin/user-detail?id=${userId}`);
-  };
-
-  const navigateToSettings = () => {
-    router.push('/admin/settings');
-  };
-
-  const filterLabel =
-    activeFilter === 'all'
-      ? ''
-      : {
-          STUDENT: i18n.language === 'ar' ? 'عرض الطلاب' : 'Showing Students',
-          TEACHER: i18n.language === 'ar' ? 'عرض المعلمين' : 'Showing Teachers',
-          PENDING: i18n.language === 'ar' ? 'عرض المعلقة' : 'Showing Pending',
-          PENDING_AND_TEACHER: i18n.language === 'ar' ? 'عرض المعلّقين والمعلمين' : 'Showing Pending and Teachers',
-        }[activeFilter];
+  const filters: { id: FilterType; label: string }[] = [
+    { id: 'PENDING', label: isAr ? 'المعلقة' : 'Pending' },
+    { id: 'TEACHER', label: isAr ? 'المعلمون' : 'Teachers' },
+    { id: 'STUDENT', label: isAr ? 'الطلاب' : 'Students' },
+    { id: 'all', label: isAr ? 'الكل' : 'All' },
+  ];
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.greeting}>{t('adminHomeTitle')}</Text>
-            <Text style={styles.subGreeting}>
-              {i18n.language === 'ar' ? 'مرحباً، ' : 'Welcome, '}
-              {user?.firstName || ''}
-            </Text>
-          </View>
-          <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.msgIconBtn} onPress={() => router.push('/admin/change-requests')}>
-              <Text style={styles.msgIconText}>📋</Text>
-            </TouchableOpacity>
-            <View style={styles.msgIconWrap}>
-              <TouchableOpacity style={styles.msgIconBtn} onPress={() => router.push('/messages')}>
-                <Text style={styles.msgIconText}>💬</Text>
-              </TouchableOpacity>
-              {unreadCount > 0 && (
-                <View style={styles.msgBadge}>
-                  <Text style={styles.msgBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-                </View>
-              )}
-            </View>
-            <TouchableOpacity style={styles.msgIconBtn} onPress={() => router.push('/admin/broadcast')}>
-              <Text style={styles.msgIconText}>📢</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={navigateToSettings} style={styles.iconBtn}>
-              <Text style={styles.iconText}>⚙️</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-              <Text style={styles.logoutText}>{t('logout')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Stats Row - Clickable Filters */}
-        <View style={styles.statsRow}>
-          <TouchableOpacity
-            style={[styles.statCard, styles.statStudents, activeFilter === 'STUDENT' && styles.statActive]}
-            onPress={() => applyFilter(activeFilter === 'STUDENT' ? 'all' : 'STUDENT')}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.statValue}>{stats.students}</Text>
-            <Text style={styles.statLabel}>{i18n.language === 'ar' ? 'الطلاب' : 'Students'}</Text>
-            {activeFilter === 'STUDENT' && <View style={styles.statIndicator} />}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.statCard, styles.statTeachers, activeFilter === 'TEACHER' && styles.statActive]}
-            onPress={() => applyFilter(activeFilter === 'TEACHER' ? 'all' : 'TEACHER')}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.statValue}>{stats.teachers}</Text>
-            <Text style={styles.statLabel}>{i18n.language === 'ar' ? 'المعلمون' : 'Teachers'}</Text>
-            {activeFilter === 'TEACHER' && <View style={styles.statIndicator} />}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.statCard, styles.statPending, activeFilter === 'PENDING' && styles.statActive]}
-            onPress={() => applyFilter(activeFilter === 'PENDING' ? 'all' : 'PENDING')}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.statValue}>{stats.pending}</Text>
-            <Text style={styles.statLabel}>{i18n.language === 'ar' ? 'معلقة' : 'Pending'}</Text>
-            {activeFilter === 'PENDING' && <View style={styles.statIndicator} />}
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Filter Badge */}
-      {activeFilter !== 'all' && (
-        <View style={styles.filterBadge}>
-          <Text style={styles.filterText}>{filterLabel}</Text>
-          <TouchableOpacity onPress={() => applyFilter('all')}>
-            <Text style={styles.filterClear}>✕</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* Users List */}
+    <View style={[styles.screen, { backgroundColor: COLORS.background }]}>
       <ScrollView
-        style={styles.content}
-        contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={loadUsers} />}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACING.lg }]}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refreshAll} tintColor={COLORS.primary} />}
       >
-        {fetchError && !isLoading && (
-          <TouchableOpacity onPress={loadUsers} style={styles.errorBanner}>
+        <View style={styles.hero}>
+          <View style={styles.heroTop}>
+            <View>
+              <Text style={styles.heroTitle}>{isAr ? 'الموافقات' : 'Approvals'}</Text>
+              <Text style={styles.heroSubtitle}>
+                {isAr ? 'المستخدمون المعلقون وتغييرات المعلمين' : 'Pending users and teacher changes'}
+              </Text>
+            </View>
+            <View style={styles.headerActions}>
+              <View>
+                <IconButton
+                  colors={COLORS}
+                  icon="chatbubble-outline"
+                  tone="ghost"
+                  accessibilityLabel={isAr ? 'الرسائل' : 'Messages'}
+                  onPress={() => router.push('/messages')}
+                />
+                {unreadCount > 0 ? (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                  </View>
+                ) : null}
+              </View>
+              <IconButton
+                colors={COLORS}
+                icon="settings-outline"
+                tone="ghost"
+                accessibilityLabel={isAr ? 'الإعدادات' : 'Settings'}
+                onPress={() => router.push('/admin/settings')}
+              />
+              <IconButton
+                colors={COLORS}
+                icon="log-out-outline"
+                tone="ghost"
+                accessibilityLabel={isAr ? 'تسجيل الخروج' : 'Log out'}
+                onPress={handleLogout}
+              />
+            </View>
+          </View>
+
+          <View style={styles.filterRow}>
+            {filters.map((filter) => {
+              const active = activeFilter === filter.id;
+              return (
+                <TouchableOpacity
+                  key={filter.id}
+                  activeOpacity={0.85}
+                  onPress={() => setActiveFilter(filter.id)}
+                  style={[styles.filterChip, active && styles.filterChipActive]}
+                >
+                  <Text style={[styles.filterText, active && styles.filterTextActive]}>{filter.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.metricsRow}>
+          <MetricTile colors={COLORS} value={stats.students} label={isAr ? 'طلاب' : 'Students'} />
+          <MetricTile colors={COLORS} value={stats.teachers} label={isAr ? 'معلمون' : 'Teachers'} tone="gold" />
+          <MetricTile colors={COLORS} value={stats.pending} label={isAr ? 'معلق' : 'Pending'} tone="warning" />
+        </View>
+
+        <View style={styles.actionRow}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.actionBanner}
+            onPress={() => router.push('/admin/change-requests')}
+          >
+            <View style={styles.actionIcon}>
+              <Ionicons name="swap-horizontal-outline" size={22} color={COLORS.warning} />
+            </View>
+            <View style={styles.actionInfo}>
+              <Text style={styles.actionTitle}>
+                {pendingChangeCount}{' '}
+                {isAr
+                  ? pendingChangeCount === 1
+                    ? 'طلب تغيير معلم'
+                    : 'طلبات تغيير معلم'
+                  : pendingChangeCount === 1
+                    ? 'teacher change request'
+                    : 'teacher change requests'}
+              </Text>
+              <Text style={styles.actionMeta}>{isAr ? 'راجع التعيينات' : 'Review assignments'}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.warning} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.broadcastButton}
+            onPress={() => router.push('/admin/broadcast')}
+          >
+            <Ionicons name="megaphone-outline" size={20} color={COLORS.textOnPrimary} />
+            <Text style={styles.broadcastText}>{isAr ? 'إشعار عام' : 'Broadcast'}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {fetchError && !isLoading ? (
+          <TouchableOpacity activeOpacity={0.85} onPress={refreshAll} style={styles.errorBanner}>
             <Text style={styles.errorText}>{fetchError}</Text>
           </TouchableOpacity>
-        )}
+        ) : null}
+
+        <SectionHeader title={isAr ? 'قائمة الموافقات' : 'Approval queue'} colors={COLORS} />
         {isLoading ? (
-          <>
+          <View style={styles.listStack}>
             <SkeletonCard lines={3} />
             <SkeletonCard lines={3} />
             <SkeletonCard lines={3} />
-          </>
+          </View>
+        ) : users.length > 0 ? (
+          <View style={styles.listStack}>
+            {users.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                activeOpacity={0.85}
+                onPress={() => router.push(`/admin/user-detail?id=${item.id}`)}
+              >
+                <AppCard colors={COLORS} style={styles.userCard}>
+                  <Avatar colors={COLORS} label={fullName(item)} />
+                  <View style={styles.userInfo}>
+                    <Text style={styles.userName}>{fullName(item)}</Text>
+                    <Text style={styles.userEmail} numberOfLines={1}>
+                      {item.email}
+                    </Text>
+                    <View style={styles.pillRow}>
+                      <StatusPill
+                        colors={COLORS}
+                        label={roleLabel(item.role, isAr)}
+                        status={item.role === 'TEACHER' ? 'warning' : 'info'}
+                      />
+                      <StatusPill
+                        colors={COLORS}
+                        label={statusLabel(item.status, isAr)}
+                        status={
+                          item.status === 'ACTIVE' ? 'success' : item.status === 'PENDING' ? 'warning' : 'neutral'
+                        }
+                      />
+                    </View>
+                  </View>
+                  {item.status === 'PENDING' && item.role === 'STUDENT' ? (
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityLabel={isAr ? 'قبول الطالب' : 'Approve student'}
+                      activeOpacity={0.85}
+                      onPress={(event) => {
+                        event.stopPropagation();
+                        approveStudent(item.id);
+                      }}
+                      style={styles.approveButton}
+                    >
+                      <Ionicons name="checkmark-outline" size={24} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  ) : (
+                    <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+                  )}
+                </AppCard>
+              </TouchableOpacity>
+            ))}
+          </View>
         ) : (
-          <UsersList users={users} onUserPress={navigateToUserDetail} onApprove={approveStudent} styles={styles} />
+          <AppCard colors={COLORS}>
+            <Text style={styles.emptyText}>{isAr ? 'لا توجد عناصر لهذا الفلتر' : 'No items for this filter'}</Text>
+          </AppCard>
         )}
       </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-function UsersList({
-  users,
-  onUserPress,
-  onApprove,
-  styles,
-}: {
-  users: User[];
-  onUserPress: (id: string) => void;
-  onApprove: (id: string) => void;
-  styles: any;
-}) {
-  const { t, i18n } = useTranslation();
-  const roleLabels: Record<string, string> = {
-    STUDENT: i18n.language === 'ar' ? 'طالب' : 'Student',
-    TEACHER: i18n.language === 'ar' ? 'معلم' : 'Teacher',
-    ADMIN: i18n.language === 'ar' ? 'مشرف' : 'Admin',
-  };
-  const statusLabels: Record<string, string> = {
-    ACTIVE: i18n.language === 'ar' ? 'نشط' : 'Active',
-    PENDING: i18n.language === 'ar' ? 'معلق' : 'Pending',
-    INACTIVE: i18n.language === 'ar' ? 'غير نشط' : 'Inactive',
-    SUSPENDED: i18n.language === 'ar' ? 'موقوف' : 'Suspended',
-  };
-
-  if (users.length === 0) {
-    return (
-      <Animated.View entering={FadeInUp.duration(400)} style={styles.emptyCard}>
-        <Text style={styles.emptyIcon}>👥</Text>
-        <Text style={styles.emptyTitle}>{t('noUsersYet')}</Text>
-      </Animated.View>
-    );
-  }
-
-  return (
-    <View style={styles.usersContainer}>
-      {users.map((u, index) => (
-        <TouchableOpacity key={u.id} onPress={() => onUserPress(u.id)} activeOpacity={0.8}>
-          <Animated.View entering={FadeInUp.duration(400).delay(index * 50)} style={styles.userCard}>
-            <View style={styles.userRow}>
-              <View style={styles.userAvatar}>
-                <Text style={styles.avatarText}>{u.firstName[0]}</Text>
-              </View>
-              <View style={styles.userInfo}>
-                <Text style={styles.userName}>
-                  {u.firstName} {u.lastName}
-                </Text>
-                <Text style={styles.userEmail}>{u.email}</Text>
-                <View style={styles.userMeta}>
-                  <View style={[styles.roleBadge, u.role === 'ADMIN' && styles.adminBadge]}>
-                    <Text style={[styles.roleText, u.role === 'ADMIN' && styles.adminText]}>
-                      {roleLabels[u.role] ?? u.role}
-                    </Text>
-                  </View>
-                  <View style={[styles.statusBadge, u.status === 'ACTIVE' && styles.activeBadge]}>
-                    <Text style={[styles.statusBadgeText, u.status === 'ACTIVE' && styles.activeBadgeText]}>
-                      {statusLabels[u.status] ?? u.status}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-              <View style={styles.userActions}>
-                {u.status === 'PENDING' && u.role === 'STUDENT' && (
-                  <TouchableOpacity
-                    style={styles.approveBtn}
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      onApprove(u.id);
-                    }}
-                  >
-                    <Text style={styles.approveText}>✓</Text>
-                  </TouchableOpacity>
-                )}
-                <Text style={styles.chevron}>›</Text>
-              </View>
-            </View>
-          </Animated.View>
-        </TouchableOpacity>
-      ))}
+      <BottomNav role="admin" active="home" />
     </View>
   );
 }
 
-const createStyles = (COLORS: any) =>
+const createStyles = (COLORS: ReturnType<typeof getColors>) =>
   StyleSheet.create({
-    container: {
+    screen: {
       flex: 1,
-      backgroundColor: COLORS.background,
     },
-
-    // Header
-    header: {
+    content: {
+      paddingHorizontal: SPACING.lg,
+      paddingBottom: SPACING['3xl'],
+      gap: SPACING.lg,
+    },
+    hero: {
       backgroundColor: COLORS.primary,
-      paddingHorizontal: SPACING.xl,
-      paddingTop: SPACING.lg,
-      paddingBottom: SPACING['2xl'],
-      borderBottomLeftRadius: RADIUS['2xl'],
-      borderBottomRightRadius: RADIUS['2xl'],
-      ...SHADOWS.lg,
+      borderRadius: RADIUS['2xl'],
+      padding: SPACING.xl,
+      gap: SPACING.lg,
+      ...SHADOWS.md,
     },
-    headerTop: {
+    heroTop: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'flex-start',
-      marginBottom: SPACING.lg,
+      justifyContent: 'space-between',
+      gap: SPACING.md,
     },
-    greeting: {
-      fontSize: 22,
+    heroTitle: {
+      color: '#FFFFFF',
+      fontSize: 24,
       fontWeight: '800',
-      color: '#fff',
-      marginBottom: SPACING.xs,
+      lineHeight: 30,
     },
-    subGreeting: {
-      fontSize: 13,
-      color: 'rgba(255,255,255,0.75)',
-      fontWeight: '500',
+    heroSubtitle: {
+      color: 'rgba(255,255,255,0.78)',
+      fontSize: 12,
+      fontWeight: '600',
+      lineHeight: 18,
+      marginTop: 4,
+      maxWidth: 190,
     },
     headerActions: {
       flexDirection: 'row',
-      gap: SPACING.sm,
+      gap: SPACING.xs,
     },
-    iconBtn: {
-      width: 36,
-      height: 36,
-      borderRadius: RADIUS.full,
-      backgroundColor: 'rgba(255,255,255,0.15)',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    iconText: {
-      fontSize: 16,
-    },
-    logoutBtn: {
-      backgroundColor: 'rgba(255,255,255,0.15)',
-      paddingHorizontal: SPACING.md,
-      paddingVertical: SPACING.xs,
-      borderRadius: RADIUS.md,
-    },
-    logoutText: {
-      color: '#fff',
-      fontSize: 13,
-      fontWeight: '600',
-    },
-    msgIconWrap: { position: 'relative', marginRight: 6 },
-    msgIconBtn: {
-      width: 32,
-      height: 32,
-      backgroundColor: 'rgba(255,255,255,0.2)',
-      borderRadius: 8,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    msgIconText: { fontSize: 16 },
-    msgBadge: {
+    badge: {
       position: 'absolute',
       top: -4,
       right: -4,
-      minWidth: 16,
-      height: 16,
-      borderRadius: 8,
-      backgroundColor: '#ef4444',
+      minWidth: 18,
+      height: 18,
+      borderRadius: 9,
+      backgroundColor: COLORS.error,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingHorizontal: 3,
+      paddingHorizontal: 4,
     },
-    msgBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
-
-    // Stats
-    statsRow: {
+    badgeText: {
+      color: '#FFFFFF',
+      fontSize: 10,
+      fontWeight: '800',
+    },
+    filterRow: {
       flexDirection: 'row',
-      gap: SPACING.md,
+      flexWrap: 'wrap',
+      gap: SPACING.sm,
     },
-    statCard: {
-      flex: 1,
+    filterChip: {
+      borderRadius: RADIUS.full,
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.sm,
       backgroundColor: 'rgba(255,255,255,0.12)',
-      borderRadius: RADIUS.lg,
-      padding: SPACING.md,
-      alignItems: 'center',
-      position: 'relative',
-      overflow: 'hidden',
     },
-    statStudents: {
-      borderBottomWidth: 3,
-      borderBottomColor: COLORS.info,
-    },
-    statTeachers: {
-      borderBottomWidth: 3,
-      borderBottomColor: COLORS.gold,
-    },
-    statPending: {
-      borderBottomWidth: 3,
-      borderBottomColor: COLORS.warning,
-    },
-    statActive: {
+    filterChipActive: {
       backgroundColor: 'rgba(255,255,255,0.25)',
     },
-    statValue: {
-      fontSize: 22,
-      fontWeight: '800',
-      color: COLORS.goldLight,
-      marginBottom: 2,
-    },
-    statLabel: {
-      fontSize: 12,
-      color: 'rgba(255,255,255,0.7)',
-      fontWeight: '500',
-    },
-    statIndicator: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: 3,
-      backgroundColor: '#fff',
-    },
-
-    // Filter Badge
-    filterBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: COLORS.primaryMuted,
-      marginHorizontal: SPACING.xl,
-      marginTop: SPACING.md,
-      paddingHorizontal: SPACING.lg,
-      paddingVertical: SPACING.sm,
-      borderRadius: RADIUS.md,
-    },
     filterText: {
-      fontSize: 13,
-      fontWeight: '600',
-      color: COLORS.primaryDark,
+      color: 'rgba(255,255,255,0.78)',
+      fontSize: 11,
+      fontWeight: '800',
     },
-    filterClear: {
-      fontSize: 14,
-      fontWeight: '700',
-      color: COLORS.primary,
-      padding: SPACING.xs,
+    filterTextActive: {
+      color: '#FFFFFF',
     },
-
-    // Content
-    content: {
-      flex: 1,
-      paddingHorizontal: SPACING.xl,
-    },
-    list: {
-      paddingVertical: SPACING.lg,
-      paddingBottom: SPACING['4xl'],
-    },
-    usersContainer: {
+    metricsRow: {
+      flexDirection: 'row',
       gap: SPACING.md,
     },
-
-    // Empty
-    empty: {
-      color: COLORS.textMuted,
-      textAlign: 'center',
-      marginTop: SPACING['3xl'],
-      fontSize: 16,
+    actionRow: {
+      gap: SPACING.md,
     },
-    emptyCard: {
-      backgroundColor: COLORS.surface,
-      borderRadius: RADIUS['2xl'],
-      padding: SPACING['3xl'],
-      alignItems: 'center',
-      ...SHADOWS.md,
-      marginTop: SPACING.xl,
-    },
-    emptyIcon: {
-      fontSize: 48,
-      marginBottom: SPACING.lg,
-    },
-    emptyTitle: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: COLORS.textPrimary,
-    },
-
-    // User cards
-    userCard: {
-      backgroundColor: COLORS.surface,
-      borderRadius: RADIUS.xl,
-      padding: SPACING.lg,
-      ...SHADOWS.md,
-    },
-    userRow: {
+    actionBanner: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: SPACING.md,
+      backgroundColor: COLORS.warningLight,
+      borderRadius: RADIUS.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: COLORS.warning,
+      padding: SPACING.lg,
     },
-    userAvatar: {
-      width: 48,
-      height: 48,
-      borderRadius: RADIUS.full,
-      backgroundColor: COLORS.primaryMuted,
-      justifyContent: 'center',
+    actionIcon: {
+      width: 42,
+      height: 42,
+      borderRadius: RADIUS.md,
       alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: COLORS.goldMuted,
     },
-    avatarText: {
-      fontSize: 20,
+    actionInfo: {
+      flex: 1,
+    },
+    actionTitle: {
+      color: COLORS.textPrimary,
+      fontSize: 14,
+      fontWeight: '800',
+    },
+    actionMeta: {
+      color: COLORS.textSecondary,
+      fontSize: 12,
+      fontWeight: '600',
+      marginTop: 3,
+    },
+    broadcastButton: {
+      alignSelf: 'flex-start',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.sm,
+      backgroundColor: COLORS.primary,
+      borderRadius: RADIUS.full,
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.md,
+    },
+    broadcastText: {
+      color: COLORS.textOnPrimary,
+      fontSize: 13,
+      fontWeight: '800',
+    },
+    errorBanner: {
+      backgroundColor: COLORS.errorLight,
+      borderRadius: RADIUS.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: COLORS.error,
+      padding: SPACING.md,
+    },
+    errorText: {
+      color: COLORS.error,
+      fontSize: 13,
       fontWeight: '700',
-      color: COLORS.primary,
+      textAlign: 'center',
+    },
+    listStack: {
+      gap: SPACING.md,
+    },
+    userCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.md,
     },
     userInfo: {
       flex: 1,
     },
     userName: {
-      fontSize: 16,
-      fontWeight: '700',
       color: COLORS.textPrimary,
-      marginBottom: 2,
+      fontSize: 15,
+      fontWeight: '800',
     },
     userEmail: {
-      fontSize: 12,
       color: COLORS.textSecondary,
-      marginBottom: SPACING.xs,
+      fontSize: 12,
+      fontWeight: '600',
+      marginTop: 2,
     },
-    userMeta: {
+    pillRow: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
       gap: SPACING.xs,
+      marginTop: SPACING.sm,
     },
-    userActions: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: SPACING.sm,
-    },
-    roleBadge: {
-      paddingHorizontal: SPACING.sm,
-      paddingVertical: 3,
-      borderRadius: RADIUS.sm,
-      backgroundColor: '#f1f5f9',
-    },
-    adminBadge: {
-      backgroundColor: '#f3e8ff',
-    },
-    roleText: {
-      fontSize: 11,
-      fontWeight: '700',
-      color: '#475569',
-    },
-    adminText: {
-      color: '#7c3aed',
-    },
-    statusBadge: {
-      paddingHorizontal: SPACING.sm,
-      paddingVertical: 3,
-      borderRadius: RADIUS.sm,
-      backgroundColor: COLORS.warningLight,
-    },
-    activeBadge: {
-      backgroundColor: COLORS.successLight,
-    },
-    statusBadgeText: {
-      fontSize: 11,
-      fontWeight: '700',
-      color: COLORS.warning,
-    },
-    activeBadgeText: {
-      color: COLORS.success,
-    },
-    approveBtn: {
-      backgroundColor: COLORS.success,
-      width: 32,
-      height: 32,
+    approveButton: {
+      width: 58,
+      height: 34,
       borderRadius: RADIUS.full,
-      justifyContent: 'center',
+      backgroundColor: COLORS.success,
       alignItems: 'center',
-      ...SHADOWS.sm,
+      justifyContent: 'center',
     },
-    approveText: {
-      color: '#fff',
-      fontSize: 16,
-      fontWeight: '700',
-    },
-    chevron: {
-      fontSize: 20,
-      color: COLORS.textMuted,
-      fontWeight: '700',
-    },
-    errorBanner: {
-      backgroundColor: COLORS.errorLight,
-      borderRadius: RADIUS.md,
-      padding: SPACING.md,
-      marginBottom: SPACING.sm,
-    },
-    errorText: {
-      color: COLORS.error,
+    emptyText: {
+      color: COLORS.textSecondary,
       fontSize: 13,
+      fontWeight: '700',
       textAlign: 'center',
     },
   });

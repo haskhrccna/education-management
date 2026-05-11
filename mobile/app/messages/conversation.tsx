@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   KeyboardAvoidingView,
@@ -9,26 +10,41 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useRequiredParam } from '@/src/hooks/useRequiredParam';
-import { useConversation } from '@/src/hooks/useConversation';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import { getColors, RADIUS, SPACING } from '@/constants/theme';
 import { useAuthStore } from '@/src/auth/store';
+import { useConversation } from '@/src/hooks/useConversation';
+import { useRequiredParam } from '@/src/hooks/useRequiredParam';
 import { useSettingsStore } from '@/src/settings/store';
-import { getColors, SPACING, RADIUS } from '@/constants/theme';
+import { Avatar, IconButton } from '@/src/components/design';
 
-const BORDER_LIGHT = '#e5e7eb';
-const BORDER_DARK = '#334155';
+function formatTime(dateStr: string | undefined, lang: string): string {
+  if (!dateStr) return '';
+  try {
+    return new Date(dateStr).toLocaleTimeString(lang === 'ar' ? 'ar-SA' : 'en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return '';
+  }
+}
 
 export default function ConversationScreen() {
   const partnerId = useRequiredParam('partnerId');
   const { partnerName } = useLocalSearchParams<{ partnerName?: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === 'ar';
   const { user } = useAuthStore();
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
-
+  const styles = createStyles(COLORS);
   const { thread, isLoading, error, fetchThread, sendMessage } = useConversation(partnerId ?? '');
 
   const [draft, setDraft] = useState('');
@@ -39,12 +55,9 @@ export default function ConversationScreen() {
     fetchThread();
   }, [fetchThread]);
 
-  // Scroll to bottom whenever thread changes
   useEffect(() => {
     if (thread.length > 0) {
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: false });
-      }, 100);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: false }), 80);
     }
   }, [thread]);
 
@@ -58,85 +71,73 @@ export default function ConversationScreen() {
       await sendMessage(content);
     } catch {
       setDraft(content);
-      Alert.alert('Error', 'Failed to send message. Please try again.');
+      Alert.alert(
+        t('error'),
+        isAr ? 'تعذر إرسال الرسالة. حاول مرة أخرى.' : 'Failed to send message. Please try again.'
+      );
     } finally {
       setIsSending(false);
     }
   };
 
-  const borderColor = darkMode ? BORDER_DARK : BORDER_LIGHT;
-
   const renderMessage = ({ item }: { item: any }) => {
     const isMe = item.senderId === user?.id;
-    const time = item.createdAt
-      ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      : '';
+    const time = formatTime(item.createdAt, i18n.language);
 
     return (
-      <View style={[styles.bubbleWrapper, isMe ? styles.bubbleWrapperRight : styles.bubbleWrapperLeft]}>
-        <View
-          style={[
-            styles.bubble,
-            {
-              backgroundColor: isMe ? COLORS.primary : COLORS.surface,
-              borderRadius: RADIUS.md,
-            },
-            isMe ? styles.bubbleRight : styles.bubbleLeft,
-            !isMe && { borderWidth: 1, borderColor },
-          ]}
-        >
-          <Text style={[styles.bubbleText, { color: isMe ? COLORS.textOnPrimary : COLORS.textPrimary }]}>
-            {item.content}
-          </Text>
+      <View style={[styles.messageWrap, isMe ? styles.messageWrapRight : styles.messageWrapLeft]}>
+        <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleOther]}>
+          <Text style={[styles.bubbleText, isMe ? styles.bubbleTextMe : styles.bubbleTextOther]}>{item.content}</Text>
         </View>
-        {time ? <Text style={[styles.timestamp, { color: COLORS.textSecondary }]}>{time}</Text> : null}
+        {time ? <Text style={styles.timestamp}>{time}</Text> : null}
       </View>
     );
   };
 
   if (!partnerId) {
     return (
-      <View
-        style={[
-          styles.container,
-          { backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center' },
-        ]}
-      >
-        <Text style={{ color: COLORS.textSecondary }}>Not found</Text>
-        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
-          <Text style={{ color: COLORS.primary }}>Go back</Text>
+      <View style={[styles.screen, styles.centered]}>
+        <Text style={styles.errorText}>{isAr ? 'المحادثة غير موجودة' : 'Conversation not found'}</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.retryButton}>
+          <Text style={styles.retryText}>{t('retry')}</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
+  const displayName = partnerName ?? (isAr ? 'محادثة' : 'Conversation');
+
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: COLORS.background }]}
+      style={styles.screen}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 64 : 0}
     >
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: COLORS.surface, borderBottomColor: borderColor }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={[styles.backText, { color: COLORS.primary }]}>{'‹ Back'}</Text>
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: COLORS.textPrimary }]} numberOfLines={1}>
-          {partnerName ?? 'Conversation'}
-        </Text>
-        <View style={styles.headerSpacer} />
+      <View style={[styles.header, { paddingTop: insets.top + SPACING.sm }]}>
+        <IconButton
+          colors={COLORS}
+          icon={isAr ? 'arrow-forward-outline' : 'arrow-back-outline'}
+          accessibilityLabel={isAr ? 'رجوع' : 'Back'}
+          onPress={() => router.back()}
+        />
+        <Avatar colors={COLORS} label={displayName} size={44} />
+        <View style={styles.headerInfo}>
+          <Text style={styles.headerTitle} numberOfLines={1}>
+            {displayName}
+          </Text>
+          <Text style={styles.headerSubtitle}>{isAr ? 'عادة يرد قريباً' : 'Usually replies soon'}</Text>
+        </View>
       </View>
 
-      {/* Body */}
       {isLoading && thread.length === 0 ? (
         <View style={styles.centered}>
           <ActivityIndicator color={COLORS.primary} />
         </View>
       ) : error && thread.length === 0 ? (
         <View style={styles.centered}>
-          <Text style={[styles.errorText, { color: COLORS.error }]}>{error}</Text>
-          <TouchableOpacity style={[styles.retryButton, { backgroundColor: COLORS.primary }]} onPress={fetchThread}>
-            <Text style={[styles.retryText, { color: COLORS.textOnPrimary }]}>Retry</Text>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchThread}>
+            <Text style={styles.retryText}>{t('retry')}</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -146,158 +147,180 @@ export default function ConversationScreen() {
           keyExtractor={(item) => String(item.id)}
           renderItem={renderMessage}
           contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
         />
       )}
 
-      {/* Input bar */}
-      <View style={[styles.inputBar, { backgroundColor: COLORS.surface, borderTopColor: borderColor }]}>
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: darkMode ? COLORS.surfaceAlt : COLORS.background,
-              color: COLORS.textPrimary,
-              borderColor,
-              borderRadius: RADIUS.md,
-            },
-          ]}
-          placeholder="Type a message…"
-          placeholderTextColor={COLORS.textSecondary}
-          value={draft}
-          onChangeText={setDraft}
-          multiline
-          maxLength={1000}
-          returnKeyType="default"
-        />
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            {
-              backgroundColor: draft.trim().length === 0 || isSending ? COLORS.textSecondary : COLORS.primary,
-              borderRadius: RADIUS.md,
-            },
-          ]}
-          onPress={handleSend}
-          disabled={draft.trim().length === 0 || isSending}
-          accessibilityLabel="Send message"
-        >
-          {isSending ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.sendIcon}>{'›'}</Text>}
-        </TouchableOpacity>
+      <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, SPACING.sm) }]}>
+        <View style={styles.inputWrap}>
+          <TextInput
+            style={[styles.input, { textAlign: isAr ? 'right' : 'left', writingDirection: isAr ? 'rtl' : 'ltr' }]}
+            placeholder={t('typeMessage')}
+            placeholderTextColor={COLORS.textMuted}
+            value={draft}
+            onChangeText={setDraft}
+            multiline
+            maxLength={1000}
+          />
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={isAr ? 'إرسال الرسالة' : 'Send message'}
+            activeOpacity={0.85}
+            style={[styles.sendButton, (!draft.trim() || isSending) && styles.sendButtonDisabled]}
+            disabled={!draft.trim() || isSending}
+            onPress={handleSend}
+          >
+            {isSending ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Ionicons name={isAr ? 'arrow-back-outline' : 'arrow-forward-outline'} size={22} color="#FFFFFF" />
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderBottomWidth: 1,
-  },
-  backButton: {
-    paddingRight: SPACING.sm,
-    minWidth: 60,
-  },
-  backText: {
-    fontSize: 18,
-    fontWeight: '500',
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  headerSpacer: {
-    minWidth: 60,
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: SPACING.md,
-  },
-  errorText: {
-    fontSize: 14,
-    marginBottom: SPACING.sm,
-    textAlign: 'center',
-  },
-  retryButton: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: RADIUS.md,
-  },
-  retryText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  listContent: {
-    padding: SPACING.md,
-    flexGrow: 1,
-    justifyContent: 'flex-end',
-  },
-  bubbleWrapper: {
-    marginBottom: SPACING.sm,
-  },
-  bubbleWrapperLeft: {
-    alignItems: 'flex-start',
-  },
-  bubbleWrapperRight: {
-    alignItems: 'flex-end',
-  },
-  bubble: {
-    maxWidth: '75%',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-  },
-  bubbleLeft: {
-    borderBottomLeftRadius: 4,
-  },
-  bubbleRight: {
-    borderBottomRightRadius: 4,
-  },
-  bubbleText: {
-    fontSize: 15,
-    lineHeight: 21,
-  },
-  timestamp: {
-    fontSize: 11,
-    marginTop: SPACING.xs,
-    marginHorizontal: SPACING.xs,
-  },
-  inputBar: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderTopWidth: 1,
-    gap: SPACING.sm,
-  },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    fontSize: 15,
-    maxHeight: 120,
-    minHeight: 44,
-  },
-  sendButton: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sendIcon: {
-    color: '#ffffff',
-    fontSize: 24,
-    fontWeight: '600',
-    lineHeight: 28,
-  },
-});
+const createStyles = (COLORS: ReturnType<typeof getColors>) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: COLORS.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.md,
+      backgroundColor: COLORS.surface,
+      paddingHorizontal: SPACING.lg,
+      paddingBottom: SPACING.md,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: COLORS.darkMode ? COLORS.divider : '#E2E8E1',
+    },
+    headerInfo: {
+      flex: 1,
+    },
+    headerTitle: {
+      color: COLORS.textPrimary,
+      fontSize: 17,
+      fontWeight: '800',
+    },
+    headerSubtitle: {
+      color: COLORS.textSecondary,
+      fontSize: 12,
+      fontWeight: '600',
+      marginTop: 2,
+    },
+    centered: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: SPACING.xl,
+    },
+    errorText: {
+      color: COLORS.error,
+      fontSize: 14,
+      fontWeight: '700',
+      textAlign: 'center',
+    },
+    retryButton: {
+      marginTop: SPACING.md,
+      backgroundColor: COLORS.primary,
+      borderRadius: RADIUS.full,
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.sm,
+    },
+    retryText: {
+      color: COLORS.textOnPrimary,
+      fontSize: 13,
+      fontWeight: '800',
+    },
+    listContent: {
+      flexGrow: 1,
+      justifyContent: 'flex-end',
+      padding: SPACING.lg,
+      gap: SPACING.md,
+    },
+    messageWrap: {
+      maxWidth: '86%',
+    },
+    messageWrapLeft: {
+      alignSelf: 'flex-start',
+      alignItems: 'flex-start',
+    },
+    messageWrapRight: {
+      alignSelf: 'flex-end',
+      alignItems: 'flex-end',
+    },
+    bubble: {
+      borderRadius: RADIUS.lg,
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.md,
+    },
+    bubbleMe: {
+      backgroundColor: COLORS.primary,
+      borderBottomRightRadius: 6,
+    },
+    bubbleOther: {
+      backgroundColor: COLORS.surface,
+      borderBottomLeftRadius: 6,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: COLORS.darkMode ? COLORS.divider : '#E2E8E1',
+    },
+    bubbleText: {
+      fontSize: 15,
+      lineHeight: 22,
+      fontWeight: '600',
+    },
+    bubbleTextMe: {
+      color: COLORS.textOnPrimary,
+    },
+    bubbleTextOther: {
+      color: COLORS.textPrimary,
+    },
+    timestamp: {
+      color: COLORS.textSecondary,
+      fontSize: 11,
+      fontWeight: '600',
+      marginTop: 4,
+      marginHorizontal: SPACING.xs,
+    },
+    inputBar: {
+      backgroundColor: COLORS.surface,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: COLORS.darkMode ? COLORS.divider : '#E2E8E1',
+      paddingHorizontal: SPACING.lg,
+      paddingTop: SPACING.sm,
+    },
+    inputWrap: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      gap: SPACING.sm,
+      backgroundColor: COLORS.darkMode ? COLORS.surfaceAlt : '#F1F4F1',
+      borderRadius: RADIUS['2xl'],
+      padding: SPACING.xs,
+    },
+    input: {
+      flex: 1,
+      minHeight: 42,
+      maxHeight: 118,
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.sm,
+      color: COLORS.textPrimary,
+      fontSize: 15,
+      fontWeight: '600',
+    },
+    sendButton: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: COLORS.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sendButtonDisabled: {
+      backgroundColor: COLORS.textMuted,
+    },
+  });
