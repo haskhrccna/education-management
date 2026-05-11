@@ -3,6 +3,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { I18nManager, View, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { useFonts } from 'expo-font';
 import 'react-native-reanimated';
 import i18n from '@/src/i18n';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -15,6 +16,11 @@ export default function RootLayout() {
   const { loadSession, user, isLoading: authLoading } = useAuthStore();
   const router = useRouter();
   const segments = useSegments();
+
+  // Cairo: Arabic-first UI font per design spec
+  const [fontsLoaded] = useFonts({
+    Cairo: require('../assets/fonts/Cairo-Variable.ttf'),
+  });
 
   // Force RTL layout for Arabic locale
   useEffect(() => {
@@ -49,10 +55,10 @@ export default function RootLayout() {
     }
   }, [isLoaded, user, segments]);
 
-  if (!isLoaded) {
+  if (!isLoaded || !fontsLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="#1B5E20" />
       </View>
     );
   }

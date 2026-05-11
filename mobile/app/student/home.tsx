@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@/src/auth/store';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 import { useMemorization } from '@/src/hooks/useMemorization';
@@ -104,7 +105,7 @@ export default function StudentHomeScreen() {
           <View style={{ flexDirection: 'row', gap: SPACING.sm, alignItems: 'center' }}>
             <View style={styles.msgIconWrap}>
               <TouchableOpacity style={styles.msgIconBtn} onPress={() => router.push('/messages')}>
-                <Text style={styles.msgIconText}>💬</Text>
+                <Ionicons name="chatbubble-outline" size={22} color={COLORS.textOnPrimary} />
               </TouchableOpacity>
               {unreadCount > 0 && (
                 <View style={styles.msgBadge}>
@@ -113,7 +114,7 @@ export default function StudentHomeScreen() {
               )}
             </View>
             <TouchableOpacity onPress={handleLogout} style={styles.iconBtn}>
-              <Text style={styles.iconBtnText}>🚪</Text>
+              <Ionicons name="log-out-outline" size={22} color={COLORS.textOnPrimary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -121,15 +122,15 @@ export default function StudentHomeScreen() {
         {/* Action chips */}
         <View style={styles.actionRow}>
           <TouchableOpacity onPress={() => router.push('/student/grades')} style={styles.actionChip}>
-            <Text style={styles.actionChipIcon}>📊</Text>
+            <Ionicons name="bar-chart-outline" size={20} color={COLORS.primary} />
             <Text style={styles.actionChipText}>{t('myGrades')}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/student/recordings')} style={styles.actionChip}>
-            <Text style={styles.actionChipIcon}>🎙️</Text>
+            <Ionicons name="mic-outline" size={20} color={COLORS.primary} />
             <Text style={styles.actionChipText}>{t('recordings')}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/student/appointments')} style={styles.actionChip}>
-            <Text style={styles.actionChipIcon}>📅</Text>
+            <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
             <Text style={styles.actionChipText}>{t('appointments')}</Text>
           </TouchableOpacity>
         </View>
@@ -338,7 +339,7 @@ function RevisionScheduleTab({
       {/* Empty state */}
       {revisions.length === 0 && (
         <View style={[styles.card, styles.emptyCard]}>
-          <Text style={styles.emptyIcon}>📅</Text>
+          <Ionicons name="calendar-outline" size={48} color={COLORS.textSecondary} />
           <Text style={styles.emptyTitle}>
             {i18n.language === 'ar' ? 'جدول المراجعة قريباً' : 'Revision schedule coming soon'}
           </Text>

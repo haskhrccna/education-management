@@ -6,6 +6,7 @@ import React, { useCallback, useState } from 'react';
 import { useAuthStore } from '@/src/auth/store';
 import { apiClient } from '@/src/api';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 import { useMessages } from '@/src/hooks/useMessages';
@@ -125,11 +126,11 @@ export default function AdminHomeScreen() {
           </View>
           <View style={styles.headerActions}>
             <TouchableOpacity style={styles.msgIconBtn} onPress={() => router.push('/admin/change-requests')}>
-              <Text style={styles.msgIconText}>📋</Text>
+              <Ionicons name="list-outline" size={22} color={COLORS.textOnPrimary} />
             </TouchableOpacity>
             <View style={styles.msgIconWrap}>
               <TouchableOpacity style={styles.msgIconBtn} onPress={() => router.push('/messages')}>
-                <Text style={styles.msgIconText}>💬</Text>
+                <Ionicons name="chatbubble-outline" size={22} color={COLORS.textOnPrimary} />
               </TouchableOpacity>
               {unreadCount > 0 && (
                 <View style={styles.msgBadge}>
@@ -138,10 +139,10 @@ export default function AdminHomeScreen() {
               )}
             </View>
             <TouchableOpacity style={styles.msgIconBtn} onPress={() => router.push('/admin/broadcast')}>
-              <Text style={styles.msgIconText}>📢</Text>
+              <Ionicons name="megaphone-outline" size={22} color={COLORS.textOnPrimary} />
             </TouchableOpacity>
             <TouchableOpacity onPress={navigateToSettings} style={styles.iconBtn}>
-              <Text style={styles.iconText}>⚙️</Text>
+              <Ionicons name="settings-outline" size={22} color={COLORS.textOnPrimary} />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
               <Text style={styles.logoutText}>{t('logout')}</Text>

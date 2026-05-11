@@ -139,7 +139,7 @@ export default function AdminSettingsScreen() {
         {/* Toggle Options */}
         <Animated.View entering={FadeInUp.duration(400).delay(200)} style={dynamicStyles.sectionCard}>
           <Text style={[dynamicStyles.sectionTitle, { fontSize: 16 * fontScale }]}>
-            {i18n.language === 'ar' ? '⚙️ الخيارات العامة' : '⚙️ General Options'}
+            {i18n.language === 'ar' ? 'الخيارات العامة' : 'General Options'}
           </Text>
 
           <View style={dynamicStyles.toggleItem}>

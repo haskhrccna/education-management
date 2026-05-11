@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useRecordings } from '@/src/hooks/useRecordings';
 import { Recording, getRecordingStatus } from '@/src/api';
+import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 import * as DocumentPicker from 'expo-document-picker';
@@ -293,7 +294,12 @@ export default function StudentRecordingsScreen() {
               <ActivityIndicator style={{ marginTop: 40 }} color={COLORS.primary} />
             ) : (
               <View style={styles.center}>
-                <Text style={{ fontSize: 40, marginBottom: SPACING.md }}>🎙️</Text>
+                <Ionicons
+                  name="mic-outline"
+                  size={48}
+                  color={COLORS.textSecondary}
+                  style={{ marginBottom: SPACING.md }}
+                />
                 <Text style={[styles.emptyTitle, { color: COLORS.textPrimary }]}>{t('noRecordings')}</Text>
                 <Text style={{ color: COLORS.textSecondary, textAlign: 'center', lineHeight: 20 }}>
                   {t('noRecordingsDesc')}

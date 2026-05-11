@@ -217,9 +217,9 @@ function AppointmentCard({
         <View style={{ flex: 1 }}>
           <Text style={[styles.studentName, { color: COLORS.textPrimary }]}>{studentName}</Text>
           <Text style={[styles.metaText, { color: COLORS.textSecondary }]}>
-            📅 {dateStr} 🕐 {appt.requestedTime}
+            {dateStr} · {appt.requestedTime}
           </Text>
-          <Text style={[styles.metaText, { color: COLORS.textSecondary }]}>⏱ {appt.durationMinutes} min</Text>
+          <Text style={[styles.metaText, { color: COLORS.textSecondary }]}>{appt.durationMinutes} min</Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: colors.bg }]}>
           <Text style={[styles.statusText, { color: colors.fg }]}>{statusLabel(appt.status, t)}</Text>

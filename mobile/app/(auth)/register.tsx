@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import { useAuthStore } from '@/src/auth/store';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 
@@ -56,7 +57,7 @@ export default function RegisterPage() {
           {/* Header */}
           <Animated.View entering={FadeInUp.duration(500)} style={styles.header}>
             <View style={styles.iconContainer}>
-              <Text style={styles.quranIcon}>📖</Text>
+              <Ionicons name="book-outline" size={64} color={COLORS.primary} />
             </View>
             <Text style={styles.title}>{t('register')}</Text>
             <Text style={styles.subtitle}>{t('appName')}</Text>

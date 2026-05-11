@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useGrades } from '@/src/hooks/useGrades';
 import { Grade } from '@/src/api';
+import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 
@@ -136,7 +137,12 @@ export default function StudentGradesScreen() {
               <ActivityIndicator style={{ marginTop: 40 }} color={COLORS.primary} />
             ) : (
               <View style={styles.center}>
-                <Text style={{ fontSize: 36, marginBottom: 12 }}>📋</Text>
+                <Ionicons
+                  name="document-text-outline"
+                  size={48}
+                  color={COLORS.textSecondary}
+                  style={{ marginBottom: 12 }}
+                />
                 <Text style={[styles.emptyTitle, { color: COLORS.textPrimary }]}>{t('noGradesYet')}</Text>
                 <Text style={{ color: COLORS.textSecondary, textAlign: 'center' }}>{t('noGradesDesc')}</Text>
               </View>

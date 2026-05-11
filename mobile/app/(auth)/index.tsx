@@ -16,6 +16,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/src/auth/store';
 import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 
@@ -66,7 +67,7 @@ export default function LoginPage() {
           {/* Logo & Title */}
           <Animated.View entering={FadeInUp.duration(600).delay(100)} style={styles.header}>
             <View style={styles.iconContainer}>
-              <Text style={styles.quranIcon}>📖</Text>
+              <Ionicons name="book-outline" size={72} color={COLORS.primary} />
               <View style={styles.iconGlow} />
             </View>
             <Text style={styles.title}>{t('appName')}</Text>

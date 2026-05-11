@@ -3,6 +3,7 @@ import { SafeAreaView, FlatList, TouchableOpacity, Text, View, StyleSheet, Activ
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '@/src/settings/store';
+import { Ionicons } from '@expo/vector-icons';
 import { getColors, SPACING } from '@/constants/theme';
 import { useMessages } from '@/src/hooks/useMessages';
 import { useAuthStore } from '@/src/auth/store';
@@ -153,7 +154,7 @@ export default function MessagesScreen() {
         <ActivityIndicator style={{ marginTop: 40 }} color={COLORS.primary} />
       ) : conversations.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>💬</Text>
+          <Ionicons name="chatbubble-outline" size={56} color={COLORS.textSecondary} />
           <Text style={styles.emptyTitle}>{t('noConversations')}</Text>
           <Text style={styles.emptyDesc}>{t('noConversationsDesc')}</Text>
         </View>

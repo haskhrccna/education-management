@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
 import { apiClient } from '@/src/api';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 
@@ -224,7 +225,7 @@ export default function UserDetailScreen() {
               </View>
               {/* Joining Date */}
               <View style={styles.joinDateRow}>
-                <Text style={styles.joinDateIcon}>📅</Text>
+                <Ionicons name="calendar-outline" size={16} color={COLORS.textSecondary} />
                 <Text style={styles.joinDateLabel}>{i18n.language === 'ar' ? 'تاريخ الانضمام:' : 'Join Date:'}</Text>
                 <Text style={styles.joinDateValue}>{joinDate}</Text>
               </View>
@@ -235,7 +236,7 @@ export default function UserDetailScreen() {
         {/* Student's Teachers */}
         {isStudent && analytics?.teachers && analytics.teachers.length > 0 && (
           <Animated.View entering={FadeInUp.duration(400).delay(100)} style={styles.relationsCard}>
-            <Text style={styles.relationsTitle}>{i18n.language === 'ar' ? '👨‍🏫 المعلمون' : '👨‍🏫 Teachers'}</Text>
+            <Text style={styles.relationsTitle}>{i18n.language === 'ar' ? 'المعلمون' : 'Teachers'}</Text>
             {analytics.teachers.map((teacher: any) => (
               <View key={teacher.id} style={styles.relationItem}>
                 <View style={styles.relationAvatar}>
@@ -255,7 +256,7 @@ export default function UserDetailScreen() {
         {/* Teacher's Students */}
         {isTeacher && analytics?.students && analytics.students.length > 0 && (
           <Animated.View entering={FadeInUp.duration(400).delay(100)} style={styles.relationsCard}>
-            <Text style={styles.relationsTitle}>{i18n.language === 'ar' ? '👨‍🎓 الطلاب' : '👨‍🎓 Students'}</Text>
+            <Text style={styles.relationsTitle}>{i18n.language === 'ar' ? 'الطلاب' : 'Students'}</Text>
             {analytics.students.map((student: any) => (
               <View key={student.id} style={styles.relationItem}>
                 <View style={styles.relationAvatar}>
@@ -320,7 +321,7 @@ export default function UserDetailScreen() {
           <Animated.View entering={FadeInUp.duration(400).delay(200)} style={styles.activityCard}>
             <Text style={styles.activityTitle}>{i18n.language === 'ar' ? 'ملخص النشاط' : 'Activity Summary'}</Text>
             <View style={styles.activityItem}>
-              <Text style={styles.activityIcon}>📅</Text>
+              <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
               <View style={styles.activityContent}>
                 <Text style={styles.activityLabel}>{i18n.language === 'ar' ? 'آخر موعد' : 'Last Appointment'}</Text>
                 <Text style={styles.activityValue}>
@@ -335,7 +336,7 @@ export default function UserDetailScreen() {
               </View>
             </View>
             <View style={styles.activityItem}>
-              <Text style={styles.activityIcon}>📊</Text>
+              <Ionicons name="bar-chart-outline" size={20} color={COLORS.primary} />
               <View style={styles.activityContent}>
                 <Text style={styles.activityLabel}>
                   {i18n.language === 'ar' ? 'مستوى الأداء' : 'Performance Level'}

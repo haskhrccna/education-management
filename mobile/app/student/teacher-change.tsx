@@ -110,13 +110,13 @@ export default function TeacherChangeScreen() {
           <ActivityIndicator color={COLORS.primary} />
         ) : pendingRequest ? (
           <View style={styles.statusCard}>
-            <Text style={styles.statusTitle}>⏳ {t('pendingRequest')}</Text>
+            <Text style={styles.statusTitle}>{t('pendingRequest')}</Text>
             <Text style={styles.statusDesc}>{pendingRequest.reason}</Text>
           </View>
         ) : decidedRequest ? (
           <View style={styles.statusCard}>
             <Text style={styles.statusTitle}>
-              {decidedRequest.status === 'APPROVED' ? `✅ ${t('requestApproved')}` : `❌ ${t('requestDenied')}`}
+              {decidedRequest.status === 'APPROVED' ? t('requestApproved') : t('requestDenied')}
             </Text>
             <Text style={styles.statusDesc}>{decidedRequest.reason}</Text>
             {decidedRequest.adminNote && <Text style={styles.adminNote}>{decidedRequest.adminNote}</Text>}

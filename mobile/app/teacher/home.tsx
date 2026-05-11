@@ -10,6 +10,7 @@ import { useTeacherChange } from '@/src/hooks/useTeacherChange';
 import { gradesApi, memorizationApi, MemorizationEntry } from '@/src/api';
 import { SkeletonCard } from '@/src/components/SkeletonCard';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 
@@ -136,7 +137,7 @@ export default function TeacherHomeScreen() {
           <View style={{ flexDirection: 'row', gap: SPACING.sm, alignItems: 'center' }}>
             <View style={styles.msgIconWrap}>
               <TouchableOpacity style={styles.msgIconBtn} onPress={() => router.push('/messages')}>
-                <Text style={styles.msgIconText}>💬</Text>
+                <Ionicons name="chatbubble-outline" size={22} color={COLORS.textOnPrimary} />
               </TouchableOpacity>
               {unreadCount > 0 && (
                 <View style={styles.msgBadge}>
@@ -228,11 +229,13 @@ function MyStudentsTab({
 }) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const { theme, darkMode } = useSettingsStore();
+  const COLORS = getColors(theme, darkMode);
 
   if (appointments.length === 0) {
     return (
       <Animated.View entering={FadeInUp.duration(400)} style={styles.emptyCard}>
-        <Text style={styles.emptyIcon}>👨‍🎓</Text>
+        <Ionicons name="school-outline" size={56} color={COLORS.textSecondary} />
         <Text style={styles.emptyTitle}>{t('noStudentsYet')}</Text>
         <Text style={styles.emptyDesc}>
           {i18n.language === 'ar'
@@ -247,9 +250,12 @@ function MyStudentsTab({
     <View style={styles.tabContent}>
       {pendingChanges.length > 0 && (
         <View style={styles.changeRequestBanner}>
-          <Text style={styles.changeRequestText}>
-            ⚠️ {pendingChanges.length} {t('studentsPendingChange')}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Ionicons name="warning-outline" size={16} color={COLORS.warning} />
+            <Text style={styles.changeRequestText}>
+              {pendingChanges.length} {t('studentsPendingChange')}
+            </Text>
+          </View>
         </View>
       )}
       {appointments.map((a: any, index: number) => {
@@ -306,9 +312,9 @@ function MyStudentsTab({
 
               <View style={styles.studentMeta}>
                 <Text style={styles.metaText}>
-                  📅 {new Date(a.requestedDate).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US')}
+                  {new Date(a.requestedDate).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US')}
                 </Text>
-                <Text style={styles.metaText}>🕐 {a.requestedTime}</Text>
+                <Text style={styles.metaText}>{a.requestedTime}</Text>
               </View>
             </Animated.View>
           </TouchableOpacity>
@@ -321,6 +327,8 @@ function MyStudentsTab({
 function AssignmentsTab({ styles }: { styles: any }) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const { theme, darkMode } = useSettingsStore();
+  const COLORS = getColors(theme, darkMode);
 
   return (
     <View style={styles.tabContent}>
@@ -330,7 +338,7 @@ function AssignmentsTab({ styles }: { styles: any }) {
           onPress={() => router.push('/teacher/grade-form')}
           activeOpacity={0.8}
         >
-          <Text style={styles.actionIcon}>📝</Text>
+          <Ionicons name="document-text-outline" size={28} color={COLORS.primary} />
           <Text style={styles.actionBtnText}>{t('addReviewTask')}</Text>
           <Text style={styles.actionBtnSub}>
             {i18n.language === 'ar' ? 'تعيين سورة أو جزء لمراجعة الطالب' : 'Assign a Surah or Juz for student review'}
@@ -342,7 +350,7 @@ function AssignmentsTab({ styles }: { styles: any }) {
           onPress={() => router.push('/teacher/reports')}
           activeOpacity={0.8}
         >
-          <Text style={styles.actionIcon}>📊</Text>
+          <Ionicons name="bar-chart-outline" size={28} color={COLORS.primaryLight} />
           <Text style={[styles.actionBtnText, styles.secondaryText]}>
             {i18n.language === 'ar' ? 'تقرير التقدم' : 'Progress Report'}
           </Text>
