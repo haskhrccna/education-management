@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  SafeAreaView,
   FlatList,
   TouchableOpacity,
   Text,
@@ -12,11 +11,13 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSettingsStore } from '@/src/settings/store';
 import { getColors, SPACING, RADIUS } from '@/constants/theme';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
+import { BottomNav } from '@/src/components/BottomNav';
 
 type StatusFilter = 'ALL' | 'PENDING' | 'APPROVED' | 'DENIED';
 
@@ -220,7 +221,7 @@ export default function ChangeRequestsScreen() {
   });
 
   return (
-    <SafeAreaView style={s.container}>
+    <SafeAreaView style={s.container} edges={['top']}>
       {/* App bar */}
       <View style={s.appBar}>
         <TouchableOpacity onPress={() => router.back()}>
@@ -368,6 +369,7 @@ export default function ChangeRequestsScreen() {
           </View>
         </View>
       </Modal>
+      <BottomNav role="admin" active="requests" />
     </SafeAreaView>
   );
 }

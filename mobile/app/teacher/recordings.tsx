@@ -20,6 +20,7 @@ import { useRecordings } from '@/src/hooks/useRecordings';
 import { Recording, getRecordingStatus } from '@/src/api';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
+import { BottomNav } from '@/src/components/BottomNav';
 
 type AnyColors = ReturnType<typeof getColors>;
 type FilterStatus = 'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -287,6 +288,7 @@ export default function TeacherRecordingsScreen() {
         />
       )}
 
+      <BottomNav role="teacher" active="reviews" />
       {/* Review modal */}
       <Modal visible={reviewing !== null} animationType="slide" transparent onRequestClose={() => setReviewing(null)}>
         <View style={styles.modalBackdrop}>

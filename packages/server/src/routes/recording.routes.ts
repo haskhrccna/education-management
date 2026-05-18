@@ -31,12 +31,12 @@ const upload = multer({
 const router = Router();
 router.use(authenticate);
 
-// Student uploads recordings
+// Student uploads recordings — multer must run before validate so body fields are parsed
 router.post(
   '/',
   authorize(UserRole.STUDENT),
-  validate(CreateRecordingSchema),
   upload.single('file'),
+  validate(CreateRecordingSchema),
   recordingController.uploadRecording
 );
 router.get('/', paginate(20, 100), recordingController.listRecordings);

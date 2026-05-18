@@ -92,9 +92,10 @@ export const deleteRevision = async (
 ) => {
   const revision = await prisma.revisionSchedule.findUnique({
     where: { id: revisionId },
-    select: { userId: true },
+    select: { userId: true, status: true },
   });
   if (!revision) throw new AppError(404, 'Revision not found');
+  if (revision.status === 'COMPLETED') throw new AppError(409, 'Cannot delete a completed revision');
 
   if (callerRole === 'STUDENT' && revision.userId !== callerId) {
     throw new AppError(403, 'You can only delete your own revisions');

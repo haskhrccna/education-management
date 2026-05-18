@@ -33,6 +33,15 @@ export const uploadLimiter = rateLimit({
   keyGenerator: (req) => req.userId ?? ipKeyGenerator(req.ip || 'unknown'),
 });
 
+export const broadcastLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: process.env.NODE_ENV === 'development' ? 1000 : 10,
+  message: { error: 'Broadcast limit reached — maximum 10 broadcasts per hour' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.userId ?? ipKeyGenerator(req.ip || 'unknown'),
+});
+
 export const passwordResetLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: process.env.NODE_ENV === 'development' ? 1000 : 3,

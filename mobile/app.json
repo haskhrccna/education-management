@@ -15,7 +15,13 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.quranreview.app"
+      "bundleIdentifier": "com.quranreview.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"],
+        "NSMicrophoneUsageDescription": "يحتاج التطبيق إلى الميكروفون لتسجيل التلاوة القرآنية.",
+        "NSDocumentsFolderUsageDescription": "يحتاج التطبيق إلى الوصول للملفات لرفع تسجيلات التلاوة."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -32,6 +38,7 @@
     "plugins": [
       "expo-localization",
       "expo-secure-store",
+      "expo-document-picker",
       [
         "expo-av",
         {

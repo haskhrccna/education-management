@@ -10,6 +10,6 @@ router.use(authenticate);
 
 // Teacher generates reports for students
 router.post('/', authorize(UserRole.TEACHER), validate(GenerateReportSchema), reportController.generateReport);
-router.get('/', authorize(UserRole.TEACHER, UserRole.ADMIN), reportController.getMyReports);
+router.get('/', authorize(UserRole.TEACHER, UserRole.ADMIN, UserRole.STUDENT), reportController.getMyReports);
 
 export default router;

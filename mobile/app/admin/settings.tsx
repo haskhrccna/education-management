@@ -6,11 +6,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSettingsStore, ThemeColor, FontSize } from '@/src/settings/store';
 import { getColors, FONT_SCALE, SPACING_SCALE } from '@/constants/theme';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { useAuthStore } from '@/src/auth/store';
+import { BottomNav } from '@/src/components/BottomNav';
 
 export default function AdminSettingsScreen() {
   const router = useRouter();
   const { i18n } = useTranslation();
   const settings = useSettingsStore();
+  const user = useAuthStore((s) => s.user);
   const COLORS = getColors(settings.theme, settings.darkMode);
   const fontScale = FONT_SCALE[settings.fontSize];
   const spacingScale = settings.compactView ? SPACING_SCALE.compact : SPACING_SCALE.normal;
@@ -52,7 +55,7 @@ export default function AdminSettingsScreen() {
             <Ionicons name="arrow-back-outline" size={20} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={[dynamicStyles.headerTitle, { fontSize: 18 * fontScale }]}>
-            {i18n.language === 'ar' ? 'إعدادات المشرف' : 'Admin Settings'}
+            {i18n.language === 'ar' ? 'الإعدادات' : 'Settings'}
           </Text>
           <View style={dynamicStyles.backBtn} />
         </View>
@@ -243,6 +246,8 @@ export default function AdminSettingsScreen() {
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>
+      {user?.role === 'admin' && <BottomNav role="admin" active="settings" />}
+      {user?.role === 'teacher' && <BottomNav role="teacher" active="profile" />}
     </SafeAreaView>
   );
 }

@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { authenticate } from '../middleware/auth.middleware';
+import { fileAuthenticate } from '../middleware/auth.middleware';
 import * as fileController from '../controllers/file.controller';
 
 const router = Router();
-router.use(authenticate);
+router.use(fileAuthenticate);
 
 router.get('/recordings/:id', fileController.downloadRecording);
 router.get('/reports/:id', fileController.downloadReport);

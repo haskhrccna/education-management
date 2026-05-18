@@ -7,6 +7,7 @@ import { UpdateProfileSchema, ChangePasswordSchema, DeviceTokenSchema } from '@q
 const router = Router();
 router.use(authenticate);
 router.get('/profile', userController.getProfile);
+router.get('/teachers', userController.listTeachers);
 router.put('/profile', validate(UpdateProfileSchema), userController.updateProfile);
 router.put('/change-password', validate(ChangePasswordSchema), userController.changePassword);
 router.post('/device-token', validate(DeviceTokenSchema), userController.saveDeviceToken);

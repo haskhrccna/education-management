@@ -14,3 +14,5 @@ export { memorizationApi } from './memorization';
 export type { MemorizationEntry, Surah } from './memorization';
 export { reportsApi } from './reports';
 export type { Report, CreateReportInput } from './reports';
+export { revisionsApi } from './revisions';
+export type { Revision } from './revisions';

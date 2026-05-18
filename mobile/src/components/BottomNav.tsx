@@ -96,11 +96,11 @@ const TEACHER_TABS: Tab[] = [
   },
   {
     id: 'profile',
-    icon: 'person-outline',
-    iconActive: 'person',
-    labelAr: 'حسابي',
-    labelEn: 'Profile',
-    route: '/teacher/home',
+    icon: 'settings-outline',
+    iconActive: 'settings',
+    labelAr: 'الإعدادات',
+    labelEn: 'Settings',
+    route: '/admin/settings',
   },
 ];
 

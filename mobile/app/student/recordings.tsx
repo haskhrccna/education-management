@@ -18,6 +18,7 @@ import { Recording, getRecordingStatus } from '@/src/api';
 import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
+import { BottomNav } from '@/src/components/BottomNav';
 type AudioModule = typeof import('expo-av');
 
 type AnyColors = ReturnType<typeof getColors>;
@@ -327,6 +328,7 @@ export default function StudentRecordingsScreen() {
           }
         />
       )}
+      <BottomNav role="student" active="recordings" />
     </SafeAreaView>
   );
 }

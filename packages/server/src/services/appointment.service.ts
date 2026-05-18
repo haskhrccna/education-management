@@ -25,6 +25,18 @@ export const createAppointment = async (
       const nextDay = new Date(dateOnly);
       nextDay.setDate(nextDay.getDate() + 1);
 
+      // Prevent duplicate: same student already has a pending/accepted slot with this teacher at this time
+      const duplicate = await tx.appointment.findFirst({
+        where: {
+          studentId,
+          teacherId,
+          requestedDate: { gte: dateOnly, lt: nextDay },
+          requestedTime,
+          status: { in: ['REQUESTED', 'ACCEPTED'] },
+        },
+      });
+      if (duplicate) throw new AppError(409, 'You already have a pending or accepted appointment at this time');
+
       const conflicts = await tx.appointment.findMany({
         where: {
           teacherId,

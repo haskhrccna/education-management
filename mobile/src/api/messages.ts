@@ -34,6 +34,7 @@ export const messagesApi = {
   },
 
   broadcast: async (content: string, targetRole?: 'STUDENT' | 'TEACHER') => {
-    await apiClient.post('/admin/broadcast', { content, targetRole });
+    const role = targetRole?.toLowerCase() as 'student' | 'teacher' | undefined;
+    await apiClient.post('/admin/broadcast', { message: content, targetRole: role });
   },
 };

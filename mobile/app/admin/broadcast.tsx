@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 import { messagesApi } from '@/src/api/messages';
+import { BottomNav } from '@/src/components/BottomNav';
 
 type TargetRole = 'ALL' | 'STUDENT' | 'TEACHER';
 
@@ -117,6 +118,7 @@ export default function BroadcastScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
+      <BottomNav role="admin" active="broadcast" />
     </SafeAreaView>
   );
 }

@@ -1,4 +1,6 @@
 import * as z from 'zod';
+import { GradeType } from '../enums/gradeType';
+import { MessageType } from '../enums/messageType';
 
 export const uuidSchema = z.string().uuid();
 export const passwordSchema = z
@@ -32,31 +34,31 @@ export const CreateAppointmentSchema = z.object({
   teacherId: uuidSchema,
   requestedDate: dateSchema,
   requestedTime: timeSchema,
-  durationMinutes: z.number().int().min(15).max(240).optional(),
+  durationMinutes: z.number().int().min(15).max(240).default(60),
 });
 
 export const ManageAppointmentSchema = z.object({
   action: z.enum(['ACCEPTED', 'AMENDED', 'REJECTED']),
-  amendedNote: z.string().max(500).optional(),
+  amendedNote: z.string().max(1000).optional(),
 });
 
 export const CreateGradeSchema = z.object({
   studentId: uuidSchema,
   subject: z.string().min(1).max(100),
   grade: z.string().max(10),
-  type: z.enum(['QUIZ', 'ASSIGNMENT', 'EXAM', 'ORAL', 'PARTICIPATION']),
+  type: z.nativeEnum(GradeType),
   notes: z.string().max(500).optional(),
 });
 
 export const SendMessageSchema = z.object({
   receiverId: uuidSchema,
   content: z.string().min(1).max(2000),
-  type: z.enum(['TEXT', 'FILE', 'SYSTEM']).optional(),
+  type: z.enum([MessageType.TEXT, MessageType.FILE]).optional(),
 });
 
 export const CreateRecordingSchema = z.object({
   fileName: fileNameSchema,
-  fileSizeBytes: z.number().int().positive(),
+  fileSizeBytes: z.coerce.number().int().min(0),
   contentType: z.string().min(1).max(100),
 });
 
@@ -100,11 +102,11 @@ export const UpdateUserSchema = z.object({
 });
 
 export const BulkApproveSchema = z.object({
-  studentIds: z.array(uuidSchema).min(1).max(1000),
+  studentIds: z.array(uuidSchema).min(1).max(100),
 });
 
 export const BulkDeactivateSchema = z.object({
-  userIds: z.array(uuidSchema).min(1).max(1000),
+  userIds: z.array(uuidSchema).min(1).max(100),
 });
 
 export type ZodLoginInput = z.infer<typeof LoginSchema>;

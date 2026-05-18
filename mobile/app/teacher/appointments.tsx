@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { appointmentsApi, Appointment } from '@/src/api';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
+import { BottomNav } from '@/src/components/BottomNav';
 
 function statusStyle(status: string, COLORS: any) {
   const s = status.toUpperCase();
@@ -177,6 +178,7 @@ export default function TeacherAppointmentsScreen() {
           </>
         )}
       </ScrollView>
+      <BottomNav role="teacher" active="sessions" />
     </SafeAreaView>
   );
 }

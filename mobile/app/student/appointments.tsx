@@ -20,6 +20,7 @@ import { useAuthStore } from '@/src/auth/store';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
 import { AppCard, Avatar, EmptyState, IconButton, SectionHeader, StatusPill } from '@/src/components/design';
 import { useSettingsStore } from '@/src/settings/store';
+import { BottomNav } from '@/src/components/BottomNav';
 
 interface TeacherOption {
   id: string;
@@ -368,6 +369,7 @@ export default function StudentAppointmentsScreen() {
           </>
         )}
       </ScrollView>
+      <BottomNav role="student" active="sessions" />
     </View>
   );
 }

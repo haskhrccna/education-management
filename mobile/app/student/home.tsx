@@ -166,12 +166,20 @@ export default function StudentHomeScreen() {
       tone: 'info',
     },
     {
-      id: 'teacher',
-      icon: 'chatbubble-ellipses-outline' as const,
-      title: isAr ? 'المعلم' : 'Teacher',
-      subtitle: isAr ? 'مراسلة الآن' : 'Message now',
-      route: '/messages',
+      id: 'reports',
+      icon: 'document-text-outline' as const,
+      title: isAr ? 'التقارير' : 'Reports',
+      subtitle: isAr ? 'تقارير المعلم' : 'Teacher reports',
+      route: '/student/reports',
       tone: 'danger',
+    },
+    {
+      id: 'revisions',
+      icon: 'book-outline' as const,
+      title: isAr ? 'المراجعات' : 'Revisions',
+      subtitle: isAr ? 'جدول المراجعة' : 'Revision schedule',
+      route: '/student/revisions',
+      tone: 'info',
     },
   ];
 

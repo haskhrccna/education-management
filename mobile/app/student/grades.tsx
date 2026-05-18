@@ -9,6 +9,7 @@ import { Grade } from '@/src/api';
 import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
+import { BottomNav } from '@/src/components/BottomNav';
 
 const TYPE_COLORS: Record<string, string> = {
   ORAL: '#3b82f6',
@@ -154,6 +155,7 @@ export default function StudentGradesScreen() {
           }
         />
       )}
+      <BottomNav role="student" active="grades" />
     </SafeAreaView>
   );
 }

@@ -173,6 +173,14 @@ export default function TeacherHomeScreen() {
       route: '/teacher/reports',
       tone: 'danger',
     },
+    {
+      id: 'revisions',
+      title: isAr ? 'المراجعات' : 'Revisions',
+      subtitle: isAr ? 'جدول المراجعة' : 'Revision schedule',
+      icon: 'book-outline' as const,
+      route: '/teacher/revisions',
+      tone: 'info',
+    },
   ];
 
   return (

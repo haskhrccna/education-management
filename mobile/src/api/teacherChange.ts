@@ -14,7 +14,7 @@ export const teacherChangeApi = {
     return res.data;
   },
   listTeachers: async (): Promise<{ id: string; firstName: string; lastName: string }[]> => {
-    const res = await apiClient.get('/users', { params: { role: 'TEACHER', status: 'APPROVED' } });
+    const res = await apiClient.get('/users/teachers');
     return res.data;
   },
 };

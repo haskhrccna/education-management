@@ -252,6 +252,30 @@ const arTranslations: Record<string, string> = {
   deleteRecording: 'حذف التسجيل',
   confirmDeleteRecording: 'هل تريد حذف هذا التسجيل؟',
   unknownStudent: 'طالب',
+
+  // Revision schedule
+  myRevisions: 'مراجعاتي',
+  noRevisions: 'لا توجد مراجعات بعد',
+  noRevisionsDesc: 'لم يُجدول معلمك أي مراجعات بعد.',
+  addRevision: 'إضافة مراجعة',
+  revisionAdded: 'تمت إضافة المراجعة',
+  failedToAddRevision: 'تعذّر إضافة المراجعة',
+  markCompleted: 'تمّت',
+  markMissed: 'فائتة',
+  revisionMarked: 'تم تحديث المراجعة',
+  failedToMarkRevision: 'تعذّر تحديث المراجعة',
+  deleteRevision: 'حذف المراجعة',
+  confirmDeleteRevision: 'هل تريد حذف هذه المراجعة؟',
+  revisionDeleted: 'تم حذف المراجعة',
+  failedToDeleteRevision: 'تعذّر حذف المراجعة',
+  selectSurah: 'اختر السورة',
+  scheduledFor: 'موعد المراجعة',
+  scheduledDate: 'التاريخ (سنة-شهر-يوم)',
+  statusPending: 'بانتظار',
+  statusCompleted: 'مكتملة',
+  statusMissed: 'فائتة',
+  revisionScheduleTitle: 'جدول المراجعة',
+  studentRevisionsFor: 'مراجعات {{name}}',
 };
 
 const enTranslations: Record<string, string> = {
@@ -505,6 +529,30 @@ const enTranslations: Record<string, string> = {
   deleteRecording: 'Delete recording',
   confirmDeleteRecording: 'Delete this recording?',
   unknownStudent: 'Student',
+
+  // Revision schedule
+  myRevisions: 'My Revisions',
+  noRevisions: 'No revisions yet',
+  noRevisionsDesc: 'Your teacher has not scheduled any revisions yet.',
+  addRevision: 'Add Revision',
+  revisionAdded: 'Revision added',
+  failedToAddRevision: 'Failed to add revision',
+  markCompleted: 'Mark Completed',
+  markMissed: 'Mark Missed',
+  revisionMarked: 'Revision updated',
+  failedToMarkRevision: 'Failed to update revision',
+  deleteRevision: 'Delete revision',
+  confirmDeleteRevision: 'Delete this revision?',
+  revisionDeleted: 'Revision deleted',
+  failedToDeleteRevision: 'Failed to delete revision',
+  selectSurah: 'Select Surah',
+  scheduledFor: 'Scheduled For',
+  scheduledDate: 'Date (YYYY-MM-DD)',
+  statusPending: 'Pending',
+  statusCompleted: 'Completed',
+  statusMissed: 'Missed',
+  revisionScheduleTitle: 'Revision Schedule',
+  studentRevisionsFor: 'Revisions for {{name}}',
 };
 
 i18next.use(initReactI18next).init({

@@ -8,6 +8,9 @@ export const uploadRecording = async (req: Request, res: Response, next: NextFun
     const file = (req as any).file;
     if (!file) throw new AppError(400, 'Audio file is required');
 
+    const MAX_FILE_BYTES = 500 * 1024 * 1024; // 500 MB
+    if (file.size > MAX_FILE_BYTES) throw new AppError(413, 'File too large — maximum 500 MB');
+
     const { fileName, fileSizeBytes, contentType } = req.body as any;
     const actualFileName = file.originalname || fileName;
     const actualSize = file.size || fileSizeBytes || 0;

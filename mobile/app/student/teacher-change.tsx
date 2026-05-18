@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  SafeAreaView,
   View,
   Text,
   TextInput,
@@ -10,6 +9,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +17,7 @@ import { useSettingsStore } from '@/src/settings/store';
 import { getColors, SPACING, RADIUS } from '@/constants/theme';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
 import { useAppointments } from '@/src/hooks/useAppointments';
+import { BottomNav } from '@/src/components/BottomNav';
 
 export default function TeacherChangeScreen() {
   const { t } = useTranslation();
@@ -97,7 +98,7 @@ export default function TeacherChangeScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back-outline" size={22} color={COLORS.primary} />
@@ -153,6 +154,7 @@ export default function TeacherChangeScreen() {
           </>
         )}
       </ScrollView>
+      <BottomNav role="student" active="profile" />
     </SafeAreaView>
   );
 }

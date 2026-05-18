@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   api:
-    build: .
+    build:
+      context: ../..
+      dockerfile: packages/server/Dockerfile
     ports:
       - '4000:4000'
     environment:
@@ -11,12 +13,17 @@ services:
       - REDIS_URL=redis://redis:6379
       - NODE_ENV=production
       - PORT=4000
+      - ENABLE_WORKERS=true
+      - CLIENT_URL=${CLIENT_URL:-}
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     volumes:
       - ./uploads:/app/uploads
       - ./reports:/app/reports
+    restart: unless-stopped
 
   db:
     image: postgres:17-alpine
@@ -28,11 +35,18 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d education']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
     ports:
       - '6379:6379'
+    restart: unless-stopped
 
 volumes:
   postgres_data:

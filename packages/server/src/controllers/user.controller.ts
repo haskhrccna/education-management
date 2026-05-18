@@ -4,6 +4,19 @@ import { hashPassword } from '../services/auth.service';
 import { AppError } from '../middleware/error.middleware';
 import { logger } from '../lib/logger';
 
+export const listTeachers = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const teachers = await prisma.user.findMany({
+      where: { role: 'TEACHER', status: 'ACTIVE', deletedAt: null },
+      select: { id: true, firstName: true, lastName: true },
+      orderBy: { firstName: 'asc' },
+    });
+    res.json(teachers);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const user = await prisma.user.findUnique({

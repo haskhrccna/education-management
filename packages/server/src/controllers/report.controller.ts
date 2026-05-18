@@ -1,4 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
+import fs from 'fs';
+import path from 'path';
 import * as reportService from '../services/report.service';
 import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
@@ -16,9 +18,18 @@ export const generateReport = async (req: Request, res: Response, next: NextFunc
     if (!appt) throw new AppError(403, 'No accepted appointment with this student');
 
     const pdfUrl = await reportService.generatePDFReport(req.userId!, studentId, summary || '');
-    const report = await prisma.report.create({
-      data: { teacherId: req.userId!, studentId, pdfUrl, generatedAt: new Date(), summary: summary || '' },
-    });
+    let report;
+    try {
+      report = await prisma.report.create({
+        data: { teacherId: req.userId!, studentId, pdfUrl, generatedAt: new Date(), summary: summary || '' },
+      });
+    } catch (dbErr) {
+      // DB insert failed — delete the orphaned PDF to avoid disk accumulation
+      const fileName = pdfUrl.split('/').pop() ?? '';
+      const filePath = path.join(process.cwd(), 'reports', fileName);
+      await fs.promises.unlink(filePath).catch(() => {});
+      throw dbErr;
+    }
     res.status(201).json(report);
   } catch (err) {
     next(err);

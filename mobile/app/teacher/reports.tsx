@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { appointmentsApi, reportsApi, Report } from '@/src/api';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
+import { BottomNav } from '@/src/components/BottomNav';
 
 interface TeacherStudent {
   id: string;
@@ -313,6 +314,7 @@ export default function TeacherReportsScreen() {
           })
         )}
       </ScrollView>
+      <BottomNav role="teacher" active="reports" />
     </SafeAreaView>
   );
 }

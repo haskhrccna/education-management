@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validate.middleware';
 import { paginate } from '../middleware/pagination.middleware';
+import { broadcastLimiter } from '../middleware/rate-limit.middleware';
 import {
   UserRole,
   CreateTeacherSchema,
@@ -26,7 +27,7 @@ router.put('/users/:id', validate(UpdateUserSchema), adminController.updateUser)
 router.delete('/users/:id', adminController.deleteUser);
 router.get('/progress/teachers', adminController.getTeacherProgress);
 router.get('/progress/students', adminController.getStudentProgress);
-router.post('/broadcast', validate(BroadcastMessageSchema), adminController.broadcastMessage);
+router.post('/broadcast', broadcastLimiter, validate(BroadcastMessageSchema), adminController.broadcastMessage);
 router.post('/bulk/approve', validate(BulkApproveSchema), adminController.bulkApprove);
 router.post('/bulk/deactivate', validate(BulkDeactivateSchema), adminController.bulkDeactivate);
 

@@ -86,7 +86,7 @@ app.use('/api/v1/admin', authenticate, adminLimiter, adminRoutes);
 app.use('/api/v1/messages', authenticate, standardLimiter, messageRoutes);
 app.use('/api/v1/surahs', authenticate, standardLimiter, surahRouter);
 app.use('/api/v1/memorization', authenticate, standardLimiter, memorizationRouter);
-app.use('/api/v1/files', authenticate, standardLimiter, fileRoutes);
+app.use('/api/v1/files', standardLimiter, fileRoutes); // fileAuthenticate applied inside file.routes.ts
 app.use('/api/v1/exports', authenticate, standardLimiter, exportRoutes);
 app.use('/api/v1/teacher-changes', authenticate, standardLimiter, teacherChangeRoutes);
 app.use('/api/v1/revisions', authenticate, standardLimiter, revisionRoutes);
@@ -101,7 +101,7 @@ app.use('/api/recordings', authenticate, uploadLimiter, recordingRoutes);
 app.use('/api/reports', authenticate, standardLimiter, reportRoutes);
 app.use('/api/admin', authenticate, adminLimiter, adminRoutes);
 app.use('/api/messages', authenticate, standardLimiter, messageRoutes);
-app.use('/api/files', authenticate, standardLimiter, fileRoutes);
+app.use('/api/files', standardLimiter, fileRoutes); // fileAuthenticate applied inside file.routes.ts
 app.use('/api/exports', authenticate, standardLimiter, exportRoutes);
 
 // 404 handler
