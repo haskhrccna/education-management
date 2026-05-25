@@ -1,6 +1,7 @@
 import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
 import { notifyAppointmentUpdate } from './notification.service';
+import { notifyScheduleChange } from './socket.service';
 
 type UserRoleInput = 'STUDENT' | 'TEACHER' | 'ADMIN';
 
@@ -16,7 +17,7 @@ export const createAppointment = async (
   requestedTime: string,
   durationMinutes: number
 ) => {
-  return await prisma.$transaction(
+  const appointment = await prisma.$transaction(
     async (tx) => {
       const teacherUser = await tx.user.findUnique({ where: { id: teacherId } });
       if (!teacherUser || teacherUser.role !== 'TEACHER') throw new AppError(400, 'Invalid teacher');
@@ -62,6 +63,9 @@ export const createAppointment = async (
     },
     { isolationLevel: 'Serializable' }
   );
+
+  notifyScheduleChange(teacherId, appointment);
+  return appointment;
 };
 
 function timeToMinutes(time: string): number {

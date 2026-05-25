@@ -6,9 +6,15 @@ jest.mock('../../prisma/client', () => ({
   prisma: mockDeep<PrismaClient>(),
 }));
 
+jest.mock('../socket.service', () => ({
+  notifyScheduleChange: jest.fn(),
+  sendToUser: jest.fn(),
+}));
+
 import { prisma } from '../../prisma/client';
 import { createAppointment, manageAppointment } from '../appointment.service';
 import { AppError } from '../../middleware/error.middleware';
+import { notifyScheduleChange } from '../socket.service';
 
 const mockedPrisma = prisma as unknown as DeepMockProxy<PrismaClient>;
 
@@ -37,6 +43,7 @@ describe('appointment.service', () => {
 
       expect(result.id).toBe('appt-1');
       expect(mockedPrisma.appointment.create).toHaveBeenCalled();
+      expect(notifyScheduleChange).toHaveBeenCalledWith('teacher-1', expect.objectContaining({ id: 'appt-1' }));
     });
 
     it('should reject invalid teacher', async () => {

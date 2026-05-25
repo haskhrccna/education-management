@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { authApi, AuthUser } from '../api';
-import * as SecureStore from 'expo-secure-store';
+import { secureStorage } from '../storage/secureStorage';
 
 export function useAuth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -11,9 +11,9 @@ export function useAuth() {
     setError(null);
     try {
       const { user, token, refreshToken } = await authApi.login(email, password);
-      await SecureStore.setItemAsync('auth_token', token);
+      await secureStorage.setItem('auth_token', token);
       if (refreshToken) {
-        await SecureStore.setItemAsync('refresh_token', refreshToken);
+        await secureStorage.setItem('refresh_token', refreshToken);
       }
       return user;
     } catch (err: any) {
@@ -42,8 +42,8 @@ export function useAuth() {
     } catch {
       /* ignore */
     }
-    await SecureStore.deleteItemAsync('auth_token');
-    await SecureStore.deleteItemAsync('refresh_token');
+    await secureStorage.deleteItem('auth_token');
+    await secureStorage.deleteItem('refresh_token');
   }, []);
 
   return { login, register, logout, isLoading, error };

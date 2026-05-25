@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import * as SecureStore from 'expo-secure-store';
 import { apiClient } from '../api/client';
 import { authApi } from '../api';
+import { secureStorage } from '../storage/secureStorage';
 import type { AuthUser } from '../api/auth';
 export type { AuthUser } from '../api/auth';
 
@@ -31,9 +31,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     try {
       const { user, token, refreshToken } = await authApi.login(email, password);
-      await SecureStore.setItemAsync('auth_token', token);
+      await secureStorage.setItem('auth_token', token);
       if (refreshToken) {
-        await SecureStore.setItemAsync('refresh_token', refreshToken);
+        await secureStorage.setItem('refresh_token', refreshToken);
       }
       apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
       set({ user, token, isLoading: false });
@@ -62,15 +62,15 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch {
       /* ignore */
     }
-    await SecureStore.deleteItemAsync('auth_token');
-    await SecureStore.deleteItemAsync('refresh_token');
+    await secureStorage.deleteItem('auth_token');
+    await secureStorage.deleteItem('refresh_token');
     delete apiClient.defaults.headers.common.Authorization;
     set({ user: null, token: null });
   },
 
   loadSession: async () => {
     try {
-      const token = await SecureStore.getItemAsync('auth_token');
+      const token = await secureStorage.getItem('auth_token');
       if (token) {
         apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
         const res = await apiClient.get('/users/profile');
@@ -85,8 +85,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         });
       }
     } catch {
-      await SecureStore.deleteItemAsync('auth_token');
-      await SecureStore.deleteItemAsync('refresh_token');
+      await secureStorage.deleteItem('auth_token');
+      await secureStorage.deleteItem('refresh_token');
       delete apiClient.defaults.headers.common.Authorization;
       set({ user: null, token: null });
     }
@@ -118,21 +118,21 @@ apiClient.interceptors.response.use(
         // Single-flight: share one refresh call across concurrent 401s
         if (!refreshPromise) {
           refreshPromise = (async () => {
-            const refreshToken = await SecureStore.getItemAsync('refresh_token');
+            const refreshToken = await secureStorage.getItem('refresh_token');
             if (!refreshToken) throw new Error('No refresh token');
             const res = await apiClient.post('/auth/refresh', { refreshToken });
             return res.data as { token: string; refreshToken: string };
           })();
         }
         const { token: newToken, refreshToken: newRefreshToken } = await refreshPromise;
-        await SecureStore.setItemAsync('auth_token', newToken);
-        await SecureStore.setItemAsync('refresh_token', newRefreshToken);
+        await secureStorage.setItem('auth_token', newToken);
+        await secureStorage.setItem('refresh_token', newRefreshToken);
         apiClient.defaults.headers.common.Authorization = `Bearer ${newToken}`;
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
-        await SecureStore.deleteItemAsync('auth_token');
-        await SecureStore.deleteItemAsync('refresh_token');
+        await secureStorage.deleteItem('auth_token');
+        await secureStorage.deleteItem('refresh_token');
         delete apiClient.defaults.headers.common.Authorization;
         // Clear in-memory state so UI redirects to login
         useAuthStore.setState({ user: null, token: null });

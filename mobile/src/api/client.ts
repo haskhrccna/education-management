@@ -1,6 +1,6 @@
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+import { secureStorage } from '../storage/secureStorage';
 
 function getApiBase(): string {
   if (process.env.EXPO_PUBLIC_API_URL) {
@@ -29,9 +29,9 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(async (config) => {
-  // Only read SecureStore if header wasn't already set from defaults (saves Keychain I/O per call)
+  // Only read storage if the current session has not already installed a header.
   if (!config.headers.Authorization) {
-    const token = await SecureStore.getItemAsync('auth_token');
+    const token = await secureStorage.getItem('auth_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

@@ -1,10 +1,12 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { appointmentsApi, Appointment } from '../api';
+import { useSocket } from './useSocket';
 
 export function useAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const socket = useSocket();
 
   const fetchAppointments = useCallback(async () => {
     setIsLoading(true);
@@ -18,6 +20,20 @@ export function useAppointments() {
       setIsLoading(false);
     }
   }, []);
+
+  // Listen for real-time appointment updates
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUpdate = () => {
+      fetchAppointments();
+    };
+
+    socket.on('appointment_update', handleUpdate);
+    return () => {
+      socket.off('appointment_update', handleUpdate);
+    };
+  }, [socket, fetchAppointments]);
 
   const createAppointment = useCallback(async (data: Parameters<typeof appointmentsApi.create>[0]) => {
     setIsLoading(true);
