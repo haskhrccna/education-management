@@ -61,6 +61,13 @@ enum RevisionStatus {
   MISSED
 }
 
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
 model User {
   id                String     @id @default(uuid())
   email             String     @unique
@@ -98,6 +105,8 @@ model User {
   teacherChangeRequestsAsStudent  TeacherChangeRequest[] @relation("StudentChangeRequests")
   teacherChangeRequestsAsTeacher  TeacherChangeRequest[] @relation("TeacherChangeRequests")
   notifications                    Notification[]
+  sessionRecordsAsStudent         SessionRecord[] @relation("StudentSessionRecords")
+  sessionRecordsAsTeacher         SessionRecord[] @relation("TeacherSessionRecords")
 
   @@index([email])
   @@index([role, status])
@@ -122,6 +131,8 @@ model Appointment {
 
   student User @relation("StudentAppointments", fields: [studentId], references: [id], onDelete: Cascade)
   teacher User @relation("TeacherAppointments", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  sessionRecord SessionRecord?
 
   @@index([teacherId, requestedDate, status])
   @@index([studentId])
@@ -324,4 +335,25 @@ model Notification {
   @@index([userId, readAt, createdAt])
   @@index([userId, createdAt])
   @@map("notifications")
+}
+
+// ─── Phase 2 — Attendance / Session Records ─────────────────────────────────
+
+model SessionRecord {
+  id            String           @id @default(cuid())
+  appointmentId String           @unique
+  studentId     String
+  teacherId     String
+  status        AttendanceStatus
+  notes         String?
+  recordedAt    DateTime         @default(now())
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  student     User        @relation("StudentSessionRecords", fields: [studentId], references: [id], onDelete: Cascade)
+  teacher     User        @relation("TeacherSessionRecords", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, recordedAt])
+  @@index([teacherId, recordedAt])
+  @@index([status])
+  @@map("session_records")
 }

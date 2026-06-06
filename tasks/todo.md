@@ -14,8 +14,8 @@ Phases will be built **one at a time** in a single feature branch, with each pha
 
 | # | Phase | Roadmap ID | Est | Status |
 |---|---|---|---|---|
-| 1 | Notification Center (durable feed) | F2 | ~3d | 🟡 in progress |
-| 2 | Attendance + Session Completion | F4 | ~2d | ⏳ |
+| 1 | Notification Center (durable feed) | F2 | ~3d | ✅ done (commit 8fa5603) |
+| 2 | Attendance + Session Completion | F4 | ~2d | ✅ done |
 | 3 | Parent / Guardian role + dashboard | F3 | ~4d | ⏳ |
 | 4 | Spaced-Repetition Revision Engine | F6 | ~3d | ⏳ |
 | 5 | Gamification (streaks / badges) | F5 | ~3d | ⏳ |
@@ -23,7 +23,9 @@ Phases will be built **one at a time** in a single feature branch, with each pha
 
 ---
 
-## Phase 1 — Notification Center  ·  in progress
+## Phase 2 — Attendance + Session Completion  ·  in progress
+
+**Goal:** When a teacher closes out an appointment, capture per-session attendance (PRESENT / ABSENT / LATE / EXCUSED) + free-text notes. Setting attendance also flips the appointment to `COMPLETED`. Every attendance write emits a Phase-1 notification ("Teacher marked you present / late / absent for Surah X on Y").
 
 **Goal:** Every event that already goes through `notifyUser()` (socket / email / push) also persists a row in a new `Notification` table, exposed via REST + mobile feed with an unread badge.
 

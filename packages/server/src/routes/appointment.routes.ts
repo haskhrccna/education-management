@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as appointmentController from '../controllers/appointment.controller';
+import * as attendanceController from '../controllers/attendance.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validate.middleware';
 import { UserRole } from '@quran-review/shared';
@@ -25,6 +26,13 @@ router.put(
   authorize(UserRole.TEACHER, UserRole.ADMIN),
   validate(ManageAppointmentSchema),
   appointmentController.manageAppointment
+);
+
+// Teacher records attendance for one of their appointments
+router.post(
+  '/:id/attendance',
+  authorize(UserRole.TEACHER),
+  attendanceController.recordAttendance
 );
 
 export default router;
