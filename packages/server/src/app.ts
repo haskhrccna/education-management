@@ -17,6 +17,7 @@ import metricsRoutes from './routes/metrics.routes';
 import { surahRouter, memorizationRouter } from './routes/memorization.routes';
 import teacherChangeRoutes from './routes/teacherChange.routes';
 import revisionRoutes from './routes/revision.routes';
+import notificationRoutes from './routes/notification.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { authenticate, authorize } from './middleware/auth.middleware';
 import { UserRole } from '@quran-review/shared';
@@ -90,6 +91,7 @@ app.use('/api/v1/files', standardLimiter, fileRoutes); // fileAuthenticate appli
 app.use('/api/v1/exports', authenticate, standardLimiter, exportRoutes);
 app.use('/api/v1/teacher-changes', authenticate, standardLimiter, teacherChangeRoutes);
 app.use('/api/v1/revisions', authenticate, standardLimiter, revisionRoutes);
+app.use('/api/v1/notifications', authenticate, standardLimiter, notificationRoutes);
 
 // Legacy redirects (optional - remove after mobile update)
 // Mirroring exact same middleware stack as v1 for consistent protection

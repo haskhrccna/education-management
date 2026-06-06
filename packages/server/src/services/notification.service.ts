@@ -11,7 +11,7 @@ function escapeHtml(text: string | undefined | null): string {
     .replace(/'/g, '&#39;');
 }
 
-// Unified notification service: Email + Socket + Push
+// Unified notification service: Email + Socket + Push + durable feed (Phase 1)
 export const notifyUser = async (options: {
   userId: string;
   event: string;
@@ -20,6 +20,25 @@ export const notifyUser = async (options: {
   push?: { title: string; body: string };
 }) => {
   const { userId, event, data, email, push } = options;
+
+  // 0. Persist a durable notification row (best-effort, must never break the caller).
+  //    Title/body come from the push payload if present (matches what users see on devices),
+  //    otherwise from the email subject/body, otherwise a generic placeholder.
+  const persistTitle = push?.title ?? email?.subject ?? event;
+  const persistBody = push?.body ?? (email ? stripHtml(email.body) : 'You have a new notification');
+  try {
+    await prisma.notification.create({
+      data: {
+        userId,
+        type: event,
+        title: persistTitle,
+        body: persistBody,
+        data: data as object,
+      },
+    });
+  } catch (err) {
+    logger.error({ err, userId, event }, 'Persisting notification failed');
+  }
 
   // 1. Real-time via Socket.IO
   try {
@@ -59,6 +78,69 @@ export const notifyUser = async (options: {
     }
   }
 };
+
+// ─── Phase 1: Notification feed queries ──────────────────────────────────────
+
+export interface NotificationFeedItem {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  data: unknown;
+  readAt: Date | null;
+  createdAt: Date;
+}
+
+export const listNotifications = async (
+  userId: string,
+  page: number,
+  limit: number
+): Promise<{ items: NotificationFeedItem[]; total: number }> => {
+  const skip = (page - 1) * limit;
+  const [items, total] = await Promise.all([
+    prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+    }),
+    prisma.notification.count({ where: { userId } }),
+  ]);
+  return { items, total };
+};
+
+export const markRead = async (id: string, userId: string): Promise<NotificationFeedItem> => {
+  // findUnique first so we can 404 if it doesn't exist OR doesn't belong to the user
+  const existing = await prisma.notification.findUnique({ where: { id } });
+  if (!existing || existing.userId !== userId) {
+    throw new Error('Notification not found');
+  }
+  return prisma.notification.update({
+    where: { id },
+    data: { readAt: new Date() },
+  });
+};
+
+export const markAllRead = async (userId: string): Promise<{ count: number }> => {
+  const { count } = await prisma.notification.updateMany({
+    where: { userId, readAt: null },
+    data: { readAt: new Date() },
+  });
+  return { count };
+};
+
+export const unreadCount = async (userId: string): Promise<number> => {
+  return prisma.notification.count({ where: { userId, readAt: null } });
+};
+
+// Strip HTML tags for a short preview body in the feed (emails carry HTML).
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 280);
+}
 
 interface AppointmentSummary extends Record<string, unknown> {
   status?: string;
