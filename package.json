@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "prepare": "husky",
-    "test:server": "npm run test --workspace=@edu/server"
+    "test:server": "npm run test --workspace=@quran-review/server"
   },
   "devDependencies": {
     "husky": "^9.1.7",
