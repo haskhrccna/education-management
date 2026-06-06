@@ -117,6 +117,9 @@ model User {
   parentLinksAsParent            ParentLink[]    @relation("ParentLinkParent")
   parentLinksAsStudent            ParentLink[]    @relation("ParentLinkStudent")
   parentLinksDecided              ParentLink[]    @relation("ParentLinkDecider")
+  // Phase 5 — Gamification
+  streak                          Streak?
+  userBadges                      UserBadge[]     @relation("UserBadgeOwner")
 
   @@index([email])
   @@index([role, status])
@@ -394,4 +397,52 @@ model ParentLink {
   @@index([studentId, status])
   @@index([status])
   @@map("parent_links")
+}
+
+// ─── Phase 5 — Gamification (streaks, badges, leaderboard) ──────────────────
+
+// Daily-activity streak per student. A "day" is UTC; the rule is
+//   same day          → currentStreak unchanged
+//   +1 day (consec)   → currentStreak += 1
+//   gap of >= 2 days  → currentStreak reset to 1
+model Streak {
+  userId         String   @id
+  currentStreak  Int      @default(0)
+  longestStreak  Int      @default(0)
+  lastActiveDate DateTime @db.Date
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([currentStreak])
+  @@map("streaks")
+}
+
+// Catalog of badges. The catalog is seeded once in
+// migrations/.../add_gamification/migration.sql and never mutated at runtime.
+model Badge {
+  id          String      @id @default(cuid())
+  code        String      @unique
+  name        String
+  description String
+  iconKey     String
+  createdAt   DateTime    @default(now())
+  userBadges  UserBadge[] @relation("BadgeAwards")
+
+  @@map("badges")
+}
+
+// Idempotent award record: UNIQUE(userId, badgeId) guarantees
+// `evaluateMilestones` can run on every activity without producing duplicates.
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  earnedAt  DateTime @default(now())
+
+  user  User  @relation("UserBadgeOwner", fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation("BadgeAwards",     fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([userId, earnedAt])
+  @@map("user_badges")
 }

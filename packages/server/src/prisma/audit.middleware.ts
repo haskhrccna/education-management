@@ -17,14 +17,20 @@ export const auditExtension = Prisma.defineExtension({
       async create({ model, operation, args, query }) {
         const result = await query(args);
         if (AUDIT_MODELS.includes(model)) {
-          logAudit(model, AUDIT_ACTIONS[operation] || operation, result?.id as string | undefined, args.data);
+          const id = (result as { id?: string | number } | null)?.id;
+          logAudit(model, AUDIT_ACTIONS[operation] || operation, id as string | undefined, args.data);
         }
         return result;
       },
       async update({ model, operation, args, query }) {
         const result = await query(args);
         if (AUDIT_MODELS.includes(model)) {
-          logAudit(model, AUDIT_ACTIONS[operation] || operation, String(args.where?.id ?? ''), args.data);
+          // Prisma 6 widens `args.where` to the union of ALL models'
+          // WhereUniqueInput. Models whose unique key is composite (e.g.
+          // UserBadge uses `userId_badgeId`) don't have a plain `id`,
+          // which breaks the .id access. Cast to `any` for the lookup.
+          const w = args.where as { id?: string | number } | undefined;
+          logAudit(model, AUDIT_ACTIONS[operation] || operation, String(w?.id ?? ''), args.data);
         }
         return result;
       },

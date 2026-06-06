@@ -1,6 +1,7 @@
 import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
 import { seedRevisionForCompletion } from './revision.service';
+import { recordActivity, evaluateMilestones } from './gamification.service';
 
 export const getSurahs = async () => {
   return prisma.surah.findMany({ orderBy: { number: 'asc' } });
@@ -78,6 +79,19 @@ export const updateProgress = async (
       // Swallow — the upsert succeeded, the revision is a side effect.
       // Logging is the caller's job; intentionally not rethrowing.
     }
+  }
+
+  // Phase 5: a teacher-recorded recitation update counts as daily
+  // activity. Best-effort — the upsert is the authoritative write.
+  try {
+    await recordActivity(studentId);
+    // Only re-evaluate when the memorization status actually changed
+    // (first_surah_memorized is the relevant badge; idempotent under UNIQUE).
+    if (transitionedIntoComplete) {
+      await evaluateMilestones(studentId);
+    }
+  } catch {
+    /* gamification is best-effort */
   }
 
   return updated;

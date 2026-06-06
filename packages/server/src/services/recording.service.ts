@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
 import { AppError } from '../middleware/error.middleware';
+import { recordActivity, evaluateMilestones } from './gamification.service';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 
@@ -41,9 +42,20 @@ export const uploadRecording = async (
     }
   }
 
-  return await prisma.recording.create({
+  const recording = await prisma.recording.create({
     data: { studentId, url: `/uploads/${uniqueName}`, fileName: safeName, fileSizeBytes, contentType },
   });
+
+  // Phase 5: a successful upload counts as daily activity. Best-effort —
+  // a streak-update failure must not break the upload flow.
+  try {
+    await recordActivity(studentId);
+    await evaluateMilestones(studentId);
+  } catch {
+    /* gamification is best-effort */
+  }
+
+  return recording;
 };
 
 export const listRecordings = async (userId: string, userRole?: string) => {

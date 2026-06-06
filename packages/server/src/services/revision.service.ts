@@ -1,6 +1,7 @@
 import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
 import { notifyUser } from './notification.service';
+import { recordActivity, evaluateMilestones } from './gamification.service';
 
 export type RevisionStatus = 'PENDING' | 'COMPLETED' | 'MISSED';
 
@@ -211,6 +212,18 @@ export const updateRevision = async (
     });
   } catch {
     /* notification is best-effort */
+  }
+
+  // Phase 5: closing a revision is also daily activity. On COMPLETED,
+  // re-evaluate milestones (catches the `first_revision_completed`
+  // badge). Best-effort, never throws.
+  try {
+    await recordActivity(revision.userId);
+    if (status === 'COMPLETED') {
+      await evaluateMilestones(revision.userId);
+    }
+  } catch {
+    /* gamification is best-effort */
   }
 
   return updated;

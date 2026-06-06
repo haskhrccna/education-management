@@ -18,7 +18,7 @@ Phases will be built **one at a time** in a single feature branch, with each pha
 | 2 | Attendance + Session Completion | F4 | ~2d | ✅ done (commit 84a6c50) |
 | 3 | Parent / Guardian role + dashboard | F3 | ~4d | ✅ done |
 | 4 | Spaced-Repetition Revision Engine | F6 | ~3d | ✅ done |
-| 5 | Gamification (streaks / badges) | F5 | ~3d | ⏳ |
+| 5 | Gamification (streaks / badges) | F5 | ~3d | ✅ done |
 | 6 | Quran Mushaf + Ayah Audio | F1 | ~5d | ⏳ |
 
 ---
