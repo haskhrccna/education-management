@@ -296,6 +296,10 @@ model RevisionSchedule {
   scheduledFor DateTime
   status       RevisionStatus @default(PENDING)
   notedAt      DateTime?
+  // SM-2 spaced-repetition state (Phase 4).
+  interval     Int            @default(1)
+  easeFactor   Float          @default(2.5)
+  repetitions  Int            @default(0)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
@@ -306,6 +310,7 @@ model RevisionSchedule {
   @@index([userId, scheduledFor])
   @@index([surahId])
   @@index([scheduledFor, status])
+  @@index([userId, status, scheduledFor])
   @@map("revision_schedule")
 }
 
