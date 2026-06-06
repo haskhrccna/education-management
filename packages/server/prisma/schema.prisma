@@ -11,6 +11,7 @@ enum Role {
   STUDENT
   TEACHER
   ADMIN
+  PARENT
 }
 
 enum UserStatus {
@@ -18,6 +19,12 @@ enum UserStatus {
   APPROVED
   ACTIVE
   BANNED
+}
+
+enum ParentLinkStatus {
+  PENDING
+  APPROVED
+  DENIED
 }
 
 enum AppointmentStatus {
@@ -107,6 +114,9 @@ model User {
   notifications                    Notification[]
   sessionRecordsAsStudent         SessionRecord[] @relation("StudentSessionRecords")
   sessionRecordsAsTeacher         SessionRecord[] @relation("TeacherSessionRecords")
+  parentLinksAsParent            ParentLink[]    @relation("ParentLinkParent")
+  parentLinksAsStudent            ParentLink[]    @relation("ParentLinkStudent")
+  parentLinksDecided              ParentLink[]    @relation("ParentLinkDecider")
 
   @@index([email])
   @@index([role, status])
@@ -356,4 +366,27 @@ model SessionRecord {
   @@index([teacherId, recordedAt])
   @@index([status])
   @@map("session_records")
+}
+
+// ─── Phase 3 — Parent / Guardian role + dashboard ───────────────────────────
+
+model ParentLink {
+  id         String           @id @default(cuid())
+  parentId   String
+  studentId  String
+  status     ParentLinkStatus @default(PENDING)
+  reason     String?
+  requestedAt DateTime        @default(now())
+  decidedAt  DateTime?
+  decidedBy  String?
+
+  parent  User  @relation("ParentLinkParent",  fields: [parentId],  references: [id], onDelete: Cascade)
+  student User  @relation("ParentLinkStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  decider User? @relation("ParentLinkDecider", fields: [decidedBy], references: [id], onDelete: SetNull)
+
+  @@unique([parentId, studentId])
+  @@index([parentId, status])
+  @@index([studentId, status])
+  @@index([status])
+  @@map("parent_links")
 }

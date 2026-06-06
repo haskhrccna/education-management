@@ -69,7 +69,7 @@ export const GenerateReportSchema = z.object({
 
 export const BroadcastMessageSchema = z.object({
   message: z.string().min(1).max(2000),
-  targetRole: z.enum(['student', 'teacher', 'admin']).optional(),
+  targetRole: z.enum(['student', 'teacher', 'admin', 'parent']).optional(),
 });
 
 export const CreateTeacherSchema = z.object({
@@ -98,7 +98,7 @@ export const UpdateUserSchema = z.object({
   lastName: nameSchema.optional(),
   email: emailSchema.optional(),
   status: z.enum(['ACTIVE', 'PENDING', 'BANNED']).optional(),
-  role: z.enum(['STUDENT', 'TEACHER', 'ADMIN']).optional(),
+  role: z.enum(['STUDENT', 'TEACHER', 'ADMIN', 'PARENT']).optional(),
 });
 
 export const BulkApproveSchema = z.object({
