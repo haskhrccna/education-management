@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { Ionicons } from '@expo/vector-icons';
-import { appointmentsApi, gradesApi } from '@/src/api';
+import { appointmentsApi, gradesApi, memorizationApi, Surah } from '@/src/api';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 
@@ -45,11 +45,13 @@ export default function GradeFormScreen() {
 
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState(prefillId ?? '');
-  const [subject, setSubject] = useState('');
+  const [surahs, setSurahs] = useState<Surah[]>([]);
+  const [selectedSurahId, setSelectedSurahId] = useState<number | null>(null);
   const [score, setScore] = useState('');
   const [type, setType] = useState<GradeType>('ORAL');
   const [notes, setNotes] = useState('');
   const [isLoadingStudents, setIsLoadingStudents] = useState(true);
+  const [isLoadingSurahs, setIsLoadingSurahs] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -73,7 +75,15 @@ export default function GradeFormScreen() {
       .finally(() => setIsLoadingStudents(false));
   }, []);
 
-  const canSubmit = !!selectedStudentId && subject.trim().length > 0 && score.trim().length > 0 && !isSubmitting;
+  useEffect(() => {
+    memorizationApi
+      .getSurahs()
+      .then(setSurahs)
+      .catch(() => setSurahs([]))
+      .finally(() => setIsLoadingSurahs(false));
+  }, []);
+
+  const canSubmit = !!selectedStudentId && score.trim().length > 0 && !isSubmitting;
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -81,7 +91,7 @@ export default function GradeFormScreen() {
     try {
       await gradesApi.create({
         studentId: selectedStudentId,
-        subject: subject.trim(),
+        surahId: selectedSurahId,
         grade: score.trim(),
         type,
         notes: notes.trim() || undefined,
@@ -139,23 +149,41 @@ export default function GradeFormScreen() {
             </View>
           )}
 
-          {/* Subject */}
-          <Text style={[styles.label, { color: COLORS.textSecondary }]}>{t('subjectLabel')}</Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: COLORS.surface,
-                color: COLORS.textPrimary,
-                textAlign: isRTL ? 'right' : 'left',
-                writingDirection: isRTL ? 'rtl' : 'ltr',
-              },
-            ]}
-            placeholder={t('subjectPlaceholder')}
-            placeholderTextColor={COLORS.textMuted}
-            value={subject}
-            onChangeText={setSubject}
-          />
+          {/* Surah picker */}
+          <Text style={[styles.label, { color: COLORS.textSecondary }]}>{t('surahLabel')}</Text>
+          {isLoadingSurahs ? (
+            <ActivityIndicator color={COLORS.primary} />
+          ) : (
+            <View style={styles.chipRow}>
+              <TouchableOpacity
+                style={[
+                  styles.chip,
+                  { borderColor: COLORS.primary },
+                  selectedSurahId === null && { backgroundColor: COLORS.primary },
+                ]}
+                onPress={() => setSelectedSurahId(null)}
+              >
+                <Text style={[styles.chipText, { color: selectedSurahId === null ? '#fff' : COLORS.textPrimary }]}>
+                  {t('overallRecital')}
+                </Text>
+              </TouchableOpacity>
+              {surahs.map((s) => (
+                <TouchableOpacity
+                  key={s.id}
+                  style={[
+                    styles.chip,
+                    { borderColor: COLORS.primary },
+                    selectedSurahId === s.id && { backgroundColor: COLORS.primary },
+                  ]}
+                  onPress={() => setSelectedSurahId(s.id)}
+                >
+                  <Text style={[styles.chipText, { color: selectedSurahId === s.id ? '#fff' : COLORS.textPrimary }]}>
+                    {isRTL ? `${s.number}. ${s.nameAr}` : `${s.number}. ${s.nameEn}`}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
           {/* Score */}
           <Text style={[styles.label, { color: COLORS.textSecondary }]}>{t('scoreLabel')}</Text>

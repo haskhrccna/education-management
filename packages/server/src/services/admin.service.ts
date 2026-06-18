@@ -120,7 +120,9 @@ export const getStudentProgress = async (studentId?: string) => {
         email: true,
         firstName: true,
         lastName: true,
-        gradesReceived: { select: { id: true, grade: true, subject: true, type: true } },
+        gradesReceived: {
+          select: { id: true, grade: true, surah: { select: { nameAr: true, nameEn: true } }, type: true },
+        },
         appointmentsAsStudent: { where: { status: 'ACCEPTED' }, select: { id: true } },
       },
     });
@@ -132,7 +134,7 @@ export const getStudentProgress = async (studentId?: string) => {
       email: true,
       firstName: true,
       lastName: true,
-      gradesReceived: { select: { grade: true, subject: true, type: true } },
+      gradesReceived: { select: { grade: true, surah: { select: { nameAr: true, nameEn: true } }, type: true } },
       appointmentsAsStudent: { where: { status: 'ACCEPTED' }, select: { id: true } },
     },
   });
@@ -240,8 +242,18 @@ export const getUserById = async (userId: string) => {
           student: { select: { id: true, firstName: true, lastName: true, email: true } },
         },
       },
-      gradesReceived: { select: { id: true, grade: true, subject: true, type: true, createdAt: true } },
-      gradesGiven: { select: { id: true, grade: true, subject: true, type: true, createdAt: true } },
+      gradesReceived: {
+        select: { id: true, grade: true, surah: { select: { nameAr: true, nameEn: true } }, type: true },
+      },
+      gradesGiven: {
+        select: {
+          id: true,
+          grade: true,
+          surah: { select: { nameAr: true, nameEn: true } },
+          type: true,
+          createdAt: true,
+        },
+      },
       messagesSent: { select: { id: true } },
       messagesReceived: { select: { id: true } },
     },

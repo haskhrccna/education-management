@@ -1,10 +1,18 @@
 import { GradeType } from '../enums/gradeType';
 
+export interface SurahSummary {
+  id: number;
+  number: number;
+  nameAr: string;
+  nameEn: string;
+}
+
 export interface Grade {
   id: string;
   studentId: string;
   teacherId: string;
-  subject: string;
+  surahId: number | null;
+  surah: SurahSummary | null;
   grade: string;
   type: GradeType;
   notes: string | null;
@@ -14,7 +22,7 @@ export interface Grade {
 
 export interface CreateGradeInput {
   studentId: string;
-  subject: string;
+  surahId: number | null;
   grade: string;
   type: GradeType;
   notes?: string;

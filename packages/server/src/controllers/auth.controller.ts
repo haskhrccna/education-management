@@ -17,6 +17,9 @@ import { logger } from '../lib/logger';
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { email, password, role, firstName, lastName } = req.body;
+    // RegisterSchema validates role ∈ ['student', 'teacher', 'parent'].
+    // Map the lowercase body value to the UPPERCASE Prisma enum.
+    const prismaRole = (role as string).toUpperCase() as 'STUDENT' | 'TEACHER' | 'PARENT';
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing && !existing.deletedAt) {
       throw new AppError(409, 'Email already registered');
@@ -26,7 +29,7 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     }
     const passwordHash = await hashPassword(password);
     const user = await prisma.user.create({
-      data: { email, passwordHash, role: 'STUDENT', firstName, lastName },
+      data: { email, passwordHash, role: prismaRole, firstName, lastName },
       select: { id: true, email: true, role: true, firstName: true, lastName: true, status: true },
     });
 

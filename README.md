@@ -233,10 +233,10 @@ cd packages/server && npm test -- --watch   # watch mode
 
 | Email | Password | Role | Status |
 |-------|----------|------|--------|
-| admin@education.com | Admin1234! | ADMIN | ACTIVE |
-| teacher@education.com | Teacher1234! | TEACHER | ACTIVE |
-| ali@education.com | Student1234! | STUDENT | ACTIVE |
-| fatima@education.com | Student1234! | STUDENT | PENDING |
+| admin@quran-review.com | Admin1234! | ADMIN | ACTIVE |
+| teacher@quran-review.com | Teacher1234! | TEACHER | ACTIVE |
+| ali@quran-review.com | Student1234! | STUDENT | ACTIVE |
+| fatima@quran-review.com | Student1234! | STUDENT | PENDING |
 
 ---
 

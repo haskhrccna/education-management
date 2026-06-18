@@ -363,7 +363,15 @@ export default function StudentHomeScreen() {
             {recentGrades.map((grade) => (
               <AppCard key={grade.id} colors={COLORS} style={styles.gradeRow}>
                 <View style={styles.gradeInfo}>
-                  <Text style={styles.rowTitle}>{grade.subject}</Text>
+                  <Text style={styles.rowTitle}>
+                    {grade.surah
+                      ? isAr
+                        ? grade.surah.nameAr
+                        : grade.surah.nameEn
+                      : isAr
+                        ? 'تلاوة عامة'
+                        : 'Overall Recital'}
+                  </Text>
                   <Text style={styles.rowMeta}>{formatDate(grade.createdAt, i18n.language)}</Text>
                 </View>
                 <StatusPill

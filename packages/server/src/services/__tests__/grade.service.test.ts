@@ -21,19 +21,21 @@ describe('grade.service', () => {
   });
 
   describe('createGrade', () => {
-    it('should create grade for valid student', async () => {
+    it('should create grade for valid student with a surahId', async () => {
       mockedPrisma.user.findUnique.mockResolvedValue({ id: 'student-1', role: 'STUDENT' } as any);
       mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appointment-1' } as any);
+      mockedPrisma.surah.findUnique.mockResolvedValue({ id: 1 } as any);
       mockedPrisma.grade.create.mockResolvedValue({
         id: 'grade-1',
         studentId: 'student-1',
         teacherId: 'teacher-1',
-        subject: 'Math',
+        surahId: 1,
+        surah: { id: 1, number: 1, nameAr: 'الفاتحة', nameEn: 'Al-Fatiha' },
         grade: '95',
         type: 'EXAM',
       } as any);
 
-      const result = await createGrade('teacher-1', 'student-1', 'Math', '95', 'EXAM', 'Good work');
+      const result = await createGrade('teacher-1', 'student-1', 1, '95', 'EXAM', 'Good work');
       expect(result.id).toBe('grade-1');
       expect(mockedPrisma.appointment.findFirst).toHaveBeenCalledWith({
         where: { teacherId: 'teacher-1', studentId: 'student-1', status: 'ACCEPTED' },
@@ -41,14 +43,33 @@ describe('grade.service', () => {
       });
     });
 
+    it('should allow overall recital grades with surahId = null (no Surah lookup)', async () => {
+      mockedPrisma.user.findUnique.mockResolvedValue({ id: 'student-1', role: 'STUDENT' } as any);
+      mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appointment-1' } as any);
+      mockedPrisma.grade.create.mockResolvedValue({ id: 'grade-1', surahId: null, surah: null } as any);
+
+      const result = await createGrade('teacher-1', 'student-1', null, '90', 'ORAL');
+      expect(result.id).toBe('grade-1');
+      expect(mockedPrisma.surah.findUnique).not.toHaveBeenCalled();
+    });
+
+    it('should reject unknown surahId with a 400', async () => {
+      mockedPrisma.user.findUnique.mockResolvedValue({ id: 'student-1', role: 'STUDENT' } as any);
+      mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appointment-1' } as any);
+      mockedPrisma.surah.findUnique.mockResolvedValue(null);
+
+      await expect(createGrade('teacher-1', 'student-1', 999, '95', 'EXAM')).rejects.toThrow('Surah not found');
+      expect(mockedPrisma.grade.create).not.toHaveBeenCalled();
+    });
+
     it('should reject non-existent student', async () => {
       mockedPrisma.user.findUnique.mockResolvedValue(null);
-      await expect(createGrade('teacher-1', 'unknown', 'Math', '95', 'EXAM')).rejects.toThrow('Student not found');
+      await expect(createGrade('teacher-1', 'unknown', 1, '95', 'EXAM')).rejects.toThrow('Student not found');
     });
 
     it('should reject non-student target', async () => {
       mockedPrisma.user.findUnique.mockResolvedValue({ id: 'teacher-1', role: 'TEACHER' } as any);
-      await expect(createGrade('teacher-1', 'teacher-1', 'Math', '95', 'EXAM')).rejects.toThrow(
+      await expect(createGrade('teacher-1', 'teacher-1', 1, '95', 'EXAM')).rejects.toThrow(
         'Target user is not a student'
       );
     });
@@ -57,7 +78,7 @@ describe('grade.service', () => {
       mockedPrisma.user.findUnique.mockResolvedValue({ id: 'student-1', role: 'STUDENT' } as any);
       mockedPrisma.appointment.findFirst.mockResolvedValue(null);
 
-      await expect(createGrade('teacher-1', 'student-1', 'Math', '95', 'EXAM')).rejects.toThrow(
+      await expect(createGrade('teacher-1', 'student-1', 1, '95', 'EXAM')).rejects.toThrow(
         'No accepted appointment with this student'
       );
       expect(mockedPrisma.grade.create).not.toHaveBeenCalled();
@@ -65,8 +86,10 @@ describe('grade.service', () => {
   });
 
   describe('getMyGrades', () => {
-    it('should return grades for student', async () => {
-      mockedPrisma.grade.findMany.mockResolvedValue([{ id: 'grade-1', subject: 'Math' }] as any);
+    it('should return grades for student with their surah joined', async () => {
+      mockedPrisma.grade.findMany.mockResolvedValue([
+        { id: 'grade-1', surah: { id: 1, nameAr: 'الفاتحة', nameEn: 'Al-Fatiha', number: 1 } },
+      ] as any);
       const result = await getMyGrades('student-1');
       expect(result).toHaveLength(1);
       expect(mockedPrisma.grade.findMany).toHaveBeenCalledWith(

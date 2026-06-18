@@ -8,7 +8,7 @@ services:
     ports:
       - '4000:4000'
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/education?schema=public
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/quran_review?schema=public
       - JWT_SECRET=${JWT_SECRET}
       - REDIS_URL=redis://redis:6379
       - NODE_ENV=production
@@ -30,13 +30,13 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=education
+      - POSTGRES_DB=quran_review
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres -d education']
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d quran_review']
       interval: 5s
       timeout: 5s
       retries: 10

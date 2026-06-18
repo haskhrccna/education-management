@@ -5,9 +5,11 @@ node_modules/
 dist/
 build/
 expo/
+.expo/
 ios/Pods/
 android/app/build/
 .claude/
+.DS_Store
 
 # Ignore Flutter/Dart build and tool files
 .dart_tool/

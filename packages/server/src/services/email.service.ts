@@ -58,7 +58,7 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
 export const sendWelcomeEmail = async (to: string, name: string, lang: 'ar' | 'en' = 'ar') => {
   await sendEmail({
     to,
-    subject: lang === 'ar' ? 'مرحباً بك في منصة التعليم الإلكتروني' : 'Welcome to Electronic Education Platform',
+    subject: lang === 'ar' ? 'مرحباً بك في منصة مراجعة القرآن' : 'Welcome to Quran Review Platform',
     html: templates.welcome({ name }, lang),
     text:
       lang === 'ar'
@@ -102,15 +102,18 @@ export const sendAppointmentNotification = async (
 export const sendNewGradeEmail = async (
   to: string,
   name: string,
-  subject: string,
+  surahName: string,
   grade: string,
   lang: 'ar' | 'en' = 'ar'
 ) => {
   await sendEmail({
     to,
-    subject: lang === 'ar' ? `درجة جديدة: ${subject}` : `New grade: ${subject}`,
-    html: templates.newGrade({ name, subject, grade }, lang),
-    text: `Hi ${name}, a new grade has been posted for ${subject}: ${grade}`,
+    subject: lang === 'ar' ? `درجة جديدة في سورة ${surahName}` : `New grade in Surah ${surahName}`,
+    html: templates.newGrade({ name, surahName, grade }, lang),
+    text:
+      lang === 'ar'
+        ? `مرحباً ${name}، تم إضافة درجة جديدة في سورة ${surahName}: ${grade}`
+        : `Hi ${name}, a new grade has been posted for Surah ${surahName}: ${grade}`,
   });
 };
 

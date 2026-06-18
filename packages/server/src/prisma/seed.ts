@@ -209,10 +209,10 @@ async function main() {
   // Admin
   const adminPass = await bcrypt.hash(ADMIN_PASSWORD, 10);
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@education.com' },
+    where: { email: 'admin@quran-review.com' },
     update: {},
     create: {
-      email: 'admin@education.com',
+      email: 'admin@quran-review.com',
       passwordHash: adminPass,
       role: 'ADMIN',
       firstName: 'Super',
@@ -225,10 +225,10 @@ async function main() {
   // Teachers
   const teacherPass = await bcrypt.hash(TEACHER_PASSWORD, 10);
   const teacher1 = await prisma.user.upsert({
-    where: { email: 'teacher@education.com' },
+    where: { email: 'teacher@quran-review.com' },
     update: {},
     create: {
-      email: 'teacher@education.com',
+      email: 'teacher@quran-review.com',
       passwordHash: teacherPass,
       role: 'TEACHER',
       firstName: 'Ahmad',
@@ -238,10 +238,10 @@ async function main() {
     },
   });
   const teacher2 = await prisma.user.upsert({
-    where: { email: 'sarah@education.com' },
+    where: { email: 'sarah@quran-review.com' },
     update: {},
     create: {
-      email: 'sarah@education.com',
+      email: 'sarah@quran-review.com',
       passwordHash: teacherPass,
       role: 'TEACHER',
       firstName: 'Sarah',
@@ -254,10 +254,10 @@ async function main() {
   // Students
   const studentPass = await bcrypt.hash(STUDENT_PASSWORD, 10);
   const student1 = await prisma.user.upsert({
-    where: { email: 'ali@education.com' },
+    where: { email: 'ali@quran-review.com' },
     update: {},
     create: {
-      email: 'ali@education.com',
+      email: 'ali@quran-review.com',
       passwordHash: studentPass,
       role: 'STUDENT',
       firstName: 'Ali',
@@ -267,10 +267,10 @@ async function main() {
     },
   });
   const student2 = await prisma.user.upsert({
-    where: { email: 'fatima@education.com' },
+    where: { email: 'fatima@quran-review.com' },
     update: {},
     create: {
-      email: 'fatima@education.com',
+      email: 'fatima@quran-review.com',
       passwordHash: studentPass,
       role: 'STUDENT',
       firstName: 'Fatima',
@@ -280,10 +280,10 @@ async function main() {
     },
   });
   const student3 = await prisma.user.upsert({
-    where: { email: 'student@education.com' },
+    where: { email: 'student@quran-review.com' },
     update: {},
     create: {
-      email: 'student@education.com',
+      email: 'student@quran-review.com',
       passwordHash: studentPass,
       role: 'STUDENT',
       firstName: 'Omar',
@@ -316,19 +316,46 @@ async function main() {
     skipDuplicates: true,
   });
 
-  // Grades
+  // Quran: Surahs must be seeded before grades so the FK is satisfied.
+  await prisma.surah.createMany({ data: SURAH_DATA, skipDuplicates: true });
+  const surahs = await prisma.surah.findMany({ select: { id: true, number: true } });
+  const surahMap = new Map(surahs.map((s) => [s.number, s.id]));
+
+  // Quran-domain grades only. Surah ids are resolved from the surahMap.
+  // One grade intentionally has surahId = null to exercise the
+  // "overall recital" path.
   await prisma.grade.createMany({
     data: [
       {
         studentId: student1.id,
         teacherId: teacher1.id,
-        subject: 'Mathematics',
+        surahId: surahMap.get(1),
         grade: '95',
         type: 'EXAM',
-        notes: 'Excellent work',
+        notes: 'ممتاز — تلاوة متقنة / Excellent tajweed',
       },
-      { studentId: student1.id, teacherId: teacher1.id, subject: 'Physics', grade: '88', type: 'QUIZ' },
-      { studentId: student1.id, teacherId: teacher2.id, subject: 'English', grade: '92', type: 'ASSIGNMENT' },
+      {
+        studentId: student1.id,
+        teacherId: teacher1.id,
+        surahId: surahMap.get(36),
+        grade: '88',
+        type: 'QUIZ',
+      },
+      {
+        studentId: student1.id,
+        teacherId: teacher2.id,
+        surahId: surahMap.get(67),
+        grade: '92',
+        type: 'ASSIGNMENT',
+      },
+      {
+        studentId: student1.id,
+        teacherId: teacher1.id,
+        surahId: null,
+        grade: '90',
+        type: 'ORAL',
+        notes: 'تلاوة عامة / Overall recital',
+      },
     ],
     skipDuplicates: true,
   });
@@ -339,7 +366,7 @@ async function main() {
       {
         senderId: student1.id,
         receiverId: teacher1.id,
-        content: 'Hello teacher, when is the next exam?',
+        content: 'Hello teacher, when is the next revision session?',
         type: 'TEXT',
       },
       { senderId: teacher1.id, receiverId: student1.id, content: 'Next Monday at 10 AM', type: 'TEXT' },
@@ -347,12 +374,7 @@ async function main() {
     skipDuplicates: true,
   });
 
-  // Quran: Surahs
-  await prisma.surah.createMany({ data: SURAH_DATA, skipDuplicates: true });
-
   // MemorizationProgress for student1 (sample progress)
-  const surahs = await prisma.surah.findMany({ select: { id: true, number: true } });
-  const surahMap = new Map(surahs.map((s) => [s.number, s.id]));
   await prisma.revisionSchedule.createMany({
     data: [
       {

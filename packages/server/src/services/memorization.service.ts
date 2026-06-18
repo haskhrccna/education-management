@@ -1,5 +1,7 @@
 import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
+import { seedRevisionForCompletion } from './revision.service';
+import { recordActivity, evaluateMilestones } from './gamification.service';
 
 export const getSurahs = async () => {
   return prisma.surah.findMany({ orderBy: { number: 'asc' } });
@@ -50,10 +52,47 @@ export const updateProgress = async (
   const resolvedStatus =
     status ?? (memorizedAyahs >= surah.ayahCount ? 'COMPLETE' : memorizedAyahs > 0 ? 'IN_PROGRESS' : 'NOT_STARTED');
 
-  return prisma.memorizationProgress.upsert({
+  // Phase 4: detect the transition into COMPLETE so we seed the first
+  // SM-2 revision exactly once per surah. Re-reciting an already-complete
+  // surah must NOT pile up duplicate PENDING revisions.
+  const prev = await prisma.memorizationProgress.findUnique({
+    where: { userId_surahId: { userId: studentId, surahId } },
+    select: { status: true },
+  });
+  const transitionedIntoComplete = prev?.status !== 'COMPLETE' && resolvedStatus === 'COMPLETE';
+
+  const updated = await prisma.memorizationProgress.upsert({
     where: { userId_surahId: { userId: studentId, surahId } },
     create: { userId: studentId, surahId, memorizedAyahs, status: resolvedStatus },
     update: { memorizedAyahs, status: resolvedStatus, lastRecitedAt: new Date() },
     include: { surah: true },
   });
+
+  // Phase 4: seed the first SM-2 revision only on the transition into
+  // COMPLETE. seedRevisionForCompletion is idempotent on
+  // (userId, surahId, status='PENDING') and is best-effort — a failure
+  // here must not bubble up and break the teacher upsert.
+  if (transitionedIntoComplete) {
+    try {
+      await seedRevisionForCompletion(studentId, surahId);
+    } catch (err) {
+      // Swallow — the upsert succeeded, the revision is a side effect.
+      // Logging is the caller's job; intentionally not rethrowing.
+    }
+  }
+
+  // Phase 5: a teacher-recorded recitation update counts as daily
+  // activity. Best-effort — the upsert is the authoritative write.
+  try {
+    await recordActivity(studentId);
+    // Only re-evaluate when the memorization status actually changed
+    // (first_surah_memorized is the relevant badge; idempotent under UNIQUE).
+    if (transitionedIntoComplete) {
+      await evaluateMilestones(studentId);
+    }
+  } catch {
+    /* gamification is best-effort */
+  }
+
+  return updated;
 };

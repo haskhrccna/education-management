@@ -135,7 +135,9 @@ export default function TeacherStudentDetailScreen() {
                           {GRADE_TYPE_LABELS[g.type] ?? g.type}
                         </Text>
                       </View>
-                      <Text style={[styles.subject, { color: COLORS.textPrimary }]}>{g.subject}</Text>
+                      <Text style={[styles.subject, { color: COLORS.textPrimary }]}>
+                        {g.surah ? (isRTL ? g.surah.nameAr : g.surah.nameEn) : t('overallRecital')}
+                      </Text>
                       <Text style={[styles.meta, { color: COLORS.textSecondary }]}>
                         {new Date(g.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </Text>

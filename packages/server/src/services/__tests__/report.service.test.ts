@@ -41,7 +41,13 @@ describe('report.service', () => {
         email: 'ali@test.com',
       } as any);
       mockedPrisma.grade.findMany.mockResolvedValue([
-        { subject: 'Math', grade: '95', type: 'EXAM', notes: 'Great', createdAt: new Date() },
+        {
+          grade: '95',
+          type: 'EXAM',
+          notes: 'Great',
+          createdAt: new Date(),
+          surah: { nameAr: 'الفاتحة', nameEn: 'Al-Fatiha' },
+        },
       ] as any);
       mockedPrisma.recording.count.mockResolvedValue(3);
 

@@ -11,6 +11,7 @@ enum Role {
   STUDENT
   TEACHER
   ADMIN
+  PARENT
 }
 
 enum UserStatus {
@@ -18,6 +19,12 @@ enum UserStatus {
   APPROVED
   ACTIVE
   BANNED
+}
+
+enum ParentLinkStatus {
+  PENDING
+  APPROVED
+  DENIED
 }
 
 enum AppointmentStatus {
@@ -61,6 +68,13 @@ enum RevisionStatus {
   MISSED
 }
 
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
 model User {
   id                String     @id @default(uuid())
   email             String     @unique
@@ -97,6 +111,15 @@ model User {
   auditLogs              AuditLog[]
   teacherChangeRequestsAsStudent  TeacherChangeRequest[] @relation("StudentChangeRequests")
   teacherChangeRequestsAsTeacher  TeacherChangeRequest[] @relation("TeacherChangeRequests")
+  notifications                    Notification[]
+  sessionRecordsAsStudent         SessionRecord[] @relation("StudentSessionRecords")
+  sessionRecordsAsTeacher         SessionRecord[] @relation("TeacherSessionRecords")
+  parentLinksAsParent            ParentLink[]    @relation("ParentLinkParent")
+  parentLinksAsStudent            ParentLink[]    @relation("ParentLinkStudent")
+  parentLinksDecided              ParentLink[]    @relation("ParentLinkDecider")
+  // Phase 5 — Gamification
+  streak                          Streak?
+  userBadges                      UserBadge[]     @relation("UserBadgeOwner")
 
   @@index([email])
   @@index([role, status])
@@ -122,6 +145,8 @@ model Appointment {
   student User @relation("StudentAppointments", fields: [studentId], references: [id], onDelete: Cascade)
   teacher User @relation("TeacherAppointments", fields: [teacherId], references: [id], onDelete: Cascade)
 
+  sessionRecord SessionRecord?
+
   @@index([teacherId, requestedDate, status])
   @@index([studentId])
   @@index([status])
@@ -132,18 +157,20 @@ model Grade {
   id        String    @id @default(uuid())
   studentId String
   teacherId String
-  subject   String
+  surahId   Int?
   grade     String
   type      GradeType
   notes     String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  student User @relation("StudentGrades", fields: [studentId], references: [id], onDelete: Cascade)
-  teacher User @relation("TeacherGrades", fields: [teacherId], references: [id], onDelete: Cascade)
+  student User   @relation("StudentGrades", fields: [studentId], references: [id], onDelete: Cascade)
+  teacher User   @relation("TeacherGrades", fields: [teacherId], references: [id], onDelete: Cascade)
+  surah   Surah? @relation(fields: [surahId], references: [id], onDelete: SetNull)
 
   @@index([studentId])
   @@index([teacherId])
+  @@index([surahId])
   @@map("grades")
 }
 
@@ -241,6 +268,7 @@ model Surah {
   updatedAt              DateTime               @updatedAt
   memorizationProgresses MemorizationProgress[]
   revisionSchedules      RevisionSchedule[]
+  grades                 Grade[]
 
   @@index([juz])
   @@index([number])
@@ -274,6 +302,10 @@ model RevisionSchedule {
   scheduledFor DateTime
   status       RevisionStatus @default(PENDING)
   notedAt      DateTime?
+  // SM-2 spaced-repetition state (Phase 4).
+  interval     Int            @default(1)
+  easeFactor   Float          @default(2.5)
+  repetitions  Int            @default(0)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
@@ -284,6 +316,7 @@ model RevisionSchedule {
   @@index([userId, scheduledFor])
   @@index([surahId])
   @@index([scheduledFor, status])
+  @@index([userId, status, scheduledFor])
   @@map("revision_schedule")
 }
 
@@ -304,4 +337,115 @@ model TeacherChangeRequest {
   @@index([currentTeacherId])
   @@index([status])
   @@map("teacher_change_requests")
+}
+
+// ─── Phase 1 — Notification Center ───────────────────────────────────────────
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String
+  data      Json?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+// ─── Phase 2 — Attendance / Session Records ─────────────────────────────────
+
+model SessionRecord {
+  id            String           @id @default(cuid())
+  appointmentId String           @unique
+  studentId     String
+  teacherId     String
+  status        AttendanceStatus
+  notes         String?
+  recordedAt    DateTime         @default(now())
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  student     User        @relation("StudentSessionRecords", fields: [studentId], references: [id], onDelete: Cascade)
+  teacher     User        @relation("TeacherSessionRecords", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, recordedAt])
+  @@index([teacherId, recordedAt])
+  @@index([status])
+  @@map("session_records")
+}
+
+// ─── Phase 3 — Parent / Guardian role + dashboard ───────────────────────────
+
+model ParentLink {
+  id         String           @id @default(cuid())
+  parentId   String
+  studentId  String
+  status     ParentLinkStatus @default(PENDING)
+  reason     String?
+  requestedAt DateTime        @default(now())
+  decidedAt  DateTime?
+  decidedBy  String?
+
+  parent  User  @relation("ParentLinkParent",  fields: [parentId],  references: [id], onDelete: Cascade)
+  student User  @relation("ParentLinkStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  decider User? @relation("ParentLinkDecider", fields: [decidedBy], references: [id], onDelete: SetNull)
+
+  @@unique([parentId, studentId])
+  @@index([parentId, status])
+  @@index([studentId, status])
+  @@index([status])
+  @@map("parent_links")
+}
+
+// ─── Phase 5 — Gamification (streaks, badges, leaderboard) ──────────────────
+
+// Daily-activity streak per student. A "day" is UTC; the rule is
+//   same day          → currentStreak unchanged
+//   +1 day (consec)   → currentStreak += 1
+//   gap of >= 2 days  → currentStreak reset to 1
+model Streak {
+  userId         String   @id
+  currentStreak  Int      @default(0)
+  longestStreak  Int      @default(0)
+  lastActiveDate DateTime @db.Date
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([currentStreak])
+  @@map("streaks")
+}
+
+// Catalog of badges. The catalog is seeded once in
+// migrations/.../add_gamification/migration.sql and never mutated at runtime.
+model Badge {
+  id          String      @id @default(cuid())
+  code        String      @unique
+  name        String
+  description String
+  iconKey     String
+  createdAt   DateTime    @default(now())
+  userBadges  UserBadge[] @relation("BadgeAwards")
+
+  @@map("badges")
+}
+
+// Idempotent award record: UNIQUE(userId, badgeId) guarantees
+// `evaluateMilestones` can run on every activity without producing duplicates.
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  earnedAt  DateTime @default(now())
+
+  user  User  @relation("UserBadgeOwner", fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation("BadgeAwards",     fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([userId, earnedAt])
+  @@map("user_badges")
 }
