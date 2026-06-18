@@ -1,9 +1,9 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "Education Management API",
+    "title": "Quran Review API",
     "version": "1.0.0",
-    "description": "API for the Electronic Education Management System"
+    "description": "API for the Quran Memorization Review Platform"
   },
   "servers": [
     { "url": "/api/v1", "description": "Version 1" }

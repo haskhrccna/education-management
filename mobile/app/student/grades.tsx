@@ -69,7 +69,7 @@ export default function StudentGradesScreen() {
               },
             ]}
           >
-            {item.subject}
+            {item.surah ? (isRTL ? item.surah.nameAr : item.surah.nameEn) : t('overallRecital')}
           </Text>
           <Text style={[styles.meta, { color: COLORS.textSecondary }]}>
             {new Date(item.createdAt).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', {

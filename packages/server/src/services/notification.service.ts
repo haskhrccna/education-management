@@ -172,25 +172,26 @@ export const notifyAppointmentUpdate = async (studentId: string, appointment: Ap
 };
 
 interface GradeSummary extends Record<string, unknown> {
-  subject?: string;
+  surahName?: string;
   grade?: string;
 }
 
 export const notifyNewGrade = async (studentId: string, grade: GradeSummary) => {
   const user = await prisma.user.findUnique({ where: { id: studentId }, select: { firstName: true, email: true } });
   const name = user?.firstName || '';
+  const surahName = grade.surahName ?? 'overall recital';
 
   await notifyUser({
     userId: studentId,
     event: 'new_grade',
     data: grade,
     email: {
-      subject: `New grade: ${grade.subject}`,
-      body: `<p>A new grade has been posted for <strong>${escapeHtml(grade.subject)}</strong>: ${escapeHtml(grade.grade)}</p>`,
+      subject: `New grade in Surah ${surahName}`,
+      body: `<p>A new grade has been posted for Surah <strong>${escapeHtml(surahName)}</strong>: ${escapeHtml(grade.grade ?? '')}</p>`,
     },
     push: {
-      title: `New grade: ${grade.subject}`,
-      body: `You received ${grade.grade} in ${grade.subject}`,
+      title: `New grade in Surah ${surahName}`,
+      body: `You received ${grade.grade ?? ''} in Surah ${surahName}`,
     },
   });
 };

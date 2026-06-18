@@ -41,7 +41,7 @@ export const config = {
   emailPort: parseInt(process.env.EMAIL_PORT || '587', 10),
   emailUser: process.env.EMAIL_USER || '',
   emailPass: process.env.EMAIL_PASS || '',
-  emailFrom: process.env.EMAIL_FROM || 'noreply@education-app.com',
+  emailFrom: process.env.EMAIL_FROM || 'noreply@quran-review.app',
   clientUrl: process.env.CLIENT_URL,
   // Firebase Cloud Messaging — all optional; if any is missing, FCM is disabled gracefully
   firebaseProjectId: process.env.FIREBASE_PROJECT_ID || '',

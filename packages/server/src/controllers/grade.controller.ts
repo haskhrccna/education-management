@@ -4,14 +4,14 @@ import { auditLog } from '../lib/audit';
 
 export const createGrade = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { studentId, subject, grade, type, notes } = req.body;
-    const created = await gradeService.createGrade(req.userId!, studentId, subject, grade, type, notes);
+    const { studentId, surahId, grade, type, notes } = req.body;
+    const created = await gradeService.createGrade(req.userId!, studentId, surahId, grade, type, notes);
     await auditLog({
       userId: req.userId!,
       action: 'CREATE_GRADE',
       resourceType: 'GRADE',
       resourceId: created.id,
-      details: { studentId, subject, type },
+      details: { studentId, surahId, type },
       ipAddress: req.ip,
     });
     res.status(201).json(created);

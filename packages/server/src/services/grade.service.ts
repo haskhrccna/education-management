@@ -14,10 +14,14 @@ async function assertTeacherCanAccessStudent(teacherId: string, studentId: strin
   }
 }
 
+const gradeInclude = {
+  surah: { select: { id: true, number: true, nameAr: true, nameEn: true } },
+} as const;
+
 export const createGrade = async (
   teacherId: string,
   studentId: string,
-  subject: string,
+  surahId: number | null,
   gradeValue: string,
   type: GradeTypeInput,
   notes?: string
@@ -27,14 +31,26 @@ export const createGrade = async (
   if (student.role !== 'STUDENT') throw new AppError(400, 'Target user is not a student');
   await assertTeacherCanAccessStudent(teacherId, studentId);
 
+  // Quran-only: a non-null surahId must reference an existing Surah. We
+  // don't validate null because "overall" grades (e.g. end-of-term recital)
+  // intentionally skip the surah dimension.
+  if (surahId !== null) {
+    const surah = await prisma.surah.findUnique({ where: { id: surahId }, select: { id: true } });
+    if (!surah) throw new AppError(400, 'Surah not found');
+  }
+
   const grade = await prisma.grade.create({
-    data: { teacherId, studentId, subject, grade: gradeValue, type, notes: notes || null },
-    include: { student: { select: { firstName: true, lastName: true, email: true } } },
+    data: { teacherId, studentId, surahId, grade: gradeValue, type, notes: notes || null },
+    include: { ...gradeInclude, student: { select: { firstName: true, lastName: true, email: true } } },
   });
 
-  // Notify student of new grade
   const { notifyNewGrade } = await import('./notification.service');
-  await notifyNewGrade(studentId, grade);
+  // Surah comes from the include; fall back to Arabic display of the
+  // surah number, then to a Quran-domain default if no surah was attached
+  // (overall recital). Keeps the notification human-readable for the
+  // email + push payloads.
+  const surahName = grade.surah?.nameAr ?? (grade.surahId ? `Surah #${grade.surahId}` : 'Overall Recital');
+  await notifyNewGrade(studentId, { ...grade, surahName });
 
   return grade;
 };
@@ -43,6 +59,7 @@ export const getMyGrades = async (studentId: string) => {
   return await prisma.grade.findMany({
     where: { studentId },
     orderBy: { createdAt: 'desc' },
+    include: gradeInclude,
   });
 };
 
@@ -54,5 +71,6 @@ export const getStudentGrades = async (callerId: string, callerRole: string, stu
   return await prisma.grade.findMany({
     where: { studentId },
     orderBy: { createdAt: 'desc' },
+    include: gradeInclude,
   });
 };

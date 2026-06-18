@@ -44,7 +44,10 @@ export const ManageAppointmentSchema = z.object({
 
 export const CreateGradeSchema = z.object({
   studentId: uuidSchema,
-  subject: z.string().min(1).max(100),
+  // Quran-only: every grade is tied to a Surah. The Surah picker in the
+  // mobile form populates this; null is allowed for "overall" assessments
+  // that don't pin to a specific surah (e.g. end-of-term recital).
+  surahId: z.number().int().positive().nullable(),
   grade: z.string().max(10),
   type: z.nativeEnum(GradeType),
   notes: z.string().max(500).optional(),

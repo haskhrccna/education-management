@@ -1,12 +1,7 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
 import { paginate } from '../middleware/pagination.middleware';
-import {
-  getNotifications,
-  markOneRead,
-  markEveryRead,
-  getUnreadCount,
-} from '../controllers/notification.controller';
+import { getNotifications, markOneRead, markEveryRead, getUnreadCount } from '../controllers/notification.controller';
 
 const router = Router();
 

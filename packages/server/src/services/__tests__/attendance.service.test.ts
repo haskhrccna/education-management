@@ -35,9 +35,7 @@ describe('attendance.service', () => {
     };
 
     it('rejects an invalid status enum value', async () => {
-      await expect(
-        recordAttendance('apt-1', 'teacher-1', 'FOO' as any)
-      ).rejects.toBeInstanceOf(AppError);
+      await expect(recordAttendance('apt-1', 'teacher-1', 'FOO' as any)).rejects.toBeInstanceOf(AppError);
       expect(m.sessionRecord.create).not.toHaveBeenCalled();
     });
 
@@ -158,7 +156,7 @@ describe('attendance.service', () => {
       });
     });
 
-    it('rejects a student reading another student\'s attendance', async () => {
+    it("rejects a student reading another student's attendance", async () => {
       await expect(getStudentAttendance('student-1', 'STUDENT', 'student-2')).rejects.toThrow(
         'You can only view your own attendance'
       );

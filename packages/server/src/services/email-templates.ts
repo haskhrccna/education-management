@@ -30,13 +30,13 @@ function baseTemplate(content: string, lang: 'ar' | 'en' = 'en'): string {
 </head>
 <body>
   <div class="header">
-    <h1>📚 ${lang === 'ar' ? 'التعليم الإلكتروني' : 'Electronic Education'}</h1>
+    <h1>📖 ${lang === 'ar' ? 'منصة مراجعة القرآن' : 'Quran Review Platform'}</h1>
   </div>
   <div class="content" style="text-align: ${align};">
     ${content}
   </div>
   <div class="footer">
-    <p>${lang === 'ar' ? '© 2026 منصة التعليم الإلكتروني' : '© 2026 Electronic Education Platform'}</p>
+    <p>${lang === 'ar' ? '© 2026 منصة مراجعة القرآن' : '© 2026 Quran Review Platform'}</p>
   </div>
 </body>
 </html>`;
@@ -88,14 +88,14 @@ export const templates = {
     return baseTemplate(content, lang);
   },
 
-  newGrade: (vars: TemplateVars & { subject: string; grade: string }, lang: 'ar' | 'en' = 'en') => {
+  newGrade: (vars: TemplateVars & { surahName: string; grade: string }, lang: 'ar' | 'en' = 'en') => {
     const name = escapeHtml(vars.name);
-    const subject = escapeHtml(vars.subject);
+    const surahName = escapeHtml(vars.surahName);
     const grade = escapeHtml(vars.grade);
     const content =
       lang === 'ar'
-        ? `<h2>درجة جديدة</h2><p>مرحباً ${name}،</p><p>تم إضافة درجة جديدة لمادة <strong>${subject}</strong>: <strong>${grade}</strong></p>`
-        : `<h2>New Grade Posted</h2><p>Hi ${name},</p><p>A new grade has been posted for <strong>${subject}</strong>: <strong>${grade}</strong></p>`;
+        ? `<h2>درجة جديدة</h2><p>مرحباً ${name}،</p><p>تم إضافة درجة جديدة في سورة <strong>${surahName}</strong>: <strong>${grade}</strong></p>`
+        : `<h2>New Grade Posted</h2><p>Hi ${name},</p><p>A new grade has been posted for Surah <strong>${surahName}</strong>: <strong>${grade}</strong></p>`;
     return baseTemplate(content, lang);
   },
 

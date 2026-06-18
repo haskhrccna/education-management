@@ -157,18 +157,20 @@ model Grade {
   id        String    @id @default(uuid())
   studentId String
   teacherId String
-  subject   String
+  surahId   Int?
   grade     String
   type      GradeType
   notes     String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  student User @relation("StudentGrades", fields: [studentId], references: [id], onDelete: Cascade)
-  teacher User @relation("TeacherGrades", fields: [teacherId], references: [id], onDelete: Cascade)
+  student User   @relation("StudentGrades", fields: [studentId], references: [id], onDelete: Cascade)
+  teacher User   @relation("TeacherGrades", fields: [teacherId], references: [id], onDelete: Cascade)
+  surah   Surah? @relation(fields: [surahId], references: [id], onDelete: SetNull)
 
   @@index([studentId])
   @@index([teacherId])
+  @@index([surahId])
   @@map("grades")
 }
 
@@ -266,6 +268,7 @@ model Surah {
   updatedAt              DateTime               @updatedAt
   memorizationProgresses MemorizationProgress[]
   revisionSchedules      RevisionSchedule[]
+  grades                 Grade[]
 
   @@index([juz])
   @@index([number])

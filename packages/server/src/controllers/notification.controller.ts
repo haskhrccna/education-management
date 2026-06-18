@@ -1,11 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../middleware/error.middleware';
-import {
-  listNotifications,
-  markRead,
-  markAllRead,
-  unreadCount,
-} from '../services/notification.service';
+import { listNotifications, markRead, markAllRead, unreadCount } from '../services/notification.service';
 import { paginatedResponse, PaginatedRequest } from '../middleware/pagination.middleware';
 
 export const getNotifications = async (req: PaginatedRequest, res: Response, next: NextFunction): Promise<void> => {

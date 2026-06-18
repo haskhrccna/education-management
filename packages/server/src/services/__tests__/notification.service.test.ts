@@ -12,13 +12,7 @@ jest.mock('../../services/email.service', () => ({ sendEmail: jest.fn().mockReso
 jest.mock('../../services/fcm.service', () => ({ sendPushToUser: jest.fn().mockResolvedValue(undefined) }));
 
 import { prisma } from '../../prisma/client';
-import {
-  notifyUser,
-  listNotifications,
-  markRead,
-  markAllRead,
-  unreadCount,
-} from '../notification.service';
+import { notifyUser, listNotifications, markRead, markAllRead, unreadCount } from '../notification.service';
 
 const m = prisma as unknown as DeepMockProxy<PrismaClient>;
 
@@ -53,12 +47,12 @@ describe('notification.service', () => {
       await notifyUser({
         userId: 'user-2',
         event: 'new_grade',
-        data: { subject: 'Tajweed' },
-        email: { subject: 'New grade: Tajweed', body: '<p>A new grade</p>' },
+        data: { surahName: 'Al-Fatiha' },
+        email: { subject: 'New grade in Surah Al-Fatiha', body: '<p>A new grade</p>' },
       });
 
       const arg = m.notification.create.mock.calls[0][0];
-      expect(arg.data.title).toBe('New grade: Tajweed');
+      expect(arg.data.title).toBe('New grade in Surah Al-Fatiha');
       // HTML stripped, trimmed, ≤ 280 chars
       expect(arg.data.body).toBe('A new grade');
     });

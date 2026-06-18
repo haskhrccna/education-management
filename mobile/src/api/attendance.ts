@@ -27,16 +27,11 @@ export interface SessionRecord {
 }
 
 function notWired() {
-  throw new Error(
-    'mobile/src/api/attendance.ts: not yet wired — waiting on P0 #2 fix in ./client.ts'
-  );
+  throw new Error('mobile/src/api/attendance.ts: not yet wired — waiting on P0 #2 fix in ./client.ts');
 }
 
 export const attendanceApi = {
-  record: async (
-    _appointmentId: string,
-    _status: AttendanceStatus,
-    _notes?: string
-  ): Promise<SessionRecord> => notWired(),
+  record: async (_appointmentId: string, _status: AttendanceStatus, _notes?: string): Promise<SessionRecord> =>
+    notWired(),
   list: async (_studentId?: string): Promise<SessionRecord[]> => notWired(),
 };

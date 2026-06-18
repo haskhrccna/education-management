@@ -35,8 +35,7 @@ export const listAttendance = async (req: Request, res: Response, next: NextFunc
     if (!callerId || !callerRole) throw new AppError(401, 'Authentication required');
 
     const studentId =
-      (typeof req.query.studentId === 'string' && req.query.studentId) ||
-      (callerRole === 'STUDENT' ? callerId : null);
+      (typeof req.query.studentId === 'string' && req.query.studentId) || (callerRole === 'STUDENT' ? callerId : null);
     if (!studentId) {
       throw new AppError(400, 'studentId is required (or call without it as a student to fetch your own)');
     }

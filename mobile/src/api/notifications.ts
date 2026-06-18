@@ -34,9 +34,7 @@ export interface PaginatedNotifications {
 }
 
 function notWired() {
-  throw new Error(
-    'mobile/src/api/notifications.ts: not yet wired — waiting on P0 #2 fix in ./client.ts'
-  );
+  throw new Error('mobile/src/api/notifications.ts: not yet wired — waiting on P0 #2 fix in ./client.ts');
 }
 
 export const notificationsApi = {

@@ -23,7 +23,13 @@ export const generatePDFReport = async (teacherId: string, studentId: string, su
       tx.user.findUnique({ where: { id: studentId }, select: { firstName: true, lastName: true, email: true } }),
       tx.grade.findMany({
         where: { studentId, teacherId },
-        select: { subject: true, grade: true, type: true, notes: true, createdAt: true },
+        select: {
+          grade: true,
+          type: true,
+          notes: true,
+          createdAt: true,
+          surah: { select: { nameAr: true, nameEn: true } },
+        },
       }),
       tx.recording.count({ where: { studentId } }),
     ]);
@@ -41,8 +47,8 @@ export const generatePDFReport = async (teacherId: string, studentId: string, su
     const stream = fs.createWriteStream(docPath);
     doc.pipe(stream);
 
-    // Header (Arabic)
-    doc.fontSize(24).text('التعليم الإلكتروني', { align: 'center' }).moveDown(0.5);
+    // Header (Arabic) — Quran Review branding
+    doc.fontSize(24).text('مراجعة القرآن', { align: 'center' }).moveDown(0.5);
     doc.fontSize(16).text('تقرير تقدم الطالب / Student Report', { align: 'center' }).moveDown();
     doc.fontSize(12).text('======================================================', { align: 'center' }).moveDown(0.5);
 
@@ -58,9 +64,10 @@ export const generatePDFReport = async (teacherId: string, studentId: string, su
     } else {
       grades.forEach((g) => {
         const typeLabel = gradeTypeArabic(g.type);
+        const surahLabel = g.surah ? `${g.surah.nameAr} (${g.surah.nameEn})` : 'تلاوة عامة / Overall Recital';
         doc
           .fontSize(10)
-          .text(`- ${g.subject}: ${g.grade} (${typeLabel})${g.notes ? ` — ${g.notes}` : ''}`)
+          .text(`- ${surahLabel}: ${g.grade} (${typeLabel})${g.notes ? ` — ${g.notes}` : ''}`)
           .moveDown(0.3);
       });
     }

@@ -29,10 +29,6 @@ router.put(
 );
 
 // Teacher records attendance for one of their appointments
-router.post(
-  '/:id/attendance',
-  authorize(UserRole.TEACHER),
-  attendanceController.recordAttendance
-);
+router.post('/:id/attendance', authorize(UserRole.TEACHER), attendanceController.recordAttendance);
 
 export default router;

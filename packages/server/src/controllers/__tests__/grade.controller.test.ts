@@ -36,12 +36,11 @@ describe('grade.controller', () => {
     it('should create grade for valid student', async () => {
       mockedPrisma.user.findUnique.mockResolvedValue({ id: 'student-1', role: 'STUDENT' } as any);
       mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appointment-1' } as any);
+      mockedPrisma.surah.findUnique.mockResolvedValue({ id: 1 } as any);
       mockedPrisma.grade.create.mockResolvedValue({ id: 'grade-1' } as any);
 
       const app = createTestApp('teacher-1', 'TEACHER');
-      const res = await request(app)
-        .post('/')
-        .send({ studentId: 'student-1', subject: 'Math', grade: '95', type: 'EXAM' });
+      const res = await request(app).post('/').send({ studentId: 'student-1', surahId: 1, grade: '95', type: 'EXAM' });
 
       expect(res.status).toBe(201);
       expect(res.body.id).toBe('grade-1');
@@ -55,9 +54,7 @@ describe('grade.controller', () => {
       } as any);
 
       const app = createTestApp('teacher-1', 'TEACHER');
-      const res = await request(app)
-        .post('/')
-        .send({ studentId: 'student-1', subject: 'Math', grade: '95', type: 'EXAM' });
+      const res = await request(app).post('/').send({ studentId: 'student-1', surahId: 1, grade: '95', type: 'EXAM' });
 
       expect(res.status).toBe(404);
     });
