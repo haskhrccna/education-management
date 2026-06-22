@@ -5,7 +5,7 @@ import type { RevisionStatus } from '../services/revision.service';
 export const getMyRevisions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const surahId = req.query.surahId ? parseInt(req.query.surahId as string, 10) : undefined;
-    if (surahId && isNaN(surahId)) {
+    if (surahId !== undefined && isNaN(surahId)) {
       res.status(400).json({ success: false, error: 'Invalid surahId' });
       return;
     }
