@@ -7,5 +7,6 @@ router.use(fileAuthenticate);
 
 router.get('/recordings/:id', fileController.downloadRecording);
 router.get('/reports/:id', fileController.downloadReport);
+router.get('/certificates/:id', fileController.downloadCertificate);
 
 export default router;

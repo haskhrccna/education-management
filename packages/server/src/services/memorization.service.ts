@@ -2,6 +2,8 @@ import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
 import { seedRevisionForCompletion } from './revision.service';
 import { recordActivity, evaluateMilestones } from './gamification.service';
+import { generateCertificatePDF } from './report.service';
+import { logger } from '../lib/logger';
 
 export const getSurahs = async () => {
   return prisma.surah.findMany({ orderBy: { number: 'asc' } });
@@ -92,6 +94,32 @@ export const updateProgress = async (
     }
   } catch {
     /* gamification is best-effort */
+  }
+
+  // Phase 6: check if the student has now completed all 114 surahs.
+  // Issue a certificate if so (idempotent: skip if one was already issued today).
+  if (transitionedIntoComplete) {
+    try {
+      const [completeCount, total] = await Promise.all([
+        prisma.memorizationProgress.count({ where: { userId: studentId, status: 'COMPLETE' } }),
+        prisma.surah.count(),
+      ]);
+      if (completeCount >= total && total > 0) {
+        const todayStart = new Date();
+        todayStart.setUTCHours(0, 0, 0, 0);
+        const alreadyIssued = await prisma.certificate.findFirst({
+          where: { studentId, issuedAt: { gte: todayStart } },
+          select: { id: true },
+        });
+        if (!alreadyIssued) {
+          const pdfUrl = await generateCertificatePDF(studentId);
+          await prisma.certificate.create({ data: { studentId, pdfUrl } });
+          logger.info({ studentId }, 'Hifz completion certificate issued');
+        }
+      }
+    } catch (err) {
+      logger.error({ err, studentId }, 'Certificate generation failed (best-effort — upsert succeeded)');
+    }
   }
 
   return updated;

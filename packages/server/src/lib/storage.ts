@@ -56,3 +56,4 @@ class LocalStorageAdapter implements StorageAdapter {
 
 export const uploadStorage = new LocalStorageAdapter(path.join(process.cwd(), 'uploads'));
 export const reportStorage = new LocalStorageAdapter(path.join(process.cwd(), 'reports'));
+export const certificateStorage = new LocalStorageAdapter(path.join(process.cwd(), 'certificates'));

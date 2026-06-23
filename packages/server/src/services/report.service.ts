@@ -111,3 +111,85 @@ function gradeTypeArabic(t: string): string {
   };
   return map[t] || t;
 }
+
+const CERTS_DIR = path.join(process.cwd(), 'certificates');
+
+export const ensureCertsDir = async () => {
+  try {
+    await fs.promises.access(CERTS_DIR);
+  } catch {
+    await fs.promises.mkdir(CERTS_DIR, { recursive: true });
+  }
+};
+
+export const generateCertificatePDF = async (studentId: string): Promise<string> => {
+  await ensureCertsDir();
+
+  const student = await prisma.user.findUnique({
+    where: { id: studentId },
+    select: { firstName: true, lastName: true, email: true },
+  });
+  if (!student) throw new Error('Student not found');
+
+  const fileName = `certificate-${studentId}-${Date.now()}.pdf`;
+  const docPath = path.join(CERTS_DIR, fileName);
+
+  await new Promise<void>((resolve, reject) => {
+    const doc = new PDFDocument({ size: 'A4', layout: 'landscape', autoFirstPage: true });
+    const stream = fs.createWriteStream(docPath);
+    doc.pipe(stream);
+
+    const { width, height } = doc.page;
+    const margin = 40;
+
+    // Decorative border
+    doc.rect(margin, margin, width - 2 * margin, height - 2 * margin).stroke('#b8860b');
+    doc.rect(margin + 8, margin + 8, width - 2 * (margin + 8), height - 2 * (margin + 8)).stroke('#b8860b');
+
+    // Title
+    doc.moveDown(2);
+    doc.fontSize(32).fillColor('#1a1a2e').text('ختم القرآن الكريم', { align: 'center' }).moveDown(0.5);
+    doc.fontSize(20).text('Certificate of Quran Completion', { align: 'center' }).moveDown(1.5);
+
+    // Divider
+    doc
+      .moveTo(margin + 60, doc.y)
+      .lineTo(width - margin - 60, doc.y)
+      .stroke('#b8860b')
+      .moveDown(1);
+
+    // Body
+    doc.fontSize(14).fillColor('#333').text('This certifies that', { align: 'center' }).moveDown(0.5);
+    doc
+      .fontSize(22)
+      .fillColor('#1a1a2e')
+      .text(`${student.firstName} ${student.lastName}`, { align: 'center', underline: true })
+      .moveDown(0.5);
+    doc
+      .fontSize(14)
+      .fillColor('#333')
+      .text('has successfully memorized and reviewed all 114 Surahs of the Holy Quran', {
+        align: 'center',
+      })
+      .moveDown(0.5);
+    doc
+      .fontSize(14)
+      .text(`مَعَ تَمَّامِ الْحِفْظِ وَالْمُرَاجَعَةِ لِجَمِيعِ سُوَرِ الْقُرْآنِ الْكَرِيمِ`, { align: 'center' })
+      .moveDown(1.5);
+
+    // Date
+    doc
+      .fontSize(11)
+      .fillColor('#666')
+      .text(`Issued: ${new Date().toLocaleDateString('en-GB')}`, { align: 'center' });
+
+    doc.end();
+    stream.on('finish', resolve);
+    stream.on('error', (err) => {
+      logger.error({ err }, 'Certificate PDF generation failed');
+      reject(err);
+    });
+  });
+
+  return `/certificates/${fileName}`;
+};

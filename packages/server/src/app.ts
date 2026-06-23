@@ -21,6 +21,9 @@ import notificationRoutes from './routes/notification.routes';
 import attendanceRoutes from './routes/attendance.routes';
 import parentRoutes from './routes/parent.routes';
 import gamificationRoutes from './routes/gamification.routes';
+import analyticsRoutes from './routes/analytics.routes';
+import certificateRoutes from './routes/certificate.routes';
+import halaqaRoutes from './routes/halaqa.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { authenticate, authorize } from './middleware/auth.middleware';
 import { UserRole } from '@quran-review/shared';
@@ -98,6 +101,9 @@ app.use('/api/v1/notifications', authenticate, standardLimiter, notificationRout
 app.use('/api/v1/attendance', authenticate, standardLimiter, attendanceRoutes);
 app.use('/api/v1/parents', authenticate, standardLimiter, parentRoutes);
 app.use('/api/v1/gamification', authenticate, standardLimiter, gamificationRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/certificates', certificateRoutes);
+app.use('/api/v1/halaqa', halaqaRoutes);
 
 // Legacy redirects (optional - remove after mobile update)
 // Mirroring exact same middleware stack as v1 for consistent protection

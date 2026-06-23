@@ -1,3 +1,32 @@
+# Active Work: Features A → B → C → D (2026-06-22)
+
+## A — Admin Analytics Endpoint
+- [ ] `analytics.service.ts` — surahMissRates, teacherLoad, weeklyActiveStudents
+- [ ] `analytics.controller.ts` — thin GET handler
+- [ ] `analytics.routes.ts` — admin-only GET /admin/analytics
+- [ ] mount in app.ts
+
+## B — Hifz Completion Certificate
+- [ ] Add `Certificate` model to schema.prisma + migrate
+- [ ] `generateCertificatePDF(studentId)` in report.service.ts
+- [ ] Hook in memorization.service.ts updateProgress (best-effort)
+- [ ] `certificate.controller.ts` + `certificate.routes.ts`
+- [ ] `downloadCertificate` in file.controller.ts + file.routes.ts
+- [ ] mount in app.ts
+
+## C — Load-aware SM-2 Scheduling
+- [ ] `findLightDay()` helper in revision.service.ts
+- [ ] Call in updateRevision after computing nextDue
+
+## D — Group Halaqa WebRTC Signaling
+- [ ] HalaqaStatus enum + HalaqaRoom + HalaqaParticipant in schema.prisma + migrate
+- [ ] `halaqa.service.ts` — createRoom, listRooms, getRoom, startRoom, endRoom, recordParticipant
+- [ ] `halaqa.controller.ts` + `halaqa.routes.ts`
+- [ ] Socket events in socket.service.ts (join/leave/offer/answer/ice relay)
+- [ ] mount in app.ts
+
+---
+
 # Feature Roadmap Execution — Phase Tracker
 
 > Source: `tasks/feature-roadmap.md` (6 phases, ~20 days total).

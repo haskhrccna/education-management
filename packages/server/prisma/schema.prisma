@@ -120,6 +120,10 @@ model User {
   // Phase 5 — Gamification
   streak                          Streak?
   userBadges                      UserBadge[]     @relation("UserBadgeOwner")
+  // Phase 6 — Hifz certificates + Halaqa rooms
+  certificates                    Certificate[]
+  halaqaRoomsAsTeacher            HalaqaRoom[]      @relation("HalaqaRoomTeacher")
+  halaqaParticipations            HalaqaParticipant[]
 
   @@index([email])
   @@index([role, status])
@@ -448,4 +452,59 @@ model UserBadge {
   @@unique([userId, badgeId])
   @@index([userId, earnedAt])
   @@map("user_badges")
+}
+
+// Auto-issued when a student's MemorizationProgress reaches COMPLETE for all 114 surahs.
+model Certificate {
+  id        String   @id @default(uuid())
+  studentId String
+  pdfUrl    String
+  issuedAt  DateTime @default(now())
+
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@map("certificates")
+}
+
+enum HalaqaStatus {
+  WAITING
+  LIVE
+  ENDED
+}
+
+// A live group session room created by a teacher.
+model HalaqaRoom {
+  id        String       @id @default(uuid())
+  teacherId String
+  title     String
+  status    HalaqaStatus @default(WAITING)
+  startedAt DateTime?
+  endedAt   DateTime?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  teacher      User                @relation("HalaqaRoomTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  participants HalaqaParticipant[]
+
+  @@index([teacherId, status])
+  @@index([status, createdAt])
+  @@map("halaqa_rooms")
+}
+
+// Tracks who joined/left a HalaqaRoom (for attendance and signaling).
+model HalaqaParticipant {
+  id       String    @id @default(uuid())
+  roomId   String
+  userId   String
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime?
+
+  room HalaqaRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@index([roomId])
+  @@index([userId])
+  @@map("halaqa_participants")
 }

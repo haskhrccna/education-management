@@ -72,7 +72,6 @@ export const exportGradesCsv = async (
     studentName: `${g.student.firstName} ${g.student.lastName}`,
     studentEmail: g.student.email,
     teacherName: `${g.teacher.firstName} ${g.teacher.lastName}`,
-    subject: g.subject,
     grade: g.grade,
     type: g.type,
     notes: g.notes || '',

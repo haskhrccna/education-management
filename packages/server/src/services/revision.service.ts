@@ -188,8 +188,9 @@ export const updateRevision = async (
     { interval: revision.interval, easeFactor: revision.easeFactor, repetitions: revision.repetitions },
     quality
   );
-  const nextDue = new Date();
-  nextDue.setUTCDate(nextDue.getUTCDate() + next.interval);
+  const baseDate = new Date();
+  baseDate.setUTCDate(baseDate.getUTCDate() + next.interval);
+  const nextDue = await findLightDay(revision.userId, baseDate);
 
   await prisma.revisionSchedule.create({
     data: {
@@ -254,6 +255,32 @@ export const deleteRevision = async (
   await prisma.revisionSchedule.delete({ where: { id: revisionId } });
   return { success: true };
 };
+
+/**
+ * Shifts a proposed revision date forward (day by day, up to MAX_LOOKAHEAD)
+ * until the student's PENDING revision count for that UTC day is below DAILY_LIMIT.
+ * This prevents burnout caused by SM-2 clustering many cards on the same day.
+ */
+const DAILY_LIMIT = 5;
+const MAX_LOOKAHEAD = 7;
+
+async function findLightDay(userId: string, proposedDate: Date): Promise<Date> {
+  const candidate = new Date(proposedDate);
+  for (let shift = 0; shift < MAX_LOOKAHEAD; shift++) {
+    const dayStart = new Date(candidate);
+    dayStart.setUTCHours(0, 0, 0, 0);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
+
+    const count = await prisma.revisionSchedule.count({
+      where: { userId, status: 'PENDING', scheduledFor: { gte: dayStart, lt: dayEnd } },
+    });
+
+    if (count < DAILY_LIMIT) return candidate;
+    candidate.setUTCDate(candidate.getUTCDate() + 1);
+  }
+  return candidate;
+}
 
 async function assertTeacherCanAccessStudent(teacherId: string, studentId: string) {
   const [appointment, teacher, student] = await Promise.all([
