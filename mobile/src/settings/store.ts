@@ -1,6 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18next from 'i18next';
 import { create } from 'zustand';
+import { mmkvStorage } from '../storage/mmkvStorage';
 
 export type ThemeColor = 'green' | 'blue' | 'purple' | 'dark';
 export type FontSize = 'small' | 'medium' | 'large';
@@ -13,13 +13,13 @@ interface SettingsState {
   compactView: boolean;
   language: 'ar' | 'en';
   isLoaded: boolean;
-  setTheme: (theme: ThemeColor) => Promise<void>;
-  setFontSize: (size: FontSize) => Promise<void>;
-  setDarkMode: (enabled: boolean) => Promise<void>;
-  setNotifications: (enabled: boolean) => Promise<void>;
-  setCompactView: (enabled: boolean) => Promise<void>;
-  setLanguage: (lng: 'ar' | 'en') => Promise<void>;
-  loadSettings: () => Promise<void>;
+  setTheme: (theme: ThemeColor) => void;
+  setFontSize: (size: FontSize) => void;
+  setDarkMode: (enabled: boolean) => void;
+  setNotifications: (enabled: boolean) => void;
+  setCompactView: (enabled: boolean) => void;
+  setLanguage: (lng: 'ar' | 'en') => void;
+  loadSettings: () => void;
 }
 
 const STORAGE_KEY = '@quran_review_settings';
@@ -37,62 +37,58 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   ...DEFAULT_SETTINGS,
   isLoaded: false,
 
-  setTheme: async (theme) => {
+  setTheme: (theme) => {
     set({ theme });
-    await saveSettings({ ...get(), theme });
+    saveSettings({ ...get(), theme });
   },
 
-  setFontSize: async (fontSize) => {
+  setFontSize: (fontSize) => {
     set({ fontSize });
-    await saveSettings({ ...get(), fontSize });
+    saveSettings({ ...get(), fontSize });
   },
 
-  setDarkMode: async (darkMode) => {
+  setDarkMode: (darkMode) => {
     set({ darkMode });
-    await saveSettings({ ...get(), darkMode });
+    saveSettings({ ...get(), darkMode });
   },
 
-  setNotifications: async (notifications) => {
+  setNotifications: (notifications) => {
     set({ notifications });
-    await saveSettings({ ...get(), notifications });
+    saveSettings({ ...get(), notifications });
   },
 
-  setCompactView: async (compactView) => {
+  setCompactView: (compactView) => {
     set({ compactView });
-    await saveSettings({ ...get(), compactView });
+    saveSettings({ ...get(), compactView });
   },
 
-  setLanguage: async (language) => {
+  setLanguage: (language) => {
     set({ language });
-    await i18next.changeLanguage(language);
-    await saveSettings({ ...get(), language });
+    i18next.changeLanguage(language);
+    saveSettings({ ...get(), language });
   },
 
-  loadSettings: async () => {
-    try {
-      const stored = await AsyncStorage.getItem(STORAGE_KEY);
-      if (stored) {
+  loadSettings: () => {
+    const stored = mmkvStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
         const parsed = JSON.parse(stored);
         set({ ...parsed, isLoaded: true });
         if (parsed.language && parsed.language !== i18next.language) {
-          await i18next.changeLanguage(parsed.language);
+          i18next.changeLanguage(parsed.language);
         }
-      } else {
+      } catch {
         set({ isLoaded: true });
       }
-    } catch {
+    } else {
       set({ isLoaded: true });
     }
   },
 }));
 
-async function saveSettings(settings: any) {
-  try {
-    const { isLoaded, loadSettings, ...settingsToSave } = settings;
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(settingsToSave));
-  } catch (err) {
-    console.error('Failed to save settings:', err);
-  }
+function saveSettings(settings: any) {
+  const { isLoaded, loadSettings, ...settingsToSave } = settings;
+  mmkvStorage.setItem(STORAGE_KEY, JSON.stringify(settingsToSave));
 }
 
 // Font size scale factors
