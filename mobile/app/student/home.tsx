@@ -16,6 +16,7 @@ import {
   AppCard,
   Avatar,
   IconButton,
+  AppText,
   MetricTile,
   ProgressBar,
   SectionHeader,
@@ -417,6 +418,15 @@ export default function StudentHomeScreen() {
             />
           ) : null}
         </AppCard>
+        <SectionHeader colors={COLORS} title={isAr ? 'المصحف' : 'Mushaf'} />
+        <TouchableOpacity
+          style={[styles.quickCard, { backgroundColor: COLORS.surface, alignItems: 'center' }]}
+          onPress={() => router.push('/student/mushaf')}
+        >
+          <Ionicons name="book-outline" size={28} color={COLORS.primary} />
+          <Text style={[styles.rowTitle, { marginTop: SPACING.xs }]}>{isAr ? 'قارئ المصحف' : 'Mushaf reader'}</Text>
+        </TouchableOpacity>
+
       </ScrollView>
       <BottomNav role="student" active="home" />
     </View>
@@ -428,6 +438,14 @@ const createStyles = (COLORS: ReturnType<typeof getColors>) =>
     screen: {
       flex: 1,
     },
+    quickCard: {
+      borderRadius: RADIUS.md,
+      padding: SPACING.md,
+      marginBottom: SPACING.md,
+      borderWidth: 1,
+      borderColor: COLORS.borderSubtle,
+    },
+
     content: {
       paddingHorizontal: SPACING.lg,
       paddingBottom: SPACING['3xl'],

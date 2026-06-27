@@ -24,6 +24,7 @@ import gamificationRoutes from './routes/gamification.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import certificateRoutes from './routes/certificate.routes';
 import halaqaRoutes from './routes/halaqa.routes';
+import mushafRoutes from './routes/mushaf.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { authenticate, authorize } from './middleware/auth.middleware';
 import { UserRole } from '@quran-review/shared';

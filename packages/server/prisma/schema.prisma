@@ -268,11 +268,13 @@ model Surah {
   nameEn                 String
   ayahCount              Int
   juz                    Int // Juz number (1-30)
+  pages                  Int[]                  @default([])
   createdAt              DateTime               @default(now())
   updatedAt              DateTime               @updatedAt
   memorizationProgresses MemorizationProgress[]
   revisionSchedules      RevisionSchedule[]
   grades                 Grade[]
+  ayahs                  Ayah[]
 
   @@index([juz])
   @@index([number])
@@ -507,4 +509,23 @@ model HalaqaParticipant {
   @@index([roomId])
   @@index([userId])
   @@map("halaqa_participants")
+}
+
+
+model Ayah {
+  id          Int      @id @default(autoincrement())
+  number      Int
+  surahId     Int
+  page        Int
+  juz         Int
+  audioUrl    String?
+  text        String?
+  createdAt   DateTime @default(now())
+
+  surah Surah @relation(fields: [surahId], references: [id], onDelete: Cascade)
+
+  @@unique([surahId, number])
+  @@index([surahId])
+  @@index([page])
+  @@map("ayahs")
 }

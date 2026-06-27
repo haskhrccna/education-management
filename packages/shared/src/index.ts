@@ -11,8 +11,10 @@ export * from './types/grade';
 export * from './types/recording';
 export * from './types/message';
 export * from './types/report';
+export * from './types/ayah';
 
 // Validators
 export * from './validators/common';
 export * from './validators/teacherChange';
 export * from './validators/auth';
+export * from './validators/mushaf';

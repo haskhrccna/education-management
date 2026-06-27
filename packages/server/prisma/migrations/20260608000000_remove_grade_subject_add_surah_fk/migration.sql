@@ -1,45 +1,32 @@
--- Make the app strictly Quran-only.
---
--- The Grade.subject column was a free-text TEXT field that allowed teachers to
--- grade on any subject (e.g. "Mathematics", "Physics", "English") — a
--- non-Quran data path. Replace it with a Surah foreign key so every grade
--- is implicitly Quran-domain by structure, not by label discipline.
---
--- Steps:
---   1. Add the nullable surahId column.
---   2. Best-effort backfill from the student's most-recent COMPLETE
---      MemorizationProgress row, so any pre-existing grades in dev get
---      a sensible default. (In production this is a one-shot data fix
---      and the assignment is reviewed by the deployer.)
---   3. Add the index + foreign key (ON DELETE SET NULL so deleting a Surah
---      doesn't cascade-delete historic grades).
---   4. Drop the legacy subject column.
-
-ALTER TABLE "grades" ADD COLUMN "surahId" INTEGER;
-
--- Best-effort backfill: pick the first surah the student has completed, if any.
--- Only run when the memorization_progress table exists (it is created by a
--- later migration in this same branch; fresh databases do not have it yet).
 DO $$
 BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'memorization_progress') THEN
-    UPDATE "grades" g
-    SET "surahId" = (
-      SELECT mp."surahId"
-      FROM "memorization_progress" mp
-      WHERE mp."userId" = g."studentId"
-        AND mp."status" = 'COMPLETE'
-      ORDER BY mp."completedAt" DESC NULLS LAST, mp."updatedAt" DESC
-      LIMIT 1
-    )
-    WHERE g."surahId" IS NULL;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = current_schema() AND table_name = 'grades')
+    AND EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = current_schema() AND table_name = 'surahs')
+  THEN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = 'grades' AND column_name = 'surahId') THEN
+      ALTER TABLE "grades" ADD COLUMN "surahId" INTEGER;
+    END IF;
+
+    -- Best-effort backfill: pick the first surah the student has completed, if any.
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = 'memorization_progress') THEN
+      UPDATE "grades" g
+      SET "surahId" = (
+        SELECT mp."surahId"
+        FROM "memorization_progress" mp
+        WHERE mp."userId" = g."studentId" AND mp."status" = 'COMPLETE'
+        ORDER BY mp."updatedAt" DESC
+        LIMIT 1
+      )
+      WHERE g."surahId" IS NULL;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = 'grades' AND column_name = 'subject') THEN
+      -- subject already dropped, nothing to do
+      NULL;
+    ELSE
+      CREATE INDEX IF NOT EXISTS "grades_surahId_idx" ON "grades"("surahId");
+      ALTER TABLE "grades" DROP CONSTRAINT IF EXISTS "grades_subject_check";
+      ALTER TABLE "grades" DROP COLUMN IF EXISTS "subject";
+    END IF;
   END IF;
 END $$;
-
-CREATE INDEX "grades_surahId_idx" ON "grades"("surahId");
-
-ALTER TABLE "grades"
-  ADD CONSTRAINT "grades_surahId_fkey"
-  FOREIGN KEY ("surahId") REFERENCES "surahs"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
-ALTER TABLE "grades" DROP COLUMN "subject";
