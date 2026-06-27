@@ -88,3 +88,13 @@ export const getChildDashboard = async (req: Request, res: Response, next: NextF
     next(err);
   }
 };
+
+export const searchStudentByEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const email = String(req.query.email || '');
+    const student = await parentService.findStudentByEmail(email);
+    res.json({ success: true, data: student });
+  } catch (err) {
+    next(err);
+  }
+};

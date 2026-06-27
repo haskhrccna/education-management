@@ -202,3 +202,12 @@ async function assertParentHasApprovedLink(parentId: string, studentId: string) 
     throw new AppError(403, 'No approved link to this student');
   }
 }
+
+export const findStudentByEmail = async (email: string) => {
+  const student = await prisma.user.findFirst({
+    where: { email, role: 'STUDENT', status: 'ACTIVE', deletedAt: null },
+    select: { id: true, firstName: true, lastName: true, email: true },
+  });
+  if (!student) throw new AppError(404, 'Student not found');
+  return student;
+};

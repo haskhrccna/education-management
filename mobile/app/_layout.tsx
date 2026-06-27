@@ -79,6 +79,7 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="notifications" />
+          <Stack.Screen name="parent" />
           <Stack.Screen name="register" />
           <Stack.Screen name="first-login" />
           <Stack.Screen name="pending-approval" />

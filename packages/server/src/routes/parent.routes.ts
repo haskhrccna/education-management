@@ -18,6 +18,9 @@ router.get('/links', authorize(UserRole.PARENT, UserRole.ADMIN), parentControlle
 // Parent's approved children.
 router.get('/children', authorize(UserRole.PARENT), parentController.getChildren);
 
+// Search a student by email (PARENT only).
+router.get('/student-search', authorize(UserRole.PARENT), parentController.searchStudentByEmail);
+
 // Read-only child dashboard (link-guarded at the service layer).
 router.get('/children/:studentId/dashboard', authorize(UserRole.PARENT), parentController.getChildDashboard);
 

@@ -8,7 +8,7 @@ import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 import { useNotifications } from '@/src/hooks/useNotifications';
 
-type Role = 'student' | 'teacher' | 'admin';
+type Role = 'student' | 'teacher' | 'admin' | 'parent';
 
 interface Tab {
   id: string;
@@ -97,6 +97,26 @@ const TEACHER_TABS: Tab[] = [
   },
   {
     id: 'profile',
+    icon: 'settings-outline',
+    iconActive: 'settings',
+    labelAr: 'الإعدادات',
+    labelEn: 'Settings',
+    route: '/admin/settings',
+  },
+];
+
+const PARENT_TABS: Tab[] = [
+  { id: 'home', icon: 'home-outline', iconActive: 'home', labelAr: 'الرئيسية', labelEn: 'Home', route: '/parent/home' },
+  {
+    id: 'messages',
+    icon: 'chatbubble-outline',
+    iconActive: 'chatbubble',
+    labelAr: 'الرسائل',
+    labelEn: 'Messages',
+    route: '/messages',
+  },
+  {
+    id: 'settings',
     icon: 'settings-outline',
     iconActive: 'settings',
     labelAr: 'الإعدادات',
