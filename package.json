@@ -7,7 +7,9 @@
   ],
   "scripts": {
     "prepare": "husky",
-    "test:server": "npm run test --workspace=@quran-review/server"
+    "test:server": "npm run test --workspace=@quran-review/server",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "devDependencies": {
     "husky": "^9.1.7",
@@ -31,6 +33,10 @@
   },
   "dependencies": {
     "agency-agents": "^0.0.1",
-    "zustand": "^4.5.7"
-  }
+    "zustand": "^4.5.7",
+    "expo": "~54.0.35",
+    "react": "19.1.0",
+    "react-native": "0.81.5"
+  },
+  "version": "1.0.0"
 }
