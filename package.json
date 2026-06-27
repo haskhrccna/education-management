@@ -10,7 +10,6 @@
     "test:server": "npm run test --workspace=@quran-review/server"
   },
   "devDependencies": {
-    "babel-preset-expo": "^56.0.15",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.3"

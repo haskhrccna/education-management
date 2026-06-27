@@ -49,12 +49,15 @@
     "socket.io-client": "^4.8.3",
     "zustand": "^5.0.12"
   },
-  "devDependencies": {
-    "@types/react": "~19.1.0",
-    "babel-preset-expo": "^56.0.15",
-    "eslint": "^9.25.0",
-    "eslint-config-expo": "~10.0.0",
-    "typescript": "~5.9.2"
-  },
+ "devDependencies": {
+      "@babel/plugin-transform-class-properties": "^7.25.4",
+      "@babel/plugin-transform-private-methods": "^7.24.7",
+      "@babel/plugin-transform-private-property-in-object": "^7.24.7",
+      "@types/react": "~19.1.0",
+      "babel-preset-expo": "~54.0.11",
+      "eslint": "^9.25.0",
+      "eslint-config-expo": "~10.0.0",
+      "typescript": "~5.9.2"
+    },
   "private": true
 }
