@@ -10,6 +10,7 @@ import { useAuthStore } from '@/src/auth/store';
 import { useMessages } from '@/src/hooks/useMessages';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
 import { useSettingsStore } from '@/src/settings/store';
+import { useNotifications } from '@/src/hooks/useNotifications';
 import { AppCard, Avatar, IconButton, MetricTile, SectionHeader, StatusPill } from '@/src/components/design';
 import { SkeletonCard } from '@/src/components/SkeletonCard';
 import { BottomNav } from '@/src/components/BottomNav';
@@ -140,6 +141,9 @@ export default function AdminHomeScreen() {
             </View>
             <View style={styles.headerActions}>
               <View>
+        <TouchableOpacity onPress={() => router.push('/notifications')} style={{ marginEnd: SPACING.md }}>
+          <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
+        </TouchableOpacity>
                 <IconButton
                   colors={COLORS}
                   icon="chatbubble-outline"

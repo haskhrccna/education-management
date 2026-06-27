@@ -1,4 +1,3 @@
-// Phase 1 — Notification Center: mobile API client
 import apiClient from './client';
 
 export interface Notification {
@@ -6,7 +5,7 @@ export interface Notification {
   type: string;
   title: string;
   body: string;
-  data: unknown;
+  data: Record<string, unknown> | null;
   readAt: string | null;
   createdAt: string;
 }
@@ -25,19 +24,19 @@ export interface PaginatedNotifications {
 
 export const notificationsApi = {
   list: async (page = 1, limit = 20): Promise<PaginatedNotifications> => {
-    const { data } = await apiClient.get('/notifications', { params: { page, limit } });
-    return data;
+    const res = await apiClient.get('/notifications', { params: { page, limit } });
+    return res.data;
   },
   unreadCount: async (): Promise<{ unread: number }> => {
-    const { data } = await apiClient.get('/notifications/unread-count');
-    return data;
+    const res = await apiClient.get('/notifications/unread-count');
+    return res.data?.data ?? { unread: 0 };
   },
   markAllRead: async (): Promise<{ markedRead: number }> => {
-    const { data } = await apiClient.post('/notifications/read-all');
-    return data;
+    const res = await apiClient.post('/notifications/read-all');
+    return res.data?.data ?? { markedRead: 0 };
   },
   markRead: async (id: string): Promise<Notification> => {
-    const { data } = await apiClient.patch(`/notifications/${id}/read`);
-    return data;
+    const res = await apiClient.patch(`/notifications/${id}/read`);
+    return res.data?.data ?? res.data;
   },
 };

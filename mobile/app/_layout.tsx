@@ -78,6 +78,7 @@ export default function RootLayout() {
       <ThemeProvider value={darkMode ? DarkTheme : DefaultTheme}>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
+          <Stack.Screen name="notifications" />
           <Stack.Screen name="register" />
           <Stack.Screen name="first-login" />
           <Stack.Screen name="pending-approval" />

@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
+import { useNotifications } from '@/src/hooks/useNotifications';
 
 type Role = 'student' | 'teacher' | 'admin';
 
@@ -152,6 +153,7 @@ export function BottomNav({ role, active }: BottomNavProps) {
   const isAr = i18n.language === 'ar';
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
+  const { unreadCount } = useNotifications();
 
   const tabs = role === 'student' ? STUDENT_TABS : role === 'teacher' ? TEACHER_TABS : ADMIN_TABS;
   const styles = navStyles(COLORS);
@@ -174,6 +176,26 @@ export function BottomNav({ role, active }: BottomNavProps) {
                   size={21}
                   color={isActive ? COLORS.textOnPrimary : COLORS.textSecondary}
                 />
+                {unreadCount > 0 && tab.id === 'messages' && (
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: -4,
+                      end: -4,
+                      minWidth: 18,
+                      height: 18,
+                      borderRadius: 9,
+                      backgroundColor: COLORS.error,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingHorizontal: 4,
+                    }}
+                  >
+                    <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800' }}>
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </Text>
+                  </View>
+                )}
               </View>
               <Text style={[styles.label, isActive && styles.labelActive]} numberOfLines={1}>
                 {isAr ? tab.labelAr : tab.labelEn}

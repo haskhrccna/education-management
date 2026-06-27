@@ -12,6 +12,7 @@ import { useMessages } from '@/src/hooks/useMessages';
 import { useRecordings } from '@/src/hooks/useRecordings';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
 import { useSettingsStore } from '@/src/settings/store';
+import { useNotifications } from '@/src/hooks/useNotifications';
 import {
   AppCard,
   Avatar,
@@ -202,6 +203,9 @@ export default function TeacherHomeScreen() {
           </View>
           <View style={styles.headerActions}>
             <View>
+        <TouchableOpacity onPress={() => router.push('/notifications')} style={{ marginEnd: SPACING.md }}>
+          <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
+        </TouchableOpacity>
               <IconButton
                 colors={COLORS}
                 icon="chatbubble-outline"

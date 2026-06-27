@@ -11,6 +11,7 @@ import { useGrades } from '@/src/hooks/useGrades';
 import { useMemorization } from '@/src/hooks/useMemorization';
 import { useMessages } from '@/src/hooks/useMessages';
 import { useSettingsStore } from '@/src/settings/store';
+import { useNotifications } from '@/src/hooks/useNotifications';
 import {
   AppCard,
   Avatar,
@@ -199,6 +200,9 @@ export default function StudentHomeScreen() {
           </View>
           <View style={styles.headerActions}>
             <View>
+        <TouchableOpacity onPress={() => router.push('/notifications')} style={{ marginEnd: SPACING.md }}>
+          <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
+        </TouchableOpacity>
               <IconButton
                 colors={COLORS}
                 icon="chatbubble-outline"
