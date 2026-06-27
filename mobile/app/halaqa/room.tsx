@@ -48,7 +48,7 @@ export default function HalaqaRoomScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+        <TouchableOpacity accessibilityRole="button" onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
             size={22}
@@ -58,7 +58,7 @@ export default function HalaqaRoomScreen() {
         <AppText variant="headlineSmall" color="#FFFFFF" style={{ flex: 1, textAlign: 'center' }}>
           {room?.title ?? t('halaqa')}
         </AppText>
-        <TouchableOpacity onPress={webRTC.toggleMute} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+        <TouchableOpacity accessibilityRole="button" onPress={webRTC.toggleMute} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
           <Ionicons name={webRTC.isMuted ? 'mic-off-outline' : 'mic-outline'} size={22} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
@@ -108,7 +108,7 @@ export default function HalaqaRoomScreen() {
 
       <TouchableOpacity
         style={[styles.leaveBtn, { backgroundColor: COLORS.error }]}
-        onPress={() => router.back()}
+        onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       >
         <AppText variant="bodyMedium" color="#FFFFFF">{t('leaveRoom')}</AppText>
       </TouchableOpacity>

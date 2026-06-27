@@ -102,9 +102,9 @@ app.use('/api/v1/notifications', authenticate, standardLimiter, notificationRout
 app.use('/api/v1/attendance', authenticate, standardLimiter, attendanceRoutes);
 app.use('/api/v1/parents', authenticate, standardLimiter, parentRoutes);
 app.use('/api/v1/gamification', authenticate, standardLimiter, gamificationRoutes);
-app.use('/api/v1/analytics', analyticsRoutes);
-app.use('/api/v1/certificates', certificateRoutes);
-app.use('/api/v1/halaqa', halaqaRoutes);
+app.use('/api/v1/analytics', authenticate, standardLimiter, analyticsRoutes);
+app.use('/api/v1/certificates', authenticate, standardLimiter, certificateRoutes);
+app.use('/api/v1/halaqa', authenticate, standardLimiter, halaqaRoutes);
 
 // Legacy redirects (optional - remove after mobile update)
 // Mirroring exact same middleware stack as v1 for consistent protection

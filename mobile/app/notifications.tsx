@@ -187,7 +187,7 @@ export default function NotificationsScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+        <TouchableOpacity accessibilityRole="button" onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
             size={22}
@@ -198,7 +198,7 @@ export default function NotificationsScreen() {
           {t('notifications')}
         </AppText>
         {unreadCount > 0 ? (
-          <TouchableOpacity onPress={markAllRead} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <TouchableOpacity accessibilityRole="button" onPress={markAllRead} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <AppText variant="bodySmall" color="rgba(255,255,255,0.9)">{t('markAllRead')}</AppText>
           </TouchableOpacity>
         ) : (
@@ -209,7 +209,7 @@ export default function NotificationsScreen() {
       {error ? (
         <View style={styles.center}>
           <AppText variant="bodyMedium" color={COLORS.textSecondary}>{error}</AppText>
-          <TouchableOpacity onPress={() => fetchNotifications(1)} style={{ marginTop: SPACING.md }}>
+          <TouchableOpacity accessibilityRole="button" onPress={() => fetchNotifications(1)} style={{ marginTop: SPACING.md }}>
             <AppText variant="bodyMedium" color={COLORS.primary}>{t('retry')}</AppText>
           </TouchableOpacity>
         </View>

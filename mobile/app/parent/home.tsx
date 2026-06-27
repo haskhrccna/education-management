@@ -83,8 +83,7 @@ export default function ParentHomeScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
         <AppText variant="headlineSmall" color="#FFFFFF">{t('parentDashboard')}</AppText>
-        <TouchableOpacity
-          onPress={() => router.push('/parent/link-request')}
+        <TouchableOpacity accessibilityRole="button" onPress={() => router.push('/parent/link-request')}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
           <Ionicons name="add-circle-outline" size={26} color="#FFFFFF" />
@@ -98,7 +97,7 @@ export default function ParentHomeScreen() {
         {error ? (
           <View style={styles.center}>
             <AppText variant="bodyMedium" color={COLORS.textSecondary}>{error}</AppText>
-            <TouchableOpacity onPress={fetchChildren} style={{ marginTop: SPACING.md }}>
+            <TouchableOpacity accessibilityRole="button" onPress={fetchChildren} style={{ marginTop: SPACING.md }}>
               <AppText variant="bodyMedium" color={COLORS.primary}>{t('retry')}</AppText>
             </TouchableOpacity>
           </View>

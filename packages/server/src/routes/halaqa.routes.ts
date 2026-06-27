@@ -5,7 +5,6 @@ import * as halaqaController from '../controllers/halaqa.controller';
 
 const router = Router();
 
-router.use(authenticate);
 router.use(standardLimiter);
 
 router.get('/', halaqaController.listRooms);
