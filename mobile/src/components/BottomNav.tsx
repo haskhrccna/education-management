@@ -168,6 +168,14 @@ const ADMIN_TABS: Tab[] = [
     route: '/admin/change-requests',
   },
   {
+    id: 'analytics',
+    icon: 'bar-chart-outline',
+    iconActive: 'bar-chart',
+    labelAr: 'تحليلات',
+    labelEn: 'Analytics',
+    route: '/admin/analytics',
+  },
+  {
     id: 'halaqa',
     icon: 'videocam-outline',
     iconActive: 'videocam',

@@ -81,6 +81,7 @@ export default function RootLayout() {
           <Stack.Screen name="notifications" />
           <Stack.Screen name="parent" />
           <Stack.Screen name="halaqa" />
+          <Stack.Screen name="admin/analytics" />
           <Stack.Screen name="student" />
           <Stack.Screen name="student/certificates" />
           <Stack.Screen name="student" />
