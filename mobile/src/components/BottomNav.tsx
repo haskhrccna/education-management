@@ -45,6 +45,14 @@ const STUDENT_TABS: Tab[] = [
     route: '/student/recordings',
   },
   {
+    id: 'halaqa',
+    icon: 'videocam-outline',
+    iconActive: 'videocam',
+    labelAr: 'حلقة',
+    labelEn: 'Halaqa',
+    route: '/halaqa',
+  },
+  {
     id: 'grades',
     icon: 'bar-chart-outline',
     iconActive: 'bar-chart',
@@ -88,6 +96,14 @@ const TEACHER_TABS: Tab[] = [
     route: '/teacher/recordings',
   },
   {
+    id: 'halaqa',
+    icon: 'videocam-outline',
+    iconActive: 'videocam',
+    labelAr: 'حلقة',
+    labelEn: 'Halaqa',
+    route: '/halaqa',
+  },
+  {
     id: 'reports',
     icon: 'document-text-outline',
     iconActive: 'document-text',
@@ -107,6 +123,14 @@ const TEACHER_TABS: Tab[] = [
 
 const PARENT_TABS: Tab[] = [
   { id: 'home', icon: 'home-outline', iconActive: 'home', labelAr: 'الرئيسية', labelEn: 'Home', route: '/parent/home' },
+  {
+    id: 'halaqa',
+    icon: 'videocam-outline',
+    iconActive: 'videocam',
+    labelAr: 'حلقة',
+    labelEn: 'Halaqa',
+    route: '/halaqa',
+  },
   {
     id: 'messages',
     icon: 'chatbubble-outline',
@@ -142,6 +166,14 @@ const ADMIN_TABS: Tab[] = [
     labelAr: 'الطلبات',
     labelEn: 'Requests',
     route: '/admin/change-requests',
+  },
+  {
+    id: 'halaqa',
+    icon: 'videocam-outline',
+    iconActive: 'videocam',
+    labelAr: 'حلقة',
+    labelEn: 'Halaqa',
+    route: '/halaqa',
   },
   {
     id: 'messages',
