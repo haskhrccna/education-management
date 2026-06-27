@@ -253,6 +253,24 @@ export default function ParentHomeScreen() {
         )}
       </ScrollView>
 
+
+      <SectionHeader colors={COLORS} title={t('achievements')} />
+      <View style={{ flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.md }}>
+        <TouchableOpacity
+          style={[styles.childChip, { backgroundColor: COLORS.surface, flex: 1, alignItems: 'center' }]}
+          onPress={() => router.push('/student/gamification')}
+        >
+          <Ionicons name="trophy-outline" size={28} color={COLORS.primary} />
+          <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginTop: SPACING.xs }}>{t('gamification')}</AppText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.childChip, { backgroundColor: COLORS.surface, flex: 1, alignItems: 'center' }]}
+          onPress={() => router.push('/student/certificates')}
+        >
+          <Ionicons name="document-text-outline" size={28} color={COLORS.success} />
+          <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginTop: SPACING.xs }}>{t('certificates')}</AppText>
+        </TouchableOpacity>
+      </View>
       <BottomNav role="parent" active="home" />
     </SafeAreaView>
   );

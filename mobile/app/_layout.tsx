@@ -80,6 +80,10 @@ export default function RootLayout() {
           <Stack.Screen name="index" />
           <Stack.Screen name="notifications" />
           <Stack.Screen name="parent" />
+          <Stack.Screen name="student" />
+          <Stack.Screen name="student/certificates" />
+          <Stack.Screen name="student" />
+          <Stack.Screen name="student/gamification" />
           <Stack.Screen name="register" />
           <Stack.Screen name="first-login" />
           <Stack.Screen name="pending-approval" />
