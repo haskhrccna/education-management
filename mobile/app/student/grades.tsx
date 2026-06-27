@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, RefreshControl } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -10,14 +10,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useSettingsStore } from '@/src/settings/store';
 import { BottomNav } from '@/src/components/BottomNav';
-
-const TYPE_COLORS: Record<string, string> = {
-  ORAL: '#3b82f6',
-  QUIZ: '#22c55e',
-  EXAM: '#ef4444',
-  ASSIGNMENT: '#f59e0b',
-  PARTICIPATION: '#8b5cf6',
-};
 
 function avgScore(grades: Grade[]): string {
   const nums = grades.map((g) => parseFloat(g.grade)).filter((n) => !isNaN(n));
@@ -32,6 +24,15 @@ export default function StudentGradesScreen() {
   const { grades, isLoading, error, fetchGrades } = useGrades();
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
+
+  const typeColorMap = {
+    ORAL: COLORS.gradeOral,
+    QUIZ: COLORS.gradeQuiz,
+    EXAM: COLORS.gradeExam,
+    ASSIGNMENT: COLORS.gradeAssignment,
+    PARTICIPATION: COLORS.gradeParticipation,
+  };
+  const gradeTypeColor = (type: string) => typeColorMap[type as keyof typeof typeColorMap] ?? COLORS.primary;
 
   const GRADE_TYPE_LABELS: Record<string, string> = {
     ORAL: t('gradeTypeOral'),
@@ -49,38 +50,37 @@ export default function StudentGradesScreen() {
     <View
       style={[
         styles.card,
-        { backgroundColor: COLORS.surface, borderLeftColor: TYPE_COLORS[item.type] ?? COLORS.primary },
+        { backgroundColor: COLORS.surface, borderStartColor: gradeTypeColor(item.type) },
       ]}
     >
-      <View style={styles.cardTop}>
-        <View style={{ flex: 1 }}>
-          <View style={[styles.badge, { backgroundColor: (TYPE_COLORS[item.type] ?? COLORS.primary) + '22' }]}>
-            <Text style={[styles.badgeText, { color: TYPE_COLORS[item.type] ?? COLORS.primary }]}>
-              {GRADE_TYPE_LABELS[item.type] ?? item.type}
-            </Text>
-          </View>
-          <Text
-            style={[
-              styles.subject,
-              {
-                color: COLORS.textPrimary,
-                textAlign: isRTL ? 'right' : 'left',
-                writingDirection: isRTL ? 'rtl' : 'ltr',
-              },
-            ]}
-          >
-            {item.surah ? (isRTL ? item.surah.nameAr : item.surah.nameEn) : t('overallRecital')}
-          </Text>
-          <Text style={[styles.meta, { color: COLORS.textSecondary }]}>
-            {new Date(item.createdAt).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-            })}
+      <View style={styles.row}>
+        <View style={[styles.badge, { backgroundColor: `${gradeTypeColor(item.type)}22` }]}>
+          <Text style={[styles.badgeText, { color: gradeTypeColor(item.type) }]}>
+            {GRADE_TYPE_LABELS[item.type] ?? item.type}
           </Text>
         </View>
-        <Text style={[styles.score, { color: TYPE_COLORS[item.type] ?? COLORS.primary }]}>{item.grade}</Text>
+        <Text style={[styles.score, { color: gradeTypeColor(item.type) }]}>{item.grade}</Text>
       </View>
+
+      <Text
+        style={[
+          styles.subject,
+          {
+            color: COLORS.textPrimary,
+            textAlign: isRTL ? 'right' : 'left',
+            writingDirection: isRTL ? 'rtl' : 'ltr',
+          },
+        ]}
+      >
+        {item.surah ? (isRTL ? item.surah.nameAr : item.surah.nameEn) : t('overallRecital')}
+      </Text>
+      <Text style={[styles.meta, { color: COLORS.textSecondary }]}>
+        {new Date(item.createdAt).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        })}
+      </Text>
       {item.notes ? (
         <Text
           style={[
@@ -101,7 +101,7 @@ export default function StudentGradesScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
             size={22}
@@ -138,64 +138,57 @@ export default function StudentGradesScreen() {
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchGrades} />}
           ListEmptyComponent={
-            isLoading ? (
-              <ActivityIndicator style={{ marginTop: 40 }} color={COLORS.primary} />
-            ) : (
-              <View style={styles.center}>
-                <Ionicons
-                  name="document-text-outline"
-                  size={48}
-                  color={COLORS.textSecondary}
-                  style={{ marginBottom: 12 }}
-                />
-                <Text style={[styles.emptyTitle, { color: COLORS.textPrimary }]}>{t('noGradesYet')}</Text>
-                <Text style={{ color: COLORS.textSecondary, textAlign: 'center' }}>{t('noGradesDesc')}</Text>
-              </View>
-            )
+            <View style={styles.empty}>
+              <Ionicons name="school-outline" size={40} color={COLORS.textMuted} />
+              <Text style={[styles.emptyText, { color: COLORS.textSecondary }]}>{t('noGradesYet')}</Text>
+            </View>
           }
         />
       )}
+
       <BottomNav role="student" active="grades" />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    padding: SPACING.xl,
-    paddingTop: SPACING.lg,
-    borderBottomLeftRadius: RADIUS['2xl'],
-    borderBottomRightRadius: RADIUS['2xl'],
-    ...SHADOWS.lg,
-    marginBottom: SPACING.md,
-  },
-  backText: { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginBottom: SPACING.sm },
-  title: { fontSize: 22, fontWeight: '800', color: '#fff', marginBottom: SPACING.md },
-  statsRow: { flexDirection: 'row', gap: SPACING.md },
-  stat: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: RADIUS.lg,
+  card: {
+    borderRadius: RADIUS.md,
     padding: SPACING.md,
-    alignItems: 'center',
-    minWidth: 72,
+    ...SHADOWS.sm,
+    marginBottom: SPACING.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'transparent',
+    borderStartWidth: 4,
   },
-  statVal: { fontSize: 22, fontWeight: '800', color: '#fff' },
-  statLbl: { fontSize: 11, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
-  list: { padding: SPACING.xl, gap: SPACING.md, paddingBottom: SPACING['3xl'] },
-  card: { borderRadius: RADIUS.xl, padding: SPACING.lg, borderLeftWidth: 4, ...SHADOWS.sm },
-  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  badge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 2,
-    borderRadius: RADIUS.sm,
-    marginBottom: 4,
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING.sm },
+  badge: { paddingHorizontal: SPACING.sm, paddingVertical: 4, borderRadius: RADIUS.full },
+  badgeText: { fontSize: 11, fontWeight: '800' },
+  subject: { fontSize: 16, fontWeight: '700', marginBottom: 4, fontFamily: 'Cairo' },
+  meta: { fontSize: 12, marginBottom: SPACING.sm },
+  notes: { fontSize: 13, lineHeight: 18 },
+  score: { fontSize: 20, fontWeight: '800', fontFamily: 'Cairo' },
+  header: {
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.lg,
+    borderBottomLeftRadius: RADIUS.lg,
+    borderBottomRightRadius: RADIUS.lg,
   },
-  badgeText: { fontSize: 10, fontWeight: '700' },
-  subject: { fontSize: 15, fontWeight: '700', marginBottom: 2 },
-  meta: { fontSize: 12 },
-  score: { fontSize: 28, fontWeight: '800' },
-  notes: { fontSize: 13, marginTop: SPACING.sm, fontStyle: 'italic' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: SPACING['3xl'] },
-  emptyTitle: { fontSize: 18, fontWeight: '700', marginBottom: SPACING.sm },
+  title: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '800',
+    fontFamily: 'Cairo',
+    textAlign: 'center',
+    marginVertical: SPACING.md,
+  },
+  statsRow: { flexDirection: 'row', justifyContent: 'space-around' },
+  stat: { alignItems: 'center' },
+  statVal: { color: '#FFFFFF', fontSize: 22, fontWeight: '800', fontFamily: 'Cairo' },
+  statLbl: { color: 'rgba(255,255,255,0.8)', fontSize: 12, fontWeight: '600' },
+  list: { padding: SPACING.md, paddingBottom: SPACING['2xl'] },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.lg },
+  empty: { alignItems: 'center', justifyContent: 'center', paddingVertical: SPACING['2xl'] },
+  emptyText: { marginTop: SPACING.md, fontSize: 14, fontWeight: '600' },
 });

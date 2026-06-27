@@ -1,14 +1,3 @@
--- Phase 4: SM-2 spaced-repetition state columns on revision_schedule.
---
--- The SM-2 algorithm (https://super-memory.com/english/ol/sm2.htm) needs
--- three pieces of state per revision card:
---   interval    — days until the next revision
---   easeFactor  — multiplier for the next interval (clamped at >= 1.3)
---   repetitions — number of consecutive successful reviews
---
--- All three default to the "first-time learner" values so any existing
--- rows stay valid and the migration is backward-compatible.
-
 ALTER TABLE "revision_schedule"
   ADD COLUMN "interval"    INTEGER         NOT NULL DEFAULT 1,
   ADD COLUMN "easeFactor"  DOUBLE PRECISION NOT NULL DEFAULT 2.5,

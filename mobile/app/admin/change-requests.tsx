@@ -162,7 +162,7 @@ export default function ChangeRequestsScreen() {
     expanded: {
       padding: SPACING.md,
       borderTopWidth: 1,
-      borderTopColor: COLORS.border ?? '#e5e7eb',
+      borderTopColor: COLORS.borderSubtle,
       gap: SPACING.sm,
     },
     noteLabel: { fontSize: 13, color: COLORS.textSecondary, marginBottom: 4 },
@@ -190,7 +190,7 @@ export default function ChangeRequestsScreen() {
       backgroundColor: COLORS.primary,
     },
     approveBtn: { backgroundColor: '#10b981' },
-    denyBtn: { backgroundColor: '#ef4444' },
+    denyBtn: { backgroundColor: COLORS.error },
     empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: SPACING.xl },
     emptyText: { fontSize: 15, color: COLORS.textSecondary },
     // Teacher picker modal
@@ -206,7 +206,7 @@ export default function ChangeRequestsScreen() {
       alignItems: 'center',
       padding: SPACING.md,
       borderBottomWidth: 1,
-      borderBottomColor: COLORS.border ?? '#e5e7eb',
+      borderBottomColor: COLORS.borderSubtle,
     },
     modalTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: COLORS.textPrimary, textAlign: 'center' },
     teacherRow: {

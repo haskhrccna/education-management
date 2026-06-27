@@ -505,18 +505,18 @@ const createStyles = (COLORS: any) =>
       paddingHorizontal: SPACING.md,
       paddingVertical: SPACING.xs,
       borderRadius: RADIUS.md,
-      backgroundColor: '#f1f5f9',
+      backgroundColor: COLORS.surfaceAlt,
     },
     adminBadge: {
-      backgroundColor: '#f3e8ff',
+      backgroundColor: COLORS.primaryMuted,
     },
     roleText: {
       fontSize: 12,
       fontWeight: '700',
-      color: '#475569',
+      color: COLORS.textSecondary,
     },
     adminText: {
-      color: '#7c3aed',
+      color: COLORS.primary,
     },
     statusBadge: {
       paddingHorizontal: SPACING.md,

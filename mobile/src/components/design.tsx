@@ -1,18 +1,20 @@
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { AppText } from './AppText';
+import { useSettingsScales } from './SettingsContext';
 import {
   GestureResponderEvent,
   StyleProp,
   StyleSheet,
-  Text,
-  TextStyle,
   TouchableOpacity,
   View,
   ViewStyle,
 } from 'react-native';
-import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
+import { getColors, RADIUS, SHADOWS, SPACING, TYPOGRAPHY, FONT_SCALE } from '@/constants/theme';
 
-type Colors = ReturnType<typeof getColors>;
+export { AppText } from './AppText';
+
+export type Colors = ReturnType<typeof getColors>;
 type IconName = keyof typeof Ionicons.glyphMap;
 
 interface CardProps {
@@ -22,7 +24,8 @@ interface CardProps {
 }
 
 export function AppCard({ children, colors, style }: CardProps) {
-  return <View style={[uiStyles(colors).card, style]}>{children}</View>;
+  const { spacingScale } = useSettingsScales();
+  return <View style={[uiStyles(colors, spacingScale).card, style]}>{children}</View>;
 }
 
 interface IconButtonProps {
@@ -42,7 +45,7 @@ export function IconButton({
   onPress,
   accessibilityLabel,
   tone = 'surface',
-  size = 40,
+  size = 44,
   disabled,
   style,
 }: IconButtonProps) {
@@ -75,12 +78,18 @@ export function IconButton({
       disabled={disabled}
       onPress={onPress}
       style={[
-        uiStyles(colors).iconButton,
-        { width: size, height: size, borderRadius: size / 2, backgroundColor: background, opacity: disabled ? 0.5 : 1 },
+        uiStyles(colors, 1).iconButton,
+        {
+          width: Math.max(44, size),
+          height: Math.max(44, size),
+          borderRadius: size / 2,
+          backgroundColor: background,
+          opacity: disabled ? 0.5 : 1,
+        },
         style,
       ]}
     >
-      <Ionicons name={icon} size={Math.round(size * 0.52)} color={color} />
+      <Ionicons name={icon} size={Math.round(size * 0.5)} color={color} />
     </TouchableOpacity>
   );
 }
@@ -93,18 +102,22 @@ interface AvatarProps {
 }
 
 export function Avatar({ colors, label, size = 42, tone }: AvatarProps) {
+  const { fontScale } = useSettingsScales();
   const initials = getInitials(label);
   const color = tone ?? avatarColor(label, colors);
   return (
     <View
       style={[
-        uiStyles(colors).avatar,
+        uiStyles(colors, 1).avatar,
         { width: size, height: size, borderRadius: size / 2, backgroundColor: `${color}18` },
       ]}
     >
-      <Text style={[uiStyles(colors).avatarText, { color, fontSize: Math.max(11, Math.round(size * 0.31)) }]}>
+      <AppText
+        variant="labelLarge"
+        style={{ color, fontSize: Math.max(11, Math.round(size * 0.31 * fontScale)) }}
+      >
         {initials}
-      </Text>
+      </AppText>
     </View>
   );
 }
@@ -118,6 +131,7 @@ interface MetricTileProps {
 }
 
 export function MetricTile({ colors, value, label, tone = 'primary', style }: MetricTileProps) {
+  const { spacingScale } = useSettingsScales();
   const accent =
     tone === 'gold'
       ? colors.gold
@@ -139,11 +153,13 @@ export function MetricTile({ colors, value, label, tone = 'primary', style }: Me
             ? colors.successLight
             : colors.surface;
   return (
-    <View style={[uiStyles(colors).metricTile, { backgroundColor: bg }, style]}>
-      <Text style={[uiStyles(colors).metricValue, { color: accent }]}>{value}</Text>
-      <Text style={uiStyles(colors).metricLabel} numberOfLines={1}>
+    <View style={[uiStyles(colors, spacingScale).metricTile, { backgroundColor: bg }, style]}>
+      <AppText variant="headlineMedium" style={[uiStyles(colors, spacingScale).metricValue, { color: accent }]}>
+        {value}
+      </AppText>
+      <AppText variant="bodySmall" style={uiStyles(colors, spacingScale).metricLabel} numberOfLines={1}>
         {label}
-      </Text>
+      </AppText>
     </View>
   );
 }
@@ -158,11 +174,17 @@ interface SectionHeaderProps {
 
 export function SectionHeader({ title, actionLabel, onActionPress, colors, style }: SectionHeaderProps) {
   return (
-    <View style={[uiStyles(colors).sectionHeader, style]}>
-      <Text style={uiStyles(colors).sectionTitle}>{title}</Text>
+    <View style={[uiStyles(colors, 1).sectionHeader, style]}>
+      <AppText variant="titleLarge" style={uiStyles(colors, 1).sectionTitle}>{title}</AppText>
       {actionLabel && onActionPress ? (
-        <TouchableOpacity onPress={onActionPress} activeOpacity={0.8}>
-          <Text style={uiStyles(colors).sectionAction}>{actionLabel}</Text>
+        <TouchableOpacity
+          onPress={onActionPress}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={actionLabel}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <AppText variant="labelLarge" style={uiStyles(colors, 1).sectionAction}>{actionLabel}</AppText>
         </TouchableOpacity>
       ) : null}
     </View>
@@ -174,10 +196,9 @@ interface StatusPillProps {
   label: string;
   status?: 'success' | 'warning' | 'error' | 'info' | 'neutral';
   style?: StyleProp<ViewStyle>;
-  textStyle?: StyleProp<TextStyle>;
 }
 
-export function StatusPill({ colors, label, status = 'neutral', style, textStyle }: StatusPillProps) {
+export function StatusPill({ colors, label, status = 'neutral', style }: StatusPillProps) {
   const bg =
     status === 'success'
       ? colors.successLight
@@ -199,8 +220,8 @@ export function StatusPill({ colors, label, status = 'neutral', style, textStyle
             ? colors.info
             : colors.primary;
   return (
-    <View style={[uiStyles(colors).statusPill, { backgroundColor: bg }, style]}>
-      <Text style={[uiStyles(colors).statusText, { color }, textStyle]}>{label}</Text>
+    <View style={[uiStyles(colors, 1).statusPill, { backgroundColor: bg }, style]}>
+      <AppText variant="labelLarge" style={uiStyles(colors, 1).statusText}>{label}</AppText>
     </View>
   );
 }
@@ -225,7 +246,7 @@ export function ProgressBar({ colors, percent, tone = 'primary', height = 6 }: P
             ? colors.success
             : colors.primary;
   return (
-    <View style={[uiStyles(colors).progressTrack, { height, borderRadius: height / 2 }]}>
+    <View style={[uiStyles(colors, 1).progressTrack, { height, borderRadius: height / 2 }]}>
       <View style={{ width: `${clamped}%`, height, borderRadius: height / 2, backgroundColor: fill }} />
     </View>
   );
@@ -239,13 +260,14 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ colors, icon, title, description }: EmptyStateProps) {
+  const { spacingScale } = useSettingsScales();
   return (
-    <View style={uiStyles(colors).emptyState}>
-      <View style={uiStyles(colors).emptyIcon}>
+    <View style={uiStyles(colors, spacingScale).emptyState}>
+      <View style={uiStyles(colors, spacingScale).emptyIcon}>
         <Ionicons name={icon} size={30} color={colors.primary} />
       </View>
-      <Text style={uiStyles(colors).emptyTitle}>{title}</Text>
-      {description ? <Text style={uiStyles(colors).emptyDesc}>{description}</Text> : null}
+      <AppText variant="titleMedium" style={uiStyles(colors, spacingScale).emptyTitle}>{title}</AppText>
+      {description ? <AppText variant="bodyMedium" style={uiStyles(colors, spacingScale).emptyDesc}>{description}</AppText> : null}
     </View>
   );
 }
@@ -266,14 +288,14 @@ function getInitials(label: string): string {
     .toUpperCase();
 }
 
-const uiStyles = (colors: Colors) =>
+const uiStyles = (colors: Colors, spacingScale: number) =>
   StyleSheet.create({
     card: {
       backgroundColor: colors.surface,
       borderRadius: RADIUS.md,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.darkMode ? colors.divider : '#E7ECE6',
-      padding: SPACING.lg,
+      borderColor: colors.borderSubtle ?? colors.divider,
+      padding: Math.round(SPACING.lg * spacingScale),
       ...SHADOWS.sm,
     },
     iconButton: {
@@ -284,26 +306,19 @@ const uiStyles = (colors: Colors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    avatarText: {
-      fontWeight: '800',
-    },
     metricTile: {
       flex: 1,
       minHeight: 70,
       borderRadius: RADIUS.md,
-      paddingHorizontal: SPACING.md,
-      paddingVertical: SPACING.md,
+      paddingHorizontal: Math.round(SPACING.md * spacingScale),
+      paddingVertical: Math.round(SPACING.md * spacingScale),
       justifyContent: 'center',
     },
     metricValue: {
-      fontSize: 24,
-      fontWeight: '800',
       lineHeight: 28,
     },
     metricLabel: {
       color: colors.textSecondary,
-      fontSize: 11,
-      fontWeight: '600',
       marginTop: 3,
     },
     sectionHeader: {
@@ -314,13 +329,9 @@ const uiStyles = (colors: Colors) =>
     },
     sectionTitle: {
       color: colors.textPrimary,
-      fontSize: 17,
-      fontWeight: '800',
     },
     sectionAction: {
       color: colors.primary,
-      fontSize: 13,
-      fontWeight: '700',
     },
     statusPill: {
       alignSelf: 'flex-start',
@@ -329,17 +340,17 @@ const uiStyles = (colors: Colors) =>
       paddingVertical: 4,
     },
     statusText: {
-      fontSize: 10,
+      fontSize: TYPOGRAPHY.labelLarge.fontSize,
       fontWeight: '800',
     },
     progressTrack: {
-      backgroundColor: colors.darkMode ? colors.surfaceAlt : '#E3E9E2',
+      backgroundColor: colors.borderSubtle,
       overflow: 'hidden',
     },
     emptyState: {
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: SPACING['2xl'],
+      paddingVertical: SPACING['2xl'] * spacingScale,
       paddingHorizontal: SPACING.lg,
     },
     emptyIcon: {
@@ -353,14 +364,10 @@ const uiStyles = (colors: Colors) =>
     },
     emptyTitle: {
       color: colors.textPrimary,
-      fontSize: 16,
-      fontWeight: '800',
       textAlign: 'center',
     },
     emptyDesc: {
       color: colors.textSecondary,
-      fontSize: 13,
-      lineHeight: 19,
       textAlign: 'center',
       marginTop: SPACING.xs,
     },

@@ -1,6 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { I18nManager, View, ActivityIndicator } from 'react-native';
+import { I18nManager, View, ActivityIndicator, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { useFonts } from 'expo-font';
@@ -9,6 +9,7 @@ import i18n from '@/src/i18n';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSettingsStore } from '@/src/settings/store';
 import { useAuthStore } from '@/src/auth/store';
+import { SettingsProvider } from '@/src/components/SettingsContext';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -22,9 +23,18 @@ export default function RootLayout() {
     Cairo: require('../assets/fonts/Cairo-Variable.ttf'),
   });
 
-  // Force RTL layout for Arabic locale
+  // Force RTL layout for Arabic locale only when direction actually changes.
   useEffect(() => {
-    I18nManager.forceRTL(language === 'ar');
+    const shouldBeRTL = language === 'ar';
+    if (I18nManager.isRTL !== shouldBeRTL) {
+      I18nManager.forceRTL(shouldBeRTL);
+      if (Platform.OS === 'web') {
+        window?.location?.reload?.();
+      } else {
+        const { DevSettings } = require('react-native');
+        DevSettings?.reload?.();
+      }
+    }
   }, [language]);
 
   useEffect(() => {
@@ -64,42 +74,44 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={darkMode ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="register" />
-        <Stack.Screen name="first-login" />
-        <Stack.Screen name="pending-approval" />
-        <Stack.Screen name="forgot-password" />
+    <SettingsProvider>
+      <ThemeProvider value={darkMode ? DarkTheme : DefaultTheme}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="register" />
+          <Stack.Screen name="first-login" />
+          <Stack.Screen name="pending-approval" />
+          <Stack.Screen name="forgot-password" />
 
-        {/* Student */}
-        <Stack.Screen name="student/home" />
-        <Stack.Screen name="student/grades" />
-        <Stack.Screen name="student/recordings" />
-        <Stack.Screen name="student/reports" />
-        <Stack.Screen name="student/appointments" />
-        <Stack.Screen name="student/teacher-change" />
+          {/* Student */}
+          <Stack.Screen name="student/home" />
+          <Stack.Screen name="student/grades" />
+          <Stack.Screen name="student/recordings" />
+          <Stack.Screen name="student/reports" />
+          <Stack.Screen name="student/appointments" />
+          <Stack.Screen name="student/teacher-change" />
 
-        {/* Teacher */}
-        <Stack.Screen name="teacher/home" />
-        <Stack.Screen name="teacher/student-detail" />
-        <Stack.Screen name="teacher/grade-form" />
-        <Stack.Screen name="teacher/recordings" />
-        <Stack.Screen name="teacher/reports" />
-        <Stack.Screen name="teacher/appointments" />
+          {/* Teacher */}
+          <Stack.Screen name="teacher/home" />
+          <Stack.Screen name="teacher/student-detail" />
+          <Stack.Screen name="teacher/grade-form" />
+          <Stack.Screen name="teacher/recordings" />
+          <Stack.Screen name="teacher/reports" />
+          <Stack.Screen name="teacher/appointments" />
 
-        {/* Admin */}
-        <Stack.Screen name="admin/home" />
-        <Stack.Screen name="admin/user-detail" />
-        <Stack.Screen name="admin/settings" />
-        <Stack.Screen name="admin/broadcast" />
-        <Stack.Screen name="admin/change-requests" />
+          {/* Admin */}
+          <Stack.Screen name="admin/home" />
+          <Stack.Screen name="admin/user-detail" />
+          <Stack.Screen name="admin/settings" />
+          <Stack.Screen name="admin/broadcast" />
+          <Stack.Screen name="admin/change-requests" />
 
-        {/* Messages */}
-        <Stack.Screen name="messages/index" />
-        <Stack.Screen name="messages/conversation" />
-      </Stack>
-      <StatusBar style={darkMode ? 'light' : 'dark'} />
-    </ThemeProvider>
+          {/* Messages */}
+          <Stack.Screen name="messages/index" />
+          <Stack.Screen name="messages/conversation" />
+        </Stack>
+        <StatusBar style={darkMode ? 'light' : 'dark'} />
+      </ThemeProvider>
+    </SettingsProvider>
   );
 }

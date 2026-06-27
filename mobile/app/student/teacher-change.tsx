@@ -17,12 +17,14 @@ import { useSettingsStore } from '@/src/settings/store';
 import { getColors, SPACING, RADIUS } from '@/constants/theme';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
 import { useAppointments } from '@/src/hooks/useAppointments';
+import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { BottomNav } from '@/src/components/BottomNav';
 
 export default function TeacherChangeScreen() {
   const { t } = useTranslation();
   const { theme, darkMode } = useSettingsStore();
   const COLORS = getColors(theme, darkMode);
+  const isRTL = useIsRTL();
   const { requests, isLoading, fetchRequests, submitRequest } = useTeacherChange();
   const { appointments } = useAppointments();
   const [reason, setReason] = useState('');
@@ -46,7 +48,7 @@ export default function TeacherChangeScreen() {
       await submitRequest(reason.trim());
       Alert.alert(t('requestSubmitted'), '', [{ text: 'OK', onPress: () => router.back() }]);
     } catch (err: any) {
-      setSubmitError(err?.response?.data?.message || 'Failed to submit request');
+      setSubmitError(err?.response?.data?.message || t('failedToSubmitRequest'));
     } finally {
       setIsSubmitting(false);
     }
@@ -60,9 +62,9 @@ export default function TeacherChangeScreen() {
       paddingHorizontal: SPACING.md,
       paddingVertical: SPACING.sm,
       borderBottomWidth: 1,
-      borderBottomColor: '#e5e7eb',
+      borderBottomColor: COLORS.borderSubtle,
     },
-    backBtn: { marginRight: SPACING.sm, padding: 4 },
+    backBtn: { marginEnd: SPACING.sm, padding: 4 },
     backText: { fontSize: 20, color: COLORS.primary },
     headerTitle: { fontSize: 18, fontWeight: '700', color: COLORS.textPrimary },
     body: { padding: SPACING.md, gap: SPACING.md },
@@ -77,16 +79,18 @@ export default function TeacherChangeScreen() {
     label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary, marginBottom: SPACING.xs },
     textInput: {
       backgroundColor: COLORS.surface,
-      borderRadius: RADIUS.md,
-      padding: SPACING.sm,
-      color: COLORS.textPrimary,
-      fontSize: 15,
+      borderWidth: 1,
+      borderColor: COLORS.borderSubtle,
+      borderRadius: RADIUS.sm,
+      padding: SPACING.md,
+      fontSize: 14,
       minHeight: 120,
       textAlignVertical: 'top',
-      borderWidth: 1,
-      borderColor: '#e5e7eb',
+      color: COLORS.textPrimary,
+      textAlign: isRTL ? 'right' : 'left',
+      writingDirection: isRTL ? 'rtl' : 'ltr',
     },
-    charCount: { fontSize: 11, color: COLORS.textSecondary, textAlign: 'right', marginTop: 4 },
+    errorText: { color: COLORS.error, fontSize: 13 },
     submitBtn: {
       backgroundColor: COLORS.primary,
       borderRadius: RADIUS.md,
@@ -94,14 +98,14 @@ export default function TeacherChangeScreen() {
       alignItems: 'center',
     },
     submitText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-    errorText: { color: '#ef4444', fontSize: 13 },
+    charCount: { fontSize: 11, color: COLORS.textSecondary, textAlign: isRTL ? 'left' : 'right', marginTop: 4 },
   });
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back-outline" size={22} color={COLORS.primary} />
+          <Ionicons name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'} size={22} color={COLORS.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
           {isAssignmentRequest ? t('requestTeacherAssignment') : t('requestTeacherChange')}

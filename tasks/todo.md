@@ -1,109 +1,37 @@
-# Active Work: Features A → B → C → D (2026-06-22)
+# UI Foundation Hardening — Stage 1
 
-## A — Admin Analytics Endpoint
-- [ ] `analytics.service.ts` — surahMissRates, teacherLoad, weeklyActiveStudents
-- [ ] `analytics.controller.ts` — thin GET handler
-- [ ] `analytics.routes.ts` — admin-only GET /admin/analytics
-- [ ] mount in app.ts
+Stage 1 executes `docs/superpowers/plans/2026-06-25-ui-design-improvements.md`. Exit criteria: tsc clean, server tests green, no new deps, dashboards render correctly in ar+en.
 
-## B — Hifz Completion Certificate
-- [ ] Add `Certificate` model to schema.prisma + migrate
-- [ ] `generateCertificatePDF(studentId)` in report.service.ts
-- [ ] Hook in memorization.service.ts updateProgress (best-effort)
-- [ ] `certificate.controller.ts` + `certificate.routes.ts`
-- [ ] `downloadCertificate` in file.controller.ts + file.routes.ts
-- [ ] mount in app.ts
+- [ ] 1.1 Add AppText primitive and Cairo wiring
+  - Add `fontFamily: 'Cairo'` to `TYPOGRAPHY` tokens.
+  - Create `mobile/src/components/AppText.tsx` with RTL writingDirection/textAlign.
+  - Replace `Text` in `design.tsx` with `AppText`.
+  - Proof: `cd mobile && npx tsc --noEmit` clean.
 
-## C — Load-aware SM-2 Scheduling
-- [ ] `findLightDay()` helper in revision.service.ts
-- [ ] Call in updateRevision after computing nextDue
+- [ ] 1.2 forceRTL startup-only fix
+  - Guard `I18nManager.forceRTL()` with `isRTL !== shouldBeRTL` check.
+  - Trigger `Updates.reloadAsync()` (or DevSettings reload fallback).
+  - Proof: tsc clean + `mobile/app/_layout.tsx` diff.
 
-## D — Group Halaqa WebRTC Signaling
-- [ ] HalaqaStatus enum + HalaqaRoom + HalaqaParticipant in schema.prisma + migrate
-- [ ] `halaqa.service.ts` — createRoom, listRooms, getRoom, startRoom, endRoom, recordParticipant
-- [ ] `halaqa.controller.ts` + `halaqa.routes.ts`
-- [ ] Socket events in socket.service.ts (join/leave/offer/answer/ice relay)
-- [ ] mount in app.ts
+- [ ] 1.3 Font size / compactView settings wiring
+  - Create `SettingsContext` exposing fontScale and spacingScale.
+  - Wrap app in `SettingsProvider` in `_layout.tsx`.
+  - Apply scales in `AppText` and `design.tsx`.
+  - Proof: tsc clean.
 
----
+- [ ] 1.4 Color token consolidation
+  - Add `gradeOral`, `gradeQuiz`, `gradeExam`, `gradeAssignment`, `gradeParticipation`, `borderSubtle` to `getColors`.
+  - Replace hardcoded hexes in `student/grades.tsx`, `admin/user-detail.tsx`, `student/teacher-change.tsx`, `admin/settings.tsx`, `design.tsx`, `BottomNav.tsx`.
+  - Proof: tsc clean.
 
-# Feature Roadmap Execution — Phase Tracker
+- [ ] 1.5 i18n dashboard sweep + a11y/touch targets
+  - Grep `isAr ?` ternaries across dashboards; replace with `t()` keys in `i18n/index.ts`.
+  - Default `IconButton` size 44 in `design.tsx`.
+  - Add `hitSlop` on `SectionHeader` action.
+  - Ensure `BottomNav` tabs are 44px min, have `accessibilityRole="tab"`, and RTL-aware back arrows.
+  - Proof: tsc clean + server tests green.
 
-> Source: `tasks/feature-roadmap.md` (6 phases, ~20 days total).
-> Updated 2026-06-06 — first execution session.
-
-## Execution strategy
-
-Phases will be built **one at a time** in a single feature branch, with each phase gated on the previous (per roadmap §5). After every phase:
-
-- `npm test` in `packages/server/` must stay green (existing 140 tests)
-- New tests cover the added service / guard / endpoint
-- TypeScript clean
-- A short commit per phase
-
-| # | Phase | Roadmap ID | Est | Status |
-|---|---|---|---|---|
-| 1 | Notification Center (durable feed) | F2 | ~3d | ✅ done (commit 8fa5603) |
-| 2 | Attendance + Session Completion | F4 | ~2d | ✅ done (commit 84a6c50) |
-| 3 | Parent / Guardian role + dashboard | F3 | ~4d | ✅ done |
-| 4 | Spaced-Repetition Revision Engine | F6 | ~3d | ✅ done |
-| 5 | Gamification (streaks / badges) | F5 | ~3d | ✅ done |
-| 6 | Quran Mushaf + Ayah Audio | F1 | ~5d | ⏳ |
-
----
-
-## Phase 3 — Parent / Guardian role + dashboard  ·  in progress
-
-**Goal:** Add a `PARENT` role so a parent can register, request a link to their child's account, and (after admin approval) read a single dashboard aggregating the child's progress, grades, attendance, upcoming appointments, and pending revisions. Parents are strictly read-only.
-
-**Why this is the trickiest phase:** the codebase has a documented role-case split (UPPERCASE in DB/JWT/authorize, lowercase in mobile/validators). Adding a 4th role to `UserRole`, `Role` (Prisma enum), and the shared validator enums touches every switch and comparison. The audit step below is non-negotiable.
-
-### Backend
-
-1. **Schema**
-   - Extend `enum Role { STUDENT, TEACHER, ADMIN, PARENT }`
-   - Add `enum ParentLinkStatus { PENDING, APPROVED, DENIED }`
-   - Add `ParentLink { id, parentId, studentId, status, requestedAt, decidedAt?, decidedBy?, @@unique([parentId, studentId]) }`
-   - Back-relations on `User`
-2. **Shared** (`packages/shared/src/enums/`)
-   - Add `PARENT` to `UserRole`
-   - Confirm the lowercase Zod validator enum also gets `parent`
-3. **Service** (`services/parent.service.ts`)
-   - `requestLink(parentId, studentId)` — creates a PENDING link; rejects if link already exists
-   - `approveLink(linkId, adminId)` / `denyLink(linkId, adminId)` — admin-only at the route layer
-   - `getChildren(parentId)` — returns APPROVED children
-   - `getChildDashboard(parentId, studentId)` — **link-required guard**: throws 403 if no APPROVED link
-4. **Routes** `/api/v1/parents` (mounted in app.ts)
-   - `POST /links` (PARENT)
-   - `GET /links` (PARENT: own; ADMIN: all)
-   - `GET /children` (PARENT)
-   - `GET /children/:studentId/dashboard` (PARENT — link-guarded)
-   - `PATCH /links/:id/decision` (ADMIN — approve or deny)
-5. **Tests** — link guard, role scoping, dashboard shape
-6. **Mobile stub** at `mobile/src/api/parents.ts` (deferred — P0 #2)
-
-### Done when (backend scope)
-
-- [ ] Schema migrated via `npx prisma generate` + hand-applied SQL
-- [ ] All new endpoints return correct shapes (verified via Jest)
-- [ ] Server tests ≥ 160 + new tests pass
-- [ ] TypeScript clean (`tsc --noEmit`)
-- [ ] Mobile stub file added with TODO marker
-- [ ] Committed on `feature/phase1-notification-center` branch
-
----
-
-(Phase 1 and Phase 2 specs archived below for reference; both are done.)
-
-<details><summary>Phase 1 spec (done — commit 8fa5603)</summary>
-
-[see git history: 8fa5603]
-
-</details>
-
-<details><summary>Phase 2 spec (done — commit 84a6c50)</summary>
-
-[see git history: 84a6c50]
-
-</details>
-
+- [ ] 1.6 Stage 1 commit and lessons update
+  - Commit with message: `feat(mobile): Stage 1 UI foundation hardening`.
+  - Append rules to `tasks/lessons.md` for any correction.
+  - Proof: git log + tsc/test output.

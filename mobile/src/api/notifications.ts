@@ -1,15 +1,5 @@
 // Phase 1 — Notification Center: mobile API client
-//
-// TODO(phase1-mobile): P0 #2 (broken `apiClient` export in ./client.ts) must be
-// fixed before this file can be imported. Once `client.ts` exposes a default
-// axios instance, replace the throw below with the real client.
-//
-// Endpoint contract (already implemented on the server, see
-// packages/server/src/routes/notification.routes.ts):
-//   GET    /notifications?page=&limit=      -> paginated feed
-//   GET    /notifications/unread-count      -> { unread: number }
-//   POST   /notifications/read-all          -> { markedRead: number }
-//   PATCH  /notifications/:id/read          -> single row, sets readAt
+import apiClient from './client';
 
 export interface Notification {
   id: string;
@@ -33,13 +23,21 @@ export interface PaginatedNotifications {
   };
 }
 
-function notWired() {
-  throw new Error('mobile/src/api/notifications.ts: not yet wired — waiting on P0 #2 fix in ./client.ts');
-}
-
 export const notificationsApi = {
-  list: async (_page = 1, _limit = 20): Promise<PaginatedNotifications> => notWired(),
-  unreadCount: async (): Promise<{ unread: number }> => notWired(),
-  markAllRead: async (): Promise<{ markedRead: number }> => notWired(),
-  markRead: async (_id: string): Promise<Notification> => notWired(),
+  list: async (page = 1, limit = 20): Promise<PaginatedNotifications> => {
+    const { data } = await apiClient.get('/notifications', { params: { page, limit } });
+    return data;
+  },
+  unreadCount: async (): Promise<{ unread: number }> => {
+    const { data } = await apiClient.get('/notifications/unread-count');
+    return data;
+  },
+  markAllRead: async (): Promise<{ markedRead: number }> => {
+    const { data } = await apiClient.post('/notifications/read-all');
+    return data;
+  },
+  markRead: async (id: string): Promise<Notification> => {
+    const { data } = await apiClient.patch(`/notifications/${id}/read`);
+    return data;
+  },
 };

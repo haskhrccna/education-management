@@ -1,15 +1,24 @@
-import { MMKV } from 'react-native-mmkv';
+import { createMMKV } from 'react-native-mmkv';
 
-export const storage = new MMKV();
+type MMKVInstance = ReturnType<typeof createMMKV>;
+
+let storageInstance: MMKVInstance | null = null;
+
+function getStorage(): MMKVInstance {
+  if (!storageInstance) {
+    storageInstance = createMMKV();
+  }
+  return storageInstance;
+}
 
 export const mmkvStorage = {
   setItem: (key: string, value: string) => {
-    storage.set(key, value);
+    getStorage().set(key, value);
   },
   getItem: (key: string) => {
-    return storage.getString(key) || null;
+    return getStorage().getString(key) || null;
   },
   removeItem: (key: string) => {
-    storage.delete(key);
+    getStorage().remove(key);
   },
 };

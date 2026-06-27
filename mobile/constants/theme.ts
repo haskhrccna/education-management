@@ -75,6 +75,12 @@ export const getColors = (theme: ThemeColor = 'green', isDark: boolean = false) 
       midnight: '#030712',
       divider: '#2C2C2C',
       border: '#2C2C2C',
+      borderSubtle: '#404040',
+      gradeOral: '#60a5fa',
+      gradeQuiz: '#4ade80',
+      gradeExam: '#f87171',
+      gradeAssignment: '#fbbf24',
+      gradeParticipation: '#a78bfa',
       darkMode: true,
     };
   }
@@ -117,6 +123,12 @@ export const getColors = (theme: ThemeColor = 'green', isDark: boolean = false) 
     midnight: '#212121',
     divider: '#BDBDBD', // design spec — input borders, separators
     border: '#BDBDBD',
+    borderSubtle: '#E0E0E0',
+    gradeOral: '#3b82f6',
+    gradeQuiz: '#22c55e',
+    gradeExam: '#ef4444',
+    gradeAssignment: '#f59e0b',
+    gradeParticipation: '#8b5cf6',
     darkMode: false,
   };
 };
@@ -186,16 +198,16 @@ export const SPACING = {
 // Mirrors AppTheme.textTheme from Flutter source (app_config.dart)
 
 export const TYPOGRAPHY = {
-  headlineLarge: { fontSize: 28, fontWeight: '700' as const, lineHeight: 36 },
-  headlineMedium: { fontSize: 24, fontWeight: '700' as const, lineHeight: 32 },
-  headlineSmall: { fontSize: 20, fontWeight: '600' as const, lineHeight: 28 },
-  titleLarge: { fontSize: 18, fontWeight: '600' as const, lineHeight: 26 },
-  titleMedium: { fontSize: 16, fontWeight: '500' as const, lineHeight: 24 },
-  titleSmall: { fontSize: 14, fontWeight: '500' as const, lineHeight: 20 },
-  bodyLarge: { fontSize: 16, fontWeight: '400' as const, lineHeight: 24 },
-  bodyMedium: { fontSize: 14, fontWeight: '400' as const, lineHeight: 20 },
-  bodySmall: { fontSize: 12, fontWeight: '400' as const, lineHeight: 16 },
-  labelLarge: { fontSize: 14, fontWeight: '500' as const, lineHeight: 20 },
+  headlineLarge: { fontSize: 28, fontWeight: '700' as const, lineHeight: 36, fontFamily: 'Cairo' },
+  headlineMedium: { fontSize: 24, fontWeight: '700' as const, lineHeight: 32, fontFamily: 'Cairo' },
+  headlineSmall: { fontSize: 20, fontWeight: '600' as const, lineHeight: 28, fontFamily: 'Cairo' },
+  titleLarge: { fontSize: 18, fontWeight: '600' as const, lineHeight: 26, fontFamily: 'Cairo' },
+  titleMedium: { fontSize: 16, fontWeight: '500' as const, lineHeight: 24, fontFamily: 'Cairo' },
+  titleSmall: { fontSize: 14, fontWeight: '500' as const, lineHeight: 20, fontFamily: 'Cairo' },
+  bodyLarge: { fontSize: 16, fontWeight: '400' as const, lineHeight: 24, fontFamily: 'Cairo' },
+  bodyMedium: { fontSize: 14, fontWeight: '400' as const, lineHeight: 20, fontFamily: 'Cairo' },
+  bodySmall: { fontSize: 12, fontWeight: '400' as const, lineHeight: 16, fontFamily: 'Cairo' },
+  labelLarge: { fontSize: 14, fontWeight: '500' as const, lineHeight: 20, fontFamily: 'Cairo' },
 };
 
 // ─── Font families ────────────────────────────────────────────────────────────

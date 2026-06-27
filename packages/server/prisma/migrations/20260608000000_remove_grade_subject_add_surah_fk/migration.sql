@@ -18,16 +18,23 @@
 ALTER TABLE "grades" ADD COLUMN "surahId" INTEGER;
 
 -- Best-effort backfill: pick the first surah the student has completed, if any.
-UPDATE "grades" g
-SET "surahId" = (
-  SELECT mp."surahId"
-  FROM "memorization_progress" mp
-  WHERE mp."userId" = g."studentId"
-    AND mp."status" = 'COMPLETE'
-  ORDER BY mp."completedAt" DESC NULLS LAST, mp."updatedAt" DESC
-  LIMIT 1
-)
-WHERE g."surahId" IS NULL;
+-- Only run when the memorization_progress table exists (it is created by a
+-- later migration in this same branch; fresh databases do not have it yet).
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'memorization_progress') THEN
+    UPDATE "grades" g
+    SET "surahId" = (
+      SELECT mp."surahId"
+      FROM "memorization_progress" mp
+      WHERE mp."userId" = g."studentId"
+        AND mp."status" = 'COMPLETE'
+      ORDER BY mp."completedAt" DESC NULLS LAST, mp."updatedAt" DESC
+      LIMIT 1
+    )
+    WHERE g."surahId" IS NULL;
+  END IF;
+END $$;
 
 CREATE INDEX "grades_surahId_idx" ON "grades"("surahId");
 

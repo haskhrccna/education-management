@@ -567,7 +567,7 @@ const createStyles = (COLORS: ReturnType<typeof getColors>) =>
       borderRadius: RADIUS.md,
       backgroundColor: COLORS.surface,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: COLORS.darkMode ? COLORS.divider : '#E7ECE6',
+      borderColor: COLORS.borderSubtle,
       padding: SPACING.lg,
       justifyContent: 'center',
       ...SHADOWS.sm,

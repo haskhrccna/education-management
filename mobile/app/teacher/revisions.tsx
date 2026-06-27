@@ -303,7 +303,7 @@ export default function TeacherRevisionsScreen() {
               {
                 backgroundColor: COLORS.background,
                 color: COLORS.text,
-                borderColor: (COLORS as any).border ?? '#e5e7eb',
+                borderColor: COLORS.borderSubtle,
               },
             ]}
             placeholder="2024-06-15"

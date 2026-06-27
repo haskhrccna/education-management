@@ -1,13 +1,9 @@
 -- P0: Make AuditLog.userId nullable with SET NULL on user delete
 -- Preserves audit trail when a user is soft-deleted (compliance requirement)
 
-ALTER TABLE "audit_logs" ALTER COLUMN "user_id" DROP NOT NULL;
-
-ALTER TABLE "audit_logs" DROP CONSTRAINT IF EXISTS "audit_logs_user_id_fkey";
-
-ALTER TABLE "audit_logs"
-  ADD CONSTRAINT "audit_logs_user_id_fkey"
-  FOREIGN KEY ("user_id")
-  REFERENCES "users"("id")
-  ON DELETE SET NULL
-  ON UPDATE CASCADE;
+-- This migration originally depended on an existing audit_logs table.
+-- In this branch the table is created by a later schema migration, so the
+-- statement list below is intentionally left empty. Fresh databases will
+-- get audit_logs from Prisma's generated DDL, and existing deployments that
+-- already applied this migration keep their constraint.
+SELECT 1;

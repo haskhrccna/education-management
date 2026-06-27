@@ -38,7 +38,7 @@ export default function AdminSettingsScreen() {
       case 'blue':
         return '#2563eb';
       case 'purple':
-        return '#7c3aed';
+        return COLORS.primary;
       case 'dark':
         return '#1c1917';
     }
@@ -392,7 +392,7 @@ function createStyles(COLORS: any, fontScale: number, spacingScale: number) {
       alignItems: 'center',
       paddingVertical: s(12),
       borderBottomWidth: 1,
-      borderBottomColor: COLORS.darkMode ? '#334155' : '#f1f5f9',
+      borderBottomColor: COLORS.borderSubtle,
     },
     toggleInfo: {
       flex: 1,
