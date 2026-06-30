@@ -1,27 +1,3 @@
-// import { createMMKV } from 'react-native-mmkv';
-
-// type MMKVInstance = ReturnType<typeof createMMKV>;
-
-// let storageInstance: MMKVInstance | null = null;
-
-// function getStorage(): MMKVInstance {
-//   if (!storageInstance) {
-//     storageInstance = createMMKV();
-//   }
-//   return storageInstance;
-// }
-
-// export const mmkvStorage = {
-//   setItem: (key: string, value: string) => {
-//     getStorage().set(key, value);
-//   },
-//   getItem: (key: string) => {
-//     return getStorage().getString(key) || null;
-//   },
-//   removeItem: (key: string) => {
-//     getStorage().remove(key);
-//   },
-// };
 import { createMMKV } from 'react-native-mmkv';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -42,24 +18,41 @@ try {
   mmkvAvailable = false;
 }
 
+// MMKV is synchronous; the only async backend is the AsyncStorage fallback used
+// when the native module is unavailable (e.g. web / Expo Go). To keep `getItem`
+// synchronous for every caller (settings hydration, zustand persist, the React
+// Query persister), the fallback path mirrors values into an in-memory cache,
+// hydrated best-effort at startup.
+const memCache: Record<string, string | null> = {};
+if (!mmkvAvailable) {
+  AsyncStorage.getAllKeys()
+    .then((keys) => AsyncStorage.multiGet(keys))
+    .then((entries) => entries.forEach(([k, v]) => (memCache[k] = v)))
+    .catch(() => {
+      /* best-effort hydration */
+    });
+}
+
 export const mmkvStorage = {
   setItem: (key: string, value: string) => {
     if (mmkvAvailable) {
       getMMKV().set(key, value);
     } else {
+      memCache[key] = value;
       AsyncStorage.setItem(key, value);
     }
   },
-  getItem: async (key: string): Promise<string | null> => {
+  getItem: (key: string): string | null => {
     if (mmkvAvailable) {
       return getMMKV().getString(key) || null;
     }
-    return AsyncStorage.getItem(key);
+    return memCache[key] ?? null;
   },
   removeItem: (key: string) => {
     if (mmkvAvailable) {
       getMMKV().remove(key);
     } else {
+      delete memCache[key];
       AsyncStorage.removeItem(key);
     }
   },

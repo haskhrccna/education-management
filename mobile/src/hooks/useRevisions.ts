@@ -1,62 +1,50 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { revisionsApi, Revision } from '../api';
-import { mmkvStorage } from '../storage/mmkvStorage';
 
-const CACHE_KEY = '@revisions_cache';
+const KEY = ['revisions'];
 
 export function useRevisions() {
-  const [revisions, setRevisions] = useState<Revision[]>(() => {
-    const cached = mmkvStorage.getItem(CACHE_KEY);
-    return cached ? JSON.parse(cached) : [];
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const qc = useQueryClient();
+  const q = useQuery<Revision[]>({ queryKey: KEY, queryFn: () => revisionsApi.getMyRevisions() });
 
   const fetchRevisions = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await revisionsApi.getMyRevisions();
-      setRevisions(data);
-      mmkvStorage.setItem(CACHE_KEY, JSON.stringify(data));
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    await q.refetch();
+  }, [q.refetch]);
 
   const createRevision = useCallback(
     async (studentId: string, surahId: number, scheduledFor: string) => {
       const created = await revisionsApi.createRevision(studentId, surahId, scheduledFor);
-      const updatedRevisions = [created, ...revisions];
-      setRevisions(updatedRevisions);
-      mmkvStorage.setItem(CACHE_KEY, JSON.stringify(updatedRevisions));
+      qc.setQueryData<Revision[]>(KEY, (prev) => [created, ...(prev ?? [])]);
       return created;
     },
-    [revisions]
+    [qc]
   );
 
   const markRevision = useCallback(
     async (id: string, status: 'COMPLETED' | 'MISSED') => {
       const updated = await revisionsApi.markRevision(id, status);
-      const updatedRevisions = revisions.map((r) => (r.id === id ? updated : r));
-      setRevisions(updatedRevisions);
-      mmkvStorage.setItem(CACHE_KEY, JSON.stringify(updatedRevisions));
+      qc.setQueryData<Revision[]>(KEY, (prev) => (prev ?? []).map((r) => (r.id === id ? updated : r)));
       return updated;
     },
-    [revisions]
+    [qc]
   );
 
   const removeRevision = useCallback(
     async (id: string) => {
       await revisionsApi.deleteRevision(id);
-      const updatedRevisions = revisions.filter((r) => r.id !== id);
-      setRevisions(updatedRevisions);
-      mmkvStorage.setItem(CACHE_KEY, JSON.stringify(updatedRevisions));
+      qc.setQueryData<Revision[]>(KEY, (prev) => (prev ?? []).filter((r) => r.id !== id));
     },
-    [revisions]
+    [qc]
   );
 
-  return { revisions, isLoading, error, fetchRevisions, createRevision, markRevision, removeRevision };
+  return {
+    revisions: q.data ?? [],
+    isLoading: q.isLoading,
+    error: q.error ? (q.error as Error).message : null,
+    fetchRevisions,
+    createRevision,
+    markRevision,
+    removeRevision,
+  };
 }

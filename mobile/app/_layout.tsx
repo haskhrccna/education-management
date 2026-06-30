@@ -10,6 +10,8 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useSettingsStore } from '@/src/settings/store';
 import { useAuthStore } from '@/src/auth/store';
 import { SettingsProvider } from '@/src/components/SettingsContext';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { queryClient, queryPersister } from '@/src/lib/queryClient';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -74,53 +76,55 @@ export default function RootLayout() {
   }
 
   return (
-    <SettingsProvider>
-      <ThemeProvider value={darkMode ? DarkTheme : DefaultTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="notifications" />
-          <Stack.Screen name="parent" />
-          <Stack.Screen name="halaqa" />
-          <Stack.Screen name="admin/analytics" />
-          <Stack.Screen name="student/mushaf" />
-          <Stack.Screen name="student" />
-          <Stack.Screen name="student/certificates" />
-          <Stack.Screen name="student" />
-          <Stack.Screen name="student/gamification" />
-          <Stack.Screen name="register" />
-          <Stack.Screen name="first-login" />
-          <Stack.Screen name="pending-approval" />
-          <Stack.Screen name="forgot-password" />
+    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: queryPersister }}>
+      <SettingsProvider>
+        <ThemeProvider value={darkMode ? DarkTheme : DefaultTheme}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="notifications" />
+            <Stack.Screen name="parent" />
+            <Stack.Screen name="halaqa" />
+            <Stack.Screen name="admin/analytics" />
+            <Stack.Screen name="student/mushaf" />
+            <Stack.Screen name="student" />
+            <Stack.Screen name="student/certificates" />
+            <Stack.Screen name="student" />
+            <Stack.Screen name="student/gamification" />
+            <Stack.Screen name="register" />
+            <Stack.Screen name="first-login" />
+            <Stack.Screen name="pending-approval" />
+            <Stack.Screen name="forgot-password" />
 
-          {/* Student */}
-          <Stack.Screen name="student/home" />
-          <Stack.Screen name="student/grades" />
-          <Stack.Screen name="student/recordings" />
-          <Stack.Screen name="student/reports" />
-          <Stack.Screen name="student/appointments" />
-          <Stack.Screen name="student/teacher-change" />
+            {/* Student */}
+            <Stack.Screen name="student/home" />
+            <Stack.Screen name="student/grades" />
+            <Stack.Screen name="student/recordings" />
+            <Stack.Screen name="student/reports" />
+            <Stack.Screen name="student/appointments" />
+            <Stack.Screen name="student/teacher-change" />
 
-          {/* Teacher */}
-          <Stack.Screen name="teacher/home" />
-          <Stack.Screen name="teacher/student-detail" />
-          <Stack.Screen name="teacher/grade-form" />
-          <Stack.Screen name="teacher/recordings" />
-          <Stack.Screen name="teacher/reports" />
-          <Stack.Screen name="teacher/appointments" />
+            {/* Teacher */}
+            <Stack.Screen name="teacher/home" />
+            <Stack.Screen name="teacher/student-detail" />
+            <Stack.Screen name="teacher/grade-form" />
+            <Stack.Screen name="teacher/recordings" />
+            <Stack.Screen name="teacher/reports" />
+            <Stack.Screen name="teacher/appointments" />
 
-          {/* Admin */}
-          <Stack.Screen name="admin/home" />
-          <Stack.Screen name="admin/user-detail" />
-          <Stack.Screen name="admin/settings" />
-          <Stack.Screen name="admin/broadcast" />
-          <Stack.Screen name="admin/change-requests" />
+            {/* Admin */}
+            <Stack.Screen name="admin/home" />
+            <Stack.Screen name="admin/user-detail" />
+            <Stack.Screen name="admin/settings" />
+            <Stack.Screen name="admin/broadcast" />
+            <Stack.Screen name="admin/change-requests" />
 
-          {/* Messages */}
-          <Stack.Screen name="messages/index" />
-          <Stack.Screen name="messages/conversation" />
-        </Stack>
-        <StatusBar style={darkMode ? 'light' : 'dark'} />
-      </ThemeProvider>
-    </SettingsProvider>
+            {/* Messages */}
+            <Stack.Screen name="messages/index" />
+            <Stack.Screen name="messages/conversation" />
+          </Stack>
+          <StatusBar style={darkMode ? 'light' : 'dark'} />
+        </ThemeProvider>
+      </SettingsProvider>
+    </PersistQueryClientProvider>
   );
 }

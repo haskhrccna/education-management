@@ -1,81 +1,70 @@
 import { useCallback, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { recordingsApi, Recording } from '../api';
-import { mmkvStorage } from '../storage/mmkvStorage';
 
-const CACHE_KEY = '@recordings_cache';
+const KEY = ['recordings'];
 
 export function useRecordings() {
-  const [recordings, setRecordings] = useState<Recording[]>(() => {
-    const cached = mmkvStorage.getItem(CACHE_KEY);
-    return cached ? JSON.parse(cached) : [];
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const qc = useQueryClient();
+  const [actionError, setActionError] = useState<string | null>(null);
+  const q = useQuery<Recording[]>({ queryKey: KEY, queryFn: () => recordingsApi.getRecordings() });
 
   const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await recordingsApi.getRecordings();
-      setRecordings(data);
-      mmkvStorage.setItem(CACHE_KEY, JSON.stringify(data));
-    } catch (err: any) {
-      setError(err?.response?.data?.message ?? err?.message ?? 'Failed to load recordings');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    await q.refetch();
+  }, [q.refetch]);
 
   const upload = useCallback(
     async (formData: FormData): Promise<Recording | null> => {
-      setError(null);
+      setActionError(null);
       try {
         const created = await recordingsApi.uploadRecording(formData);
-        const updatedRecordings = [created, ...recordings];
-        setRecordings(updatedRecordings);
-        mmkvStorage.setItem(CACHE_KEY, JSON.stringify(updatedRecordings));
+        qc.setQueryData<Recording[]>(KEY, (prev) => [created, ...(prev ?? [])]);
         return created;
       } catch (err: any) {
-        setError(err?.response?.data?.message ?? err?.message ?? 'Upload failed');
+        setActionError(err?.response?.data?.message ?? err?.message ?? 'Upload failed');
         return null;
       }
     },
-    [recordings]
+    [qc]
   );
 
   const review = useCallback(
     async (id: string, approved: boolean, notes?: string): Promise<Recording | null> => {
-      setError(null);
+      setActionError(null);
       try {
         const updated = await recordingsApi.reviewRecording(id, { approved, notes });
-        const updatedRecordings = recordings.map((r) => (r.id === id ? { ...r, ...updated } : r));
-        setRecordings(updatedRecordings);
-        mmkvStorage.setItem(CACHE_KEY, JSON.stringify(updatedRecordings));
+        qc.setQueryData<Recording[]>(KEY, (prev) => (prev ?? []).map((r) => (r.id === id ? { ...r, ...updated } : r)));
         return updated;
       } catch (err: any) {
-        setError(err?.response?.data?.message ?? err?.message ?? 'Review failed');
+        setActionError(err?.response?.data?.message ?? err?.message ?? 'Review failed');
         return null;
       }
     },
-    [recordings]
+    [qc]
   );
 
   const remove = useCallback(
     async (id: string): Promise<boolean> => {
-      setError(null);
+      setActionError(null);
       try {
         await recordingsApi.deleteRecording(id);
-        const updatedRecordings = recordings.filter((r) => r.id !== id);
-        setRecordings(updatedRecordings);
-        mmkvStorage.setItem(CACHE_KEY, JSON.stringify(updatedRecordings));
+        qc.setQueryData<Recording[]>(KEY, (prev) => (prev ?? []).filter((r) => r.id !== id));
         return true;
       } catch (err: any) {
-        setError(err?.response?.data?.message ?? err?.message ?? 'Delete failed');
+        setActionError(err?.response?.data?.message ?? err?.message ?? 'Delete failed');
         return false;
       }
     },
-    [recordings]
+    [qc]
   );
 
-  return { recordings, loading, error, refresh, upload, review, remove };
+  return {
+    recordings: q.data ?? [],
+    loading: q.isLoading,
+    error: q.error ? (q.error as Error).message : actionError,
+    refresh,
+    upload,
+    review,
+    remove,
+  };
 }

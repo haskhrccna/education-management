@@ -1,65 +1,50 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { appointmentsApi, Appointment } from '../api';
 import { useSocket } from './useSocket';
-import { mmkvStorage } from '../storage/mmkvStorage';
 
-const CACHE_KEY = '@appointments_cache';
+const KEY = ['appointments'];
 
 export function useAppointments() {
-  const [appointments, setAppointments] = useState<Appointment[]>(() => {
-    const cached = mmkvStorage.getItem(CACHE_KEY);
-    return cached ? JSON.parse(cached) : [];
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const qc = useQueryClient();
   const socket = useSocket();
+  const [actionError, setActionError] = useState<string | null>(null);
+  const q = useQuery<Appointment[]>({ queryKey: KEY, queryFn: () => appointmentsApi.getMine() });
 
-  const fetchAppointments = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await appointmentsApi.getMine();
-      setAppointments(data);
-      mmkvStorage.setItem(CACHE_KEY, JSON.stringify(data));
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Listen for real-time appointment updates
+  // Real-time appointment updates → refetch via cache invalidation.
   useEffect(() => {
     if (!socket) return;
-
-    const handleUpdate = () => {
-      fetchAppointments();
-    };
-
+    const handleUpdate = () => qc.invalidateQueries({ queryKey: KEY });
     socket.on('appointment_update', handleUpdate);
     return () => {
       socket.off('appointment_update', handleUpdate);
     };
-  }, [socket, fetchAppointments]);
+  }, [socket, qc]);
+
+  const fetchAppointments = useCallback(async () => {
+    await q.refetch();
+  }, [q.refetch]);
 
   const createAppointment = useCallback(
     async (data: Parameters<typeof appointmentsApi.create>[0]) => {
-      setIsLoading(true);
+      setActionError(null);
       try {
         const created = await appointmentsApi.create(data);
-        setAppointments((prev) => [created, ...prev]);
-        // Update cache
-        mmkvStorage.setItem(CACHE_KEY, JSON.stringify([created, ...appointments]));
+        qc.setQueryData<Appointment[]>(KEY, (prev) => [created, ...(prev ?? [])]);
         return created;
       } catch (err: any) {
-        setError(err.message);
+        setActionError(err.message);
         throw err;
-      } finally {
-        setIsLoading(false);
       }
     },
-    [appointments]
+    [qc]
   );
 
-  return { appointments, isLoading, error, fetchAppointments, createAppointment };
+  return {
+    appointments: q.data ?? [],
+    isLoading: q.isLoading,
+    error: q.error ? (q.error as Error).message : actionError,
+    fetchAppointments,
+    createAppointment,
+  };
 }

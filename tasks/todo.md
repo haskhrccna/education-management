@@ -1,3 +1,22 @@
+# PR 3 — TanStack Query migration (IN PROGRESS)
+
+Branch: `feat/tanstack-query`. Gate: `cd mobile && npx tsc --noEmit`.
+Replaces hand-rolled fetch hooks (useState + manual MMKV cache) with React Query;
+fixes the 6 pre-existing `mmkvStorage.getItem` async-vs-sync errors.
+
+## Done (batch 1 — foundation + the 4 buggy hooks)
+- [x] `mmkvStorage.getItem` → synchronous (MMKV is sync; AsyncStorage fallback mirrored to an in-memory cache). Fixes settings/store + persist.ts errors.
+- [x] `src/lib/queryClient.ts`: QueryClient (staleTime 1m, gcTime 24h) + MMKV `createSyncStoragePersister`.
+- [x] `app/_layout.tsx`: wrap tree in `PersistQueryClientProvider`.
+- [x] Migrate `useGrades`, `useRevisions`, `useRecordings`, `useAppointments` to `useQuery` + `setQueryData`/`invalidateQueries`. Public APIs preserved (stable zero-arg fetchers) so screens are untouched.
+- [x] `tsc --noEmit` → **0 errors** (all 6 pre-existing mmkv errors gone).
+
+## Remaining (later batches — these still use the old pattern but are NOT broken)
+- [ ] Migrate: useGamification, useNotifications, useCertificates, useAnalytics, useMemorization, useHalaqa, useMessages, useConversation, useParent, useTeacherChange, useMushaf.
+- [ ] Convert mutation hooks to `useMutation` where it tidies optimistic updates.
+
+---
+
 # PR 2 — Gamification reward loop: contrast, semantics, states, i18n (IN PROGRESS)
 
 Branch: `fix/gamification-rewards-a11y`. Scope: mobile. Gate: `cd mobile && npx tsc --noEmit`.
