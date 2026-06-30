@@ -17,7 +17,7 @@ import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { Ionicons } from '@expo/vector-icons';
 import { appointmentsApi, reportsApi, Report } from '@/src/api';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { BottomNav } from '@/src/components/BottomNav';
 
 interface TeacherStudent {
@@ -36,7 +36,7 @@ export default function TeacherReportsScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const isRTL = useIsRTL();
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const styles = useMemo(() => createStyles(COLORS), [COLORS]);
 

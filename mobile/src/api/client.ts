@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { Platform } from 'react-native';
-import { secureStorage } from '../storage/secureStorage';
+import { installRequestInterceptor, installErrorMessageInterceptor } from './interceptors';
 
 function getApiBase(): string {
   if (process.env.EXPO_PUBLIC_API_URL) {
@@ -14,13 +14,15 @@ function getApiBase(): string {
 }
 
 const API_BASE = getApiBase();
-// eslint-disable-next-line no-console
-console.log('[API] baseURL:', API_BASE);
-if (Platform.OS === 'ios' && API_BASE.includes('localhost')) {
+if (__DEV__) {
   // eslint-disable-next-line no-console
-  console.warn(
-    "[API] Using localhost on iOS. If testing on a physical device, set EXPO_PUBLIC_API_URL to your computer's LAN IP (e.g. http://192.168.1.x:4000/api/v1)"
-  );
+  console.log('[API] baseURL:', API_BASE);
+  if (Platform.OS === 'ios' && API_BASE.includes('localhost')) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      "[API] Using localhost on iOS. If testing on a physical device, set EXPO_PUBLIC_API_URL to your computer's LAN IP (e.g. http://192.168.1.x:4000/api/v1)"
+    );
+  }
 }
 
 export const apiClient = axios.create({
@@ -28,26 +30,9 @@ export const apiClient = axios.create({
   timeout: 30000,
 });
 
-apiClient.interceptors.request.use(async (config) => {
-  // Only read storage if the current session has not already installed a header.
-  if (!config.headers.Authorization) {
-    const token = await secureStorage.getItem('auth_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
-  return config;
-});
-
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const serverMsg = error.response?.data?.error;
-    if (serverMsg && typeof serverMsg === 'string') {
-      error.message = serverMsg;
-    }
-    return Promise.reject(error);
-  }
-);
+// Request auth + server-error-message normalization. The 401 refresh interceptor
+// is installed separately by the auth store (it needs the logout side-effect).
+installRequestInterceptor(apiClient);
+installErrorMessageInterceptor(apiClient);
 
 export default apiClient;

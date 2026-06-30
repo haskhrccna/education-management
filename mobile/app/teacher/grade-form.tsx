@@ -16,7 +16,7 @@ import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { Ionicons } from '@expo/vector-icons';
 import { appointmentsApi, gradesApi, memorizationApi, Surah } from '@/src/api';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 
 const GRADE_TYPES = ['QUIZ', 'ASSIGNMENT', 'EXAM', 'ORAL', 'PARTICIPATION'] as const;
 type GradeType = (typeof GRADE_TYPES)[number];
@@ -32,7 +32,7 @@ export default function GradeFormScreen() {
   const { t } = useTranslation();
   const isRTL = useIsRTL();
   const { studentId: prefillId } = useLocalSearchParams<{ studentId?: string }>();
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
 
   const TYPE_LABELS: Record<string, string> = {

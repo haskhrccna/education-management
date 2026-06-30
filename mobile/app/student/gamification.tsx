@@ -1,19 +1,12 @@
 import React, { useState } from 'react';
-import {
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useGamification } from '@/src/hooks/useGamification';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { getColors, RADIUS, SPACING } from '@/constants/theme';
 import { AppCard, AppText, EmptyState, MetricTile, SectionHeader } from '@/src/components/design';
 
@@ -32,7 +25,7 @@ export default function GamificationScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const isRTL = useIsRTL();
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const { gamification, leaderboard, isLoading, error, fetchGamification, fetchLeaderboard } = useGamification();
   const [scope, setScope] = useState<'all' | 'my-teacher'>('all');
@@ -44,14 +37,20 @@ export default function GamificationScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
-        <TouchableOpacity accessibilityRole="button" onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => router.back()}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
             size={22}
             color="rgba(255,255,255,0.85)"
           />
         </TouchableOpacity>
-        <AppText variant="headlineSmall" color="#FFFFFF">{t('gamification')}</AppText>
+        <AppText variant="headlineSmall" color="#FFFFFF">
+          {t('gamification')}
+        </AppText>
         <View style={{ width: 24 }} />
       </View>
 
@@ -61,9 +60,13 @@ export default function GamificationScreen() {
       >
         {error ? (
           <View style={styles.center}>
-            <AppText variant="bodyMedium" color={COLORS.textSecondary}>{error}</AppText>
+            <AppText variant="bodyMedium" color={COLORS.textSecondary}>
+              {error}
+            </AppText>
             <TouchableOpacity accessibilityRole="button" onPress={fetchGamification} style={{ marginTop: SPACING.md }}>
-              <AppText variant="bodyMedium" color={COLORS.primary}>{t('retry')}</AppText>
+              <AppText variant="bodyMedium" color={COLORS.primary}>
+                {t('retry')}
+              </AppText>
             </TouchableOpacity>
           </View>
         ) : !gamification ? (
@@ -72,8 +75,18 @@ export default function GamificationScreen() {
           <>
             <SectionHeader colors={COLORS} title={t('streak')} />
             <View style={styles.metrics}>
-              <MetricTile colors={COLORS} value={String(gamification.streak.currentStreak)} label={t('currentStreak')} tone="warning" />
-              <MetricTile colors={COLORS} value={String(gamification.streak.longestStreak)} label={t('longestStreak')} tone="gold" />
+              <MetricTile
+                colors={COLORS}
+                value={String(gamification.streak.currentStreak)}
+                label={t('currentStreak')}
+                tone="warning"
+              />
+              <MetricTile
+                colors={COLORS}
+                value={String(gamification.streak.longestStreak)}
+                label={t('longestStreak')}
+                tone="gold"
+              />
             </View>
 
             <SectionHeader colors={COLORS} title={t('badgeWall')} />
@@ -84,7 +97,11 @@ export default function GamificationScreen() {
                 {gamification.badges.map((badge) => (
                   <AppCard key={badge.code} colors={COLORS} style={styles.badgeCard}>
                     <Ionicons name={ICON_MAP[badge.iconKey] || 'star-outline'} size={28} color={COLORS.primary} />
-                    <AppText variant="bodySmall" color={COLORS.textPrimary} style={{ marginTop: SPACING.xs, textAlign: 'center' }}>
+                    <AppText
+                      variant="bodySmall"
+                      color={COLORS.textPrimary}
+                      style={{ marginTop: SPACING.xs, textAlign: 'center' }}
+                    >
                       {badge.name}
                     </AppText>
                     <AppText variant="bodySmall" color={COLORS.textMuted} style={{ textAlign: 'center' }}>
@@ -102,7 +119,10 @@ export default function GamificationScreen() {
                   key={s}
                   style={[
                     styles.scopeChip,
-                    { backgroundColor: scope === s ? COLORS.primary : COLORS.surface, borderColor: COLORS.borderSubtle },
+                    {
+                      backgroundColor: scope === s ? COLORS.primary : COLORS.surface,
+                      borderColor: COLORS.borderSubtle,
+                    },
                   ]}
                   onPress={() => setScope(s)}
                 >
@@ -116,7 +136,12 @@ export default function GamificationScreen() {
             {leaderboard.slice(0, 10).map((entry) => (
               <AppCard key={entry.userId} colors={COLORS} style={{ marginBottom: SPACING.sm }}>
                 <View style={styles.row}>
-                  <View style={[styles.rank, { backgroundColor: entry.rank <= 3 ? COLORS.primaryMuted : COLORS.surfaceAlt }]}>
+                  <View
+                    style={[
+                      styles.rank,
+                      { backgroundColor: entry.rank <= 3 ? COLORS.primaryMuted : COLORS.surfaceAlt },
+                    ]}
+                  >
                     <AppText variant="titleMedium" color={entry.rank <= 3 ? COLORS.primary : COLORS.textSecondary}>
                       #{entry.rank}
                     </AppText>
@@ -124,7 +149,9 @@ export default function GamificationScreen() {
                   <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ flex: 1, marginStart: SPACING.md }}>
                     {entry.name}
                   </AppText>
-                  <AppText variant="bodyMedium" color={COLORS.textSecondary}>{entry.currentStreak}</AppText>
+                  <AppText variant="bodyMedium" color={COLORS.textSecondary}>
+                    {entry.currentStreak}
+                  </AppText>
                 </View>
               </AppCard>
             ))}

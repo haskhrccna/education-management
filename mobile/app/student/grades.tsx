@@ -8,7 +8,7 @@ import { useGrades } from '@/src/hooks/useGrades';
 import { Grade } from '@/src/api';
 import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { BottomNav } from '@/src/components/BottomNav';
 
 function avgScore(grades: Grade[]): string {
@@ -22,7 +22,7 @@ export default function StudentGradesScreen() {
   const { t, i18n } = useTranslation();
   const isRTL = useIsRTL();
   const { grades, isLoading, error, fetchGrades } = useGrades();
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
 
   const typeColorMap = {
@@ -47,12 +47,7 @@ export default function StudentGradesScreen() {
   }, [fetchGrades]);
 
   const renderGrade = ({ item }: { item: Grade }) => (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: COLORS.surface, borderStartColor: gradeTypeColor(item.type) },
-      ]}
-    >
+    <View style={[styles.card, { backgroundColor: COLORS.surface, borderStartColor: gradeTypeColor(item.type) }]}>
       <View style={styles.row}>
         <View style={[styles.badge, { backgroundColor: `${gradeTypeColor(item.type)}22` }]}>
           <Text style={[styles.badgeText, { color: gradeTypeColor(item.type) }]}>

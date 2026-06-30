@@ -1,19 +1,12 @@
 import React, { useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useParent } from '@/src/hooks/useParent';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { getColors, RADIUS, SPACING } from '@/constants/theme';
 import { AppCard, AppText } from '@/src/components/design';
 
@@ -21,7 +14,7 @@ export default function ParentLinkRequestScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const isRTL = useIsRTL();
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const [email, setEmail] = useState('');
   const [reason, setReason] = useState('');
@@ -59,14 +52,20 @@ export default function ParentLinkRequestScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
-        <TouchableOpacity accessibilityRole="button" onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => router.back()}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
             size={22}
             color="rgba(255,255,255,0.85)"
           />
         </TouchableOpacity>
-        <AppText variant="headlineSmall" color="#FFFFFF">{t('requestChildLink')}</AppText>
+        <AppText variant="headlineSmall" color="#FFFFFF">
+          {t('requestChildLink')}
+        </AppText>
         <View style={{ width: 24 }} />
       </View>
 
@@ -98,7 +97,11 @@ export default function ParentLinkRequestScreen() {
             autoCapitalize="none"
           />
 
-          <AppText variant="labelLarge" color={COLORS.textPrimary} style={{ marginTop: SPACING.md, marginBottom: SPACING.xs }}>
+          <AppText
+            variant="labelLarge"
+            color={COLORS.textPrimary}
+            style={{ marginTop: SPACING.md, marginBottom: SPACING.xs }}
+          >
             {t('requestReason')}
           </AppText>
           <TextInput
@@ -128,7 +131,9 @@ export default function ParentLinkRequestScreen() {
             {isSearching || isSubmitting ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <AppText variant="bodyMedium" color="#FFFFFF">{t('searchStudent')}</AppText>
+              <AppText variant="bodyMedium" color="#FFFFFF">
+                {t('searchStudent')}
+              </AppText>
             )}
           </TouchableOpacity>
         </AppCard>

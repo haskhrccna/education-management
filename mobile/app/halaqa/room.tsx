@@ -9,7 +9,7 @@ import { useWebRTC } from '@/src/hooks/useWebRTC';
 import { useSocket } from '@/src/hooks/useSocket';
 import { useAuthStore } from '@/src/auth/store';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { getColors, RADIUS, SPACING } from '@/constants/theme';
 import { AppCard, AppText } from '@/src/components/design';
 
@@ -20,7 +20,7 @@ export default function HalaqaRoomScreen() {
   const { t } = useTranslation();
   const isRTL = useIsRTL();
   const user = useAuthStore((s) => s.user);
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const socket = useSocket();
   const [isConnected, setIsConnected] = useState(false);
@@ -48,7 +48,11 @@ export default function HalaqaRoomScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
-        <TouchableOpacity accessibilityRole="button" onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => router.back()}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
             size={22}
@@ -58,7 +62,11 @@ export default function HalaqaRoomScreen() {
         <AppText variant="headlineSmall" color="#FFFFFF" style={{ flex: 1, textAlign: 'center' }}>
           {room?.title ?? t('halaqa')}
         </AppText>
-        <TouchableOpacity accessibilityRole="button" onPress={webRTC.toggleMute} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={webRTC.toggleMute}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
           <Ionicons name={webRTC.isMuted ? 'mic-off-outline' : 'mic-outline'} size={22} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
@@ -81,16 +89,20 @@ export default function HalaqaRoomScreen() {
           {t('participants')}
         </AppText>
 
-        {<AppCard colors={COLORS} style={{ marginBottom: SPACING.sm }}>
-          <View style={styles.row}>
-            <View style={[styles.avatar, { backgroundColor: COLORS.primaryMuted }]}>
-              <AppText variant="bodyMedium" color={COLORS.primary}>{t('you')}</AppText>
+        {
+          <AppCard colors={COLORS} style={{ marginBottom: SPACING.sm }}>
+            <View style={styles.row}>
+              <View style={[styles.avatar, { backgroundColor: COLORS.primaryMuted }]}>
+                <AppText variant="bodyMedium" color={COLORS.primary}>
+                  {t('you')}
+                </AppText>
+              </View>
+              <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginStart: SPACING.md }}>
+                {user?.firstName} {user?.lastName} {webRTC.isMuted ? `(${t('muted')})` : ''}
+              </AppText>
             </View>
-            <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginStart: SPACING.md }}>
-              {user?.firstName} {user?.lastName} {webRTC.isMuted ? `(${t('muted')})` : ''}
-            </AppText>
-          </View>
-        </AppCard>}
+          </AppCard>
+        }
 
         {webRTC.remoteParticipants.map((id) => (
           <AppCard key={id} colors={COLORS} style={{ marginBottom: SPACING.sm }}>
@@ -108,9 +120,12 @@ export default function HalaqaRoomScreen() {
 
       <TouchableOpacity
         style={[styles.leaveBtn, { backgroundColor: COLORS.error }]}
-        onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        onPress={() => router.back()}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       >
-        <AppText variant="bodyMedium" color="#FFFFFF">{t('leaveRoom')}</AppText>
+        <AppText variant="bodyMedium" color="#FFFFFF">
+          {t('leaveRoom')}
+        </AppText>
       </TouchableOpacity>
     </SafeAreaView>
   );

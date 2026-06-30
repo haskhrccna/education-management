@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { Revision, appointmentsApi, memorizationApi } from '@/src/api';
 import { useRevisions } from '@/src/hooks/useRevisions';
 import { BottomNav } from '@/src/components/BottomNav';
@@ -57,7 +57,7 @@ export default function TeacherRevisionsScreen() {
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const styles = useMemo(() => createStyles(COLORS), [COLORS]);
 

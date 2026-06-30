@@ -91,6 +91,18 @@ function saveSettings(settings: any) {
   mmkvStorage.setItem(STORAGE_KEY, JSON.stringify(settingsToSave));
 }
 
+/**
+ * Theme-only view of the settings store. Selects `theme` and `darkMode`
+ * individually so consumers re-render only when those fields change — not on
+ * every settings update (font size, notifications, compact view, …). Prefer this
+ * in screens over destructuring the whole `useSettingsStore()`.
+ */
+export function useThemeSettings(): { theme: ThemeColor; darkMode: boolean } {
+  const theme = useSettingsStore((s) => s.theme);
+  const darkMode = useSettingsStore((s) => s.darkMode);
+  return { theme, darkMode };
+}
+
 // Font size scale factors
 export const FONT_SCALE = {
   small: 0.85,

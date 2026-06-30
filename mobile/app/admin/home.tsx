@@ -9,7 +9,7 @@ import { apiClient } from '@/src/api';
 import { useAuthStore } from '@/src/auth/store';
 import { useMessages } from '@/src/hooks/useMessages';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { useNotifications } from '@/src/hooks/useNotifications';
 import { AppCard, Avatar, IconButton, MetricTile, SectionHeader, StatusPill } from '@/src/components/design';
 import { SkeletonCard } from '@/src/components/SkeletonCard';
@@ -57,7 +57,7 @@ export default function AdminHomeScreen() {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const logout = useAuthStore((s) => s.logout);
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const styles = createStyles(COLORS);
 
@@ -141,9 +141,9 @@ export default function AdminHomeScreen() {
             </View>
             <View style={styles.headerActions}>
               <View>
-        <TouchableOpacity onPress={() => router.push('/notifications')} style={{ marginEnd: SPACING.md }}>
-          <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push('/notifications')} style={{ marginEnd: SPACING.md }}>
+                  <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
+                </TouchableOpacity>
                 <IconButton
                   colors={COLORS}
                   icon="chatbubble-outline"

@@ -17,13 +17,13 @@ import { apiClient } from '@/src/api';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 
 export default function UserDetailScreen() {
   const router = useRouter();
   const id = useRequiredParam('id');
   const { t, i18n } = useTranslation();
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const styles = createStyles(COLORS);
   const [user, setUser] = useState<any>(null);

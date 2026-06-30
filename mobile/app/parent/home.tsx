@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useParent } from '@/src/hooks/useParent';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useAuthStore } from '@/src/auth/store';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { AppCard, AppText, EmptyState, MetricTile, ProgressBar, SectionHeader } from '@/src/components/design';
 import { BottomNav } from '@/src/components/BottomNav';
@@ -36,7 +29,7 @@ export default function ParentHomeScreen() {
   const { t, i18n } = useTranslation();
   const isRTL = useIsRTL();
   const lang = i18n.language;
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const user = useAuthStore((s) => s.user);
   const { children, dashboard, isLoading, error, fetchChildren, selectChild } = useParent();
@@ -66,10 +59,7 @@ export default function ParentHomeScreen() {
                 },
               ]}
             >
-              <AppText
-                variant="bodyMedium"
-                color={isSelected ? '#FFFFFF' : COLORS.textPrimary}
-              >
+              <AppText variant="bodyMedium" color={isSelected ? '#FFFFFF' : COLORS.textPrimary}>
                 {fullName(child.student)}
               </AppText>
             </TouchableOpacity>
@@ -82,8 +72,12 @@ export default function ParentHomeScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
-        <AppText variant="headlineSmall" color="#FFFFFF">{t('parentDashboard')}</AppText>
-        <TouchableOpacity accessibilityRole="button" onPress={() => router.push('/parent/link-request')}
+        <AppText variant="headlineSmall" color="#FFFFFF">
+          {t('parentDashboard')}
+        </AppText>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => router.push('/parent/link-request')}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
           <Ionicons name="add-circle-outline" size={26} color="#FFFFFF" />
@@ -96,9 +90,13 @@ export default function ParentHomeScreen() {
       >
         {error ? (
           <View style={styles.center}>
-            <AppText variant="bodyMedium" color={COLORS.textSecondary}>{error}</AppText>
+            <AppText variant="bodyMedium" color={COLORS.textSecondary}>
+              {error}
+            </AppText>
             <TouchableOpacity accessibilityRole="button" onPress={fetchChildren} style={{ marginTop: SPACING.md }}>
-              <AppText variant="bodyMedium" color={COLORS.primary}>{t('retry')}</AppText>
+              <AppText variant="bodyMedium" color={COLORS.primary}>
+                {t('retry')}
+              </AppText>
             </TouchableOpacity>
           </View>
         ) : children.length === 0 ? (
@@ -113,7 +111,9 @@ export default function ParentHomeScreen() {
               style={[styles.actionBtn, { backgroundColor: COLORS.primary }]}
               onPress={() => router.push('/parent/link-request')}
             >
-              <AppText variant="bodyMedium" color="#FFFFFF">{t('requestChildLink')}</AppText>
+              <AppText variant="bodyMedium" color="#FFFFFF">
+                {t('requestChildLink')}
+              </AppText>
             </TouchableOpacity>
           </View>
         ) : (
@@ -148,11 +148,7 @@ export default function ParentHomeScreen() {
                       >
                         <AppText
                           variant="bodySmall"
-                          color={
-                            statusTone(dashboard.student.status) === 'success'
-                              ? COLORS.success
-                              : COLORS.warning
-                          }
+                          color={statusTone(dashboard.student.status) === 'success' ? COLORS.success : COLORS.warning}
                         >
                           {dashboard.student.status}
                         </AppText>
@@ -179,15 +175,20 @@ export default function ParentHomeScreen() {
 
                 <SectionHeader colors={COLORS} title={t('childGrades')} />
                 {dashboard.grades.length === 0 ? (
-                  <AppText variant="bodyMedium" color={COLORS.textSecondary}>{t('noGradesYet')}</AppText>
+                  <AppText variant="bodyMedium" color={COLORS.textSecondary}>
+                    {t('noGradesYet')}
+                  </AppText>
                 ) : (
                   dashboard.grades.slice(0, 3).map((grade) => (
                     <AppCard key={grade.id} colors={COLORS} style={{ marginBottom: SPACING.sm }}>
                       <View style={styles.row}>
                         <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ flex: 1 }}>
-                          {grade.type} — {grade.surah ? (isRTL ? grade.surah.nameAr : grade.surah.nameEn) : t('overallRecital')}
+                          {grade.type} —{' '}
+                          {grade.surah ? (isRTL ? grade.surah.nameAr : grade.surah.nameEn) : t('overallRecital')}
                         </AppText>
-                        <AppText variant="titleMedium" color={COLORS.primary}>{grade.grade}</AppText>
+                        <AppText variant="titleMedium" color={COLORS.primary}>
+                          {grade.grade}
+                        </AppText>
                       </View>
                     </AppCard>
                   ))
@@ -215,7 +216,9 @@ export default function ParentHomeScreen() {
                     {dashboard.upcomingAppointments.map((appt) => (
                       <AppCard key={appt.id} colors={COLORS} style={{ marginBottom: SPACING.sm }}>
                         <AppText variant="bodyMedium" color={COLORS.textPrimary}>
-                          {new Date(`${appt.requestedDate}T${appt.requestedTime}`).toLocaleString(lang === 'ar' ? 'ar-SA' : 'en-US')}
+                          {new Date(`${appt.requestedDate}T${appt.requestedTime}`).toLocaleString(
+                            lang === 'ar' ? 'ar-SA' : 'en-US'
+                          )}
                         </AppText>
                         <AppText variant="bodySmall" color={COLORS.textSecondary}>
                           {t('teacher')}: {fullName(appt.teacher)}
@@ -242,7 +245,9 @@ export default function ParentHomeScreen() {
                 )}
 
                 <View style={[styles.readOnlyBanner, { backgroundColor: COLORS.primaryMuted }]}>
-                  <AppText variant="bodySmall" color={COLORS.primary}>{t('readOnlyNote')}</AppText>
+                  <AppText variant="bodySmall" color={COLORS.primary}>
+                    {t('readOnlyNote')}
+                  </AppText>
                 </View>
               </>
             ) : isLoading ? (
@@ -252,7 +257,6 @@ export default function ParentHomeScreen() {
         )}
       </ScrollView>
 
-
       <SectionHeader colors={COLORS} title={t('achievements')} />
       <View style={{ flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.md }}>
         <TouchableOpacity
@@ -260,14 +264,18 @@ export default function ParentHomeScreen() {
           onPress={() => router.push('/student/gamification')}
         >
           <Ionicons name="trophy-outline" size={28} color={COLORS.primary} />
-          <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginTop: SPACING.xs }}>{t('gamification')}</AppText>
+          <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginTop: SPACING.xs }}>
+            {t('gamification')}
+          </AppText>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.childChip, { backgroundColor: COLORS.surface, flex: 1, alignItems: 'center' }]}
           onPress={() => router.push('/student/certificates')}
         >
           <Ionicons name="document-text-outline" size={28} color={COLORS.success} />
-          <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginTop: SPACING.xs }}>{t('certificates')}</AppText>
+          <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginTop: SPACING.xs }}>
+            {t('certificates')}
+          </AppText>
         </TouchableOpacity>
       </View>
       <BottomNav role="parent" active="home" />

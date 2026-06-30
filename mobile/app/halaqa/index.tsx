@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useHalaqa } from '@/src/hooks/useHalaqa';
 import { useAuthStore } from '@/src/auth/store';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { getColors, RADIUS, SPACING } from '@/constants/theme';
 import { AppCard, AppText, EmptyState, SectionHeader } from '@/src/components/design';
 import { BottomNav } from '@/src/components/BottomNav';
@@ -43,7 +43,7 @@ export default function HalaqaListScreen() {
   const isRTL = useIsRTL();
   const role = useRole();
   const user = useAuthStore((s) => s.user);
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const { rooms, isLoading, error, fetchRooms, createRoom, startRoom, endRoom } = useHalaqa();
   const [newTitle, setNewTitle] = useState('');
@@ -66,14 +66,20 @@ export default function HalaqaListScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
-        <TouchableOpacity accessibilityRole="button" onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => router.back()}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
             size={22}
             color="rgba(255,255,255,0.85)"
           />
         </TouchableOpacity>
-        <AppText variant="headlineSmall" color="#FFFFFF">{t('halaqaRooms')}</AppText>
+        <AppText variant="headlineSmall" color="#FFFFFF">
+          {t('halaqaRooms')}
+        </AppText>
         <View style={{ width: 24 }} />
       </View>
 
@@ -83,7 +89,9 @@ export default function HalaqaListScreen() {
       >
         {canCreate && (
           <AppCard colors={COLORS}>
-            <AppText variant="labelLarge" color={COLORS.textPrimary}>{t('createRoom')}</AppText>
+            <AppText variant="labelLarge" color={COLORS.textPrimary}>
+              {t('createRoom')}
+            </AppText>
             <TextInput
               style={[
                 styles.input,
@@ -105,16 +113,26 @@ export default function HalaqaListScreen() {
               onPress={handleCreate}
               disabled={!newTitle.trim() || creating}
             >
-              {creating ? <ActivityIndicator color="#FFFFFF" /> : <AppText variant="bodyMedium" color="#FFFFFF">{t('createRoom')}</AppText>}
+              {creating ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <AppText variant="bodyMedium" color="#FFFFFF">
+                  {t('createRoom')}
+                </AppText>
+              )}
             </TouchableOpacity>
           </AppCard>
         )}
 
         {error ? (
           <View style={styles.center}>
-            <AppText variant="bodyMedium" color={COLORS.textSecondary}>{error}</AppText>
+            <AppText variant="bodyMedium" color={COLORS.textSecondary}>
+              {error}
+            </AppText>
             <TouchableOpacity accessibilityRole="button" onPress={() => fetchRooms()} style={{ marginTop: SPACING.md }}>
-              <AppText variant="bodyMedium" color={COLORS.primary}>{t('retry')}</AppText>
+              <AppText variant="bodyMedium" color={COLORS.primary}>
+                {t('retry')}
+              </AppText>
             </TouchableOpacity>
           </View>
         ) : rooms.length === 0 ? (
@@ -129,8 +147,17 @@ export default function HalaqaListScreen() {
               <TouchableOpacity key={room.id} onPress={() => router.push(`/halaqa/room?id=${room.id}`)}>
                 <AppCard colors={COLORS} style={{ marginBottom: SPACING.sm }}>
                   <View style={styles.row}>
-                    <View style={[styles.statusDot, { backgroundColor: status === 'neutral' ? COLORS.textMuted : COLORS[status] }]} />
-                    <AppText variant="titleMedium" color={COLORS.textPrimary} style={{ flex: 1, marginStart: SPACING.sm }}>
+                    <View
+                      style={[
+                        styles.statusDot,
+                        { backgroundColor: status === 'neutral' ? COLORS.textMuted : COLORS[status] },
+                      ]}
+                    />
+                    <AppText
+                      variant="titleMedium"
+                      color={COLORS.textPrimary}
+                      style={{ flex: 1, marginStart: SPACING.sm }}
+                    >
                       {room.title}
                     </AppText>
                   </View>
@@ -140,18 +167,34 @@ export default function HalaqaListScreen() {
                   </AppText>
                   <View style={styles.actions}>
                     {isOwner && room.status === 'WAITING' && (
-                      <TouchableOpacity accessibilityRole="button" onPress={() => startRoom(room.id)} style={[styles.action, { backgroundColor: COLORS.success }]} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                        <AppText variant="bodySmall" color="#FFFFFF">{t('startRoom')}</AppText>
+                      <TouchableOpacity
+                        accessibilityRole="button"
+                        onPress={() => startRoom(room.id)}
+                        style={[styles.action, { backgroundColor: COLORS.success }]}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <AppText variant="bodySmall" color="#FFFFFF">
+                          {t('startRoom')}
+                        </AppText>
                       </TouchableOpacity>
                     )}
                     {isOwner && room.status === 'LIVE' && (
-                      <TouchableOpacity accessibilityRole="button" onPress={() => endRoom(room.id)} style={[styles.action, { backgroundColor: COLORS.error }]} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                        <AppText variant="bodySmall" color="#FFFFFF">{t('endRoom')}</AppText>
+                      <TouchableOpacity
+                        accessibilityRole="button"
+                        onPress={() => endRoom(room.id)}
+                        style={[styles.action, { backgroundColor: COLORS.error }]}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <AppText variant="bodySmall" color="#FFFFFF">
+                          {t('endRoom')}
+                        </AppText>
                       </TouchableOpacity>
                     )}
                     {room.status === 'LIVE' && (
                       <View style={[styles.pill, { backgroundColor: COLORS.successLight }]}>
-                        <AppText variant="bodySmall" color={COLORS.success}>{t('liveNow')}</AppText>
+                        <AppText variant="bodySmall" color={COLORS.success}>
+                          {t('liveNow')}
+                        </AppText>
                       </View>
                     )}
                   </View>

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, View, StyleSheet } from 'react-native';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { getColors, SPACING, RADIUS } from '@/constants/theme';
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
 }
 
 export function SkeletonCard({ lines = 2 }: Props) {
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const opacity = useRef(new Animated.Value(1)).current;
 

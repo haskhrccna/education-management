@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { getColors, SPACING, RADIUS } from '@/constants/theme';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
 import { useAppointments } from '@/src/hooks/useAppointments';
@@ -22,7 +22,7 @@ import { BottomNav } from '@/src/components/BottomNav';
 
 export default function TeacherChangeScreen() {
   const { t } = useTranslation();
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const isRTL = useIsRTL();
   const { requests, isLoading, fetchRequests, submitRequest } = useTeacherChange();

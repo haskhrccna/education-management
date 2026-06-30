@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { useNotifications } from '@/src/hooks/useNotifications';
 
 type Role = 'student' | 'teacher' | 'admin' | 'parent';
@@ -211,7 +211,7 @@ export function BottomNav({ role, active }: BottomNavProps) {
   const insets = useSafeAreaInsets();
   const { i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const { unreadCount } = useNotifications();
 

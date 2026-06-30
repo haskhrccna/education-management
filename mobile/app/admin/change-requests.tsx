@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { getColors, SPACING, RADIUS } from '@/constants/theme';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
 import { BottomNav } from '@/src/components/BottomNav';
@@ -32,7 +32,7 @@ function initials(first?: string, last?: string) {
 }
 
 export default function ChangeRequestsScreen() {
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const { requests, isLoading, fetchRequests, decideRequest, fetchTeachers } = useTeacherChange();
   const [filter, setFilter] = useState<StatusFilter>('PENDING');

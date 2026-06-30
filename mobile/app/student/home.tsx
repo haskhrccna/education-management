@@ -10,7 +10,7 @@ import { useAppointments } from '@/src/hooks/useAppointments';
 import { useGrades } from '@/src/hooks/useGrades';
 import { useMemorization } from '@/src/hooks/useMemorization';
 import { useMessages } from '@/src/hooks/useMessages';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { useNotifications } from '@/src/hooks/useNotifications';
 import {
   AppCard,
@@ -70,7 +70,7 @@ export default function StudentHomeScreen() {
   const insets = useSafeAreaInsets();
   const { i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const styles = createStyles(COLORS);
 
@@ -201,9 +201,9 @@ export default function StudentHomeScreen() {
           </View>
           <View style={styles.headerActions}>
             <View>
-        <TouchableOpacity onPress={() => router.push('/notifications')} style={{ marginEnd: SPACING.md }}>
-          <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/notifications')} style={{ marginEnd: SPACING.md }}>
+                <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
+              </TouchableOpacity>
               <IconButton
                 colors={COLORS}
                 icon="chatbubble-outline"
@@ -426,7 +426,6 @@ export default function StudentHomeScreen() {
           <Ionicons name="book-outline" size={28} color={COLORS.primary} />
           <Text style={[styles.rowTitle, { marginTop: SPACING.xs }]}>{isAr ? 'قارئ المصحف' : 'Mushaf reader'}</Text>
         </TouchableOpacity>
-
       </ScrollView>
       <BottomNav role="student" active="home" />
     </View>

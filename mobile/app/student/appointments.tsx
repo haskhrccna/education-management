@@ -19,7 +19,7 @@ import { appointmentsApi, Appointment } from '@/src/api';
 import { useAuthStore } from '@/src/auth/store';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
 import { AppCard, Avatar, EmptyState, IconButton, SectionHeader, StatusPill } from '@/src/components/design';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { BottomNav } from '@/src/components/BottomNav';
 
 interface TeacherOption {
@@ -67,7 +67,7 @@ export default function StudentAppointmentsScreen() {
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const styles = createStyles(COLORS);
   const { user } = useAuthStore();

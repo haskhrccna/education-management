@@ -16,7 +16,7 @@ import { getColors, SPACING } from '@/constants/theme';
 import { useAuthStore } from '@/src/auth/store';
 import { AppCard, Avatar, EmptyState, IconButton } from '@/src/components/design';
 import { useMessages } from '@/src/hooks/useMessages';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { BottomNav } from '@/src/components/BottomNav';
 import { usersApi, UserProfile } from '@/src/api/users';
 
@@ -32,7 +32,7 @@ export default function MessagesScreen() {
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const styles = createStyles(COLORS);
   const { messages, isLoading, fetchMessages } = useMessages();

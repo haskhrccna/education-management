@@ -12,13 +12,13 @@ import {
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { getColors, SPACING, RADIUS } from '@/constants/theme';
 import { apiClient } from '@/src/api/client';
 
 export default function ForgotPasswordScreen() {
   const { t } = useTranslation();
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);

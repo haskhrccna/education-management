@@ -3,7 +3,7 @@ import { StyleProp, Text, TextStyle } from 'react-native';
 import { useSettingsScales } from '@/src/components/SettingsContext';
 import { TYPOGRAPHY, getColors } from '@/constants/theme';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 
 export type AppTextVariant = keyof typeof TYPOGRAPHY;
 
@@ -28,7 +28,7 @@ export function AppText({
   accessibilityLabel,
   allowFontScaling = true,
 }: AppTextProps) {
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const { fontScale } = useSettingsScales();
   const rtl = useIsRTL();
   const colors = getColors(theme, darkMode);

@@ -8,7 +8,7 @@ import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { Ionicons } from '@expo/vector-icons';
 import { gradesApi, memorizationApi, Grade, MemorizationEntry } from '@/src/api';
 import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 
 const TYPE_COLORS: Record<string, string> = {
   ORAL: '#3b82f6',
@@ -37,7 +37,7 @@ export default function TeacherStudentDetailScreen() {
   const isRTL = useIsRTL();
   const studentId = useRequiredParam('id');
   const { name: studentName } = useLocalSearchParams<{ name?: string }>();
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
 
   const GRADE_TYPE_LABELS: Record<string, string> = {

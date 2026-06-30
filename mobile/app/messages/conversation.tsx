@@ -19,7 +19,7 @@ import { getColors, RADIUS, SPACING } from '@/constants/theme';
 import { useAuthStore } from '@/src/auth/store';
 import { useConversation } from '@/src/hooks/useConversation';
 import { useRequiredParam } from '@/src/hooks/useRequiredParam';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { Avatar, IconButton } from '@/src/components/design';
 
 function formatTime(dateStr: string | undefined, lang: string): string {
@@ -42,7 +42,7 @@ export default function ConversationScreen() {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const { user } = useAuthStore();
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const styles = createStyles(COLORS);
   const { thread, isLoading, error, fetchThread, sendMessage } = useConversation(partnerId ?? '');

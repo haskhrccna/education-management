@@ -11,7 +11,7 @@ import { useAppointments } from '@/src/hooks/useAppointments';
 import { useMessages } from '@/src/hooks/useMessages';
 import { useRecordings } from '@/src/hooks/useRecordings';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { useNotifications } from '@/src/hooks/useNotifications';
 import {
   AppCard,
@@ -64,7 +64,7 @@ export default function TeacherHomeScreen() {
   const { i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const logout = useAuthStore((s) => s.logout);
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const styles = createStyles(COLORS);
 
@@ -203,9 +203,9 @@ export default function TeacherHomeScreen() {
           </View>
           <View style={styles.headerActions}>
             <View>
-        <TouchableOpacity onPress={() => router.push('/notifications')} style={{ marginEnd: SPACING.md }}>
-          <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/notifications')} style={{ marginEnd: SPACING.md }}>
+                <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
+              </TouchableOpacity>
               <IconButton
                 colors={COLORS}
                 icon="chatbubble-outline"

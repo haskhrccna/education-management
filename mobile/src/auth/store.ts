@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { apiClient } from '../api/client';
-import { authApi } from '../api';
+import { authApi } from '../api/auth';
+import { installAuthRefreshInterceptor } from '../api/interceptors';
 import { secureStorage } from '../storage/secureStorage';
 import type { AuthUser } from '../api/auth';
 export type { AuthUser } from '../api/auth';
@@ -97,50 +98,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 }));
 
-// Track in-flight refresh to prevent concurrent refresh races
-let refreshPromise: Promise<{ token: string; refreshToken: string }> | null = null;
-
-// 401 interceptor — single-flight token refresh before failing
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    // Never retry auth endpoints — prevents login/register 401s from triggering refresh
-    const url = originalRequest?.url ?? '';
-    if (url.includes('/auth/refresh') || url.includes('/auth/login') || url.includes('/auth/register')) {
-      return Promise.reject(error);
-    }
-
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
-      originalRequest._retry = true;
-      try {
-        // Single-flight: share one refresh call across concurrent 401s
-        if (!refreshPromise) {
-          refreshPromise = (async () => {
-            const refreshToken = await secureStorage.getItem('refresh_token');
-            if (!refreshToken) throw new Error('No refresh token');
-            const res = await apiClient.post('/auth/refresh', { refreshToken });
-            return res.data as { token: string; refreshToken: string };
-          })();
-        }
-        const { token: newToken, refreshToken: newRefreshToken } = await refreshPromise;
-        await secureStorage.setItem('auth_token', newToken);
-        await secureStorage.setItem('refresh_token', newRefreshToken);
-        apiClient.defaults.headers.common.Authorization = `Bearer ${newToken}`;
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        await secureStorage.deleteItem('auth_token');
-        await secureStorage.deleteItem('refresh_token');
-        delete apiClient.defaults.headers.common.Authorization;
-        // Clear in-memory state so UI redirects to login
-        useAuthStore.setState({ user: null, token: null });
-        return Promise.reject(refreshError);
-      } finally {
-        refreshPromise = null;
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+// Single-flight 401 token refresh. Registered here (not in client.ts) because the
+// logout side-effect needs the auth store; passed as a callback so interceptors.ts
+// stays free of any store import.
+installAuthRefreshInterceptor(apiClient, () => {
+  // Clear in-memory state so UI redirects to login
+  useAuthStore.setState({ user: null, token: null });
+});

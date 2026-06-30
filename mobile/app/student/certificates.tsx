@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useCertificates } from '@/src/hooks/useCertificates';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { getColors, RADIUS, SPACING } from '@/constants/theme';
 import { AppCard, AppText, EmptyState, SectionHeader } from '@/src/components/design';
 
@@ -23,7 +23,7 @@ export default function CertificatesScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const isRTL = useIsRTL();
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const { certificates, isLoading, error, fetchCertificates, getDownloadUrl } = useCertificates();
 
@@ -44,14 +44,20 @@ export default function CertificatesScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
-        <TouchableOpacity accessibilityRole="button" onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => router.back()}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
             size={22}
             color="rgba(255,255,255,0.85)"
           />
         </TouchableOpacity>
-        <AppText variant="headlineSmall" color="#FFFFFF">{t('certificates')}</AppText>
+        <AppText variant="headlineSmall" color="#FFFFFF">
+          {t('certificates')}
+        </AppText>
         <View style={{ width: 24 }} />
       </View>
 
@@ -61,9 +67,13 @@ export default function CertificatesScreen() {
       >
         {error ? (
           <View style={styles.center}>
-            <AppText variant="bodyMedium" color={COLORS.textSecondary}>{error}</AppText>
+            <AppText variant="bodyMedium" color={COLORS.textSecondary}>
+              {error}
+            </AppText>
             <TouchableOpacity accessibilityRole="button" onPress={fetchCertificates} style={{ marginTop: SPACING.md }}>
-              <AppText variant="bodyMedium" color={COLORS.primary}>{t('retry')}</AppText>
+              <AppText variant="bodyMedium" color={COLORS.primary}>
+                {t('retry')}
+              </AppText>
             </TouchableOpacity>
           </View>
         ) : certificates.length === 0 ? (
@@ -87,11 +97,28 @@ export default function CertificatesScreen() {
                   </View>
                 </View>
                 <View style={styles.actions}>
-                  <TouchableOpacity accessibilityRole="button" onPress={() => handleOpen(cert.id)} style={[styles.btn, { backgroundColor: COLORS.primary }]} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                    <AppText variant="bodySmall" color="#FFFFFF">{t('downloadCertificate')}</AppText>
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    onPress={() => handleOpen(cert.id)}
+                    style={[styles.btn, { backgroundColor: COLORS.primary }]}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <AppText variant="bodySmall" color="#FFFFFF">
+                      {t('downloadCertificate')}
+                    </AppText>
                   </TouchableOpacity>
-                  <TouchableOpacity accessibilityRole="button" onPress={() => handleShare(cert.id)} style={[styles.btn, { backgroundColor: COLORS.surface, borderColor: COLORS.borderSubtle, borderWidth: 1 }]} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                    <AppText variant="bodySmall" color={COLORS.textPrimary}>{t('shareCertificate')}</AppText>
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    onPress={() => handleShare(cert.id)}
+                    style={[
+                      styles.btn,
+                      { backgroundColor: COLORS.surface, borderColor: COLORS.borderSubtle, borderWidth: 1 },
+                    ]}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <AppText variant="bodySmall" color={COLORS.textPrimary}>
+                      {t('shareCertificate')}
+                    </AppText>
                   </TouchableOpacity>
                 </View>
               </AppCard>

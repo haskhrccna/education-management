@@ -1,6 +1,6 @@
 import * as WebBrowser from 'expo-web-browser';
 import apiClient from './client';
-import { useAuthStore } from '../auth/store';
+import { secureStorage } from '../storage/secureStorage';
 
 export interface Report {
   id: string;
@@ -36,7 +36,7 @@ export const reportsApi = {
   },
 
   downloadReport: async (id: string): Promise<void> => {
-    const token = useAuthStore.getState().token ?? '';
+    const token = (await secureStorage.getItem('auth_token')) ?? '';
     const baseURL = (apiClient.defaults.baseURL ?? '').replace(/\/$/, '');
     const url = `${baseURL}/files/reports/${id}?token=${encodeURIComponent(token)}`;
     await WebBrowser.openBrowserAsync(url);

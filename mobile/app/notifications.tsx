@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +8,7 @@ import { useNotifications } from '@/src/hooks/useNotifications';
 import { useAuthStore } from '@/src/auth/store';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
-import { useSettingsStore } from '@/src/settings/store';
+import { useThemeSettings } from '@/src/settings/store';
 import { AppCard, AppText, EmptyState, IconButton } from '@/src/components/design';
 import { Notification } from '@/src/api/notifications';
 
@@ -69,18 +62,10 @@ export default function NotificationsScreen() {
   const { t } = useTranslation();
   const isRTL = useIsRTL();
   const role = useRole();
-  const { theme, darkMode } = useSettingsStore();
+  const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
-  const {
-    notifications,
-    unreadCount,
-    isLoading,
-    error,
-    hasNext,
-    fetchNotifications,
-    markRead,
-    markAllRead,
-  } = useNotifications();
+  const { notifications, unreadCount, isLoading, error, hasNext, fetchNotifications, markRead, markAllRead } =
+    useNotifications();
 
   const handlePress = async (item: Notification) => {
     if (!item.readAt) {
@@ -171,10 +156,12 @@ export default function NotificationsScreen() {
                 color={COLORS.textMuted}
                 style={{ marginTop: 4, textAlign: isRTL ? 'right' : 'left' }}
               >
-                {new Date(item.createdAt).toLocaleDateString(
-                  isRTL ? 'ar-SA' : 'en-US',
-                  { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
-                )}
+                {new Date(item.createdAt).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
               </AppText>
             </View>
             {isUnread && <View style={[styles.dot, { backgroundColor: COLORS.primary }]} />}
@@ -187,7 +174,11 @@ export default function NotificationsScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
-        <TouchableOpacity accessibilityRole="button" onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => router.back()}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
             size={22}
@@ -198,8 +189,14 @@ export default function NotificationsScreen() {
           {t('notifications')}
         </AppText>
         {unreadCount > 0 ? (
-          <TouchableOpacity accessibilityRole="button" onPress={markAllRead} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <AppText variant="bodySmall" color="rgba(255,255,255,0.9)">{t('markAllRead')}</AppText>
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={markAllRead}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <AppText variant="bodySmall" color="rgba(255,255,255,0.9)">
+              {t('markAllRead')}
+            </AppText>
           </TouchableOpacity>
         ) : (
           <View style={{ width: 24 }} />
@@ -208,9 +205,17 @@ export default function NotificationsScreen() {
 
       {error ? (
         <View style={styles.center}>
-          <AppText variant="bodyMedium" color={COLORS.textSecondary}>{error}</AppText>
-          <TouchableOpacity accessibilityRole="button" onPress={() => fetchNotifications(1)} style={{ marginTop: SPACING.md }}>
-            <AppText variant="bodyMedium" color={COLORS.primary}>{t('retry')}</AppText>
+          <AppText variant="bodyMedium" color={COLORS.textSecondary}>
+            {error}
+          </AppText>
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={() => fetchNotifications(1)}
+            style={{ marginTop: SPACING.md }}
+          >
+            <AppText variant="bodyMedium" color={COLORS.primary}>
+              {t('retry')}
+            </AppText>
           </TouchableOpacity>
         </View>
       ) : (
@@ -219,7 +224,12 @@ export default function NotificationsScreen() {
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={isLoading && notifications.length === 0} onRefresh={() => fetchNotifications(1)} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={isLoading && notifications.length === 0}
+              onRefresh={() => fetchNotifications(1)}
+            />
+          }
           ListEmptyComponent={
             !isLoading ? (
               <View style={styles.empty}>

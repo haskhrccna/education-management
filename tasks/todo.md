@@ -1,3 +1,40 @@
+# PR 1 — API cycle break, interceptor consolidation, theme selectors (IN PROGRESS)
+
+Branch: `refactor/api-cycle-interceptors-theme`
+Scope: mobile only. No behavior change — pure structure + perf. Gate: `cd mobile && npx tsc --noEmit`.
+
+Motivation (from graphify graph of `mobile/`):
+- `apiClient` bridges the API layer into 8 screen communities; coupling concentrates above it.
+- Import cycle: `api/index.ts → reports.ts → auth/store.ts → api/index.ts`.
+- `useSettingsStore` is the #1 god node (79 edges): ~35 screens read the *whole* store, re-rendering on any setting change.
+- Interceptors split-brain: request-auth in `client.ts`, 401-refresh in `auth/store.ts`.
+
+## Tasks
+### 1. Break import cycle
+- [x] `src/auth/store.ts`: import `authApi` from `./auth` (not the `../api` barrel).
+- [x] `src/api/reports.ts`: drop `useAuthStore`; read token from `secureStorage` in `downloadReport`.
+### 2. Consolidate interceptors
+- [x] New `src/api/interceptors.ts`: `installRequestInterceptor`, `installErrorMessageInterceptor`, `installAuthRefreshInterceptor(client, onAuthFailure)` (logout via callback → no new cycle).
+- [x] `src/api/client.ts`: use the installers; gate baseURL `console.log` behind `__DEV__`.
+- [x] `src/auth/store.ts`: call `installAuthRefreshInterceptor`; remove inline 401 block; preserve order.
+### 3. Theme selectors
+- [x] `src/settings/store.ts`: add `useThemeSettings()` (`{ theme, darkMode }` via selectors).
+- [x] `src/hooks/useTheme.ts`: memoized `{ colors, isRTL, theme, darkMode }` for future adoption.
+- [x] Migrate 37 `const { theme, darkMode } = useSettingsStore()` → `useThemeSettings()`.
+
+## Verification
+- [x] `cd mobile && npx tsc --noEmit`: my 40 changed/created files add **0** new errors. 6 errors remain, all pre-existing on `main` (proven via stash baseline) — `mmkvStorage.getItem` async-vs-sync in the fetch hooks + `persist.ts` + `loadSettings`. Out of scope; fixed by PR 2's hook rewrite.
+- [x] Graph rebuild: import cycles 0 (was 1). No api/* module imports any store.
+
+## Discovered (fold into PR 2)
+- `mmkvStorage.getItem` is `async` but `useGrades`/`useAppointments`/`useRecordings`/`useRevisions`/`persist.ts`/`loadSettings` call it synchronously → cache reads are currently broken at the type level. TanStack Query migration removes these call sites entirely.
+
+## Out of scope (follow-ups)
+- PR 2: TanStack Query migration of the 15 fetch hooks.
+- PR 3: adopt `useTheme().colors`, drop per-screen `getColors` + shared `createStyles`.
+
+---
+
 # 8-Stage UI/UX + Feature Delivery Plan — COMPLETED
 
 All stages executed from `docs/superpowers/plans/2026-06-25-ui-design-improvements.md`.
