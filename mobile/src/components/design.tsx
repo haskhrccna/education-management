@@ -270,6 +270,41 @@ export function EmptyState({ colors, icon, title, description }: EmptyStateProps
   );
 }
 
+interface SegmentedControlProps {
+  colors: Colors;
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (value: string) => void;
+  style?: StyleProp<ViewStyle>;
+}
+
+export function SegmentedControl({ colors, options, value, onChange, style }: SegmentedControlProps) {
+  return (
+    <View style={[uiStyles(colors, 1).segmentRow, style]}>
+      {options.map((opt) => {
+        const selected = opt.value === value;
+        return (
+          <TouchableOpacity
+            key={opt.value}
+            accessibilityRole="button"
+            accessibilityState={{ selected }}
+            activeOpacity={0.82}
+            onPress={() => onChange(opt.value)}
+            style={[
+              uiStyles(colors, 1).segmentChip,
+              { backgroundColor: selected ? colors.primary : colors.surface, borderColor: colors.borderSubtle },
+            ]}
+          >
+            <AppText variant="labelLarge" color={selected ? colors.textOnPrimary : colors.textPrimary}>
+              {opt.label}
+            </AppText>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
 export function avatarColor(label: string, colors: Colors): string {
   const palette = [colors.primary, colors.info, colors.warning, colors.error, '#7B1FA2', '#00897B'];
   const seed = [...(label || '?')].reduce((sum, char) => sum + char.charCodeAt(0), 0);
@@ -368,5 +403,18 @@ const uiStyles = (colors: Colors, spacingScale: number) =>
       color: colors.textSecondary,
       textAlign: 'center',
       marginTop: SPACING.xs,
+    },
+    segmentRow: {
+      flexDirection: 'row',
+      gap: SPACING.sm,
+    },
+    segmentChip: {
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.sm,
+      minHeight: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: RADIUS.full,
+      borderWidth: 1,
     },
   });

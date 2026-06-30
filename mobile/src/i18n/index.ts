@@ -124,6 +124,7 @@ const arTranslations: Record<string, string> = {
   leaderboardMyTeacher: 'حلقتي',
   leaderboardEmpty: 'لا يوجد متصدّرون بعد',
   leaderboardError: 'تعذّر تحميل قائمة المتصدّرين',
+  couldntLoad: 'تعذّر تحميل بياناتك',
 
   noGradesYet: 'لا توجد درجات بعد',
   noGradesDesc: 'لم يسجّل معلمك أي درجات بعد.',
@@ -417,6 +418,7 @@ const enTranslations: Record<string, string> = {
   leaderboardMyTeacher: 'My circle',
   leaderboardEmpty: 'No rankings yet',
   leaderboardError: 'Couldn’t load the leaderboard',
+  couldntLoad: 'Couldn’t load your data',
 
   noGradesYet: 'No grades yet',
   noGradesDesc: "Your teacher hasn't recorded any grades yet.",

@@ -8,7 +8,7 @@ import { useGamification } from '@/src/hooks/useGamification';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useThemeSettings } from '@/src/settings/store';
 import { getColors, RADIUS, SPACING } from '@/constants/theme';
-import { AppCard, AppText, EmptyState, MetricTile, SectionHeader } from '@/src/components/design';
+import { AppCard, AppText, EmptyState, MetricTile, SectionHeader, SegmentedControl } from '@/src/components/design';
 import { SkeletonCard } from '@/src/components/SkeletonCard';
 
 const ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -24,7 +24,7 @@ const ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
 
 export default function GamificationScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isRTL = useIsRTL();
   const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
@@ -43,6 +43,12 @@ export default function GamificationScreen() {
   React.useEffect(() => {
     fetchLeaderboard(scope);
   }, [scope, fetchLeaderboard]);
+
+  // Refresh everything on screen, not just the top stats.
+  const onRefresh = () => {
+    fetchGamification();
+    fetchLeaderboard(scope);
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
@@ -67,12 +73,12 @@ export default function GamificationScreen() {
 
       <ScrollView
         contentContainerStyle={styles.body}
-        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchGamification} />}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={onRefresh} />}
       >
         {error ? (
           <View style={styles.center}>
             <AppText variant="bodyMedium" color={COLORS.textSecondary}>
-              {error}
+              {t('couldntLoad')}
             </AppText>
             <TouchableOpacity
               accessibilityRole="button"
@@ -126,7 +132,7 @@ export default function GamificationScreen() {
                       {badge.name}
                     </AppText>
                     <AppText variant="bodySmall" color={COLORS.textSecondary} style={{ textAlign: 'center' }}>
-                      {new Date(badge.earnedAt).toLocaleDateString()}
+                      {new Date(badge.earnedAt).toLocaleDateString(i18n.language)}
                     </AppText>
                   </AppCard>
                 ))}
@@ -134,27 +140,16 @@ export default function GamificationScreen() {
             )}
 
             <SectionHeader colors={COLORS} title={t('leaderboard')} />
-            <View style={styles.scopeRow}>
-              {(['all', 'my-teacher'] as const).map((s) => (
-                <TouchableOpacity
-                  key={s}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: scope === s }}
-                  style={[
-                    styles.scopeChip,
-                    {
-                      backgroundColor: scope === s ? COLORS.primary : COLORS.surface,
-                      borderColor: COLORS.borderSubtle,
-                    },
-                  ]}
-                  onPress={() => setScope(s)}
-                >
-                  <AppText variant="labelLarge" color={scope === s ? '#FFFFFF' : COLORS.textPrimary}>
-                    {t(s === 'all' ? 'leaderboardAll' : 'leaderboardMyTeacher')}
-                  </AppText>
-                </TouchableOpacity>
-              ))}
-            </View>
+            <SegmentedControl
+              colors={COLORS}
+              value={scope}
+              onChange={(v) => setScope(v as 'all' | 'my-teacher')}
+              options={[
+                { value: 'all', label: t('leaderboardAll') },
+                { value: 'my-teacher', label: t('leaderboardMyTeacher') },
+              ]}
+              style={{ marginBottom: SPACING.md }}
+            />
 
             {leaderboardLoading ? (
               <>
@@ -231,16 +226,6 @@ const styles = StyleSheet.create({
   metrics: { flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.md },
   badgeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
   badgeCard: { width: '31%', alignItems: 'center', padding: SPACING.md, marginBottom: SPACING.sm },
-  scopeRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.md },
-  scopeChip: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: RADIUS.full,
-    borderWidth: 1,
-  },
   row: { flexDirection: 'row', alignItems: 'center' },
   rank: {
     width: 36,
