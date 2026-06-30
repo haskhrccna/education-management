@@ -14,8 +14,10 @@ fixes the 6 pre-existing `mmkvStorage.getItem` async-vs-sync errors.
 ## Done (batch 2 — clean-fit hooks)
 - [x] Migrate useAnalytics, useCertificates, useMemorization, useGamification, useMessages, useHalaqa, useTeacherChange to React Query (APIs preserved; list filters via internal state + invalidate; socket → invalidate). tsc 0 errors.
 
+## Done (batch 3)
+- [x] useNotifications → `useInfiniteQuery` (list) + `useQuery` (unread), optimistic markRead/markAllRead via setQueryData. Also fixes the old latent bug where load-more only ever re-fetched page 2. tsc 0 errors.
+
 ## Intentionally left on the old pattern (NOT broken; poor declarative-cache fit)
-- useNotifications — real pagination → belongs in `useInfiniteQuery` (separate redesign).
 - useConversation — live socket-managed message thread, not a cached resource.
 - useParent — multi-resource (links/children/dashboard) with a derived dashboard + imperative child selection.
 - useMushaf — imperative page/surah navigation (fetch-on-demand), not declarative keys.
