@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-30T00:00:00Z",
+  "title": "Design System: Quran Review",
+  "extensions": {
+    "colorMeta": {
+      "islamic-green": {
+        "role": "primary",
+        "displayName": "Islamic Green",
+        "canonical": "#1B5E20",
+        "tonalRamp": ["#0A2A0C", "#0F3D12", "#15501A", "#1B5E20", "#357A38", "#5A9A5C", "#8FC091", "#D7ECD8"]
+      },
+      "illumination-gold": {
+        "role": "secondary",
+        "displayName": "Illumination Gold",
+        "canonical": "#FFC107",
+        "tonalRamp": ["#5A4300", "#7A5B00", "#9E7600", "#C79400", "#FFC107", "#FFD046", "#FFE08A", "#FFF3CC"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#212121",
+        "tonalRamp": ["#000000", "#161616", "#212121", "#3A3A3A", "#5C5C5C", "#9E9E9E", "#D6D6D6", "#F5F5F5"]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Canvas",
+        "canonical": "#F5F5F5",
+        "tonalRamp": ["#1E1E1E", "#3A3A3A", "#6B6B6B", "#9E9E9E", "#BDBDBD", "#E0E0E0", "#F5F5F5", "#FFFFFF"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Screen titles and hero numbers — once per screen." },
+      "headline": { "displayName": "Headline", "purpose": "Section headings and metric values." },
+      "title": { "displayName": "Title", "purpose": "Card titles, section headers, list leads." },
+      "body": { "displayName": "Body", "purpose": "Primary reading text (16/24)." },
+      "label": { "displayName": "Label", "purpose": "Pills, buttons, captions, avatar initials." }
+    },
+    "shadows": [
+      { "name": "sm", "value": "0 1px 2px rgba(0,0,0,0.06)", "purpose": "Default whisper-lift on cards and tiles (elevation 1)." },
+      { "name": "md", "value": "0 1px 3px rgba(0,0,0,0.10)", "purpose": "Raised cards and the app bar (elevation 2)." },
+      { "name": "lg", "value": "0 4px 8px rgba(0,0,0,0.10)", "purpose": "Floating actions and popovers (elevation 5)." },
+      { "name": "xl", "value": "0 8px 24px rgba(0,0,0,0.12)", "purpose": "Modals and bottom sheets only (elevation 8)." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default Material easing for state transitions; honors reduced-motion by degrading to a crossfade." },
+      { "name": "press-opacity", "value": "opacity 0.82 on activeOpacity", "purpose": "Touchable press feedback across buttons and tappable rows." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single high-emphasis action per screen — solid identity green.",
+      "html": "<button class=\"ds-btn-primary\">ابدأ المراجعة</button>",
+      "css": ".ds-btn-primary { background: #1B5E20; color: #FFFFFF; font-family: Cairo, system-ui, sans-serif; font-weight: 600; font-size: 16px; padding: 14px 20px; border: none; border-radius: 8px; transition: background 0.2s cubic-bezier(0.4,0,0.2,1), opacity 0.2s; } .ds-btn-primary:hover { background: #15501A; } .ds-btn-primary:active { opacity: 0.82; } .ds-btn-primary:focus-visible { outline: 2px solid #1B5E20; outline-offset: 2px; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Refined-and-restrained surface: hairline border + whisper shadow, never heavy elevation.",
+      "html": "<div class=\"ds-card\">سورة البقرة — ٧٥٪ محفوظة</div>",
+      "css": ".ds-card { background: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 12px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.06); color: #212121; font-family: Cairo, system-ui, sans-serif; font-size: 16px; }"
+    },
+    {
+      "name": "Status Pill",
+      "kind": "chip",
+      "refersTo": "status-pill",
+      "description": "Tinted-light background + same-hue text, always paired with a label (never color alone).",
+      "html": "<span class=\"ds-status-pill\">مكتمل</span>",
+      "css": ".ds-status-pill { display: inline-flex; align-items: center; background: #E8F5E9; color: #1B5E20; font-family: Cairo, system-ui, sans-serif; font-weight: 800; font-size: 14px; line-height: 20px; padding: 4px 8px; border-radius: 9999px; }"
+    },
+    {
+      "name": "Icon Button",
+      "kind": "button",
+      "refersTo": "icon-button",
+      "description": "Circular 44pt-minimum control; tonal background by intent, green glyph by default.",
+      "html": "<button class=\"ds-icon-btn\" aria-label=\"تشغيل التسجيل\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"#1B5E20\"><path d=\"M8 5v14l11-7z\"/></svg></button>",
+      "css": ".ds-icon-btn { width: 44px; height: 44px; border-radius: 9999px; background: #FFFFFF; border: 1px solid #E0E0E0; display: inline-flex; align-items: center; justify-content: center; transition: opacity 0.2s; } .ds-icon-btn:active { opacity: 0.82; } .ds-icon-btn:focus-visible { outline: 2px solid #1B5E20; outline-offset: 2px; }"
+    },
+    {
+      "name": "Metric Tile (Achievement)",
+      "kind": "card",
+      "refersTo": "metric-tile",
+      "description": "Compact stat surface; gold tone reserved for earned achievement (streaks, certificates).",
+      "html": "<div class=\"ds-metric\"><div class=\"ds-metric-value\">١٢</div><div class=\"ds-metric-label\">يوم متتالي</div></div>",
+      "css": ".ds-metric { background: #FFF8E1; border-radius: 12px; padding: 12px; min-height: 70px; display: flex; flex-direction: column; justify-content: center; font-family: Cairo, system-ui, sans-serif; } .ds-metric-value { color: #FFC107; font-weight: 700; font-size: 24px; line-height: 28px; } .ds-metric-label { color: #757575; font-size: 12px; margin-top: 3px; }"
+    },
+    {
+      "name": "Progress Bar",
+      "kind": "custom",
+      "refersTo": "progress-bar",
+      "description": "Quiet workhorse of the 'visible progress' promise; primary fill by default, gold for achievement.",
+      "html": "<div class=\"ds-progress\"><div class=\"ds-progress-fill\"></div></div>",
+      "css": ".ds-progress { background: #E0E0E0; height: 6px; border-radius: 3px; overflow: hidden; width: 220px; } .ds-progress-fill { width: 75%; height: 6px; border-radius: 3px; background: #1B5E20; }"
+    },
+    {
+      "name": "Empty State",
+      "kind": "custom",
+      "refersTo": "empty-state",
+      "description": "Composed 'nothing here yet' moment: primary-muted medallion, title, calm description.",
+      "html": "<div class=\"ds-empty\"><span class=\"ds-empty-icon\"><svg viewBox=\"0 0 24 24\" width=\"30\" height=\"30\" fill=\"#1B5E20\"><path d=\"M12 2 4 7v10l8 5 8-5V7l-8-5zm0 2.3 5.5 3.4L12 11 6.5 7.7 12 4.3z\"/></svg></span><div class=\"ds-empty-title\">لا توجد تسجيلات بعد</div><div class=\"ds-empty-desc\">ابدأ بتسجيل تلاوتك الأولى لهذا الأسبوع.</div></div>",
+      "css": ".ds-empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 32px 16px; font-family: Cairo, system-ui, sans-serif; } .ds-empty-icon { width: 58px; height: 58px; border-radius: 20px; background: #E8F5E9; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; } .ds-empty-title { color: #212121; font-weight: 600; font-size: 16px; } .ds-empty-desc { color: #757575; font-size: 14px; margin-top: 4px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Illuminated Manuscript",
+    "overview": "A page of a Quranic manuscript is dignified before it is decorated: deep, calm ground; disciplined text; and gold reserved for what is worth illuminating. The surface is quiet and breathable, the green is grounded and reverent, and the amber-gold is the light of earned progress — it appears on the completed surah, the maintained streak, the granted certificate, and almost nowhere else. The system is themeable (four identities × light/dark) and size-adjustable via a per-user font and spacing scale, never breaking layout. It rejects the cold grey of corporate SaaS, the cartoon bounce of toy-like gamification, and the dense clutter of an institutional portal.",
+    "keyCharacteristics": [
+      "Reverent green ground; gold rationed to genuine achievement.",
+      "Arabic-first: Cairo throughout, RTL writing direction baked into the text primitive.",
+      "Refined and restrained surfaces — hairline borders, soft shadows, real breathing room.",
+      "Themeable (4 identities × light/dark) and size-adjustable without layout breakage.",
+      "Material-derived color, type, elevation, and 8pt-grid spacing."
+    ],
+    "rules": [
+      { "name": "The Rationed Gold Rule", "body": "Gold marks earned achievement and nothing else. Forbidden as a decorative accent, background, divider, or 'make it pop' highlight. Its rarity is what makes illumination mean something.", "section": "colors" },
+      { "name": "The Status-Is-Not-Only-Color Rule", "body": "Grade, attendance, appointment, and recording status must always pair color with an icon or label. Color alone is prohibited.", "section": "colors" },
+      { "name": "The Cairo-Everywhere Rule", "body": "Cairo is the only UI family; do not introduce a second sans for Latin. A dedicated Quran/Amiri face for ayah display is the one sanctioned future exception.", "section": "typography" },
+      { "name": "The Honor-the-Scale Rule", "body": "Every text size flows through the user's font-size scale via the AppText primitive. Hard-coded font sizes that bypass the scale are prohibited.", "section": "typography" },
+      { "name": "The Whisper-Lift Rule", "body": "Resting cards use sm shadow and a hairline border, never more. Heavier shadow is a response to genuine layering, not a way to make a card stand out.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do ration gold to earned achievement — streaks, completed surahs, certificates. Identity green carries everything else.",
+      "Do route every text size and spacing value through AppText / the settings scales, so the elder-friendly large-text contract holds.",
+      "Do pair every status with an icon or label, never color alone (color-blind safety).",
+      "Do keep one primary action per screen; let surfaces breathe (16px+ card padding, real whitespace).",
+      "Do design RTL-first — logical layout and direction-aware icons; Arabic is the tested default.",
+      "Do verify ≥4.5:1 body contrast across all four themes and dark mode before shipping a screen.",
+      "Do degrade celebratory motion to a calm crossfade under reduced-motion."
+    ],
+    "donts": [
+      "Don't make it feel like corporate / sterile SaaS — no cold dashboard-grey enterprise UI with no warmth.",
+      "Don't make it childish / toy-like — no cartoon mascots, bouncy/elastic motion, or sticker-sheet badges.",
+      "Don't make it cluttered / institutional — no government-portal screens that dump every field at once.",
+      "Don't use gold as decoration, a background, or a generic highlight. If nothing was earned, no gold.",
+      "Don't add purple-to-blue (or any multi-hue) gradients; the brand is solid primary.",
+      "Don't use gradient text, glassmorphism, custom glows, or neumorphism.",
+      "Don't use a colored side-stripe (border-left/right > 1px) as a card or alert accent.",
+      "Don't introduce a second UI font for Latin; Cairo covers both scripts."
+    ]
+  }
+}

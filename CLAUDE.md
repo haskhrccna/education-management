@@ -8,6 +8,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - After any user correction, update `tasks/lessons.md` with a rule to prevent recurrence.
 - Never mark a task complete without proof (tests, logs, or diffs).
 
+## Design Context
+
+Mobile UI design is governed by two specs — read them before building or changing any screen:
+
+- **`mobile/PRODUCT.md`** — register: **product**. Quran-memorization companion for students/teachers/parents/admins. Lead principle: *reward real achievement with dignity* ("rewarding, not toy-like"). Anti-references: corporate/sterile SaaS, childish/toy-like, cluttered/institutional.
+- **`mobile/DESIGN.md`** — visual system, North Star **"The Illuminated Manuscript"** (tokens in `constants/theme.ts`). Hard rules: **Rationed Gold** (amber accent marks earned achievement only), **Status-Is-Not-Only-Color**, **Honor-the-Scale** (size via `AppText`), Arabic-first/RTL, WCAG AA across all 4 themes + dark mode.
+
 ## Commands
 
 ```bash
