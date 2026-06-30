@@ -1,23 +1,23 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { teacherChangeApi } from '../api/teacherChange';
 
 export function useTeacherChange() {
-  const [requests, setRequests] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const qc = useQueryClient();
+  const [status, setStatus] = useState<'PENDING' | undefined>(undefined);
 
-  const fetchRequests = useCallback(async (status?: 'PENDING') => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await teacherChangeApi.list(status);
-      setRequests(data);
-    } catch {
-      setError('Failed to load requests');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const q = useQuery<any[]>({
+    queryKey: ['teacherChange', status ?? 'all'],
+    queryFn: () => teacherChangeApi.list(status),
+  });
+
+  const fetchRequests = useCallback(
+    async (s?: 'PENDING') => {
+      setStatus(s);
+      await qc.invalidateQueries({ queryKey: ['teacherChange'] });
+    },
+    [qc]
+  );
 
   const submitRequest = useCallback(async (reason: string) => {
     await teacherChangeApi.submit(reason);
@@ -26,14 +26,22 @@ export function useTeacherChange() {
   const decideRequest = useCallback(
     async (id: string, action: 'APPROVE' | 'DENY', adminNote?: string, newTeacherId?: string) => {
       await teacherChangeApi.decide(id, action, adminNote, newTeacherId);
-      await fetchRequests();
+      await qc.invalidateQueries({ queryKey: ['teacherChange'] });
     },
-    [fetchRequests]
+    [qc]
   );
 
   const fetchTeachers = useCallback(async () => {
     return teacherChangeApi.listTeachers();
   }, []);
 
-  return { requests, isLoading, error, fetchRequests, submitRequest, decideRequest, fetchTeachers };
+  return {
+    requests: q.data ?? [],
+    isLoading: q.isLoading,
+    error: q.error ? (q.error as Error).message : null,
+    fetchRequests,
+    submitRequest,
+    decideRequest,
+    fetchTeachers,
+  };
 }

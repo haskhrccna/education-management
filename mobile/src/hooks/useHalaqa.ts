@@ -1,45 +1,56 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { halaqaApi, HalaqaRoom, HalaqaStatus } from '../api/halaqa';
 
 export function useHalaqa() {
-  const [rooms, setRooms] = useState<HalaqaRoom[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const qc = useQueryClient();
+  const [status, setStatus] = useState<HalaqaStatus | undefined>(undefined);
+  const key = ['halaqa', status ?? 'all'];
 
-  const fetchRooms = useCallback(async (status?: HalaqaStatus) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await halaqaApi.list(status);
-      setRooms(data);
-    } catch (err: any) {
-      setError(err?.message ?? 'Failed to load rooms');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const q = useQuery<HalaqaRoom[]>({ queryKey: key, queryFn: () => halaqaApi.list(status) });
 
-  const createRoom = useCallback(async (title: string) => {
-    const room = await halaqaApi.create(title);
-    setRooms((prev) => [room, ...prev]);
-    return room;
-  }, []);
+  const fetchRooms = useCallback(
+    async (s?: HalaqaStatus) => {
+      setStatus(s);
+      await qc.invalidateQueries({ queryKey: ['halaqa'] });
+    },
+    [qc]
+  );
 
-  const startRoom = useCallback(async (id: string) => {
-    const room = await halaqaApi.start(id);
-    setRooms((prev) => prev.map((r) => (r.id === id ? room : r)));
-    return room;
-  }, []);
+  const createRoom = useCallback(
+    async (title: string) => {
+      const room = await halaqaApi.create(title);
+      qc.setQueryData<HalaqaRoom[]>(['halaqa', status ?? 'all'], (p) => [room, ...(p ?? [])]);
+      return room;
+    },
+    [qc, status]
+  );
 
-  const endRoom = useCallback(async (id: string) => {
-    const room = await halaqaApi.end(id);
-    setRooms((prev) => prev.map((r) => (r.id === id ? room : r)));
-    return room;
-  }, []);
+  const startRoom = useCallback(
+    async (id: string) => {
+      const room = await halaqaApi.start(id);
+      qc.setQueryData<HalaqaRoom[]>(['halaqa', status ?? 'all'], (p) => (p ?? []).map((r) => (r.id === id ? room : r)));
+      return room;
+    },
+    [qc, status]
+  );
 
-  useEffect(() => {
-    fetchRooms();
-  }, [fetchRooms]);
+  const endRoom = useCallback(
+    async (id: string) => {
+      const room = await halaqaApi.end(id);
+      qc.setQueryData<HalaqaRoom[]>(['halaqa', status ?? 'all'], (p) => (p ?? []).map((r) => (r.id === id ? room : r)));
+      return room;
+    },
+    [qc, status]
+  );
 
-  return { rooms, isLoading, error, fetchRooms, createRoom, startRoom, endRoom };
+  return {
+    rooms: q.data ?? [],
+    isLoading: q.isLoading,
+    error: q.error ? (q.error as Error).message : null,
+    fetchRooms,
+    createRoom,
+    startRoom,
+    endRoom,
+  };
 }

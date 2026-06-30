@@ -1,52 +1,36 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { gamificationApi, MyGamification, LeaderboardEntry } from '../api/gamification';
 
 export function useGamification() {
-  const [gamification, setGamification] = useState<MyGamification | null>(null);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
-  const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
+  const [scope, setScope] = useState<string>('all');
+
+  const mineQ = useQuery<MyGamification>({
+    queryKey: ['gamification', 'mine'],
+    queryFn: () => gamificationApi.getMine(),
+  });
+
+  const lbQ = useQuery<LeaderboardEntry[]>({
+    queryKey: ['gamification', 'leaderboard', scope],
+    queryFn: () => gamificationApi.getLeaderboard(scope),
+  });
 
   const fetchGamification = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await gamificationApi.getMine();
-      setGamification(data);
-    } catch (err: any) {
-      setError(err?.message ?? 'Failed to load gamification');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    await mineQ.refetch();
+  }, [mineQ.refetch]);
 
-  const fetchLeaderboard = useCallback(async (scope?: string) => {
-    setLeaderboardLoading(true);
-    setLeaderboardError(null);
-    try {
-      const data = await gamificationApi.getLeaderboard(scope);
-      setLeaderboard(data);
-    } catch (err: any) {
-      setLeaderboardError(err?.message ?? 'Failed to load leaderboard');
-      setLeaderboard([]);
-    } finally {
-      setLeaderboardLoading(false);
-    }
+  // Switching scope re-keys the leaderboard query, which fetches (or serves cache).
+  const fetchLeaderboard = useCallback(async (s?: string) => {
+    setScope(s ?? 'all');
   }, []);
-
-  useEffect(() => {
-    fetchGamification();
-  }, [fetchGamification]);
 
   return {
-    gamification,
-    leaderboard,
-    leaderboardLoading,
-    leaderboardError,
-    isLoading,
-    error,
+    gamification: mineQ.data ?? null,
+    leaderboard: lbQ.data ?? [],
+    leaderboardLoading: lbQ.isLoading,
+    leaderboardError: lbQ.error ? (lbQ.error as Error).message : null,
+    isLoading: mineQ.isLoading,
+    error: mineQ.error ? (mineQ.error as Error).message : null,
     fetchGamification,
     fetchLeaderboard,
   };

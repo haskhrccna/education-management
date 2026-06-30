@@ -11,9 +11,14 @@ fixes the 6 pre-existing `mmkvStorage.getItem` async-vs-sync errors.
 - [x] Migrate `useGrades`, `useRevisions`, `useRecordings`, `useAppointments` to `useQuery` + `setQueryData`/`invalidateQueries`. Public APIs preserved (stable zero-arg fetchers) so screens are untouched.
 - [x] `tsc --noEmit` → **0 errors** (all 6 pre-existing mmkv errors gone).
 
-## Remaining (later batches — these still use the old pattern but are NOT broken)
-- [ ] Migrate: useGamification, useNotifications, useCertificates, useAnalytics, useMemorization, useHalaqa, useMessages, useConversation, useParent, useTeacherChange, useMushaf.
-- [ ] Convert mutation hooks to `useMutation` where it tidies optimistic updates.
+## Done (batch 2 — clean-fit hooks)
+- [x] Migrate useAnalytics, useCertificates, useMemorization, useGamification, useMessages, useHalaqa, useTeacherChange to React Query (APIs preserved; list filters via internal state + invalidate; socket → invalidate). tsc 0 errors.
+
+## Intentionally left on the old pattern (NOT broken; poor declarative-cache fit)
+- useNotifications — real pagination → belongs in `useInfiniteQuery` (separate redesign).
+- useConversation — live socket-managed message thread, not a cached resource.
+- useParent — multi-resource (links/children/dashboard) with a derived dashboard + imperative child selection.
+- useMushaf — imperative page/surah navigation (fetch-on-demand), not declarative keys.
 
 ---
 

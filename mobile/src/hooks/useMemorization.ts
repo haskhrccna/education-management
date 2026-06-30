@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { memorizationApi, MemorizationEntry, Surah } from '../api';
 
 function computeStreak(entries: MemorizationEntry[]): number {
@@ -24,26 +25,28 @@ function computeStreak(entries: MemorizationEntry[]): number {
 }
 
 export function useMemorization() {
-  const [progress, setProgress] = useState<MemorizationEntry[]>([]);
-  const [surahs, setSurahs] = useState<Surah[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const q = useQuery<{ progress: MemorizationEntry[]; surahs: Surah[] }>({
+    queryKey: ['memorization'],
+    queryFn: async () => {
+      const [progress, surahs] = await Promise.all([memorizationApi.getMine(), memorizationApi.getSurahs()]);
+      return { progress, surahs };
+    },
+  });
 
   const fetchProgress = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const [progressData, surahsData] = await Promise.all([memorizationApi.getMine(), memorizationApi.getSurahs()]);
-      setProgress(progressData);
-      setSurahs(surahsData);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    await q.refetch();
+  }, [q.refetch]);
 
+  const progress = q.data?.progress ?? [];
+  const surahs = q.data?.surahs ?? [];
   const streak = useMemo(() => computeStreak(progress), [progress]);
 
-  return { progress, surahs, isLoading, error, fetchProgress, streak };
+  return {
+    progress,
+    surahs,
+    isLoading: q.isLoading,
+    error: q.error ? (q.error as Error).message : null,
+    fetchProgress,
+    streak,
+  };
 }

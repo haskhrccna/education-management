@@ -1,60 +1,56 @@
-import { useCallback, useState, useEffect } from 'react';
-import { messagesApi, Message } from '../api';
+import { useCallback, useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { messagesApi } from '../api';
 import { useAuthStore } from '../auth/store';
 import { useSocket } from './useSocket';
 
-export function useMessages() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const socket = useSocket();
+const KEY = ['conversations'];
 
+export function useMessages() {
+  const qc = useQueryClient();
+  const socket = useSocket();
   const { user } = useAuthStore();
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const q = useQuery({ queryKey: KEY, queryFn: () => messagesApi.getConversations() });
+  const messages = q.data ?? [];
   const unreadCount = messages.filter((m: any) => !m.readAt && m.receiverId === user?.id).length;
 
-  const fetchMessages = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await messagesApi.getConversations();
-      setMessages(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Listen for real-time messages to refresh list
+  // Refresh the conversation list when a new message arrives.
   useEffect(() => {
     if (!socket) return;
-
-    const handleNewMessage = () => {
-      // For simplicity, refetch the whole list when a new message arrives
-      // This ensures the last message and unread counts are correct
-      fetchMessages();
-    };
-
+    const handleNewMessage = () => qc.invalidateQueries({ queryKey: KEY });
     socket.on('new_message', handleNewMessage);
     return () => {
       socket.off('new_message', handleNewMessage);
     };
-  }, [socket, fetchMessages]);
+  }, [socket, qc]);
+
+  const fetchMessages = useCallback(async () => {
+    await q.refetch();
+  }, [q.refetch]);
 
   const sendMessage = useCallback(
     async (receiverId: string, content: string) => {
+      setActionError(null);
       try {
         const sent = await messagesApi.send(receiverId, content);
-        // After sending, we refetch to ensure the list is sorted correctly
-        await fetchMessages();
+        await q.refetch();
         return sent;
       } catch (err: any) {
-        setError(err.message);
+        setActionError(err.message);
         throw err;
       }
     },
-    [fetchMessages]
+    [q.refetch]
   );
 
-  return { messages, isLoading, error, fetchMessages, sendMessage, unreadCount };
+  return {
+    messages,
+    isLoading: q.isLoading,
+    error: q.error ? (q.error as Error).message : actionError,
+    fetchMessages,
+    sendMessage,
+    unreadCount,
+  };
 }
