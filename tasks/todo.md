@@ -1,3 +1,30 @@
+# PR 2 — Gamification reward loop: contrast, semantics, states, i18n (IN PROGRESS)
+
+Branch: `fix/gamification-rewards-a11y`. Scope: mobile. Gate: `cd mobile && npx tsc --noEmit`.
+From `/impeccable critique app/student/gamification.tsx` (24/40). Fixes the reward screen + shared MetricTile.
+
+## Tasks
+1. **colorize — MetricTile contrast + reward semantics**
+   - [ ] `src/components/design.tsx`: MetricTile value → `colors.textPrimary` (was accent on same-hue tint → 1.5–1.9:1 fail). App-wide fix.
+   - [ ] `app/student/gamification.tsx`: currentStreak tone `warning`→`gold`; longestStreak `gold`→`primary` (Rationed-Gold: gold marks the live streak).
+2. **onboard — empty Badge Wall**
+   - [ ] Replace `description=""` with `t('noBadgesYetDesc')` (how to earn the first badge).
+3. **harden — leaderboard states**
+   - [ ] `src/hooks/useGamification.ts`: add `leaderboardLoading` + `leaderboardError`; stop swallowing fetch errors.
+   - [ ] screen: SkeletonCard while loading · EmptyState when empty · error+retry on failure.
+4. **adapt — tap targets**
+   - [ ] scope chips ≥44pt min-height; chip text `bodySmall`→`labelLarge`.
+5. **polish — a11y + i18n**
+   - [ ] back button `accessibilityLabel={t('back')}`.
+   - [ ] badge date color `textMuted` (2.68:1) → `textSecondary` (4.6:1).
+   - [ ] **Add missing i18n keys (ar+en):** gamification, streak, currentStreak, longestStreak, badgeWall, noBadgesYet, noBadgesYetDesc, leaderboard, leaderboardAll, leaderboardMyTeacher, leaderboardEmpty, leaderboardError, back. (All currently render raw camelCase — Arabic users see English.)
+
+## Verify
+- [x] `tsc --noEmit`: 0 new errors (only the same 6 pre-existing mmkv async-read errors; none in PR2's 4 files). All 5 steps done.
+- [ ] Re-run `/impeccable critique` → score climbs from 24 (pending).
+
+---
+
 # PR 1 — API cycle break, interceptor consolidation, theme selectors (IN PROGRESS)
 
 Branch: `refactor/api-cycle-interceptors-theme`

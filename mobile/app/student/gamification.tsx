@@ -9,6 +9,7 @@ import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useThemeSettings } from '@/src/settings/store';
 import { getColors, RADIUS, SPACING } from '@/constants/theme';
 import { AppCard, AppText, EmptyState, MetricTile, SectionHeader } from '@/src/components/design';
+import { SkeletonCard } from '@/src/components/SkeletonCard';
 
 const ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
   flame: 'flame-outline',
@@ -27,7 +28,16 @@ export default function GamificationScreen() {
   const isRTL = useIsRTL();
   const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
-  const { gamification, leaderboard, isLoading, error, fetchGamification, fetchLeaderboard } = useGamification();
+  const {
+    gamification,
+    leaderboard,
+    leaderboardLoading,
+    leaderboardError,
+    isLoading,
+    error,
+    fetchGamification,
+    fetchLeaderboard,
+  } = useGamification();
   const [scope, setScope] = useState<'all' | 'my-teacher'>('all');
 
   React.useEffect(() => {
@@ -39,6 +49,7 @@ export default function GamificationScreen() {
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
         <TouchableOpacity
           accessibilityRole="button"
+          accessibilityLabel={t('back')}
           onPress={() => router.back()}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
@@ -63,7 +74,12 @@ export default function GamificationScreen() {
             <AppText variant="bodyMedium" color={COLORS.textSecondary}>
               {error}
             </AppText>
-            <TouchableOpacity accessibilityRole="button" onPress={fetchGamification} style={{ marginTop: SPACING.md }}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={t('retry')}
+              onPress={fetchGamification}
+              style={{ marginTop: SPACING.md }}
+            >
               <AppText variant="bodyMedium" color={COLORS.primary}>
                 {t('retry')}
               </AppText>
@@ -79,19 +95,24 @@ export default function GamificationScreen() {
                 colors={COLORS}
                 value={String(gamification.streak.currentStreak)}
                 label={t('currentStreak')}
-                tone="warning"
+                tone="gold"
               />
               <MetricTile
                 colors={COLORS}
                 value={String(gamification.streak.longestStreak)}
                 label={t('longestStreak')}
-                tone="gold"
+                tone="primary"
               />
             </View>
 
             <SectionHeader colors={COLORS} title={t('badgeWall')} />
             {gamification.badges.length === 0 ? (
-              <EmptyState colors={COLORS} icon="trophy-outline" title={t('noBadgesYet')} description="" />
+              <EmptyState
+                colors={COLORS}
+                icon="trophy-outline"
+                title={t('noBadgesYet')}
+                description={t('noBadgesYetDesc')}
+              />
             ) : (
               <View style={styles.badgeGrid}>
                 {gamification.badges.map((badge) => (
@@ -104,7 +125,7 @@ export default function GamificationScreen() {
                     >
                       {badge.name}
                     </AppText>
-                    <AppText variant="bodySmall" color={COLORS.textMuted} style={{ textAlign: 'center' }}>
+                    <AppText variant="bodySmall" color={COLORS.textSecondary} style={{ textAlign: 'center' }}>
                       {new Date(badge.earnedAt).toLocaleDateString()}
                     </AppText>
                   </AppCard>
@@ -117,6 +138,8 @@ export default function GamificationScreen() {
               {(['all', 'my-teacher'] as const).map((s) => (
                 <TouchableOpacity
                   key={s}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: scope === s }}
                   style={[
                     styles.scopeChip,
                     {
@@ -126,35 +149,65 @@ export default function GamificationScreen() {
                   ]}
                   onPress={() => setScope(s)}
                 >
-                  <AppText variant="bodySmall" color={scope === s ? '#FFFFFF' : COLORS.textPrimary}>
+                  <AppText variant="labelLarge" color={scope === s ? '#FFFFFF' : COLORS.textPrimary}>
                     {t(s === 'all' ? 'leaderboardAll' : 'leaderboardMyTeacher')}
                   </AppText>
                 </TouchableOpacity>
               ))}
             </View>
 
-            {leaderboard.slice(0, 10).map((entry) => (
-              <AppCard key={entry.userId} colors={COLORS} style={{ marginBottom: SPACING.sm }}>
-                <View style={styles.row}>
-                  <View
-                    style={[
-                      styles.rank,
-                      { backgroundColor: entry.rank <= 3 ? COLORS.primaryMuted : COLORS.surfaceAlt },
-                    ]}
-                  >
-                    <AppText variant="titleMedium" color={entry.rank <= 3 ? COLORS.primary : COLORS.textSecondary}>
-                      #{entry.rank}
+            {leaderboardLoading ? (
+              <>
+                <SkeletonCard lines={1} />
+                <SkeletonCard lines={1} />
+                <SkeletonCard lines={1} />
+              </>
+            ) : leaderboardError ? (
+              <View style={styles.center}>
+                <AppText variant="bodyMedium" color={COLORS.textSecondary}>
+                  {t('leaderboardError')}
+                </AppText>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={t('retry')}
+                  onPress={() => fetchLeaderboard(scope)}
+                  style={{ marginTop: SPACING.md }}
+                >
+                  <AppText variant="bodyMedium" color={COLORS.primary}>
+                    {t('retry')}
+                  </AppText>
+                </TouchableOpacity>
+              </View>
+            ) : leaderboard.length === 0 ? (
+              <EmptyState colors={COLORS} icon="people-outline" title={t('leaderboardEmpty')} />
+            ) : (
+              leaderboard.slice(0, 10).map((entry) => (
+                <AppCard key={entry.userId} colors={COLORS} style={{ marginBottom: SPACING.sm }}>
+                  <View style={styles.row}>
+                    <View
+                      style={[
+                        styles.rank,
+                        { backgroundColor: entry.rank <= 3 ? COLORS.primaryMuted : COLORS.surfaceAlt },
+                      ]}
+                    >
+                      <AppText variant="titleMedium" color={entry.rank <= 3 ? COLORS.primary : COLORS.textSecondary}>
+                        #{entry.rank}
+                      </AppText>
+                    </View>
+                    <AppText
+                      variant="bodyMedium"
+                      color={COLORS.textPrimary}
+                      style={{ flex: 1, marginStart: SPACING.md }}
+                    >
+                      {entry.name}
+                    </AppText>
+                    <AppText variant="bodyMedium" color={COLORS.textSecondary}>
+                      {entry.currentStreak}
                     </AppText>
                   </View>
-                  <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ flex: 1, marginStart: SPACING.md }}>
-                    {entry.name}
-                  </AppText>
-                  <AppText variant="bodyMedium" color={COLORS.textSecondary}>
-                    {entry.currentStreak}
-                  </AppText>
-                </View>
-              </AppCard>
-            ))}
+                </AppCard>
+              ))
+            )}
           </>
         )}
       </ScrollView>
@@ -179,7 +232,15 @@ const styles = StyleSheet.create({
   badgeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
   badgeCard: { width: '31%', alignItems: 'center', padding: SPACING.md, marginBottom: SPACING.sm },
   scopeRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.md },
-  scopeChip: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs, borderRadius: RADIUS.full, borderWidth: 1 },
+  scopeChip: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
+  },
   row: { flexDirection: 'row', alignItems: 'center' },
   rank: {
     width: 36,

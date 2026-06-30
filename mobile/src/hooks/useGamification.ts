@@ -6,6 +6,8 @@ export function useGamification() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
 
   const fetchGamification = useCallback(async () => {
     setIsLoading(true);
@@ -21,11 +23,16 @@ export function useGamification() {
   }, []);
 
   const fetchLeaderboard = useCallback(async (scope?: string) => {
+    setLeaderboardLoading(true);
+    setLeaderboardError(null);
     try {
       const data = await gamificationApi.getLeaderboard(scope);
       setLeaderboard(data);
-    } catch {
+    } catch (err: any) {
+      setLeaderboardError(err?.message ?? 'Failed to load leaderboard');
       setLeaderboard([]);
+    } finally {
+      setLeaderboardLoading(false);
     }
   }, []);
 
@@ -33,5 +40,14 @@ export function useGamification() {
     fetchGamification();
   }, [fetchGamification]);
 
-  return { gamification, leaderboard, isLoading, error, fetchGamification, fetchLeaderboard };
+  return {
+    gamification,
+    leaderboard,
+    leaderboardLoading,
+    leaderboardError,
+    isLoading,
+    error,
+    fetchGamification,
+    fetchLeaderboard,
+  };
 }
