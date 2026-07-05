@@ -5,7 +5,7 @@ import * as mushafService from '../services/mushaf.service';
 
 export const getSurahAyahs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const surahId = parseInt(req.params.id, 10);
+    const surahId = parseInt(String(req.params.id), 10);
     if (isNaN(surahId)) throw new AppError(400, 'Invalid surah id');
     const data = await mushafService.getSurahWithAyahs(surahId);
     res.json(successResponse(data));
@@ -16,7 +16,7 @@ export const getSurahAyahs = async (req: Request, res: Response, next: NextFunct
 
 export const getPage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const page = parseInt(req.params.page, 10);
+    const page = parseInt(String(req.params.page), 10);
     if (isNaN(page)) throw new AppError(400, 'Invalid page number');
     const data = await mushafService.getPage(page);
     res.json(successResponse(data));

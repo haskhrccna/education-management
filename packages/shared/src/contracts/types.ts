@@ -47,16 +47,26 @@ export type ContractResponse<C extends AnyRouteContract> = {
   [S in keyof C['responses'] & number]: { status: S; body: z.infer<C['responses'][S]> };
 }[keyof C['responses'] & number];
 
-export type ContractBody<C extends AnyRouteContract> = C['request'] extends { body: infer B extends z.ZodType }
-  ? z.infer<B>
-  : undefined;
+/** The declared schema for one request slot, with optionality stripped (never if absent). */
+type BodySchema<C extends AnyRouteContract> = Exclude<NonNullable<C['request']>['body'], undefined>;
+type ParamsSchema<C extends AnyRouteContract> = Exclude<NonNullable<C['request']>['params'], undefined>;
+type QuerySchema<C extends AnyRouteContract> = Exclude<NonNullable<C['request']>['query'], undefined>;
 
-export type ContractParams<C extends AnyRouteContract> = C['request'] extends {
-  params: infer P extends z.ZodType;
-}
-  ? z.infer<P>
-  : Record<string, string>;
+// `z.ZodType extends S` detects the uninferred wide default (slot not declared on the contract).
+export type ContractBody<C extends AnyRouteContract> = [BodySchema<C>] extends [never]
+  ? undefined
+  : z.ZodType extends BodySchema<C>
+    ? undefined
+    : z.infer<BodySchema<C>>;
 
-export type ContractQuery<C extends AnyRouteContract> = C['request'] extends { query: infer Q extends z.ZodType }
-  ? z.infer<Q>
-  : Record<string, unknown>;
+export type ContractParams<C extends AnyRouteContract> = [ParamsSchema<C>] extends [never]
+  ? Record<string, string>
+  : z.ZodType extends ParamsSchema<C>
+    ? Record<string, string>
+    : z.infer<ParamsSchema<C>>;
+
+export type ContractQuery<C extends AnyRouteContract> = [QuerySchema<C>] extends [never]
+  ? Record<string, unknown>
+  : z.ZodType extends QuerySchema<C>
+    ? Record<string, unknown>
+    : z.infer<QuerySchema<C>>;

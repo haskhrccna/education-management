@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
-import { validate } from '@quran-review/shared';
+import { validate } from '../middleware/validate.middleware';
 import { logAyahMemorizationSchema } from '@quran-review/shared';
 import * as mushafController from '../controllers/mushaf.controller';
 
