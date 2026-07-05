@@ -88,7 +88,6 @@ export default function RootLayout() {
             <Stack.Screen name="student/mushaf" />
             <Stack.Screen name="student" />
             <Stack.Screen name="student/certificates" />
-            <Stack.Screen name="student" />
             <Stack.Screen name="student/gamification" />
             <Stack.Screen name="register" />
             <Stack.Screen name="first-login" />
