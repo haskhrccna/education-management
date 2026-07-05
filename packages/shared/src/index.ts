@@ -18,3 +18,6 @@ export * from './validators/common';
 export * from './validators/teacherChange';
 export * from './validators/auth';
 export * from './validators/mushaf';
+
+// Contracts
+export * from './contracts/types';
