@@ -12,4 +12,7 @@ module.exports = {
   globalSetup: '<rootDir>/src/__integration__/global-setup.ts',
   testTimeout: 30000,
   maxWorkers: 1,
+  // BullMQ keeps Redis connections open when a local Redis is running, which
+  // otherwise holds the process alive after all suites pass.
+  forceExit: true,
 };
