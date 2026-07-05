@@ -18,7 +18,10 @@ const mockedFs = fs as jest.Mocked<typeof fs>;
 
 describe('recording.service', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    // resetAllMocks (not clearAllMocks) so mock implementations cannot leak
+    // between tests — the teacher-delete test previously passed only because
+    // an appointment mock from an earlier test bled through.
+    jest.resetAllMocks();
   });
 
   describe('uploadRecording', () => {
@@ -88,6 +91,15 @@ describe('recording.service', () => {
         expect.objectContaining({ where: { studentId: { in: ['student-1'] } } })
       );
     });
+
+    it('should return empty list for teacher with no accepted students without querying recordings', async () => {
+      mockedPrisma.appointment.findMany.mockResolvedValue([] as any);
+
+      const result = await listRecordings('teacher-1', 'TEACHER');
+
+      expect(result).toEqual([]);
+      expect(mockedPrisma.recording.findMany).not.toHaveBeenCalled();
+    });
   });
 
   describe('reviewRecording', () => {
@@ -103,6 +115,16 @@ describe('recording.service', () => {
     it('should reject unknown recording', async () => {
       mockedPrisma.recording.findUnique.mockResolvedValue(null);
       await expect(reviewRecording('rec-1', 'teacher-1', true)).rejects.toThrow('Recording not found');
+    });
+
+    it('should reject reviewer without an accepted appointment with the student', async () => {
+      mockedPrisma.recording.findUnique.mockResolvedValue({ id: 'rec-1', studentId: 'student-1' } as any);
+      mockedPrisma.appointment.findFirst.mockResolvedValue(null);
+
+      await expect(reviewRecording('rec-1', 'teacher-1', true)).rejects.toThrow(
+        'No accepted appointment with this student'
+      );
+      expect(mockedPrisma.recording.update).not.toHaveBeenCalled();
     });
   });
 
@@ -120,17 +142,55 @@ describe('recording.service', () => {
       expect(result.id).toBe('rec-1');
     });
 
-    it('should allow teacher to delete any recording', async () => {
+    it('should allow teacher with an accepted appointment to delete a student recording', async () => {
       mockedPrisma.recording.findUnique.mockResolvedValue({
         id: 'rec-1',
         studentId: 'student-1',
         url: '/uploads/file.mp3',
       } as any);
+      mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appt-1' } as any);
+      mockedPrisma.user.findUnique.mockResolvedValue({ deletedAt: null } as any);
       mockedFs.unlink.mockResolvedValue(undefined as any);
       mockedPrisma.recording.delete.mockResolvedValue({ id: 'rec-1' } as any);
 
       const result = await deleteRecording('rec-1', 'teacher-1', true);
       expect(result.id).toBe('rec-1');
+    });
+
+    it('should reject teacher without an accepted appointment deleting a student recording', async () => {
+      mockedPrisma.recording.findUnique.mockResolvedValue({
+        id: 'rec-1',
+        studentId: 'student-1',
+        url: '/uploads/file.mp3',
+      } as any);
+      mockedPrisma.appointment.findFirst.mockResolvedValue(null);
+      mockedPrisma.user.findUnique.mockResolvedValue({ deletedAt: null } as any);
+
+      await expect(deleteRecording('rec-1', 'teacher-1', true)).rejects.toThrow(
+        'No accepted appointment with this student'
+      );
+      expect(mockedPrisma.recording.delete).not.toHaveBeenCalled();
+      expect(mockedFs.unlink).not.toHaveBeenCalled();
+    });
+
+    it('should reject teacher deleting a soft-deleted student recording despite an appointment', async () => {
+      mockedPrisma.recording.findUnique.mockResolvedValue({
+        id: 'rec-1',
+        studentId: 'student-1',
+        url: '/uploads/file.mp3',
+      } as any);
+      mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appt-1' } as any);
+      mockedPrisma.user.findUnique.mockImplementation(
+        (args: any) =>
+          Promise.resolve(
+            args.where.id === 'student-1' ? { deletedAt: new Date('2026-01-01') } : { deletedAt: null }
+          ) as any
+      );
+
+      await expect(deleteRecording('rec-1', 'teacher-1', true)).rejects.toThrow(
+        'No accepted appointment with this student'
+      );
+      expect(mockedPrisma.recording.delete).not.toHaveBeenCalled();
     });
 
     it('should reject non-owner student', async () => {
@@ -140,6 +200,7 @@ describe('recording.service', () => {
       } as any);
 
       await expect(deleteRecording('rec-1', 'student-1', false)).rejects.toThrow('Permission denied');
+      expect(mockedPrisma.recording.delete).not.toHaveBeenCalled();
     });
   });
 });
