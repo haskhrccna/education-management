@@ -24,3 +24,4 @@ export * from './contracts/types';
 export * from './contracts/health.contracts';
 export * from './contracts/auth.contracts';
 export * from './contracts/registry';
+export * from './contracts/client';
