@@ -1,3 +1,14 @@
+# REBUILD 10x — full-codebase strangler rewrite (SPEC AWAITING REVIEW)
+
+Spec: `docs/superpowers/specs/2026-07-04-rebuild-10x-design.md`.
+Decisions: goal = everything (quality+UX+scale) · strategy = strangler in-place · stack = same platform, 10x architecture (**pending user confirmation**).
+14 milestones M0–M13: characterization-test harness → contract layer → module-by-module server swap → mobile clusters → legacy retirement.
+Baseline evidence: 358/358 server unit tests pass (2026-07-04). 79 REST endpoints, 21 models, 37 screens measured.
+Next step after spec approval: `superpowers:writing-plans` for M0 (integration test harness).
+Note: absorbs PR 3 below (TanStack migration continues inside M9–M12).
+
+---
+
 # PR 3 — TanStack Query migration (IN PROGRESS)
 
 Branch: `feat/tanstack-query`. Gate: `cd mobile && npx tsc --noEmit`.

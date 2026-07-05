@@ -1,6 +1,7 @@
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 
 export const standardLimiter = rateLimit({
+  skip: () => process.env.NODE_ENV === 'test',
   windowMs: 15 * 60 * 1000,
   max: 100,
   standardHeaders: true,
@@ -9,6 +10,7 @@ export const standardLimiter = rateLimit({
 });
 
 export const authLimiter = rateLimit({
+  skip: () => process.env.NODE_ENV === 'test',
   windowMs: 15 * 60 * 1000,
   max: process.env.NODE_ENV === 'development' ? 1000 : 10,
   message: { error: 'Too many attempts, please try again later' },
@@ -19,6 +21,7 @@ export const authLimiter = rateLimit({
 });
 
 export const adminLimiter = rateLimit({
+  skip: () => process.env.NODE_ENV === 'test',
   windowMs: 15 * 60 * 1000,
   max: 300,
   standardHeaders: true,
@@ -27,6 +30,7 @@ export const adminLimiter = rateLimit({
 });
 
 export const uploadLimiter = rateLimit({
+  skip: () => process.env.NODE_ENV === 'test',
   windowMs: 15 * 60 * 1000,
   max: 20,
   message: { error: 'Too many uploads, please try again later' },
@@ -34,6 +38,7 @@ export const uploadLimiter = rateLimit({
 });
 
 export const broadcastLimiter = rateLimit({
+  skip: () => process.env.NODE_ENV === 'test',
   windowMs: 60 * 60 * 1000, // 1 hour
   max: process.env.NODE_ENV === 'development' ? 1000 : 10,
   message: { error: 'Broadcast limit reached — maximum 10 broadcasts per hour' },
@@ -43,6 +48,7 @@ export const broadcastLimiter = rateLimit({
 });
 
 export const passwordResetLimiter = rateLimit({
+  skip: () => process.env.NODE_ENV === 'test',
   windowMs: 60 * 60 * 1000,
   max: process.env.NODE_ENV === 'development' ? 1000 : 3,
   message: { error: 'Too many password reset attempts, please try again later' },
