@@ -34,8 +34,8 @@ import { sanitizeRequestBody, sanitizeResponse } from './middleware/sanitize.mid
 import { standardLimiter, authLimiter, adminLimiter, uploadLimiter } from './middleware/rate-limit.middleware';
 import { requestLogger } from './lib/logger';
 import { config } from './config';
-import { getHealthStatus } from './lib/health';
-import { successResponse, errorResponse } from './lib/response';
+import { healthRouter } from './modules/health/health.module';
+import { errorResponse } from './lib/response';
 
 const app: Application = express();
 
@@ -76,12 +76,8 @@ if (config.env !== 'development') {
 }
 app.use('/metrics', authenticate, authorize(UserRole.ADMIN), metricsRoutes);
 
-// Health check
-app.get('/api/health', async (_req, res) => {
-  const health = await getHealthStatus();
-  const statusCode = health.status === 'healthy' ? 200 : health.status === 'degraded' ? 200 : 503;
-  res.status(statusCode).json(successResponse(health));
-});
+// Health check — first contract-driven route (M1 pilot)
+app.use('/api', healthRouter);
 
 // API v1 Routes
 app.use('/api/v1/auth', authLimiter, authRoutes);

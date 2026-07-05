@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { contractRegistry } from '@quran-review/shared';
 
 export interface DiscoveredEndpoint {
   method: string; // UPPERCASE
@@ -57,6 +58,12 @@ export function discoverEndpoints(): DiscoveredEndpoint[] {
   let il: RegExpExecArray | null;
   while ((il = inlineRe.exec(appSrc))) {
     endpoints.push({ method: il[1].toUpperCase(), path: il[2] });
+  }
+
+  // Contract-mounted routes are invisible to static source parsing —
+  // union the registry (dedup below absorbs endpoints that exist in both).
+  for (const c of contractRegistry) {
+    endpoints.push({ method: c.method, path: c.path });
   }
 
   // Dedup (docs router is mounted in both branches of an env conditional).
