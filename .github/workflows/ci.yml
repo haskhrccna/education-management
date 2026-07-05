@@ -60,6 +60,44 @@ jobs:
       - name: Audit dependencies
         run: npm audit --audit-level=high
 
+  integration:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: quran_review_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npm exec --workspace=@quran-review/server -- prisma generate
+
+      - name: Integration tests
+        run: npm exec --workspace=@quran-review/server -- jest -c jest.integration.config.js --runInBand
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5433/quran_review_test
+
   mobile:
     runs-on: ubuntu-latest
 

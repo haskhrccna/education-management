@@ -1,10 +1,12 @@
-# REBUILD 10x — full-codebase strangler rewrite (SPEC AWAITING REVIEW)
+# REBUILD 10x — full-codebase strangler rewrite (SPEC APPROVED 2026-07-04)
 
 Spec: `docs/superpowers/specs/2026-07-04-rebuild-10x-design.md`.
-Decisions: goal = everything (quality+UX+scale) · strategy = strangler in-place · stack = same platform, 10x architecture (**pending user confirmation**).
+Decisions (all user-confirmed): goal = everything (quality+UX+scale) · strategy = strangler in-place · stack = same platform, 10x architecture.
 14 milestones M0–M13: characterization-test harness → contract layer → module-by-module server swap → mobile clusters → legacy retirement.
-Baseline evidence: 358/358 server unit tests pass (2026-07-04). 79 REST endpoints, 21 models, 37 screens measured.
-Next step after spec approval: `superpowers:writing-plans` for M0 (integration test harness).
+Baseline evidence: 379/379 server unit tests pass (2026-07-05). 127 manifest endpoints (80 v1/top-level + 47 legacy mirrors), 21 models, 37 screens measured.
+
+- [x] M0 characterization harness (2026-07-05) — integration DB + supertest + factory + 127-endpoint × 5-identity authz matrix (647 itests green in ~4s) + envelope pinning + CI `integration` job. Plan: `docs/superpowers/plans/2026-07-04-m0-characterization-harness.md`. Pinned surprise: `GET /users/profile` returns a raw object, not the success envelope.
+- [ ] M1 contract layer — next: `superpowers:writing-plans` for M1.
 Note: absorbs PR 3 below (TanStack migration continues inside M9–M12).
 
 ---
