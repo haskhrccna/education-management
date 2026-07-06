@@ -10,20 +10,25 @@ feature branch off `main`, merged when its features are green.
       privacy review for children's voice data). Architecture (job queue trigger, score model, teacher-queue
       sort) can be built with a pluggable `RecitationScorer` interface + stub now; real model swap-in is a
       follow-up once the decision is made. Will surface this choice explicitly when reached.
-- [ ] 1.2 Shadow-Reading in the Mushaf Viewer — in progress. Confirmed zero backend change needed:
-      `mushaf.service.ts`'s `getSurahWithAyahs`/`getPage` already `include` the full `Ayah` row (no narrowing
-      `select`), so `audioUrl` is already in the JSON today; `AyahDTO` in shared types already has
-      `audioUrl?: string`. Pure mobile UI work, reusing the exact `expo-av` playback pattern from
-      `teacher/recordings.tsx` (`Audio.Sound.createAsync` + `soundRef` + `playingId`). Also fixes:
-      `mushaf.tsx`'s `/* TODO log memorization */` placeholder (the hook's `logAyah` already exists, unused)
-      and three untranslated i18n keys used in that screen (`mushaf`, `ayah`, `pageNumber` — currently render
-      as raw keys, not translated text).
-- [ ] 1.3 Weekly Parent Digest — not started. Needs a scheduled job (BullMQ, existing graceful no-op pattern)
-      + digest query over existing models (SessionRecord, Streak, Grade, Appointment) + delivery via existing
-      `notification.service.ts` channels. New: a per-child opt-out flag.
-- [ ] 1.4 Teacher Roster Health Dashboard — not started. New contract-driven endpoint aggregating a teacher's
-      own roster (reuses the existing accepted-appointment access policy) into at-risk flags; today teacher
-      analytics is admin-only and per-student only.
+- [x] 1.2 Shadow-Reading in the Mushaf Viewer (2026-07-06) — per-ayah play/pause + 0.75x/1x speed, zero backend
+      change (audioUrl was already returned, just never consumed). Also fixed 3 untranslated i18n keys used
+      in that screen. Scope note: left the pre-existing `/* TODO log memorization */` long-press placeholder
+      untouched — it's a separate concern (the memorized-ayah data model is a counter, not a per-ayah set, so
+      a persistent per-ayah checkmark isn't representable without a schema change; out of scope for this
+      audio-only feature). 806 itests / 325 unit tests / mobile+server tsc clean.
+- [x] 1.3 Weekly Parent Digest (2026-07-06) — digest.service.ts (buildWeeklyDigest + sendWeeklyDigests) over
+      existing SessionRecord/Streak/Grade/Appointment data, delivered via the existing notifyUser fan-out.
+      New ParentLink.digestOptOut column + PATCH /api/v1/parent-links/:id/digest-preference (fresh prefix,
+      legacy /api/v1/parents Express router untouched) + BullMQ weekly-digest queue with a Sunday-08:00
+      repeatable trigger (ENABLE_WORKERS-gated, same as every other worker). Mobile: opt-out Switch on
+      parent/home.tsx. Day/time isn't yet admin-configurable — noted follow-up. 835 itests (14 new) / 325
+      unit tests / mobile+server tsc clean.
+- [x] 1.4 Teacher Roster Health Dashboard (2026-07-06) — new GET /api/v1/roster/health (TEACHER-only) flags
+      2+ consecutive missed sessions, a streak broken this week, or no grade in 14 days; wired into the
+      existing (previously unfulfilled) "Students needing attention" section on teacher/home.tsx, with
+      StatusPill reason chips and a fallback to the prior all-students view when nobody is at-risk. Thresholds
+      are fixed constants for now — admin-configurable thresholds (full AC) is a noted follow-up. 821 itests
+      (9 new) / 325 unit tests / mobile+server tsc clean.
 
 ---
 
