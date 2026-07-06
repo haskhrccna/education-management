@@ -6,10 +6,14 @@ feature branch off `main`, merged when its features are green.
 
 ## Stage 1 — Close the loop (Q1)
 
-- [ ] 1.1 Recitation Accuracy Scoring — BLOCKED on a vendor/model decision (which ASR/tajweed engine, cost,
-      privacy review for children's voice data). Architecture (job queue trigger, score model, teacher-queue
-      sort) can be built with a pluggable `RecitationScorer` interface + stub now; real model swap-in is a
-      follow-up once the decision is made. Will surface this choice explicitly when reached.
+- [x] 1.1 Recitation Accuracy Scoring — stub architecture (2026-07-07). User chose to defer the ASR/tajweed
+      vendor decision (cost + children's-voice-data privacy review needed first) and build the pluggable
+      architecture now: `RecitationScorer` interface + `StubRecitationScorer` (recitation-scorer.service.ts,
+      always UNAVAILABLE/null), new `Recording.accuracyScore`/`scoreStatus` columns, a BullMQ
+      recitation-scoring queue + worker (same graceful Redis-absent fallback as every other job), triggered
+      from `uploadRecording`, surfaced as a badge on the teacher review-queue card. Real scoring ships later
+      by changing only `getRecitationScorer()` — no caller changes. 837 itests (2 new) / 326 unit tests (1
+      new) / mobile+server tsc clean.
 - [x] 1.2 Shadow-Reading in the Mushaf Viewer (2026-07-06) — per-ayah play/pause + 0.75x/1x speed, zero backend
       change (audioUrl was already returned, just never consumed). Also fixed 3 untranslated i18n keys used
       in that screen. Scope note: left the pre-existing `/* TODO log memorization */` long-press placeholder
