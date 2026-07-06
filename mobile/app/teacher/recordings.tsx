@@ -445,6 +445,11 @@ function TeacherRecordingCard({
           year: 'numeric',
         })}
       </Text>
+      <Text style={[cardStyles.meta, { color: COLORS.textMuted }]}>
+        {recording.scoreStatus === 'SCORED' && recording.accuracyScore != null
+          ? `${t('automatedScoreLabel')}: ${Math.round(recording.accuracyScore)}%`
+          : t('automatedScoreUnavailable')}
+      </Text>
 
       {/* Playback row */}
       <View style={[cardStyles.playRow, { backgroundColor: COLORS.background }]}>

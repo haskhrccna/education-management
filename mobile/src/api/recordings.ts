@@ -14,6 +14,8 @@ export interface Recording {
   approvedAt?: string | null;
   rejectedAt?: string | null;
   createdAt: string;
+  accuracyScore?: number | null;
+  scoreStatus?: 'PENDING' | 'SCORED' | 'UNAVAILABLE';
   student?: { id: string; firstName: string; lastName: string; email: string };
 }
 
