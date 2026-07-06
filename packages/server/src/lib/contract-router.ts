@@ -21,10 +21,16 @@ export type ContractHandler<C extends AnyRouteContract> = (ctx: HandlerCtx<C>) =
 export interface ContractRoute<C extends AnyRouteContract = AnyRouteContract> {
   contract: C;
   handler: ContractHandler<C>;
+  /** Extra middleware (e.g. rate limiters) run after access checks, before body validation. */
+  pre?: RequestHandler[];
 }
 
-export function defineRoute<C extends AnyRouteContract>(contract: C, handler: ContractHandler<C>): ContractRoute<C> {
-  return { contract, handler };
+export function defineRoute<C extends AnyRouteContract>(
+  contract: C,
+  handler: ContractHandler<C>,
+  opts: { pre?: RequestHandler[] } = {}
+): ContractRoute<C> {
+  return { contract, handler, pre: opts.pre };
 }
 
 /**
@@ -38,7 +44,7 @@ export function defineRoute<C extends AnyRouteContract>(contract: C, handler: Co
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function buildContractRouter(routes: Array<ContractRoute<any>>, opts: { mountPrefix: string }): Router {
   const router = Router();
-  for (const { contract, handler } of routes) {
+  for (const { contract, handler, pre } of routes) {
     if (!contract.path.startsWith(opts.mountPrefix)) {
       throw new Error(`Contract path ${contract.path} does not start with mountPrefix ${opts.mountPrefix}`);
     }
@@ -46,6 +52,7 @@ export function buildContractRouter(routes: Array<ContractRoute<any>>, opts: { m
     const chain: RequestHandler[] = [];
     if (contract.access !== 'public') chain.push(authenticate);
     if (Array.isArray(contract.access)) chain.push(authorize(...contract.access));
+    if (pre) chain.push(...pre);
     if (contract.request?.body) chain.push(validate(contract.request.body));
     // Explicit annotations: RequestHandler's own req is core.Request, which the
     // 'express' module augmentation (userId/userRole) does not reach.

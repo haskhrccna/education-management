@@ -97,6 +97,51 @@ describe('buildContractRouter', () => {
     expect(res.status).toBe(500);
   });
 
+  it('pre middleware runs after access checks but BEFORE validate (legacy limiter ordering)', async () => {
+    const gated = defineContract({
+      method: 'POST',
+      path: '/api/v1/scratch2/gated',
+      summary: 'itest pre-middleware ordering',
+      access: 'public',
+      request: { body: z.object({ n: z.number() }) },
+      responses: { 200: z.object({ ok: z.literal(true) }), 400: ErrorEnvelope, 429: ErrorEnvelope },
+    });
+    const preApp = express();
+    preApp.use(express.json());
+    preApp.use(
+      '/api/v1/scratch2',
+      buildContractRouter(
+        [
+          defineRoute(gated, async () => ({ status: 200 as const, body: { ok: true as const } }), {
+            pre: [
+              (req, res, next) => {
+                if (req.headers['x-limit']) {
+                  res.status(429).json({ success: false, error: 'Too many requests' });
+                  return;
+                }
+                next();
+              },
+            ],
+          }),
+        ],
+        { mountPrefix: '/api/v1/scratch2' }
+      )
+    );
+    preApp.use(errorHandler);
+
+    // Invalid body + x-limit: pre fires first → 429, proving pre precedes validate.
+    const limited = await request(preApp).post('/api/v1/scratch2/gated').set('x-limit', '1').send({});
+    expect(limited.status).toBe(429);
+
+    // No header: validate fires → 400.
+    const invalid = await request(preApp).post('/api/v1/scratch2/gated').send({});
+    expect(invalid.status).toBe(400);
+
+    // Clean request passes through pre + validate to the handler.
+    const ok = await request(preApp).post('/api/v1/scratch2/gated').send({ n: 1 });
+    expect(ok.status).toBe(200);
+  });
+
   it('rejects a contract whose path does not start with the mount prefix', () => {
     expect(() =>
       buildContractRouter([defineRoute(open, async () => ({ status: 200 as const, body: { ok: true as const } }))], {
