@@ -13,6 +13,13 @@ export const ErrorEnvelope = z.object({
   meta: z.object({ requestId: z.string().optional() }).optional(),
 });
 
+/**
+ * Prisma Date fields: the contract router parses the handler result BEFORE
+ * res.json() serializes (Date object); the typed client parses AFTER (ISO string).
+ * The union satisfies both sides of the wire.
+ */
+export const DateOut = z.union([z.date(), z.string()]);
+
 export interface RouteContract<
   TParams extends z.ZodType = z.ZodType,
   TQuery extends z.ZodType = z.ZodType,
