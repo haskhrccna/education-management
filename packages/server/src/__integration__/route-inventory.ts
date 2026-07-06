@@ -68,6 +68,7 @@ export function discoverEndpoints(): DiscoveredEndpoint[] {
   const CONTRACT_MIRRORS: Record<string, string> = {
     '/api/v1/auth': '/api/auth',
     '/api/v1/users': '/api/users',
+    '/api/v1/admin': '/api/admin',
   };
   for (const c of contractRegistry) {
     endpoints.push({ method: c.method, path: c.path });

@@ -6,7 +6,6 @@ import appointmentRoutes from './routes/appointment.routes';
 import gradeRoutes from './routes/grade.routes';
 import recordingRoutes from './routes/recording.routes';
 import reportRoutes from './routes/report.routes';
-import adminRoutes from './routes/admin.routes';
 import messageRoutes from './routes/message.routes';
 import fileRoutes from './routes/file.routes';
 import exportRoutes from './routes/export.routes';
@@ -35,6 +34,7 @@ import { config } from './config';
 import { healthRouter } from './modules/health/health.module';
 import { authRouter } from './modules/auth/auth.module';
 import { usersRouter } from './modules/users/users.module';
+import { adminRouter } from './modules/admin/admin.module';
 import { errorResponse } from './lib/response';
 
 const app: Application = express();
@@ -86,7 +86,7 @@ app.use('/api/v1/appointments', authenticate, standardLimiter, appointmentRoutes
 app.use('/api/v1/grades', authenticate, standardLimiter, gradeRoutes);
 app.use('/api/v1/recordings', authenticate, uploadLimiter, recordingRoutes);
 app.use('/api/v1/reports', authenticate, standardLimiter, reportRoutes);
-app.use('/api/v1/admin', authenticate, adminLimiter, adminRoutes);
+app.use('/api/v1/admin', authenticate, adminLimiter, adminRouter);
 app.use('/api/v1/messages', authenticate, standardLimiter, messageRoutes);
 app.use('/api/v1/surahs', authenticate, standardLimiter, surahRouter);
 app.use('/api/v1/memorization', authenticate, standardLimiter, memorizationRouter);
@@ -110,7 +110,7 @@ app.use('/api/appointments', authenticate, standardLimiter, appointmentRoutes);
 app.use('/api/grades', authenticate, standardLimiter, gradeRoutes);
 app.use('/api/recordings', authenticate, uploadLimiter, recordingRoutes);
 app.use('/api/reports', authenticate, standardLimiter, reportRoutes);
-app.use('/api/admin', authenticate, adminLimiter, adminRoutes);
+app.use('/api/admin', authenticate, adminLimiter, adminRouter);
 app.use('/api/messages', authenticate, standardLimiter, messageRoutes);
 app.use('/api/files', standardLimiter, fileRoutes); // fileAuthenticate applied inside file.routes.ts
 app.use('/api/exports', authenticate, standardLimiter, exportRoutes);
