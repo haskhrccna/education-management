@@ -26,4 +26,5 @@ export * from './contracts/auth.contracts';
 export * from './contracts/registry';
 export * from './contracts/users.contracts';
 export * from './contracts/admin.contracts';
+export * from './contracts/scheduling.contracts';
 export * from './contracts/client';
