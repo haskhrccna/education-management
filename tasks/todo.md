@@ -1,3 +1,32 @@
+# NEW CAPABILITIES ROADMAP — 10x product value (proposed 2026-07-06)
+
+Roadmap artifact: https://claude.ai/code/artifact/e98e733e-d68b-420b-9313-368fa167f7f0 (16 features, 5 phases/stages).
+Executing stage by stage, same TDD/branch/commit discipline as the REBUILD track below. Each stage gets its own
+feature branch off `main`, merged when its features are green.
+
+## Stage 1 — Close the loop (Q1)
+
+- [ ] 1.1 Recitation Accuracy Scoring — BLOCKED on a vendor/model decision (which ASR/tajweed engine, cost,
+      privacy review for children's voice data). Architecture (job queue trigger, score model, teacher-queue
+      sort) can be built with a pluggable `RecitationScorer` interface + stub now; real model swap-in is a
+      follow-up once the decision is made. Will surface this choice explicitly when reached.
+- [ ] 1.2 Shadow-Reading in the Mushaf Viewer — in progress. Confirmed zero backend change needed:
+      `mushaf.service.ts`'s `getSurahWithAyahs`/`getPage` already `include` the full `Ayah` row (no narrowing
+      `select`), so `audioUrl` is already in the JSON today; `AyahDTO` in shared types already has
+      `audioUrl?: string`. Pure mobile UI work, reusing the exact `expo-av` playback pattern from
+      `teacher/recordings.tsx` (`Audio.Sound.createAsync` + `soundRef` + `playingId`). Also fixes:
+      `mushaf.tsx`'s `/* TODO log memorization */` placeholder (the hook's `logAyah` already exists, unused)
+      and three untranslated i18n keys used in that screen (`mushaf`, `ayah`, `pageNumber` — currently render
+      as raw keys, not translated text).
+- [ ] 1.3 Weekly Parent Digest — not started. Needs a scheduled job (BullMQ, existing graceful no-op pattern)
+      + digest query over existing models (SessionRecord, Streak, Grade, Appointment) + delivery via existing
+      `notification.service.ts` channels. New: a per-child opt-out flag.
+- [ ] 1.4 Teacher Roster Health Dashboard — not started. New contract-driven endpoint aggregating a teacher's
+      own roster (reuses the existing accepted-appointment access policy) into at-risk flags; today teacher
+      analytics is admin-only and per-student only.
+
+---
+
 # REBUILD 10x — full-codebase strangler rewrite (SPEC APPROVED 2026-07-04)
 
 Spec: `docs/superpowers/specs/2026-07-04-rebuild-10x-design.md`.
