@@ -69,11 +69,14 @@ export function discoverEndpoints(): DiscoveredEndpoint[] {
     '/api/v1/auth': '/api/auth',
     '/api/v1/users': '/api/users',
     '/api/v1/admin': '/api/admin',
+    '/api/v1/appointments': '/api/appointments',
   };
   for (const c of contractRegistry) {
     endpoints.push({ method: c.method, path: c.path });
     for (const [canonical, mirror] of Object.entries(CONTRACT_MIRRORS)) {
-      if (c.path.startsWith(`${canonical}/`)) {
+      // Match the manifest's LEGACY_PREFIXES semantics: the prefix itself
+      // (root-level GET/POST) mirrors too, not only subpaths.
+      if (c.path === canonical || c.path.startsWith(`${canonical}/`)) {
         endpoints.push({ method: c.method, path: mirror + c.path.slice(canonical.length) });
       }
     }

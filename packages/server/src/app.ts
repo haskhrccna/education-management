@@ -2,7 +2,6 @@ import './types/express';
 import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import appointmentRoutes from './routes/appointment.routes';
 import gradeRoutes from './routes/grade.routes';
 import recordingRoutes from './routes/recording.routes';
 import reportRoutes from './routes/report.routes';
@@ -35,6 +34,7 @@ import { healthRouter } from './modules/health/health.module';
 import { authRouter } from './modules/auth/auth.module';
 import { usersRouter } from './modules/users/users.module';
 import { adminRouter } from './modules/admin/admin.module';
+import { appointmentsRouter } from './modules/appointments/appointments.module';
 import { errorResponse } from './lib/response';
 
 const app: Application = express();
@@ -82,7 +82,7 @@ app.use('/api', healthRouter);
 // API v1 Routes
 app.use('/api/v1/auth', authLimiter, authRouter);
 app.use('/api/v1/users', authenticate, standardLimiter, usersRouter);
-app.use('/api/v1/appointments', authenticate, standardLimiter, appointmentRoutes);
+app.use('/api/v1/appointments', authenticate, standardLimiter, appointmentsRouter);
 app.use('/api/v1/grades', authenticate, standardLimiter, gradeRoutes);
 app.use('/api/v1/recordings', authenticate, uploadLimiter, recordingRoutes);
 app.use('/api/v1/reports', authenticate, standardLimiter, reportRoutes);
@@ -106,7 +106,7 @@ app.use('/api/v1/halaqa', authenticate, standardLimiter, halaqaRoutes);
 // Mirroring exact same middleware stack as v1 for consistent protection
 app.use('/api/auth', authLimiter, authRouter);
 app.use('/api/users', authenticate, standardLimiter, usersRouter);
-app.use('/api/appointments', authenticate, standardLimiter, appointmentRoutes);
+app.use('/api/appointments', authenticate, standardLimiter, appointmentsRouter);
 app.use('/api/grades', authenticate, standardLimiter, gradeRoutes);
 app.use('/api/recordings', authenticate, uploadLimiter, recordingRoutes);
 app.use('/api/reports', authenticate, standardLimiter, reportRoutes);
