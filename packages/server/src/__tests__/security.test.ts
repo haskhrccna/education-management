@@ -87,18 +87,13 @@ describe('Security', () => {
         teacherId: 'teacher-2',
       } as any);
 
-      const app = express();
-      app.use(express.json());
-      app.use((req: any, _res: any, next: any) => {
-        req.userId = 'teacher-1';
-        req.userRole = 'TEACHER';
-        next();
+      // The HTTP layer is contract-driven now (pinned by scheduling-flows.itest.ts);
+      // the ownership check itself lives in the service.
+      const { manageAppointment } = require('../services/appointment.service');
+      await expect(manageAppointment('appt-1', 'teacher-1', 'TEACHER', 'ACCEPTED')).rejects.toMatchObject({
+        statusCode: 403,
+        message: 'You can only manage your own appointments',
       });
-      const { manageAppointment } = require('../controllers/appointment.controller');
-      app.put('/:id', manageAppointment);
-
-      const res = await request(app).put('/appt-1').send({ action: 'ACCEPTED' });
-      expect(res.status).toBe(403);
     });
   });
 
