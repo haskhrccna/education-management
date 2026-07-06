@@ -16,3 +16,5 @@ export { reportsApi } from './reports';
 export type { Report, CreateReportInput } from './reports';
 export { revisionsApi } from './revisions';
 export type { Revision } from './revisions';
+export { rosterApi } from './roster';
+export type { RosterHealthRow, AtRiskReason } from './roster';

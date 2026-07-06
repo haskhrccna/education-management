@@ -10,7 +10,9 @@ import { useAuthStore } from '@/src/auth/store';
 import { useAppointments } from '@/src/hooks/useAppointments';
 import { useMessages } from '@/src/hooks/useMessages';
 import { useRecordings } from '@/src/hooks/useRecordings';
+import { useRosterHealth } from '@/src/hooks/useRosterHealth';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
+import type { AtRiskReason } from '@/src/api';
 import { useThemeSettings } from '@/src/settings/store';
 import { useNotifications } from '@/src/hooks/useNotifications';
 import {
@@ -58,6 +60,17 @@ function isPendingAppointment(appointment: Appointment): boolean {
   return status === 'PENDING' || status === 'REQUESTED';
 }
 
+function atRiskReasonLabel(reason: AtRiskReason, isAr: boolean): string {
+  switch (reason) {
+    case 'MISSED_SESSIONS':
+      return isAr ? 'غياب متكرر' : 'Missed sessions';
+    case 'STREAK_BROKEN':
+      return isAr ? 'انقطعت المتابعة' : 'Streak broken';
+    case 'GRADE_GAP':
+      return isAr ? 'لا تقييم حديث' : 'No recent grade';
+  }
+}
+
 export default function TeacherHomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -72,6 +85,7 @@ export default function TeacherHomeScreen() {
   const { unreadCount, fetchMessages } = useMessages();
   const { requests: changeRequests, fetchRequests } = useTeacherChange();
   const { recordings, loading: isLoadingRecordings, refresh: refreshRecordings } = useRecordings();
+  const { atRisk: atRiskStudents, refetch: refetchRoster } = useRosterHealth();
   const [progressByStudent, setProgressByStudent] = useState<Record<string, ProgressSummary>>({});
 
   const pendingAppointments = useMemo(() => appointments.filter(isPendingAppointment), [appointments]);
@@ -94,7 +108,8 @@ export default function TeacherHomeScreen() {
     fetchMessages();
     fetchRequests();
     refreshRecordings();
-  }, [fetchAppointments, fetchMessages, fetchRequests, refreshRecordings]);
+    refetchRoster();
+  }, [fetchAppointments, fetchMessages, fetchRequests, refreshRecordings, refetchRoster]);
 
   useEffect(() => {
     refreshAll();
@@ -372,7 +387,39 @@ export default function TeacherHomeScreen() {
           onActionPress={() => router.push('/teacher/appointments')}
           colors={COLORS}
         />
-        {students.length > 0 ? (
+        {atRiskStudents.length > 0 ? (
+          <View style={styles.listStack}>
+            {atRiskStudents.slice(0, 5).map((row) => {
+              const name = `${row.firstName} ${row.lastName}`.trim();
+              return (
+                <TouchableOpacity
+                  key={row.studentId}
+                  activeOpacity={0.85}
+                  onPress={() =>
+                    router.push(`/teacher/student-detail?id=${row.studentId}&name=${encodeURIComponent(name)}`)
+                  }
+                >
+                  <AppCard colors={COLORS} style={styles.studentCard}>
+                    <Avatar colors={COLORS} label={name} size={38} />
+                    <View style={styles.studentInfo}>
+                      <Text style={styles.rowTitle}>{name}</Text>
+                      <View style={styles.pillRow}>
+                        {row.reasons.map((reason) => (
+                          <StatusPill
+                            key={reason}
+                            colors={COLORS}
+                            label={atRiskReasonLabel(reason, isAr)}
+                            status="warning"
+                          />
+                        ))}
+                      </View>
+                    </View>
+                  </AppCard>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ) : students.length > 0 ? (
           <View style={styles.listStack}>
             {students.slice(0, 5).map((student, index) => {
               const name = fullName(student);
