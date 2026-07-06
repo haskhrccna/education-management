@@ -2,7 +2,6 @@ import './types/express';
 import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 import appointmentRoutes from './routes/appointment.routes';
 import gradeRoutes from './routes/grade.routes';
@@ -35,6 +34,7 @@ import { standardLimiter, authLimiter, adminLimiter, uploadLimiter } from './mid
 import { requestLogger } from './lib/logger';
 import { config } from './config';
 import { healthRouter } from './modules/health/health.module';
+import { authRouter } from './modules/auth/auth.module';
 import { errorResponse } from './lib/response';
 
 const app: Application = express();
@@ -80,7 +80,7 @@ app.use('/metrics', authenticate, authorize(UserRole.ADMIN), metricsRoutes);
 app.use('/api', healthRouter);
 
 // API v1 Routes
-app.use('/api/v1/auth', authLimiter, authRoutes);
+app.use('/api/v1/auth', authLimiter, authRouter);
 app.use('/api/v1/users', authenticate, standardLimiter, userRoutes);
 app.use('/api/v1/appointments', authenticate, standardLimiter, appointmentRoutes);
 app.use('/api/v1/grades', authenticate, standardLimiter, gradeRoutes);
@@ -104,7 +104,7 @@ app.use('/api/v1/halaqa', authenticate, standardLimiter, halaqaRoutes);
 
 // Legacy redirects (optional - remove after mobile update)
 // Mirroring exact same middleware stack as v1 for consistent protection
-app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/auth', authLimiter, authRouter);
 app.use('/api/users', authenticate, standardLimiter, userRoutes);
 app.use('/api/appointments', authenticate, standardLimiter, appointmentRoutes);
 app.use('/api/grades', authenticate, standardLimiter, gradeRoutes);
