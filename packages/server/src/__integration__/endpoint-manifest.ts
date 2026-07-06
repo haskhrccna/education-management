@@ -64,6 +64,9 @@ const v1: EndpointSpec[] = [
   { method: 'GET', path: '/api/v1/surahs', access: 'authenticated' },
   { method: 'GET', path: '/api/v1/memorization', access: 'authenticated' },
   { method: 'PUT', path: '/api/v1/memorization/:surahId', access: ['TEACHER'] },
+  { method: 'GET', path: '/api/v1/mushaf/surahs/:id', access: 'authenticated' },
+  { method: 'GET', path: '/api/v1/mushaf/pages/:page', access: 'authenticated' },
+  { method: 'POST', path: '/api/v1/mushaf/log-memorization', access: 'authenticated' },
   // files (fileAuthenticate: Bearer header OR ?token=)
   { method: 'GET', path: '/api/v1/files/recordings/:id', access: 'authenticated' },
   { method: 'GET', path: '/api/v1/files/reports/:id', access: 'authenticated' },

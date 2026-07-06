@@ -15,7 +15,6 @@ import gamificationRoutes from './routes/gamification.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import certificateRoutes from './routes/certificate.routes';
 import halaqaRoutes from './routes/halaqa.routes';
-import mushafRoutes from './routes/mushaf.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { authenticate, authorize } from './middleware/auth.middleware';
 import { UserRole } from '@quran-review/shared';
@@ -36,6 +35,7 @@ import { gradesRouter } from './modules/grades/grades.module';
 import { surahsRouter } from './modules/surahs/surahs.module';
 import { memorizationRouter } from './modules/memorization/memorization.module';
 import { revisionsRouter } from './modules/revisions/revisions.module';
+import { mushafRouter } from './modules/mushaf/mushaf.module';
 import { errorResponse } from './lib/response';
 
 const app: Application = express();
@@ -91,6 +91,7 @@ app.use('/api/v1/admin', authenticate, adminLimiter, adminRouter);
 app.use('/api/v1/messages', authenticate, standardLimiter, messageRoutes);
 app.use('/api/v1/surahs', authenticate, standardLimiter, surahsRouter);
 app.use('/api/v1/memorization', authenticate, standardLimiter, memorizationRouter);
+app.use('/api/v1/mushaf', authenticate, standardLimiter, mushafRouter);
 app.use('/api/v1/files', standardLimiter, fileRoutes); // fileAuthenticate applied inside file.routes.ts
 app.use('/api/v1/exports', authenticate, standardLimiter, exportRoutes);
 app.use('/api/v1/teacher-changes', authenticate, standardLimiter, teacherChangeRouter);
