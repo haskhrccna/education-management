@@ -2,7 +2,13 @@ import { z } from 'zod';
 import { defineContract, ErrorEnvelope } from './types';
 import { logAyahMemorizationSchema } from '../validators/mushaf';
 
-const AyahRow = z.looseObject({ number: z.number(), surahId: z.number(), page: z.number(), juz: z.number() });
+const AyahRow = z.looseObject({
+  number: z.number(),
+  surahId: z.number(),
+  page: z.number(),
+  juz: z.number(),
+  audioUrl: z.string().nullable(),
+});
 
 export const mushafContracts = {
   surahAyahs: defineContract({

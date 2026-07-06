@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,9 +8,11 @@ import { useMushaf } from '@/src/hooks/useMushaf';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useThemeSettings } from '@/src/settings/store';
 import { getColors, RADIUS, SPACING } from '@/constants/theme';
-import { AppCard, AppText } from '@/src/components/design';
+import { AppText } from '@/src/components/design';
 
 const TOTAL_PAGES = 604;
+type AudioModule = typeof import('expo-av');
+type PlaybackRate = 0.75 | 1;
 
 export default function MushafScreen() {
   const router = useRouter();
@@ -20,10 +22,94 @@ export default function MushafScreen() {
   const COLORS = getColors(theme, darkMode);
   const { page, isLoading, error, fetchPage } = useMushaf();
   const [currentPage, setCurrentPage] = useState(1);
+  const [playingAyahId, setPlayingAyahId] = useState<number | null>(null);
+  const [playbackRate, setPlaybackRate] = useState<PlaybackRate>(1);
+  const soundRef = useRef<any | null>(null);
 
   React.useEffect(() => {
     fetchPage(currentPage);
   }, [currentPage, fetchPage]);
+
+  const stopPlayback = async () => {
+    if (soundRef.current) {
+      await soundRef.current.stopAsync?.().catch(() => {});
+      await soundRef.current.unloadAsync?.().catch(() => {});
+      soundRef.current = null;
+    }
+    setPlayingAyahId(null);
+  };
+
+  // Stop playback when leaving the page (page change or unmount) — audio
+  // should never keep playing for an ayah that's no longer on screen.
+  useEffect(() => {
+    return () => {
+      stopPlayback();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]);
+
+  const getAudio = async (): Promise<AudioModule | null> => {
+    try {
+      return await import('expo-av');
+    } catch {
+      Alert.alert(t('error'), t('audioNotAvailable'));
+      return null;
+    }
+  };
+
+  const togglePlayAyah = async (ayah: { id: number; audioUrl?: string | null }) => {
+    if (!ayah.audioUrl) {
+      Alert.alert(t('listenToAyah'), t('ayahAudioNotYetAvailable'));
+      return;
+    }
+
+    if (playingAyahId === ayah.id && soundRef.current) {
+      const status = await soundRef.current.getStatusAsync();
+      if (status.isLoaded && status.isPlaying) {
+        await soundRef.current.pauseAsync();
+        setPlayingAyahId(null);
+        return;
+      }
+      if (status.isLoaded) {
+        await soundRef.current.playAsync();
+        setPlayingAyahId(ayah.id);
+        return;
+      }
+    }
+
+    await stopPlayback();
+
+    const av = await getAudio();
+    if (!av) return;
+    const { Audio } = av;
+
+    try {
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: false, playsInSilentModeIOS: true });
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: ayah.audioUrl },
+        { shouldPlay: true, rate: playbackRate, shouldCorrectPitch: true },
+        (status) => {
+          if (!status.isLoaded) return;
+          if (status.didJustFinish) {
+            setPlayingAyahId(null);
+          }
+        }
+      );
+      soundRef.current = sound;
+      setPlayingAyahId(ayah.id);
+    } catch (err: any) {
+      Alert.alert(t('error'), err?.message ?? String(err));
+      await stopPlayback();
+    }
+  };
+
+  const togglePlaybackSpeed = async () => {
+    const nextRate: PlaybackRate = playbackRate === 1 ? 0.75 : 1;
+    setPlaybackRate(nextRate);
+    if (soundRef.current) {
+      await soundRef.current.setRateAsync?.(nextRate, true).catch(() => {});
+    }
+  };
 
   const goNext = () => {
     if (currentPage < TOTAL_PAGES) setCurrentPage((p) => p + 1);
@@ -82,6 +168,21 @@ export default function MushafScreen() {
         </TouchableOpacity>
       </View>
 
+      <View style={styles.speedRow}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={playbackRate === 1 ? t('playbackSpeedNormal') : t('playbackSpeedSlow')}
+          onPress={togglePlaybackSpeed}
+          style={[styles.speedPill, { borderColor: COLORS.border, backgroundColor: COLORS.surface }]}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons name="speedometer-outline" size={16} color={COLORS.primary} />
+          <AppText variant="labelLarge" color={COLORS.primary} style={{ marginStart: SPACING.xs }}>
+            {playbackRate === 1 ? '1×' : '0.75×'}
+          </AppText>
+        </TouchableOpacity>
+      </View>
+
       {isLoading ? (
         <ActivityIndicator color={COLORS.primary} />
       ) : error ? (
@@ -101,23 +202,40 @@ export default function MushafScreen() {
         </View>
       ) : page ? (
         <View style={styles.page}>
-          {page.ayahs.map((ayah) => (
-            <TouchableOpacity
-              key={ayah.id}
-              onLongPress={() => {
-                /* TODO log memorization */
-              }}
-              style={styles.ayah}
-            >
-              <AppText
-                variant="bodyLarge"
-                color={COLORS.textPrimary}
-                style={{ textAlign: isRTL ? 'right' : 'left', writingDirection: 'rtl' }}
+          {page.ayahs.map((ayah) => {
+            const isPlaying = playingAyahId === ayah.id;
+            return (
+              <View
+                key={ayah.id}
+                style={[
+                  styles.ayah,
+                  { flexDirection: isRTL ? 'row-reverse' : 'row' },
+                  isPlaying && { backgroundColor: COLORS.primaryMuted },
+                ]}
               >
-                {ayah.text ?? `${t('ayah')} ${ayah.number}`}
-              </AppText>
-            </TouchableOpacity>
-          ))}
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={t('listenToAyah')}
+                  onPress={() => togglePlayAyah(ayah)}
+                  style={styles.playButton}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Ionicons
+                    name={isPlaying ? 'pause-circle' : 'play-circle-outline'}
+                    size={28}
+                    color={ayah.audioUrl ? COLORS.primary : COLORS.textSecondary}
+                  />
+                </TouchableOpacity>
+                <AppText
+                  variant="bodyLarge"
+                  color={COLORS.textPrimary}
+                  style={{ flex: 1, textAlign: isRTL ? 'right' : 'left', writingDirection: 'rtl' }}
+                >
+                  {ayah.text ?? `${t('ayah')} ${ayah.number}`}
+                </AppText>
+              </View>
+            );
+          })}
         </View>
       ) : null}
     </SafeAreaView>
@@ -142,6 +260,28 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
   },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.lg },
+  speedRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.sm,
+  },
+  speedPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 4,
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
+  },
   page: { flex: 1, padding: SPACING.md },
-  ayah: { paddingVertical: SPACING.sm, borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
+  ayah: {
+    alignItems: 'center',
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+    borderRadius: RADIUS.sm,
+  },
+  playButton: { paddingHorizontal: SPACING.xs },
 });
