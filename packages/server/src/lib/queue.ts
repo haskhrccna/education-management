@@ -23,6 +23,7 @@ export const emailQueue = createQueue<{ to: string; subject: string; html: strin
 export const notificationQueue = createQueue<{ userId: string; event: string; data: Record<string, any> }>(
   'notification'
 );
+export const digestQueue = createQueue<Record<string, never>>('weekly-digest');
 
 export async function addBroadcastJob(message: string, targetRole?: string) {
   if (!broadcastQueue) return null;
@@ -40,7 +41,9 @@ export async function addEmailJob(to: string, subject: string, html: string, tex
 }
 
 export const closeQueues = async (): Promise<void> => {
-  const allQueues = [broadcastQueue, reportQueue, emailQueue, notificationQueue].filter(Boolean) as Queue[];
+  const allQueues = [broadcastQueue, reportQueue, emailQueue, notificationQueue, digestQueue].filter(
+    Boolean
+  ) as Queue[];
   await Promise.all(allQueues.map((q) => q.close()));
 
   for (const worker of workers) {
@@ -98,5 +101,26 @@ if (process.env.ENABLE_WORKERS === 'true') {
         { connection }
       )
     );
+  }
+
+  if (digestQueue) {
+    workers.push(
+      new Worker(
+        'weekly-digest',
+        async () => {
+          const { sendWeeklyDigests } = await import('../services/digest.service');
+          const sent = await sendWeeklyDigests();
+          logger.info({ sent }, 'Weekly digest job completed');
+        },
+        { connection }
+      )
+    );
+    // Registers the recurring trigger once at startup. BullMQ dedupes
+    // repeatable jobs by their repeat key, so re-registering on every server
+    // restart does not create duplicate schedules. Sunday 08:00 — the exact
+    // day/time is not yet admin-configurable (follow-up, not built).
+    digestQueue.add('trigger', {}, { repeat: { pattern: '0 8 * * 0' } }).catch((err) => {
+      logger.error({ err }, 'Failed to schedule the weekly digest job');
+    });
   }
 }

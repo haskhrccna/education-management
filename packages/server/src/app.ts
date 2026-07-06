@@ -37,6 +37,7 @@ import { memorizationRouter } from './modules/memorization/memorization.module';
 import { revisionsRouter } from './modules/revisions/revisions.module';
 import { mushafRouter } from './modules/mushaf/mushaf.module';
 import { rosterRouter } from './modules/roster/roster.module';
+import { parentLinksRouter } from './modules/parent-links/parent-links.module';
 import { errorResponse } from './lib/response';
 
 const app: Application = express();
@@ -94,6 +95,7 @@ app.use('/api/v1/surahs', authenticate, standardLimiter, surahsRouter);
 app.use('/api/v1/memorization', authenticate, standardLimiter, memorizationRouter);
 app.use('/api/v1/mushaf', authenticate, standardLimiter, mushafRouter);
 app.use('/api/v1/roster', authenticate, standardLimiter, rosterRouter);
+app.use('/api/v1/parent-links', authenticate, standardLimiter, parentLinksRouter);
 app.use('/api/v1/files', standardLimiter, fileRoutes); // fileAuthenticate applied inside file.routes.ts
 app.use('/api/v1/exports', authenticate, standardLimiter, exportRoutes);
 app.use('/api/v1/teacher-changes', authenticate, standardLimiter, teacherChangeRouter);

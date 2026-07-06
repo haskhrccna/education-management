@@ -30,4 +30,5 @@ export * from './contracts/scheduling.contracts';
 export * from './contracts/learning.contracts';
 export * from './contracts/mushaf.contracts';
 export * from './contracts/roster.contracts';
+export * from './contracts/parent-links.contracts';
 export * from './contracts/client';

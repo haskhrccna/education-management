@@ -396,6 +396,7 @@ model ParentLink {
   requestedAt DateTime        @default(now())
   decidedAt  DateTime?
   decidedBy  String?
+  digestOptOut Boolean        @default(false)
 
   parent  User  @relation("ParentLinkParent",  fields: [parentId],  references: [id], onDelete: Cascade)
   student User  @relation("ParentLinkStudent", fields: [studentId], references: [id], onDelete: Cascade)
