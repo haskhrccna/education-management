@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { adminContracts } from '@quran-review/shared';
+import { prisma } from '../../prisma/client';
 import * as adminService from '../../services/admin.service';
 import { auditLog } from '../../lib/audit';
 import { paginate, paginatedResponse, PaginatedRequest } from '../../middleware/pagination.middleware';
@@ -143,9 +144,33 @@ const bulkDeactivate = defineRoute(adminContracts.bulkDeactivate, async ({ body,
   return { status: 200 as const, body: results };
 });
 
+const auditLogs = defineRoute(
+  adminContracts.auditLogs,
+  async ({ query, req }) => {
+    const { page = 1, limit = 20, skip = 0 } = (req as PaginatedRequest).pagination || {};
+    const where = {
+      ...(query.userId ? { userId: String(query.userId) } : {}),
+      ...(query.action ? { action: String(query.action) } : {}),
+    };
+    const [rows, total] = await Promise.all([
+      prisma.auditLog.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+        include: { user: { select: { id: true, firstName: true, lastName: true, email: true } } },
+      }),
+      prisma.auditLog.count({ where }),
+    ]);
+    return { status: 200 as const, body: paginatedResponse(rows, total, page, limit) };
+  },
+  { pre: [paginate(20, 100)] }
+);
+
 export const adminRouter = buildContractRouter(
   [
     listUsers,
+    auditLogs,
     createTeacher,
     approveStudent,
     deactivateUser,

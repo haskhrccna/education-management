@@ -44,6 +44,7 @@ const v1: EndpointSpec[] = [
   { method: 'GET', path: '/api/v1/reports', access: ['TEACHER', 'ADMIN', 'STUDENT'] },
   // admin (router.use(authorize(ADMIN)))
   { method: 'GET', path: '/api/v1/admin/users', access: ['ADMIN'] },
+  { method: 'GET', path: '/api/v1/admin/audit-logs', access: ['ADMIN'] },
   { method: 'POST', path: '/api/v1/admin/teachers', access: ['ADMIN'] },
   { method: 'PUT', path: '/api/v1/admin/users/:id/approve', access: ['ADMIN'] },
   { method: 'PUT', path: '/api/v1/admin/users/:id/deactivate', access: ['ADMIN'] },

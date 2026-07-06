@@ -188,4 +188,41 @@ export const adminContracts = {
     request: { body: BulkDeactivateSchema },
     responses: { 200: BulkResult, 400: ErrorEnvelope, 401: ErrorEnvelope, 403: ErrorEnvelope },
   }),
+  auditLogs: defineContract({
+    method: 'GET',
+    path: '/api/v1/admin/audit-logs',
+    summary: 'Paginated audit trail (newest first); filters: ?userId=, ?action=',
+    access: ADMIN,
+    request: {
+      query: z.object({
+        page: z.string().optional(),
+        limit: z.string().optional(),
+        userId: z.string().optional(),
+        action: z.string().optional(),
+      }),
+    },
+    responses: {
+      200: z.object({
+        data: z.array(
+          z.object({
+            id: z.string(),
+            userId: z.string().nullable(),
+            action: z.string(),
+            resourceType: z.string(),
+            resourceId: z.string().nullable(),
+            details: z.unknown(),
+            ipAddress: z.string().nullable(),
+            userAgent: z.string().nullable(),
+            createdAt: DateOut,
+            user: z
+              .object({ id: z.string(), firstName: z.string(), lastName: z.string(), email: z.string() })
+              .nullable(),
+          })
+        ),
+        meta: PaginationMeta,
+      }),
+      401: ErrorEnvelope,
+      403: ErrorEnvelope,
+    },
+  }),
 };
