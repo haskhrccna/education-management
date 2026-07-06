@@ -8,4 +8,5 @@ jest.mock('../prisma/client', () => ({
 jest.mock('../lib/queue', () => ({
   addBroadcastJob: jest.fn().mockResolvedValue(null),
   addReportJob: jest.fn().mockResolvedValue(null),
+  addScoringJob: jest.fn().mockResolvedValue(null),
 }));

@@ -24,6 +24,12 @@ export const notificationQueue = createQueue<{ userId: string; event: string; da
   'notification'
 );
 export const digestQueue = createQueue<Record<string, never>>('weekly-digest');
+export const scoringQueue = createQueue<{ recordingId: string }>('recitation-scoring');
+
+export async function addScoringJob(recordingId: string) {
+  if (!scoringQueue) return null;
+  return scoringQueue.add('score-recording', { recordingId });
+}
 
 export async function addBroadcastJob(message: string, targetRole?: string) {
   if (!broadcastQueue) return null;
@@ -41,7 +47,7 @@ export async function addEmailJob(to: string, subject: string, html: string, tex
 }
 
 export const closeQueues = async (): Promise<void> => {
-  const allQueues = [broadcastQueue, reportQueue, emailQueue, notificationQueue, digestQueue].filter(
+  const allQueues = [broadcastQueue, reportQueue, emailQueue, notificationQueue, digestQueue, scoringQueue].filter(
     Boolean
   ) as Queue[];
   await Promise.all(allQueues.map((q) => q.close()));
@@ -122,5 +128,19 @@ if (process.env.ENABLE_WORKERS === 'true') {
     digestQueue.add('trigger', {}, { repeat: { pattern: '0 8 * * 0' } }).catch((err) => {
       logger.error({ err }, 'Failed to schedule the weekly digest job');
     });
+  }
+
+  if (scoringQueue) {
+    workers.push(
+      new Worker(
+        'recitation-scoring',
+        async (job) => {
+          const { scoreRecording } = await import('../services/recitation-scorer.service');
+          await scoreRecording(job.data.recordingId);
+          logger.info({ recordingId: job.data.recordingId }, 'Recitation scoring job completed');
+        },
+        { connection }
+      )
+    );
   }
 }

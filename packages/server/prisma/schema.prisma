@@ -75,6 +75,12 @@ enum AttendanceStatus {
   EXCUSED
 }
 
+enum RecordingScoreStatus {
+  PENDING
+  SCORED
+  UNAVAILABLE
+}
+
 model User {
   id                String     @id @default(uuid())
   email             String     @unique
@@ -192,6 +198,8 @@ model Recording {
   reviewedBy      String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  accuracyScore   Float?
+  scoreStatus     RecordingScoreStatus @default(PENDING)
 
   student  User  @relation("StudentRecordings", fields: [studentId], references: [id], onDelete: Cascade)
   reviewer User? @relation("ReviewedRecordings", fields: [reviewedBy], references: [id], onDelete: SetNull)

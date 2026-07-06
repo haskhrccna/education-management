@@ -9,12 +9,18 @@ jest.mock('../../prisma/client', () => ({
   prisma: mockDeep<PrismaClient>(),
 }));
 
+jest.mock('../recitation-scorer.service', () => ({
+  scoreRecording: jest.fn().mockResolvedValue(undefined),
+}));
+
 import { prisma } from '../../prisma/client';
 import { uploadRecording, listRecordings, reviewRecording, deleteRecording } from '../recording.service';
+import { scoreRecording } from '../recitation-scorer.service';
 import { AppError } from '../../middleware/error.middleware';
 
 const mockedPrisma = prisma as unknown as DeepMockProxy<PrismaClient>;
 const mockedFs = fs as jest.Mocked<typeof fs>;
+const mockedScoreRecording = scoreRecording as jest.Mock;
 
 describe('recording.service', () => {
   beforeEach(() => {
@@ -49,6 +55,17 @@ describe('recording.service', () => {
       const result = await uploadRecording('student-1', 'file.mp3', 1024, 'audio/mpeg');
       expect(result.id).toBe('rec-2');
       expect(mockedFs.copyFile).not.toHaveBeenCalled();
+    });
+
+    it('triggers the (stub) recitation scorer via the sync fallback when the queue is unavailable', async () => {
+      mockedFs.access.mockRejectedValue(new Error('no dir'));
+      mockedFs.mkdir.mockResolvedValue(undefined as any);
+      mockedPrisma.recording.create.mockResolvedValue({ id: 'rec-4' } as any);
+
+      await uploadRecording('student-1', 'file.mp3', 1024, 'audio/mpeg');
+      // addScoringJob is globally mocked (src/__tests__/setup.ts) to resolve
+      // null, so uploadRecording must fall back to scoring synchronously.
+      expect(mockedScoreRecording).toHaveBeenCalledWith('rec-4');
     });
 
     it('should sanitize malicious filenames', async () => {

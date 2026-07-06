@@ -4,6 +4,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import { AppError } from '../middleware/error.middleware';
 import { recordActivity, evaluateMilestones } from './gamification.service';
+import { addScoringJob } from '../lib/queue';
+import { scoreRecording } from './recitation-scorer.service';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 
@@ -53,6 +55,18 @@ export const uploadRecording = async (
     await evaluateMilestones(studentId);
   } catch {
     /* gamification is best-effort */
+  }
+
+  // Roadmap 1.1: trigger automated recitation scoring. Async via the queue
+  // when Redis is available, synchronous fallback otherwise — same
+  // graceful-degradation pattern as every other job in this app. Best-effort:
+  // no scorer is wired in yet (stub only), and a failure here must never
+  // break the upload.
+  try {
+    const queued = await addScoringJob(recording.id);
+    if (!queued) await scoreRecording(recording.id);
+  } catch {
+    /* scoring is best-effort */
   }
 
   return recording;
