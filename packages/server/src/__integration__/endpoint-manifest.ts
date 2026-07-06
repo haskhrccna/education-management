@@ -67,6 +67,8 @@ const v1: EndpointSpec[] = [
   { method: 'GET', path: '/api/v1/mushaf/surahs/:id', access: 'authenticated' },
   { method: 'GET', path: '/api/v1/mushaf/pages/:page', access: 'authenticated' },
   { method: 'POST', path: '/api/v1/mushaf/log-memorization', access: 'authenticated' },
+  // roster (new capability — teacher-only at-risk aggregation)
+  { method: 'GET', path: '/api/v1/roster/health', access: ['TEACHER'] },
   // files (fileAuthenticate: Bearer header OR ?token=)
   { method: 'GET', path: '/api/v1/files/recordings/:id', access: 'authenticated' },
   { method: 'GET', path: '/api/v1/files/reports/:id', access: 'authenticated' },
