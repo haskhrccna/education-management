@@ -70,6 +70,7 @@ export function discoverEndpoints(): DiscoveredEndpoint[] {
     '/api/v1/users': '/api/users',
     '/api/v1/admin': '/api/admin',
     '/api/v1/appointments': '/api/appointments',
+    '/api/v1/grades': '/api/grades',
   };
   for (const c of contractRegistry) {
     endpoints.push({ method: c.method, path: c.path });
