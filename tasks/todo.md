@@ -7,7 +7,8 @@ Baseline evidence: 379/379 server unit tests pass (2026-07-05). 127 manifest end
 
 - [x] M0 characterization harness (2026-07-05) — integration DB + supertest + factory + 127-endpoint × 5-identity authz matrix (647 itests green in ~4s) + envelope pinning + CI `integration` job. Plan: `docs/superpowers/plans/2026-07-04-m0-characterization-harness.md`. Pinned surprise: `GET /users/profile` returns a raw object, not the success envelope.
 - [x] M1 contract layer (2026-07-06) — contract DSL + 9 contracts (health + auth) + defineRoute/buildContractRouter + GET /api/health swapped to contract routing + typed client + registry↔manifest parity gate (664 itests, 390 unit tests, tsc clean). Plan: `docs/superpowers/plans/2026-07-05-m1-contract-layer.md`.
-- [ ] M2 identity module — rebuild auth + users onto defineRoute using the M1 auth contracts; port/retire `auth.controller.ts` and its unit tests. Next: `superpowers:writing-plans` for M2.
+- [x] M2a identity: auth + users (2026-07-06) — 13 endpoints swapped to contract routing (v1 + legacy mirrors), behavior pinned first (auth-flows + users-flows itests), contract-router `pre` middleware, legacy controllers/routes/unit-mocks deleted (692 itests, 374 unit tests, tsc clean). Plan: `docs/superpowers/plans/2026-07-06-m2a-identity-auth-users.md`.
+- [ ] M2b identity: admin + audit log — swap the 12 `/api/v1/admin/*` endpoints (approval, bulk ops, progress, broadcast) onto contracts; add the audit-log improvement on top. Next: `superpowers:writing-plans` for M2b.
 Note (for M4): mushaf API is dead code — `app.ts` imports `mushafRoutes` but never mounts it; the module used to crash on load (broken `validate` import, fixed in b31709d). Decide mount-or-delete when M4 rebuilds learning modules; mounting now would change the M0-pinned API surface.
 Note: absorbs PR 3 below (TanStack migration continues inside M9–M12).
 
