@@ -1,5 +1,13 @@
 import React from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -29,12 +37,14 @@ export default function ParentHomeScreen() {
   const { t, i18n } = useTranslation();
   const isRTL = useIsRTL();
   const lang = i18n.language;
+  const isAr = lang === 'ar';
   const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const user = useAuthStore((s) => s.user);
-  const { children, dashboard, isLoading, error, fetchChildren, selectChild } = useParent();
+  const { children, dashboard, isLoading, error, fetchChildren, selectChild, toggleDigest } = useParent();
 
   const selectedStudentId = dashboard?.student.id;
+  const selectedChild = children.find((c) => c.student.id === selectedStudentId);
 
   const renderChildSelector = () => {
     if (children.length <= 1) return null;
@@ -155,6 +165,26 @@ export default function ParentHomeScreen() {
                       </View>
                     </View>
                   </View>
+                  {selectedChild ? (
+                    <View style={[styles.digestRow, { borderTopColor: COLORS.borderSubtle }]}>
+                      <View style={{ flex: 1 }}>
+                        <AppText variant="bodyMedium" color={COLORS.textPrimary}>
+                          {isAr ? 'ملخص أسبوعي بالبريد' : 'Weekly email digest'}
+                        </AppText>
+                        <AppText variant="bodySmall" color={COLORS.textSecondary}>
+                          {isAr
+                            ? 'ملخص أسبوعي عن حضور وتقدم هذا الطالب'
+                            : "A weekly summary of this child's attendance and progress"}
+                        </AppText>
+                      </View>
+                      <Switch
+                        value={!selectedChild.digestOptOut}
+                        onValueChange={(on) => toggleDigest(selectedChild.linkId, !on)}
+                        trackColor={{ false: '#e7e5e4', true: COLORS.primary }}
+                        thumbColor="#fff"
+                      />
+                    </View>
+                  ) : null}
                 </AppCard>
 
                 <SectionHeader colors={COLORS} title={t('childProgress')} />
@@ -328,6 +358,14 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xs,
   },
   metrics: { flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.md },
+  digestRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+    marginTop: SPACING.md,
+    paddingTop: SPACING.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
   readOnlyBanner: {
     padding: SPACING.md,
     borderRadius: RADIUS.md,

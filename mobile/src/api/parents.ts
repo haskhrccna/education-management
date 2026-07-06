@@ -16,6 +16,7 @@ export interface ParentLink {
 export interface ChildSummary {
   linkId: string;
   linkedAt: string | null;
+  digestOptOut: boolean;
   student: {
     id: string;
     firstName: string;
@@ -27,11 +28,32 @@ export interface ChildSummary {
 
 export interface ChildDashboard {
   student: { id: string; firstName: string; lastName: string; email: string; status: string; createdAt: string };
-  memorization: Array<{ id: string; surah: { number: number; nameAr: string; nameEn: string }; status: string; memorizedAyahs: number }>;
-  grades: Array<{ id: string; grade: string; type: string; createdAt: string; surah?: { nameAr: string; nameEn: string } }>;
+  memorization: Array<{
+    id: string;
+    surah: { number: number; nameAr: string; nameEn: string };
+    status: string;
+    memorizedAyahs: number;
+  }>;
+  grades: Array<{
+    id: string;
+    grade: string;
+    type: string;
+    createdAt: string;
+    surah?: { nameAr: string; nameEn: string };
+  }>;
   attendance: Array<{ id: string; status: string; recordedAt: string }>;
-  upcomingAppointments: Array<{ id: string; requestedDate: string; requestedTime: string; teacher: { firstName: string; lastName: string } }>;
-  pendingRevisions: Array<{ id: string; scheduledFor: string; status: string; surah?: { nameAr: string; nameEn: string } }>;
+  upcomingAppointments: Array<{
+    id: string;
+    requestedDate: string;
+    requestedTime: string;
+    teacher: { firstName: string; lastName: string };
+  }>;
+  pendingRevisions: Array<{
+    id: string;
+    scheduledFor: string;
+    status: string;
+    surah?: { nameAr: string; nameEn: string };
+  }>;
 }
 
 export interface StudentSearchResult {
@@ -57,6 +79,10 @@ export const parentsApi = {
   listChildren: async (): Promise<ChildSummary[]> => {
     const res = await apiClient.get('/parents/children');
     return res.data?.data ?? [];
+  },
+  setDigestPreference: async (linkId: string, digestOptOut: boolean): Promise<{ digestOptOut: boolean }> => {
+    const res = await apiClient.patch(`/parent-links/${linkId}/digest-preference`, { digestOptOut });
+    return res.data;
   },
   getChildDashboard: async (studentId: string): Promise<ChildDashboard> => {
     const res = await apiClient.get(`/parents/children/${studentId}/dashboard`);

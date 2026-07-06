@@ -48,6 +48,17 @@ export function useParent() {
     }
   }, []);
 
+  const toggleDigest = useCallback(async (linkId: string, digestOptOut: boolean) => {
+    // Optimistic — the toggle should feel instant; roll back on failure.
+    setChildren((prev) => prev.map((c) => (c.linkId === linkId ? { ...c, digestOptOut } : c)));
+    try {
+      await parentsApi.setDigestPreference(linkId, digestOptOut);
+    } catch (err: any) {
+      setChildren((prev) => prev.map((c) => (c.linkId === linkId ? { ...c, digestOptOut: !digestOptOut } : c)));
+      setError(err?.message ?? 'Failed to update digest preference');
+    }
+  }, []);
+
   const selectChild = useCallback(async (studentId: string) => {
     setIsLoading(true);
     try {
@@ -75,5 +86,6 @@ export function useParent() {
     requestLink,
     searchStudent,
     selectChild,
+    toggleDigest,
   };
 }

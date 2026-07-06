@@ -123,7 +123,7 @@ export const getChildren = async (parentId: string) => {
       },
     },
   });
-  return links.map((l) => ({ linkId: l.id, linkedAt: l.decidedAt, student: l.student }));
+  return links.map((l) => ({ linkId: l.id, linkedAt: l.decidedAt, digestOptOut: l.digestOptOut, student: l.student }));
 };
 
 /**
