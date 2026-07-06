@@ -9,7 +9,6 @@ import fileRoutes from './routes/file.routes';
 import exportRoutes from './routes/export.routes';
 import docsRoutes from './routes/docs.routes';
 import metricsRoutes from './routes/metrics.routes';
-import revisionRoutes from './routes/revision.routes';
 import notificationRoutes from './routes/notification.routes';
 import parentRoutes from './routes/parent.routes';
 import gamificationRoutes from './routes/gamification.routes';
@@ -36,6 +35,7 @@ import { teacherChangeRouter } from './modules/teacher-change/teacher-change.mod
 import { gradesRouter } from './modules/grades/grades.module';
 import { surahsRouter } from './modules/surahs/surahs.module';
 import { memorizationRouter } from './modules/memorization/memorization.module';
+import { revisionsRouter } from './modules/revisions/revisions.module';
 import { errorResponse } from './lib/response';
 
 const app: Application = express();
@@ -94,7 +94,7 @@ app.use('/api/v1/memorization', authenticate, standardLimiter, memorizationRoute
 app.use('/api/v1/files', standardLimiter, fileRoutes); // fileAuthenticate applied inside file.routes.ts
 app.use('/api/v1/exports', authenticate, standardLimiter, exportRoutes);
 app.use('/api/v1/teacher-changes', authenticate, standardLimiter, teacherChangeRouter);
-app.use('/api/v1/revisions', authenticate, standardLimiter, revisionRoutes);
+app.use('/api/v1/revisions', authenticate, standardLimiter, revisionsRouter);
 app.use('/api/v1/notifications', authenticate, standardLimiter, notificationRoutes);
 app.use('/api/v1/attendance', authenticate, standardLimiter, attendanceRouter);
 app.use('/api/v1/parents', authenticate, standardLimiter, parentRoutes);
