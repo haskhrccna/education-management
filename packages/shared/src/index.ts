@@ -37,4 +37,5 @@ export * from './contracts/curriculum-plans.contracts';
 export * from './contracts/milestones.contracts';
 export * from './contracts/ijazahs.contracts';
 export * from './contracts/certificates.contracts';
+export * from './contracts/account.contracts';
 export * from './contracts/client';

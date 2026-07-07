@@ -45,6 +45,7 @@ import { curriculumPlansRouter } from './modules/curriculum-plans/curriculum-pla
 import { milestonesRouter } from './modules/milestones/milestones.module';
 import { ijazahsRouter } from './modules/ijazahs/ijazahs.module';
 import { certificatesRouter } from './modules/certificates/certificates.module';
+import { accountRouter } from './modules/account/account.module';
 import { errorResponse } from './lib/response';
 
 const app: Application = express();
@@ -119,6 +120,7 @@ app.use('/api/v1/gamification', authenticate, standardLimiter, gamificationRoute
 app.use('/api/v1/analytics', authenticate, standardLimiter, analyticsRoutes);
 app.use('/api/v1/certificates', authenticate, standardLimiter, certificateRoutes);
 app.use('/api/v1/certificates', authenticate, standardLimiter, certificatesRouter);
+app.use('/api/v1/account', authenticate, standardLimiter, accountRouter);
 // Public, no-login verification page — deliberately NOT behind authenticate.
 app.use('/api/v1/verify', standardLimiter, verifyRoutes);
 app.use('/api/v1/halaqa', authenticate, standardLimiter, halaqaRoutes);
