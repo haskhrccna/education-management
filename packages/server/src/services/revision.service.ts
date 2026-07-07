@@ -120,7 +120,7 @@ export const getRevisions = async (
 
   return await prisma.revisionSchedule.findMany({
     where,
-    include: { surah: true },
+    include: { surah: true, ayah: true },
     orderBy: { scheduledFor: 'asc' },
   });
 };
@@ -149,6 +149,9 @@ export const createRevision = async (teacherId: string, studentId: string, surah
  * and create the next PENDING revision. This is what turns the static
  * schedule into a self-driving spaced-repetition engine.
  */
+/** Three consecutive correct drill reviews retire a weak-ayah flag (roadmap 2.1). */
+const WEAK_AYAH_RETIRE_THRESHOLD = 3;
+
 export const updateRevision = async (
   revisionId: string,
   callerId: string,
@@ -161,7 +164,15 @@ export const updateRevision = async (
 
   const revision = await prisma.revisionSchedule.findUnique({
     where: { id: revisionId },
-    select: { userId: true, status: true, surahId: true, interval: true, easeFactor: true, repetitions: true },
+    select: {
+      userId: true,
+      status: true,
+      surahId: true,
+      ayahId: true,
+      interval: true,
+      easeFactor: true,
+      repetitions: true,
+    },
   });
   if (!revision) throw new AppError(404, 'Revision not found');
 
@@ -180,29 +191,62 @@ export const updateRevision = async (
     include: { surah: true },
   });
 
-  // …then schedule the next one via SM-2. The teacher/student can pass an
-  // optional quality via the controller; when omitted we treat a manual
-  // "COMPLETED" mark as quality 4 and a "MISSED" mark as quality 2.
+  // If this was a weak-ayah drill (ayahId set), track its consecutive-correct
+  // streak. Retiring the flag skips seeding another drill card below — the
+  // ayah is done being drilled. Whole-surah cards (ayahId null) never enter
+  // this block, so their behavior is unchanged from before roadmap 2.1.
+  let retiredWeakAyah = false;
+  if (revision.ayahId) {
+    const flag = await prisma.weakAyahFlag.findFirst({
+      where: { studentId: revision.userId, ayahId: revision.ayahId, status: 'ACTIVE' },
+    });
+    if (flag) {
+      if (status === 'COMPLETED') {
+        const consecutiveCorrect = flag.consecutiveCorrect + 1;
+        if (consecutiveCorrect >= WEAK_AYAH_RETIRE_THRESHOLD) {
+          await prisma.weakAyahFlag.update({
+            where: { id: flag.id },
+            data: { status: 'RETIRED', consecutiveCorrect },
+          });
+          retiredWeakAyah = true;
+        } else {
+          await prisma.weakAyahFlag.update({ where: { id: flag.id }, data: { consecutiveCorrect } });
+        }
+      } else {
+        await prisma.weakAyahFlag.update({ where: { id: flag.id }, data: { consecutiveCorrect: 0 } });
+      }
+    }
+  }
+
+  // …then schedule the next one via SM-2 (same engine, whole-surah or
+  // per-ayah alike — no new spaced-repetition algorithm). The teacher/
+  // student can pass an optional quality via the controller; when omitted
+  // we treat a manual "COMPLETED" mark as quality 4 and a "MISSED" mark as
+  // quality 2.
   const quality: RevisionQuality = status === 'COMPLETED' ? 4 : 2;
   const next = computeSm2(
     { interval: revision.interval, easeFactor: revision.easeFactor, repetitions: revision.repetitions },
     quality
   );
-  const baseDate = new Date();
-  baseDate.setUTCDate(baseDate.getUTCDate() + next.interval);
-  const nextDue = await findLightDay(revision.userId, baseDate);
 
-  await prisma.revisionSchedule.create({
-    data: {
-      userId: revision.userId,
-      surahId: revision.surahId,
-      scheduledFor: nextDue,
-      status: 'PENDING',
-      interval: next.interval,
-      easeFactor: next.easeFactor,
-      repetitions: next.repetitions,
-    },
-  });
+  if (!retiredWeakAyah) {
+    const baseDate = new Date();
+    baseDate.setUTCDate(baseDate.getUTCDate() + next.interval);
+    const nextDue = await findLightDay(revision.userId, baseDate);
+
+    await prisma.revisionSchedule.create({
+      data: {
+        userId: revision.userId,
+        surahId: revision.surahId,
+        ayahId: revision.ayahId,
+        scheduledFor: nextDue,
+        status: 'PENDING',
+        interval: next.interval,
+        easeFactor: next.easeFactor,
+        repetitions: next.repetitions,
+      },
+    });
+  }
 
   // Best-effort "revision logged" notification — never block on this.
   try {

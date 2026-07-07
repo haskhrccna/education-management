@@ -68,6 +68,11 @@ enum RevisionStatus {
   MISSED
 }
 
+enum WeakAyahStatus {
+  ACTIVE
+  RETIRED
+}
+
 enum AttendanceStatus {
   PRESENT
   ABSENT
@@ -116,6 +121,8 @@ model User {
   reviewedRecordings     Recording[]            @relation("ReviewedRecordings")
   memorizationProgresses MemorizationProgress[] @relation("UserMemorizations")
   revisionSchedules      RevisionSchedule[]     @relation("UserRevisions")
+  weakAyahFlagsAsStudent WeakAyahFlag[]         @relation("WeakAyahStudent")
+  weakAyahFlagsFlagged   WeakAyahFlag[]         @relation("WeakAyahFlagger")
   auditLogs              AuditLog[]
   teacherChangeRequestsAsStudent  TeacherChangeRequest[] @relation("StudentChangeRequests")
   teacherChangeRequestsAsTeacher  TeacherChangeRequest[] @relation("TeacherChangeRequests")
@@ -338,6 +345,7 @@ model RevisionSchedule {
   id           String         @id @default(uuid())
   userId       String
   surahId      Int
+  ayahId       Int?
   scheduledFor DateTime
   status       RevisionStatus @default(PENDING)
   notedAt      DateTime?
@@ -350,13 +358,34 @@ model RevisionSchedule {
 
   user  User  @relation("UserRevisions", fields: [userId], references: [id], onDelete: Cascade)
   surah Surah @relation(fields: [surahId], references: [id], onDelete: Cascade)
+  ayah  Ayah? @relation(fields: [ayahId], references: [id], onDelete: Cascade)
 
   @@index([userId, status])
   @@index([userId, scheduledFor])
   @@index([surahId])
+  @@index([ayahId])
   @@index([scheduledFor, status])
   @@index([userId, status, scheduledFor])
   @@map("revision_schedule")
+}
+
+model WeakAyahFlag {
+  id                 String         @id @default(cuid())
+  studentId          String
+  ayahId             Int
+  flaggedByTeacherId String?
+  status             WeakAyahStatus @default(ACTIVE)
+  consecutiveCorrect Int            @default(0)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  student   User  @relation("WeakAyahStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  ayah      Ayah  @relation(fields: [ayahId], references: [id], onDelete: Cascade)
+  flaggedBy User? @relation("WeakAyahFlagger", fields: [flaggedByTeacherId], references: [id], onDelete: SetNull)
+
+  @@index([studentId, status])
+  @@index([ayahId])
+  @@map("weak_ayah_flags")
 }
 
 model TeacherChangeRequest {
@@ -556,7 +585,9 @@ model Ayah {
   text        String?
   createdAt   DateTime @default(now())
 
-  surah Surah @relation(fields: [surahId], references: [id], onDelete: Cascade)
+  surah             Surah              @relation(fields: [surahId], references: [id], onDelete: Cascade)
+  revisionSchedules RevisionSchedule[]
+  weakAyahFlags     WeakAyahFlag[]
 
   @@unique([surahId, number])
   @@index([surahId])

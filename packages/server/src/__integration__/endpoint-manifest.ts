@@ -76,6 +76,9 @@ const v1: EndpointSpec[] = [
   { method: 'GET', path: '/api/v1/recurring-slots', access: 'authenticated' },
   { method: 'PATCH', path: '/api/v1/recurring-slots/:id', access: 'authenticated' },
   { method: 'PATCH', path: '/api/v1/recurring-slots/:id/cancel', access: 'authenticated' },
+  // weak-ayahs (new capability — per-ayah weak-spot drilling)
+  { method: 'POST', path: '/api/v1/weak-ayahs', access: ['TEACHER'] },
+  { method: 'GET', path: '/api/v1/weak-ayahs', access: 'authenticated' },
   // files (fileAuthenticate: Bearer header OR ?token=)
   { method: 'GET', path: '/api/v1/files/recordings/:id', access: 'authenticated' },
   { method: 'GET', path: '/api/v1/files/reports/:id', access: 'authenticated' },

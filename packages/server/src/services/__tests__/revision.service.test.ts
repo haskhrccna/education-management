@@ -35,7 +35,7 @@ describe('revision.service', () => {
 
       expect(m.revisionSchedule.findMany).toHaveBeenCalledWith({
         where: { userId: 'student-1' },
-        include: { surah: true },
+        include: { surah: true, ayah: true },
         orderBy: { scheduledFor: 'asc' },
       });
     });
@@ -48,7 +48,7 @@ describe('revision.service', () => {
 
       expect(m.revisionSchedule.findMany).toHaveBeenCalledWith({
         where: { userId: { in: ['student-1'] } },
-        include: { surah: true },
+        include: { surah: true, ayah: true },
         orderBy: { scheduledFor: 'asc' },
       });
     });
@@ -60,7 +60,7 @@ describe('revision.service', () => {
 
       expect(m.revisionSchedule.findMany).toHaveBeenCalledWith({
         where: { userId: 'student-1', surahId: 5 },
-        include: { surah: true },
+        include: { surah: true, ayah: true },
         orderBy: { scheduledFor: 'asc' },
       });
     });

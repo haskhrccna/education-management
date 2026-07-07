@@ -32,4 +32,5 @@ export * from './contracts/mushaf.contracts';
 export * from './contracts/roster.contracts';
 export * from './contracts/parent-links.contracts';
 export * from './contracts/recurring-slots.contracts';
+export * from './contracts/weak-ayahs.contracts';
 export * from './contracts/client';

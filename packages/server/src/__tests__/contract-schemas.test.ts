@@ -1,8 +1,8 @@
 import { authContracts, healthContracts, contractRegistry } from '@quran-review/shared';
 
 describe('contract schemas pin current response shapes', () => {
-  it('registry has 54 contracts with unique method+path', () => {
-    expect(contractRegistry).toHaveLength(54);
+  it('registry has 56 contracts with unique method+path', () => {
+    expect(contractRegistry).toHaveLength(56);
     const keys = contractRegistry.map((c) => `${c.method} ${c.path}`);
     expect(new Set(keys).size).toBe(keys.length);
   });
