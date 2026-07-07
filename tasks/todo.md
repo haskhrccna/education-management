@@ -61,6 +61,40 @@ feature branch off `main`, merged when its features are green.
       student (read-only) plan screens, linked from both home screens. 915 itests (7 new) / 326 unit tests /
       mobile+server tsc clean.
 
+## Stage 3 — Recognition & trust (Q3, flagship)
+
+- [x] 3.2 Milestone System Generalization (2026-07-07) — new `MilestoneDefinition` catalog (badgeCode,
+      triggerType, threshold) replacing `evaluateMilestones`'s hardcoded conditionals; a new milestone is now
+      a catalog row, never a deploy. Migration seeds the 5 original milestones. Mobile: admin/milestones.tsx
+      (create form + catalog list), linked next to Broadcast. 934 itests (7 new) / 327 unit tests /
+      mobile+server tsc clean.
+- [x] 3.1 Ijazah/Sanad Progress Tracking, flagship (2026-07-07) — new `Ijazah` model: a teacher formally
+      endorses a student's completed surah/juz/full-Quran, verified against real `MemorizationProgress`
+      completion (reusing the exact queries already used elsewhere — no new tracking invented).
+      `chainIjazahId` self-relation builds a real sanad when the endorsing teacher's own certifying ijazah is
+      in-system; `teacherChainRef` free-text fallback otherwise. Every issuance re-fires
+      `recordActivity`/`evaluateMilestones`, wiring up 3.2's previously-stubbed `IJAZAH_ISSUED` trigger for
+      real. Writes to the existing `AuditLog` table (`lib/audit.ts`) for admin program-wide audit. Mobile:
+      teacher issuance form + student gold-accented ijazah view (Rationed Gold applies — genuine earned
+      achievement). 960 itests (8 new) / 327 unit tests / mobile+server tsc clean.
+- [x] 3.3 Shareable, Verified Certificates (2026-07-07) — `Certificate` and `Ijazah` both gained a stable
+      `verificationToken` + `active` flag. `GET /api/v1/verify/:token` is a deliberately public, no-login HTML
+      page (not JSON, not behind `authenticate`) showing only the achievement, endorsing teacher, and program
+      name. Regenerating a link IS the revoke — the old token stops resolving the instant a new one replaces
+      it; ownership-checked via the same not-found-and-not-yours precedent used throughout this rebuild.
+      Mobile fix: the pre-existing certificate Share button was leaking a live JWT in the shared PDF URL —
+      now shares the public verify link instead. 985 itests (8 new) / 327 unit tests / mobile+server tsc
+      clean.
+- [x] 3.4 Halaqa Group Streaks (2026-07-07) — new `HalaqaGroup`: a persistent named halaqa that live
+      `HalaqaRoom` sessions can belong to, carrying a collective streak (consecutive sessions meeting a
+      configurable `attendanceThreshold`) recomputed only when a session ends — best-effort, isolated
+      try/catch, same convention as every other secondary side effect. Verified in the itest that it never
+      touches the `Streak` table or an individual's personal streak/leaderboard. Mobile: group picker +
+      inline quick-create on the room-creation card; a gold streak badge shown only on the room screen
+      itself. 1005 itests (5 new) / 327 unit tests / mobile+server tsc clean.
+
+Stage 3 complete — all 4 features green. Ready to merge `feat/roadmap-stage3` into `main`.
+
 ---
 
 # REBUILD 10x — full-codebase strangler rewrite (SPEC APPROVED 2026-07-04)
