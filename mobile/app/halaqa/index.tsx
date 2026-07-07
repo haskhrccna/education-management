@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useHalaqa } from '@/src/hooks/useHalaqa';
+import { useHalaqaGroups } from '@/src/hooks/useHalaqaGroups';
 import { useAuthStore } from '@/src/auth/store';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useThemeSettings } from '@/src/settings/store';
@@ -46,8 +47,13 @@ export default function HalaqaListScreen() {
   const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const { rooms, isLoading, error, fetchRooms, createRoom, startRoom, endRoom } = useHalaqa();
+  const { groups, createGroup } = useHalaqaGroups();
   const [newTitle, setNewTitle] = useState('');
   const [creating, setCreating] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(undefined);
+  const [showNewGroup, setShowNewGroup] = useState(false);
+  const [newGroupTitle, setNewGroupTitle] = useState('');
+  const [newGroupThreshold, setNewGroupThreshold] = useState('2');
 
   const canCreate = role === 'teacher' || role === 'admin';
 
@@ -55,12 +61,21 @@ export default function HalaqaListScreen() {
     if (!newTitle.trim()) return;
     setCreating(true);
     try {
-      const room = await createRoom(newTitle.trim());
+      const room = await createRoom(newTitle.trim(), selectedGroupId);
       setNewTitle('');
       router.push(`/halaqa/room?id=${room.id}`);
     } finally {
       setCreating(false);
     }
+  };
+
+  const handleCreateGroup = async () => {
+    const threshold = parseInt(newGroupThreshold, 10);
+    if (!newGroupTitle.trim() || !threshold || threshold <= 0) return;
+    const group = await createGroup(newGroupTitle.trim(), threshold);
+    setSelectedGroupId(group.id);
+    setShowNewGroup(false);
+    setNewGroupTitle('');
   };
 
   return (
@@ -108,6 +123,97 @@ export default function HalaqaListScreen() {
               placeholder={t('roomTitlePlaceholder')}
               placeholderTextColor={COLORS.textMuted}
             />
+
+            <AppText variant="bodySmall" color={COLORS.textSecondary} style={{ marginTop: SPACING.sm }}>
+              {isRTL ? 'مجموعة الحلقة (اختياري)' : 'Halaqa group (optional)'}
+            </AppText>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: SPACING.xs }}>
+              <TouchableOpacity
+                style={[
+                  styles.groupChip,
+                  {
+                    backgroundColor: !selectedGroupId ? COLORS.primary : COLORS.background,
+                    borderColor: COLORS.primary,
+                  },
+                ]}
+                onPress={() => setSelectedGroupId(undefined)}
+              >
+                <AppText variant="bodySmall" color={!selectedGroupId ? '#fff' : COLORS.primary}>
+                  {isRTL ? 'بدون' : 'None'}
+                </AppText>
+              </TouchableOpacity>
+              {groups.map((g) => (
+                <TouchableOpacity
+                  key={g.id}
+                  style={[
+                    styles.groupChip,
+                    {
+                      backgroundColor: selectedGroupId === g.id ? COLORS.primary : COLORS.background,
+                      borderColor: COLORS.primary,
+                    },
+                  ]}
+                  onPress={() => setSelectedGroupId(g.id)}
+                >
+                  <Ionicons
+                    name="flame"
+                    size={12}
+                    color={selectedGroupId === g.id ? '#fff' : COLORS.gold}
+                    style={{ marginEnd: 4 }}
+                  />
+                  <AppText variant="bodySmall" color={selectedGroupId === g.id ? '#fff' : COLORS.primary}>
+                    {g.title} ({g.currentStreak})
+                  </AppText>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity
+                style={[styles.groupChip, { borderColor: COLORS.borderSubtle }]}
+                onPress={() => setShowNewGroup((v) => !v)}
+              >
+                <AppText variant="bodySmall" color={COLORS.textSecondary}>
+                  {isRTL ? '+ جديدة' : '+ New'}
+                </AppText>
+              </TouchableOpacity>
+            </ScrollView>
+
+            {showNewGroup && (
+              <View style={{ marginTop: SPACING.sm }}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    { backgroundColor: COLORS.surface, borderColor: COLORS.borderSubtle, color: COLORS.textPrimary },
+                  ]}
+                  value={newGroupTitle}
+                  onChangeText={setNewGroupTitle}
+                  placeholder={isRTL ? 'اسم المجموعة' : 'Group name'}
+                  placeholderTextColor={COLORS.textMuted}
+                />
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: COLORS.surface,
+                      borderColor: COLORS.borderSubtle,
+                      color: COLORS.textPrimary,
+                      marginTop: SPACING.xs,
+                    },
+                  ]}
+                  value={newGroupThreshold}
+                  onChangeText={setNewGroupThreshold}
+                  keyboardType="number-pad"
+                  placeholder={isRTL ? 'الحد الأدنى للحضور' : 'Min attendance to count'}
+                  placeholderTextColor={COLORS.textMuted}
+                />
+                <TouchableOpacity
+                  style={[styles.submit, { backgroundColor: COLORS.primaryMuted, marginTop: SPACING.xs }]}
+                  onPress={handleCreateGroup}
+                >
+                  <AppText variant="bodySmall" color={COLORS.primary}>
+                    {isRTL ? 'إنشاء المجموعة' : 'Create group'}
+                  </AppText>
+                </TouchableOpacity>
+              </View>
+            )}
+
             <TouchableOpacity
               style={[styles.submit, { backgroundColor: COLORS.primary, opacity: newTitle.trim() ? 1 : 0.5 }]}
               onPress={handleCreate}
@@ -242,4 +348,13 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', gap: SPACING.sm, marginTop: SPACING.sm },
   action: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs, borderRadius: RADIUS.md },
   pill: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs, borderRadius: RADIUS.full },
+  groupChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: RADIUS.sm,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 6,
+    marginEnd: SPACING.xs,
+  },
 });

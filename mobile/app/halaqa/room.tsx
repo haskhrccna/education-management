@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useHalaqa } from '@/src/hooks/useHalaqa';
+import { useHalaqaGroup } from '@/src/hooks/useHalaqaGroups';
 import { useWebRTC } from '@/src/hooks/useWebRTC';
 import { useSocket } from '@/src/hooks/useSocket';
 import { useAuthStore } from '@/src/auth/store';
@@ -44,6 +45,7 @@ export default function HalaqaRoomScreen() {
   const webRTC = useWebRTC(socket, roomId, user?.id ?? '');
 
   const room = rooms.find((r) => r.id === roomId);
+  const { group } = useHalaqaGroup(room?.groupId);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
@@ -73,6 +75,25 @@ export default function HalaqaRoomScreen() {
 
       <View style={styles.content}>
         {!isConnected && <ActivityIndicator color={COLORS.primary} />}
+
+        {group && (
+          <AppCard colors={COLORS} style={[styles.streakCard, { borderColor: COLORS.gold }]}>
+            <View style={styles.row}>
+              <Ionicons name="flame" size={22} color={COLORS.gold} />
+              <View style={{ marginStart: SPACING.sm }}>
+                <AppText variant="titleMedium" color={COLORS.textPrimary}>
+                  {isRTL ? `سلسلة الحلقة: ${group.currentStreak}` : `Group streak: ${group.currentStreak}`}
+                </AppText>
+                <AppText variant="bodySmall" color={COLORS.textSecondary}>
+                  {isRTL
+                    ? `يتطلب ${group.attendanceThreshold} حضور على الأقل لكل جلسة`
+                    : `Needs ${group.attendanceThreshold}+ attendees each session`}
+                </AppText>
+              </View>
+            </View>
+          </AppCard>
+        )}
+
         <AppCard colors={COLORS} style={{ marginBottom: SPACING.md }}>
           <View style={styles.row}>
             <Ionicons name="radio-outline" size={20} color={webRTC.isConnected ? COLORS.success : COLORS.warning} />
@@ -142,6 +163,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: RADIUS.lg,
     borderBottomRightRadius: RADIUS.lg,
   },
+  streakCard: { borderWidth: 1, marginBottom: SPACING.md },
   content: { flex: 1, padding: SPACING.md },
   row: { flexDirection: 'row', alignItems: 'center' },
   avatar: {

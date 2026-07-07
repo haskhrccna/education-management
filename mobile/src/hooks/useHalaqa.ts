@@ -18,8 +18,8 @@ export function useHalaqa() {
   );
 
   const createRoom = useCallback(
-    async (title: string) => {
-      const room = await halaqaApi.create(title);
+    async (title: string, groupId?: string) => {
+      const room = await halaqaApi.create(title, groupId);
       qc.setQueryData<HalaqaRoom[]>(['halaqa', status ?? 'all'], (p) => [room, ...(p ?? [])]);
       return room;
     },
