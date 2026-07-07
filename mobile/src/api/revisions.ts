@@ -4,9 +4,11 @@ export interface Revision {
   id: string;
   userId: string;
   surahId: number;
+  ayahId?: number | null;
   scheduledFor: string;
   status: 'PENDING' | 'COMPLETED' | 'MISSED';
   surah?: { id: number; name: string; englishName: string; juzNumber: number };
+  ayah?: { id: number; number: number; text?: string | null } | null;
 }
 
 export const revisionsApi = {

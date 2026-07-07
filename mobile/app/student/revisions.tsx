@@ -87,15 +87,34 @@ export default function StudentRevisionsScreen() {
   const renderItem = ({ item }: { item: Revision }) => {
     const tone = statusTone(item.status);
     const toneColor = TONE_COLORS[tone];
+    const isDrill = item.ayahId != null;
+    const drillColor = TONE_COLORS.warning;
     const surahName = isAr
       ? (item.surah?.name ?? String(item.surahId))
       : (item.surah?.englishName ?? String(item.surahId));
 
     return (
-      <View style={[styles.card, { backgroundColor: COLORS.surface, borderLeftColor: toneColor }]}>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: COLORS.surface, borderLeftColor: toneColor },
+          isDrill && { backgroundColor: drillColor + '11' },
+        ]}
+      >
         <View style={styles.cardTop}>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.surahName, { color: COLORS.text }]}>{surahName}</Text>
+            {isDrill ? (
+              <View style={styles.drillBadge}>
+                <Ionicons name="flash-outline" size={13} color={drillColor} />
+                <Text style={[styles.drillBadgeText, { color: drillColor }]}>
+                  {isAr ? 'تدريب على آية ضعيفة' : 'Weak-spot drill'}
+                </Text>
+              </View>
+            ) : null}
+            <Text style={[styles.surahName, { color: COLORS.text }]}>
+              {surahName}
+              {isDrill && item.ayah?.number != null ? ` — ${isAr ? 'آية' : 'Ayah'} ${item.ayah.number}` : ''}
+            </Text>
             {item.surah?.juzNumber != null && (
               <Text style={[styles.juzLabel, { color: COLORS.textSecondary }]}>
                 {t('juz')} {item.surah.juzNumber}
@@ -196,6 +215,8 @@ function createStyles(COLORS: ReturnType<typeof getColors>) {
       ...SHADOWS.sm,
     },
     cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.sm },
+    drillBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 3 },
+    drillBadgeText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 },
     surahName: { fontSize: 16, fontWeight: '600' },
     juzLabel: { fontSize: 13, marginTop: 2 },
     dateLabel: { fontSize: 13, marginTop: 4 },

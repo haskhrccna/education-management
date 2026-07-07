@@ -17,7 +17,9 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { useThemeSettings } from '@/src/settings/store';
-import { Revision, appointmentsApi, memorizationApi } from '@/src/api';
+import { Revision, appointmentsApi, memorizationApi, weakAyahsApi } from '@/src/api';
+import { mushafApi } from '@/src/api/mushaf';
+import type { AyahDTO } from '@quran-review/shared';
 import { useRevisions } from '@/src/hooks/useRevisions';
 import { BottomNav } from '@/src/components/BottomNav';
 
@@ -68,9 +70,12 @@ export default function TeacherRevisionsScreen() {
   const [loadingMeta, setLoadingMeta] = useState(true);
 
   const [showForm, setShowForm] = useState(false);
+  const [mode, setMode] = useState<'SURAH' | 'DRILL'>('SURAH');
   const [selectedStudentId, setSelectedStudentId] = useState('');
   const [selectedSurahId, setSelectedSurahId] = useState<number | null>(null);
   const [scheduledDate, setScheduledDate] = useState('');
+  const [surahAyahs, setSurahAyahs] = useState<AyahDTO[]>([]);
+  const [ayahNumberStr, setAyahNumberStr] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchMeta = useCallback(async () => {
@@ -102,8 +107,54 @@ export default function TeacherRevisionsScreen() {
     fetchRevisions();
   }, [fetchMeta, fetchRevisions]);
 
+  useEffect(() => {
+    if (mode !== 'DRILL' || !selectedSurahId) {
+      setSurahAyahs([]);
+      return;
+    }
+    let cancelled = false;
+    mushafApi
+      .getSurah(selectedSurahId)
+      .then((surah) => {
+        if (!cancelled) setSurahAyahs(surah.ayahs ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setSurahAyahs([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, selectedSurahId]);
+
   const handleAdd = async () => {
-    if (!selectedStudentId || !selectedSurahId || !scheduledDate) {
+    if (!selectedStudentId || !selectedSurahId) {
+      Alert.alert(t('error'), t('fillAllFields'));
+      return;
+    }
+
+    if (mode === 'DRILL') {
+      const ayahNumber = parseInt(ayahNumberStr, 10);
+      const ayah = surahAyahs.find((a) => a.number === ayahNumber);
+      if (!ayah) {
+        Alert.alert(t('error'), isAr ? 'رقم الآية غير صحيح لهذه السورة' : 'That ayah number is not in this surah');
+        return;
+      }
+      setIsSubmitting(true);
+      try {
+        await weakAyahsApi.flag(selectedStudentId, ayah.id);
+        Alert.alert(t('success'), isAr ? 'تم تحديد الآية كضعيفة' : 'Ayah flagged as weak');
+        setShowForm(false);
+        setAyahNumberStr('');
+        await fetchRevisions();
+      } catch (err: any) {
+        Alert.alert(t('error'), err?.response?.data?.error ?? err?.message ?? t('failedToAddRevision'));
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    if (!scheduledDate) {
       Alert.alert(t('error'), t('fillAllFields'));
       return;
     }
@@ -173,15 +224,33 @@ export default function TeacherRevisionsScreen() {
   const renderItem = ({ item }: { item: Revision }) => {
     const tone = statusTone(item.status);
     const toneColor = TONE_COLORS[tone];
+    const isDrill = item.ayahId != null;
     const surahName = isAr
       ? (item.surah?.name ?? String(item.surahId))
       : (item.surah?.englishName ?? String(item.surahId));
 
     return (
-      <View style={[styles.card, { backgroundColor: COLORS.surface, borderLeftColor: toneColor }]}>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: COLORS.surface, borderLeftColor: toneColor },
+          isDrill && { backgroundColor: TONE_COLORS.warning + '11' },
+        ]}
+      >
         <View style={styles.cardTop}>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.surahName, { color: COLORS.text }]}>{surahName}</Text>
+            {isDrill ? (
+              <View style={styles.drillBadge}>
+                <Ionicons name="flash-outline" size={13} color={TONE_COLORS.warning} />
+                <Text style={[styles.drillBadgeText, { color: TONE_COLORS.warning }]}>
+                  {isAr ? 'تدريب على آية ضعيفة' : 'Weak-spot drill'}
+                </Text>
+              </View>
+            ) : null}
+            <Text style={[styles.surahName, { color: COLORS.text }]}>
+              {surahName}
+              {isDrill && item.ayah?.number != null ? ` — ${isAr ? 'آية' : 'Ayah'} ${item.ayah.number}` : ''}
+            </Text>
             {item.surah?.juzNumber != null && (
               <Text style={[styles.meta, { color: COLORS.textSecondary }]}>
                 {t('juz')} {item.surah.juzNumber}
@@ -244,6 +313,31 @@ export default function TeacherRevisionsScreen() {
         <View style={[styles.form, { backgroundColor: COLORS.surface }]}>
           <Text style={[styles.formTitle, { color: COLORS.text }]}>{t('addRevision')}</Text>
 
+          <View style={styles.modeToggle}>
+            <TouchableOpacity
+              style={[
+                styles.modeBtn,
+                { backgroundColor: mode === 'SURAH' ? COLORS.primary : COLORS.background, borderColor: COLORS.primary },
+              ]}
+              onPress={() => setMode('SURAH')}
+            >
+              <Text style={[styles.modeBtnText, { color: mode === 'SURAH' ? '#fff' : COLORS.primary }]}>
+                {isAr ? 'مراجعة سورة كاملة' : 'Whole-surah review'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.modeBtn,
+                { backgroundColor: mode === 'DRILL' ? COLORS.primary : COLORS.background, borderColor: COLORS.primary },
+              ]}
+              onPress={() => setMode('DRILL')}
+            >
+              <Text style={[styles.modeBtnText, { color: mode === 'DRILL' ? '#fff' : COLORS.primary }]}>
+                {isAr ? 'تحديد آية ضعيفة' : 'Flag a weak ayah'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           <Text style={[styles.label, { color: COLORS.textSecondary }]}>{t('studentLabel')}</Text>
           {loadingMeta ? (
             <ActivityIndicator color={COLORS.primary} />
@@ -296,29 +390,65 @@ export default function TeacherRevisionsScreen() {
             </ScrollView>
           )}
 
-          <Text style={[styles.label, { color: COLORS.textSecondary }]}>{t('scheduledDate')}</Text>
-          <TextInput
-            style={[
-              styles.input,
-              {
-                backgroundColor: COLORS.background,
-                color: COLORS.text,
-                borderColor: COLORS.borderSubtle,
-              },
-            ]}
-            placeholder="2024-06-15"
-            placeholderTextColor={COLORS.textSecondary}
-            value={scheduledDate}
-            onChangeText={setScheduledDate}
-            keyboardType="numbers-and-punctuation"
-          />
+          {mode === 'SURAH' ? (
+            <>
+              <Text style={[styles.label, { color: COLORS.textSecondary }]}>{t('scheduledDate')}</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: COLORS.background,
+                    color: COLORS.text,
+                    borderColor: COLORS.borderSubtle,
+                  },
+                ]}
+                placeholder="2024-06-15"
+                placeholderTextColor={COLORS.textSecondary}
+                value={scheduledDate}
+                onChangeText={setScheduledDate}
+                keyboardType="numbers-and-punctuation"
+              />
+            </>
+          ) : (
+            <>
+              <Text style={[styles.label, { color: COLORS.textSecondary }]}>{isAr ? 'رقم الآية' : 'Ayah number'}</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: COLORS.background,
+                    color: COLORS.text,
+                    borderColor: COLORS.borderSubtle,
+                  },
+                ]}
+                placeholder={isAr ? 'مثال: 12' : 'e.g. 12'}
+                placeholderTextColor={COLORS.textSecondary}
+                value={ayahNumberStr}
+                onChangeText={setAyahNumberStr}
+                keyboardType="number-pad"
+              />
+              <Text style={[styles.noData, { color: COLORS.textSecondary }]}>
+                {isAr
+                  ? 'يبدأ التدريب المتكرر فوراً عبر جدول المراجعة الحالي.'
+                  : "Starts a spaced-repetition drill right away, through the student's existing revision schedule."}
+              </Text>
+            </>
+          )}
 
           <TouchableOpacity
             style={[styles.submitBtn, { backgroundColor: COLORS.primary, opacity: isSubmitting ? 0.6 : 1 }]}
             onPress={handleAdd}
             disabled={isSubmitting}
           >
-            <Text style={styles.submitText}>{isSubmitting ? t('submitting') : t('addRevision')}</Text>
+            <Text style={styles.submitText}>
+              {isSubmitting
+                ? t('submitting')
+                : mode === 'DRILL'
+                  ? isAr
+                    ? 'تحديد كضعيفة'
+                    : 'Flag as weak'
+                  : t('addRevision')}
+            </Text>
           </TouchableOpacity>
         </View>
       )}
@@ -380,6 +510,9 @@ function createStyles(COLORS: ReturnType<typeof getColors>) {
       ...SHADOWS.sm,
     },
     formTitle: { fontSize: 16, fontWeight: '700', marginBottom: SPACING.xs },
+    modeToggle: { flexDirection: 'row', gap: SPACING.xs, marginBottom: SPACING.xs },
+    modeBtn: { flex: 1, borderRadius: RADIUS.sm, borderWidth: 1, paddingVertical: SPACING.sm, alignItems: 'center' },
+    modeBtnText: { fontSize: 12, fontWeight: '700', textAlign: 'center' },
     label: { fontSize: 13, marginTop: SPACING.xs },
     chips: { flexGrow: 0, marginBottom: SPACING.xs },
     chip: {
@@ -408,6 +541,8 @@ function createStyles(COLORS: ReturnType<typeof getColors>) {
       ...SHADOWS.sm,
     },
     cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.sm },
+    drillBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 3 },
+    drillBadgeText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 },
     surahName: { fontSize: 16, fontWeight: '600' },
     meta: { fontSize: 13, marginTop: 2 },
     statusBadge: { borderRadius: RADIUS.sm, paddingHorizontal: SPACING.sm, paddingVertical: 3 },

@@ -20,3 +20,5 @@ export { rosterApi } from './roster';
 export type { RosterHealthRow, AtRiskReason } from './roster';
 export { recurringSlotsApi } from './recurringSlots';
 export type { RecurringSlot, GeneratedOccurrence } from './recurringSlots';
+export { weakAyahsApi } from './weakAyahs';
+export type { WeakAyahFlag } from './weakAyahs';
