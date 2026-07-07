@@ -34,6 +34,33 @@ feature branch off `main`, merged when its features are green.
       are fixed constants for now — admin-configurable thresholds (full AC) is a noted follow-up. 821 itests
       (9 new) / 325 unit tests / mobile+server tsc clean.
 
+## Stage 2 — Deepen the memorization engine (Q2)
+
+- [x] 2.3 Recurring Appointment Slots (2026-07-07) — extracted `bookOccurrence` out of
+      `appointment.service.ts`'s `createAppointment` (behavior-preserving refactor, verified against its
+      existing unit tests first) so generated occurrences reuse the exact same duplicate/overlap-check —
+      "no parallel booking model," per the AC. New `RecurringSlot` model generates a rolling 8-week batch of
+      ordinary `Appointment` rows; a conflicting occurrence is skipped, not thrown. `updateRecurringSlot` is
+      prospective-only (verified by test). New BullMQ weekly extension job keeps the rolling window moving
+      forward indefinitely. 871 itests (10 new) / 326 unit tests / mobile+server tsc clean.
+- [x] 2.1 Per-Ayah Weak-Spot Drilling (2026-07-07) — reuses `computeSm2` unchanged at ayah granularity: a
+      drill is a `RevisionSchedule` row with `ayahId` set, alongside the existing `ayahId=null` whole-surah
+      cards. New `WeakAyahFlag` tracks a consecutive-correct counter; 3 in a row retires the flag automatically
+      and stops seeding further drills. Only the manual (teacher-flags) path is wired — automatic flagging
+      from low accuracy scores has no data path yet, since `Recording` carries no per-ayah reference and 1.1
+      is still a stub. Mobile: drill cards get a distinct badge in both revision queues; teacher gets a
+      "flag a weak ayah" mode on the existing add-revision form. 890 itests (7 new) / 326 unit tests /
+      mobile+server tsc clean.
+- [x] 2.2 Structured Curriculum Plans (2026-07-07) — new `CurriculumPlan`/`CurriculumPlanItem` models; optional
+      `planId` FK added to both `Appointment` and `RevisionSchedule` (unused by any UI yet — the ad hoc flow
+      is untouched for teachers who never create a plan). Pace (`ON_PACE`/`BEHIND`/`AHEAD`) is computed fresh
+      on every read by comparing actual completions to how many items should be done by now. Plan completion
+      hooks into `memorization.service.ts`'s existing `transitionedIntoComplete` branch and re-fires the same
+      `recordActivity`/`evaluateMilestones` pair every other completion event already uses — no bespoke wiring,
+      since 3.2's generalized milestone catalog doesn't exist yet. Mobile: new teacher (create + list) and
+      student (read-only) plan screens, linked from both home screens. 915 itests (7 new) / 326 unit tests /
+      mobile+server tsc clean.
+
 ---
 
 # REBUILD 10x — full-codebase strangler rewrite (SPEC APPROVED 2026-07-04)
