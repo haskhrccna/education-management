@@ -86,13 +86,22 @@ export default function ParentHomeScreen() {
         <AppText variant="headlineSmall" color="#FFFFFF">
           {t('parentDashboard')}
         </AppText>
-        <TouchableOpacity
-          accessibilityRole="button"
-          onPress={() => router.push('/parent/link-request')}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-        >
-          <Ionicons name="add-circle-outline" size={26} color="#FFFFFF" />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.md }}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={() => router.push('/account')}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <Ionicons name="shield-checkmark-outline" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={() => router.push('/parent/link-request')}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <Ionicons name="add-circle-outline" size={26} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView

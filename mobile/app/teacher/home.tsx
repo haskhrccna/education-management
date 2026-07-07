@@ -251,6 +251,13 @@ export default function TeacherHomeScreen() {
             </View>
             <IconButton
               colors={COLORS}
+              icon="shield-checkmark-outline"
+              tone="primary"
+              accessibilityLabel={isAr ? 'الحساب والخصوصية' : 'Account & Privacy'}
+              onPress={() => router.push('/account')}
+            />
+            <IconButton
+              colors={COLORS}
               icon="log-out-outline"
               tone="primary"
               accessibilityLabel={isAr ? 'تسجيل الخروج' : 'Log out'}
