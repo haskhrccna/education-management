@@ -230,6 +230,15 @@ export default function AdminHomeScreen() {
             <Ionicons name="megaphone-outline" size={20} color={COLORS.textOnPrimary} />
             <Text style={styles.broadcastText}>{isAr ? 'إشعار عام' : 'Broadcast'}</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.broadcastButton}
+            onPress={() => router.push('/admin/milestones')}
+          >
+            <Ionicons name="trophy-outline" size={20} color={COLORS.textOnPrimary} />
+            <Text style={styles.broadcastText}>{isAr ? 'الإنجازات' : 'Milestones'}</Text>
+          </TouchableOpacity>
         </View>
 
         {fetchError && !isLoading ? (
