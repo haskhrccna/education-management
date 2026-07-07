@@ -14,6 +14,8 @@ const Ijazah = z.looseObject({
   teacherChainRef: z.string().nullable(),
   chainIjazahId: z.string().nullable(),
   issuedAt: DateOut,
+  verificationToken: z.string(),
+  active: z.boolean(),
 });
 
 const IssueIjazahBody = z.object({
@@ -57,6 +59,18 @@ export const ijazahsContracts = {
     path: '/api/v1/ijazahs/:id',
     summary: 'One ijazah record with its sanad chain',
     access: 'authenticated',
+    request: { params: z.object({ id: z.string() }) },
+    responses: {
+      200: z.object({ success: z.literal(true), data: Ijazah }),
+      401: ErrorEnvelope,
+      404: ErrorEnvelope,
+    },
+  }),
+  regenerateLink: defineContract({
+    method: 'PATCH',
+    path: '/api/v1/ijazahs/:id/regenerate-link',
+    summary: 'Student revokes their current verification link and gets a fresh one, e.g. after sharing it in error',
+    access: [UserRole.STUDENT],
     request: { params: z.object({ id: z.string() }) },
     responses: {
       200: z.object({ success: z.literal(true), data: Ijazah }),

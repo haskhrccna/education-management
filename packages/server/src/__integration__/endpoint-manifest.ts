@@ -90,6 +90,11 @@ const v1: EndpointSpec[] = [
   { method: 'POST', path: '/api/v1/ijazahs', access: ['TEACHER'] },
   { method: 'GET', path: '/api/v1/ijazahs', access: 'authenticated' },
   { method: 'GET', path: '/api/v1/ijazahs/:id', access: 'authenticated' },
+  { method: 'PATCH', path: '/api/v1/ijazahs/:id/regenerate-link', access: ['STUDENT'] },
+  // certificates regenerate-link (new capability — shareable verified certificates)
+  { method: 'PATCH', path: '/api/v1/certificates/:id/regenerate-link', access: ['STUDENT'] },
+  // verify (new capability — public, no-login verification page; not a JSON contract)
+  { method: 'GET', path: '/api/v1/verify/:token', access: 'public' },
   // files (fileAuthenticate: Bearer header OR ?token=)
   { method: 'GET', path: '/api/v1/files/recordings/:id', access: 'authenticated' },
   { method: 'GET', path: '/api/v1/files/reports/:id', access: 'authenticated' },

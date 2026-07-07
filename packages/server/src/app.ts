@@ -15,6 +15,7 @@ import gamificationRoutes from './routes/gamification.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import certificateRoutes from './routes/certificate.routes';
 import halaqaRoutes from './routes/halaqa.routes';
+import verifyRoutes from './routes/verify.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { authenticate, authorize } from './middleware/auth.middleware';
 import { UserRole } from '@quran-review/shared';
@@ -43,6 +44,7 @@ import { weakAyahsRouter } from './modules/weak-ayahs/weak-ayahs.module';
 import { curriculumPlansRouter } from './modules/curriculum-plans/curriculum-plans.module';
 import { milestonesRouter } from './modules/milestones/milestones.module';
 import { ijazahsRouter } from './modules/ijazahs/ijazahs.module';
+import { certificatesRouter } from './modules/certificates/certificates.module';
 import { errorResponse } from './lib/response';
 
 const app: Application = express();
@@ -116,6 +118,9 @@ app.use('/api/v1/parents', authenticate, standardLimiter, parentRoutes);
 app.use('/api/v1/gamification', authenticate, standardLimiter, gamificationRoutes);
 app.use('/api/v1/analytics', authenticate, standardLimiter, analyticsRoutes);
 app.use('/api/v1/certificates', authenticate, standardLimiter, certificateRoutes);
+app.use('/api/v1/certificates', authenticate, standardLimiter, certificatesRouter);
+// Public, no-login verification page — deliberately NOT behind authenticate.
+app.use('/api/v1/verify', standardLimiter, verifyRoutes);
 app.use('/api/v1/halaqa', authenticate, standardLimiter, halaqaRoutes);
 
 // Legacy redirects (optional - remove after mobile update)

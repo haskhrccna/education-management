@@ -1,5 +1,6 @@
 import { ijazahsContracts } from '@quran-review/shared';
 import * as ijazahService from '../../services/ijazah.service';
+import { regenerateIjazahLink } from '../../services/verification.service';
 import { auditLog } from '../../lib/audit';
 import { defineRoute, buildContractRouter } from '../../lib/contract-router';
 
@@ -34,4 +35,11 @@ const get = defineRoute(ijazahsContracts.get, async ({ params, userId, userRole 
   return { status: 200 as const, body: { success: true as const, data } };
 });
 
-export const ijazahsRouter = buildContractRouter([issue, list, get], { mountPrefix: '/api/v1/ijazahs' });
+const regenerateLink = defineRoute(ijazahsContracts.regenerateLink, async ({ params, userId }) => {
+  const data = await regenerateIjazahLink(String(params.id), userId!);
+  return { status: 200 as const, body: { success: true as const, data } };
+});
+
+export const ijazahsRouter = buildContractRouter([issue, list, get, regenerateLink], {
+  mountPrefix: '/api/v1/ijazahs',
+});
