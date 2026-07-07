@@ -5,9 +5,80 @@ import { notifyScheduleChange } from './socket.service';
 
 type UserRoleInput = 'STUDENT' | 'TEACHER' | 'ADMIN';
 
+// Derived from the actual (audit-log-extended) prisma singleton's own
+// $transaction signature, rather than the base Prisma.TransactionClient —
+// the extension changes the client's type enough that the base type doesn't
+// structurally match.
+type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+
 function toDateOnly(dateInput: string | Date): Date {
   const d = typeof dateInput === 'string' ? new Date(dateInput) : new Date(dateInput);
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+/**
+ * The one place a single occurrence gets booked: duplicate check, overlap
+ * check, then create. Used directly by createAppointment below, and reused
+ * as-is by the recurring-slot generator (roadmap 2.3) — no parallel booking
+ * model for generated occurrences.
+ */
+export async function bookOccurrence(
+  tx: TxClient,
+  params: {
+    studentId: string;
+    teacherId: string;
+    requestedDate: string | Date;
+    requestedTime: string;
+    durationMinutes?: number;
+    recurringSlotId?: string;
+  }
+) {
+  const { studentId, teacherId, requestedTime, durationMinutes, recurringSlotId } = params;
+  const dateOnly = toDateOnly(params.requestedDate);
+  const nextDay = new Date(dateOnly);
+  nextDay.setDate(nextDay.getDate() + 1);
+
+  // Prevent duplicate: same student already has a pending/accepted slot with this teacher at this time
+  const duplicate = await tx.appointment.findFirst({
+    where: {
+      studentId,
+      teacherId,
+      requestedDate: { gte: dateOnly, lt: nextDay },
+      requestedTime,
+      status: { in: ['REQUESTED', 'ACCEPTED'] },
+    },
+  });
+  if (duplicate) throw new AppError(409, 'You already have a pending or accepted appointment at this time');
+
+  const conflicts = await tx.appointment.findMany({
+    where: {
+      teacherId,
+      requestedDate: { gte: dateOnly, lt: nextDay },
+      status: { in: ['REQUESTED', 'ACCEPTED'] },
+    },
+  });
+
+  const newStart = timeToMinutes(requestedTime);
+  const newEnd = newStart + (durationMinutes || 60);
+
+  for (const existing of conflicts) {
+    const existingStart = timeToMinutes(existing.requestedTime);
+    const existingEnd = existingStart + (existing.durationMinutes || 60);
+    if (timesOverlap(newStart, newEnd, existingStart, existingEnd)) {
+      throw new AppError(409, 'Teacher already has an appointment overlapping this time');
+    }
+  }
+
+  return tx.appointment.create({
+    data: {
+      studentId,
+      teacherId,
+      requestedDate: dateOnly,
+      requestedTime,
+      durationMinutes: durationMinutes || 60,
+      recurringSlotId: recurringSlotId ?? null,
+    },
+  });
 }
 
 export const createAppointment = async (
@@ -22,44 +93,7 @@ export const createAppointment = async (
       const teacherUser = await tx.user.findUnique({ where: { id: teacherId } });
       if (!teacherUser || teacherUser.role !== 'TEACHER') throw new AppError(400, 'Invalid teacher');
 
-      const dateOnly = toDateOnly(requestedDate);
-      const nextDay = new Date(dateOnly);
-      nextDay.setDate(nextDay.getDate() + 1);
-
-      // Prevent duplicate: same student already has a pending/accepted slot with this teacher at this time
-      const duplicate = await tx.appointment.findFirst({
-        where: {
-          studentId,
-          teacherId,
-          requestedDate: { gte: dateOnly, lt: nextDay },
-          requestedTime,
-          status: { in: ['REQUESTED', 'ACCEPTED'] },
-        },
-      });
-      if (duplicate) throw new AppError(409, 'You already have a pending or accepted appointment at this time');
-
-      const conflicts = await tx.appointment.findMany({
-        where: {
-          teacherId,
-          requestedDate: { gte: dateOnly, lt: nextDay },
-          status: { in: ['REQUESTED', 'ACCEPTED'] },
-        },
-      });
-
-      const newStart = timeToMinutes(requestedTime);
-      const newEnd = newStart + (durationMinutes || 60);
-
-      for (const existing of conflicts) {
-        const existingStart = timeToMinutes(existing.requestedTime);
-        const existingEnd = existingStart + (existing.durationMinutes || 60);
-        if (timesOverlap(newStart, newEnd, existingStart, existingEnd)) {
-          throw new AppError(409, 'Teacher already has an appointment overlapping this time');
-        }
-      }
-
-      return await tx.appointment.create({
-        data: { studentId, teacherId, requestedDate: dateOnly, requestedTime, durationMinutes: durationMinutes || 60 },
-      });
+      return bookOccurrence(tx, { studentId, teacherId, requestedDate, requestedTime, durationMinutes });
     },
     { isolationLevel: 'Serializable' }
   );

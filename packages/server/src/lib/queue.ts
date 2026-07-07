@@ -25,6 +25,7 @@ export const notificationQueue = createQueue<{ userId: string; event: string; da
 );
 export const digestQueue = createQueue<Record<string, never>>('weekly-digest');
 export const scoringQueue = createQueue<{ recordingId: string }>('recitation-scoring');
+export const recurringSlotsQueue = createQueue<Record<string, never>>('recurring-slots-extend');
 
 export async function addScoringJob(recordingId: string) {
   if (!scoringQueue) return null;
@@ -47,9 +48,15 @@ export async function addEmailJob(to: string, subject: string, html: string, tex
 }
 
 export const closeQueues = async (): Promise<void> => {
-  const allQueues = [broadcastQueue, reportQueue, emailQueue, notificationQueue, digestQueue, scoringQueue].filter(
-    Boolean
-  ) as Queue[];
+  const allQueues = [
+    broadcastQueue,
+    reportQueue,
+    emailQueue,
+    notificationQueue,
+    digestQueue,
+    scoringQueue,
+    recurringSlotsQueue,
+  ].filter(Boolean) as Queue[];
   await Promise.all(allQueues.map((q) => q.close()));
 
   for (const worker of workers) {
@@ -142,5 +149,25 @@ if (process.env.ENABLE_WORKERS === 'true') {
         { connection }
       )
     );
+  }
+
+  if (recurringSlotsQueue) {
+    workers.push(
+      new Worker(
+        'recurring-slots-extend',
+        async () => {
+          const { extendActiveRecurringSlots } = await import('../services/recurring-slot.service');
+          const generated = await extendActiveRecurringSlots();
+          logger.info({ generated }, 'Recurring slots extension job completed');
+        },
+        { connection }
+      )
+    );
+    // Weekly Monday 06:00 — extends every active slot's rolling window by
+    // one more occurrence. Same idempotent-repeat-registration pattern as
+    // the weekly digest job above.
+    recurringSlotsQueue.add('trigger', {}, { repeat: { pattern: '0 6 * * 1' } }).catch((err) => {
+      logger.error({ err }, 'Failed to schedule the recurring-slots extension job');
+    });
   }
 }

@@ -8,6 +8,7 @@ import { learningContracts } from './learning.contracts';
 import { mushafContracts } from './mushaf.contracts';
 import { rosterContracts } from './roster.contracts';
 import { parentLinksContracts } from './parent-links.contracts';
+import { recurringSlotsContracts } from './recurring-slots.contracts';
 
 /** Every declared contract. Tests iterate this; an endpoint here but absent
  *  from the endpoint manifest (or vice versa, once its module is swapped) fails CI. */
@@ -21,4 +22,5 @@ export const contractRegistry: AnyRouteContract[] = [
   ...Object.values(mushafContracts),
   ...Object.values(rosterContracts),
   ...Object.values(parentLinksContracts),
+  ...Object.values(recurringSlotsContracts),
 ];

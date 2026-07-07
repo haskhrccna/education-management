@@ -104,6 +104,8 @@ model User {
   assignedStudents       User[]                 @relation("StudentTeacherAssignment")
   appointmentsAsStudent  Appointment[]          @relation("StudentAppointments")
   appointmentsAsTeacher  Appointment[]          @relation("TeacherAppointments")
+  recurringSlotsAsStudent RecurringSlot[]       @relation("RecurringSlotStudent")
+  recurringSlotsAsTeacher RecurringSlot[]       @relation("RecurringSlotTeacher")
   gradesGiven            Grade[]                @relation("TeacherGrades")
   gradesReceived         Grade[]                @relation("StudentGrades")
   recordings             Recording[]            @relation("StudentRecordings")
@@ -151,16 +153,39 @@ model Appointment {
   amendedNote     String?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+  recurringSlotId String?
 
   student User @relation("StudentAppointments", fields: [studentId], references: [id], onDelete: Cascade)
   teacher User @relation("TeacherAppointments", fields: [teacherId], references: [id], onDelete: Cascade)
+  recurringSlot RecurringSlot? @relation("RecurringSlotAppointments", fields: [recurringSlotId], references: [id], onDelete: SetNull)
 
   sessionRecord SessionRecord?
 
   @@index([teacherId, requestedDate, status])
   @@index([studentId])
   @@index([status])
+  @@index([recurringSlotId])
   @@map("appointments")
+}
+
+model RecurringSlot {
+  id              String   @id @default(cuid())
+  studentId       String
+  teacherId       String
+  dayOfWeek       Int
+  time            String
+  durationMinutes Int      @default(60)
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  student      User          @relation("RecurringSlotStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  teacher      User          @relation("RecurringSlotTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  appointments Appointment[] @relation("RecurringSlotAppointments")
+
+  @@index([teacherId, active])
+  @@index([studentId, active])
+  @@map("recurring_slots")
 }
 
 model Grade {
