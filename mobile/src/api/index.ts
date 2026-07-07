@@ -18,3 +18,5 @@ export { revisionsApi } from './revisions';
 export type { Revision } from './revisions';
 export { rosterApi } from './roster';
 export type { RosterHealthRow, AtRiskReason } from './roster';
+export { recurringSlotsApi } from './recurringSlots';
+export type { RecurringSlot, GeneratedOccurrence } from './recurringSlots';

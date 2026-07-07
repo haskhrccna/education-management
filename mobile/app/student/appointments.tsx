@@ -18,6 +18,7 @@ import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { appointmentsApi, Appointment } from '@/src/api';
 import { useAuthStore } from '@/src/auth/store';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
+import { useRecurringSlots } from '@/src/hooks/useRecurringSlots';
 import { AppCard, Avatar, EmptyState, IconButton, SectionHeader, StatusPill } from '@/src/components/design';
 import { useThemeSettings } from '@/src/settings/store';
 import { BottomNav } from '@/src/components/BottomNav';
@@ -48,6 +49,13 @@ function statusLabel(status: string | undefined, isAr: boolean): string {
   return status ?? '';
 }
 
+const DAY_NAMES_AR = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+const DAY_NAMES_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+function dayName(dayOfWeek: number, isAr: boolean): string {
+  return (isAr ? DAY_NAMES_AR : DAY_NAMES_EN)[dayOfWeek] ?? '';
+}
+
 function formatDate(dateStr: string | undefined, lang: string): string {
   if (!dateStr) return '';
   try {
@@ -72,6 +80,7 @@ export default function StudentAppointmentsScreen() {
   const styles = createStyles(COLORS);
   const { user } = useAuthStore();
   const { fetchTeachers } = useTeacherChange();
+  const { slots: recurringSlots, createSlot, cancelSlot } = useRecurringSlots();
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [teachers, setTeachers] = useState<TeacherOption[]>([]);
@@ -80,6 +89,7 @@ export default function StudentAppointmentsScreen() {
   const [dateStr, setDateStr] = useState('');
   const [timeStr, setTimeStr] = useState('');
   const [duration, setDuration] = useState('30');
+  const [makeRecurring, setMakeRecurring] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -148,17 +158,27 @@ export default function StudentAppointmentsScreen() {
 
     setSubmitting(true);
     try {
-      await appointmentsApi.create({
-        teacherId,
-        requestedDate: dateStr.trim(),
-        requestedTime: timeStr.trim(),
-        durationMinutes: parseInt(duration, 10) || 30,
-      });
+      if (makeRecurring) {
+        const dayOfWeek = new Date(`${dateStr.trim()}T00:00:00`).getDay();
+        const result = await createSlot(teacherId, dayOfWeek, timeStr.trim(), parseInt(duration, 10) || 30);
+        if (!result) {
+          Alert.alert(t('error'), t('requestFailed'));
+          return;
+        }
+      } else {
+        await appointmentsApi.create({
+          teacherId,
+          requestedDate: dateStr.trim(),
+          requestedTime: timeStr.trim(),
+          durationMinutes: parseInt(duration, 10) || 30,
+        });
+      }
       setShowForm(false);
       setDateStr('');
       setTimeStr('');
       setDuration('30');
       setManualTeacherId('');
+      setMakeRecurring(false);
       await fetchAppointments();
     } catch (err: any) {
       Alert.alert(t('error'), err.message || t('requestFailed'));
@@ -327,6 +347,28 @@ export default function StudentAppointmentsScreen() {
 
             <TouchableOpacity
               activeOpacity={0.85}
+              style={styles.recurringToggle}
+              onPress={() => setMakeRecurring((current) => !current)}
+            >
+              <Ionicons
+                name={makeRecurring ? 'checkbox' : 'square-outline'}
+                size={20}
+                color={makeRecurring ? COLORS.primary : COLORS.textMuted}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>
+                  {isAr ? 'اجعله موعداً أسبوعياً ثابتاً' : 'Make this a standing weekly slot'}
+                </Text>
+                <Text style={styles.rowMeta}>
+                  {isAr
+                    ? 'سيتكرر هذا الموعد كل أسبوع في نفس اليوم والوقت.'
+                    : 'Repeats every week on the same day and time.'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
               style={[styles.submitButton, submitting && styles.disabled]}
               onPress={handleSubmit}
               disabled={submitting}
@@ -338,6 +380,40 @@ export default function StudentAppointmentsScreen() {
               )}
             </TouchableOpacity>
           </AppCard>
+        ) : null}
+
+        {recurringSlots.length > 0 ? (
+          <>
+            <SectionHeader title={isAr ? 'المواعيد الأسبوعية الثابتة' : 'Standing weekly slots'} colors={COLORS} />
+            <View style={styles.listStack}>
+              {recurringSlots.map((slot) => (
+                <AppCard key={slot.id} colors={COLORS} style={styles.appointmentCard}>
+                  <View style={styles.appointmentInfo}>
+                    <Text style={styles.rowTitle}>{dayName(slot.dayOfWeek, isAr)}</Text>
+                    <Text style={styles.rowMeta}>
+                      {slot.time} - {slot.durationMinutes} {t('minutes')}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() =>
+                      Alert.alert(
+                        isAr ? 'إلغاء الموعد الأسبوعي' : 'Cancel weekly slot',
+                        isAr
+                          ? 'لن يتم إنشاء مواعيد جديدة من هذا الموعد الثابت. الجلسات الحالية تبقى كما هي.'
+                          : 'No new sessions will be generated from this slot. Already-booked sessions stay as they are.',
+                        [
+                          { text: t('cancel'), style: 'cancel' },
+                          { text: isAr ? 'نعم، إلغاء' : 'Yes, cancel', onPress: () => cancelSlot(slot.id) },
+                        ]
+                      )
+                    }
+                  >
+                    <Ionicons name="close-circle-outline" size={22} color={COLORS.error} />
+                  </TouchableOpacity>
+                </AppCard>
+              ))}
+            </View>
+          </>
         ) : null}
 
         {isLoading && !refreshing ? (
@@ -536,6 +612,12 @@ const createStyles = (COLORS: ReturnType<typeof getColors>) =>
     },
     durationTextActive: {
       color: COLORS.textOnPrimary,
+    },
+    recurringToggle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.sm,
+      paddingVertical: SPACING.xs,
     },
     submitButton: {
       backgroundColor: COLORS.primary,
