@@ -161,7 +161,18 @@ describe('parent.service', () => {
       expect(m.parentLink.findMany).toHaveBeenCalledWith({
         where: { parentId: 'parent-1', status: 'APPROVED' },
         orderBy: { decidedAt: 'desc' },
-        include: { student: { select: { id: true, firstName: true, lastName: true, email: true, status: true } } },
+        include: {
+          student: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              status: true,
+              guardianConsentStatus: true,
+            },
+          },
+        },
       });
       expect(children).toHaveLength(1);
       expect(children[0].student.id).toBe('s1');

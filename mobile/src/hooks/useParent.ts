@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { parentsApi, ParentLink, ChildSummary, ChildDashboard, StudentSearchResult } from '../api/parents';
 
+export type { GuardianConsentStatus } from '../api/parents';
+
 export function useParent() {
   const [links, setLinks] = useState<ParentLink[]>([]);
   const [children, setChildren] = useState<ChildSummary[]>([]);
@@ -59,6 +61,14 @@ export function useParent() {
     }
   }, []);
 
+  const decideConsent = useCallback(async (linkId: string, granted: boolean) => {
+    const result = await parentsApi.decideConsent(linkId, granted);
+    setChildren((prev) =>
+      prev.map((c) => (c.linkId === linkId ? { ...c, guardianConsentStatus: result.guardianConsentStatus } : c))
+    );
+    return result;
+  }, []);
+
   const selectChild = useCallback(async (studentId: string) => {
     setIsLoading(true);
     try {
@@ -87,5 +97,6 @@ export function useParent() {
     searchStudent,
     selectChild,
     toggleDigest,
+    decideConsent,
   };
 }

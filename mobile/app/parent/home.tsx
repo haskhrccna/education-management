@@ -41,7 +41,8 @@ export default function ParentHomeScreen() {
   const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
   const user = useAuthStore((s) => s.user);
-  const { children, dashboard, isLoading, error, fetchChildren, selectChild, toggleDigest } = useParent();
+  const { children, dashboard, isLoading, error, fetchChildren, selectChild, toggleDigest, decideConsent } =
+    useParent();
 
   const selectedStudentId = dashboard?.student.id;
   const selectedChild = children.find((c) => c.student.id === selectedStudentId);
@@ -186,6 +187,62 @@ export default function ParentHomeScreen() {
                     </View>
                   ) : null}
                 </AppCard>
+
+                {selectedChild?.guardianConsentStatus ? (
+                  <AppCard
+                    colors={COLORS}
+                    style={{
+                      marginTop: SPACING.sm,
+                      borderWidth: 1,
+                      borderColor: selectedChild.guardianConsentStatus === 'GRANTED' ? COLORS.success : COLORS.warning,
+                    }}
+                  >
+                    <View style={styles.row}>
+                      <Ionicons
+                        name="mic-outline"
+                        size={20}
+                        color={selectedChild.guardianConsentStatus === 'GRANTED' ? COLORS.success : COLORS.warning}
+                      />
+                      <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginStart: SPACING.sm }}>
+                        {isAr ? 'الموافقة على تسجيل التلاوة' : 'Consent to record recitations'}
+                      </AppText>
+                    </View>
+                    <AppText variant="bodySmall" color={COLORS.textSecondary} style={{ marginTop: SPACING.xs }}>
+                      {isAr
+                        ? 'يستخدم التطبيق تسجيلات صوتية لمراجعة التلاوة. اختياركم مطلوب قبل رفع أي تسجيل لهذا الطالب.'
+                        : 'The app collects voice recordings to review recitation. Your choice is required before any recording can be uploaded for this child.'}
+                    </AppText>
+                    {selectedChild.guardianConsentStatus === 'GRANTED' ? (
+                      <TouchableOpacity
+                        style={{ marginTop: SPACING.sm }}
+                        onPress={() => decideConsent(selectedChild.linkId, false)}
+                      >
+                        <AppText variant="bodySmall" color={COLORS.error}>
+                          {isAr ? 'سحب الموافقة' : 'Withdraw consent'}
+                        </AppText>
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={[styles.actions, { marginTop: SPACING.sm }]}>
+                        <TouchableOpacity
+                          style={[styles.action, { backgroundColor: COLORS.success, flex: 1 }]}
+                          onPress={() => decideConsent(selectedChild.linkId, true)}
+                        >
+                          <AppText variant="bodySmall" color="#FFFFFF">
+                            {isAr ? 'موافق' : 'Grant consent'}
+                          </AppText>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.action, { backgroundColor: COLORS.error, flex: 1 }]}
+                          onPress={() => decideConsent(selectedChild.linkId, false)}
+                        >
+                          <AppText variant="bodySmall" color="#FFFFFF">
+                            {isAr ? 'رفض' : 'Decline'}
+                          </AppText>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </AppCard>
+                ) : null}
 
                 <SectionHeader colors={COLORS} title={t('childProgress')} />
                 <View style={styles.metrics}>
@@ -342,6 +399,8 @@ const styles = StyleSheet.create({
     marginEnd: SPACING.sm,
   },
   row: { flexDirection: 'row', alignItems: 'center' },
+  actions: { flexDirection: 'row', gap: SPACING.sm },
+  action: { paddingVertical: SPACING.sm, borderRadius: RADIUS.md, alignItems: 'center' },
   avatar: {
     width: 44,
     height: 44,

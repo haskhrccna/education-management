@@ -128,11 +128,17 @@ export const getChildren = async (parentId: string) => {
     orderBy: { decidedAt: 'desc' },
     include: {
       student: {
-        select: { id: true, firstName: true, lastName: true, email: true, status: true },
+        select: { id: true, firstName: true, lastName: true, email: true, status: true, guardianConsentStatus: true },
       },
     },
   });
-  return links.map((l) => ({ linkId: l.id, linkedAt: l.decidedAt, digestOptOut: l.digestOptOut, student: l.student }));
+  return links.map((l) => ({
+    linkId: l.id,
+    linkedAt: l.decidedAt,
+    digestOptOut: l.digestOptOut,
+    guardianConsentStatus: l.student.guardianConsentStatus,
+    student: l.student,
+  }));
 };
 
 /**

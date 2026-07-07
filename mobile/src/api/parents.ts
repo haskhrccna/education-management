@@ -13,10 +13,13 @@ export interface ParentLink {
   decidedBy: string | null;
 }
 
+export type GuardianConsentStatus = 'PENDING' | 'GRANTED' | 'DECLINED' | null;
+
 export interface ChildSummary {
   linkId: string;
   linkedAt: string | null;
   digestOptOut: boolean;
+  guardianConsentStatus: GuardianConsentStatus;
   student: {
     id: string;
     firstName: string;
@@ -82,6 +85,13 @@ export const parentsApi = {
   },
   setDigestPreference: async (linkId: string, digestOptOut: boolean): Promise<{ digestOptOut: boolean }> => {
     const res = await apiClient.patch(`/parent-links/${linkId}/digest-preference`, { digestOptOut });
+    return res.data;
+  },
+  decideConsent: async (
+    linkId: string,
+    granted: boolean
+  ): Promise<{ guardianConsentStatus: GuardianConsentStatus }> => {
+    const res = await apiClient.patch(`/parent-links/${linkId}/consent`, { granted });
     return res.data;
   },
   getChildDashboard: async (studentId: string): Promise<ChildDashboard> => {
