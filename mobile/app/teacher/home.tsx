@@ -197,6 +197,14 @@ export default function TeacherHomeScreen() {
       route: '/teacher/revisions',
       tone: 'info',
     },
+    {
+      id: 'plans',
+      title: isAr ? 'خطط الحفظ' : 'Plans',
+      subtitle: isAr ? 'إنشاء ومتابعة' : 'Create & track',
+      icon: 'map-outline' as const,
+      route: '/teacher/plans',
+      tone: 'primary',
+    },
   ];
 
   return (

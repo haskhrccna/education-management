@@ -183,6 +183,14 @@ export default function StudentHomeScreen() {
       route: '/student/revisions',
       tone: 'info',
     },
+    {
+      id: 'plans',
+      icon: 'map-outline' as const,
+      title: isAr ? 'خطط الحفظ' : 'Plans',
+      subtitle: isAr ? 'وتيرة التقدم' : 'Pace & progress',
+      route: '/student/plans',
+      tone: 'primary',
+    },
   ];
 
   return (

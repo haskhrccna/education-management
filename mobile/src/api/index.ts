@@ -22,3 +22,5 @@ export { recurringSlotsApi } from './recurringSlots';
 export type { RecurringSlot, GeneratedOccurrence } from './recurringSlots';
 export { weakAyahsApi } from './weakAyahs';
 export type { WeakAyahFlag } from './weakAyahs';
+export { curriculumPlansApi } from './curriculumPlans';
+export type { CurriculumPlan, PlanItem } from './curriculumPlans';
