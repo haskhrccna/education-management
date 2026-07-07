@@ -149,6 +149,7 @@ model User {
   certificates                    Certificate[]
   halaqaRoomsAsTeacher            HalaqaRoom[]      @relation("HalaqaRoomTeacher")
   halaqaParticipations            HalaqaParticipant[]
+  halaqaGroupsAsTeacher           HalaqaGroup[]     @relation("HalaqaGroupTeacher")
 
   @@index([email])
   @@index([role, status])
@@ -663,6 +664,7 @@ enum HalaqaStatus {
 model HalaqaRoom {
   id        String       @id @default(uuid())
   teacherId String
+  groupId   String?
   title     String
   status    HalaqaStatus @default(WAITING)
   startedAt DateTime?
@@ -671,11 +673,36 @@ model HalaqaRoom {
   updatedAt DateTime     @updatedAt
 
   teacher      User                @relation("HalaqaRoomTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  group        HalaqaGroup?        @relation(fields: [groupId], references: [id], onDelete: SetNull)
   participants HalaqaParticipant[]
 
   @@index([teacherId, status])
   @@index([status, createdAt])
   @@map("halaqa_rooms")
+}
+
+/**
+ * Roadmap 3.4: a persistent, named recurring halaqa (e.g. "Evening Halaqa")
+ * that individual HalaqaRoom sessions belong to. Tracks a COLLECTIVE
+ * streak — consecutive sessions meeting attendanceThreshold — shown only
+ * on the room screen; never touches individual Streak rows or the
+ * leaderboard.
+ */
+model HalaqaGroup {
+  id                  String   @id @default(cuid())
+  teacherId           String
+  title               String
+  attendanceThreshold Int      @default(1)
+  currentStreak       Int      @default(0)
+  longestStreak       Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  teacher User         @relation("HalaqaGroupTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  rooms   HalaqaRoom[]
+
+  @@index([teacherId])
+  @@map("halaqa_groups")
 }
 
 // Tracks who joined/left a HalaqaRoom (for attendance and signaling).

@@ -7,10 +7,42 @@ export const createRoom = async (req: Request, res: Response, next: NextFunction
   try {
     if (req.userRole !== 'TEACHER' && req.userRole !== 'ADMIN')
       throw new AppError(403, 'Only teachers can create rooms');
-    const { title } = req.body as { title?: string };
+    const { title, groupId } = req.body as { title?: string; groupId?: string };
     if (!title || !title.trim()) throw new AppError(400, 'title is required');
-    const room = await halaqaService.createRoom(req.userId!, title.trim());
+    const room = await halaqaService.createRoom(req.userId!, title.trim(), groupId);
     res.status(201).json(successResponse(room));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const createGroup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    if (req.userRole !== 'TEACHER' && req.userRole !== 'ADMIN')
+      throw new AppError(403, 'Only teachers can create halaqa groups');
+    const { title, attendanceThreshold } = req.body as { title?: string; attendanceThreshold?: number };
+    if (!title || !title.trim()) throw new AppError(400, 'title is required');
+    if (typeof attendanceThreshold !== 'number') throw new AppError(400, 'attendanceThreshold is required');
+    const group = await halaqaService.createGroup(req.userId!, title.trim(), attendanceThreshold);
+    res.status(201).json(successResponse(group));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const listGroups = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const groups = await halaqaService.listGroups(req.userId!);
+    res.json(successResponse(groups));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getGroup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const group = await halaqaService.getGroup(String(req.params.id), req.userId!, req.userRole!);
+    res.json(successResponse(group));
   } catch (err) {
     next(err);
   }

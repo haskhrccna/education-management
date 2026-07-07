@@ -139,6 +139,10 @@ const v1: EndpointSpec[] = [
   { method: 'GET', path: '/api/v1/halaqa/:id', access: 'authenticated' },
   { method: 'PATCH', path: '/api/v1/halaqa/:id/start', access: 'authenticated' },
   { method: 'PATCH', path: '/api/v1/halaqa/:id/end', access: 'authenticated' },
+  // halaqa groups (new capability — collective attendance streak, roadmap 3.4)
+  { method: 'GET', path: '/api/v1/halaqa/groups', access: 'authenticated' },
+  { method: 'POST', path: '/api/v1/halaqa/groups', access: 'authenticated' },
+  { method: 'GET', path: '/api/v1/halaqa/groups/:id', access: 'authenticated' },
 ];
 
 const topLevel: EndpointSpec[] = [
