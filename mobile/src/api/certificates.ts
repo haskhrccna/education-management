@@ -5,6 +5,8 @@ export interface Certificate {
   studentId: string;
   pdfUrl: string;
   issuedAt: string;
+  verificationToken: string;
+  active: boolean;
   student?: { firstName: string; lastName: string };
 }
 
@@ -18,5 +20,13 @@ export const certificatesApi = {
   downloadUrl: (certId: string, token: string): string => {
     const baseURL = apiClient.defaults.baseURL || '';
     return `${baseURL}/files/certificates/${certId}?token=${encodeURIComponent(token)}`;
+  },
+  verifyUrl: (verificationToken: string): string => {
+    const baseURL = apiClient.defaults.baseURL || '';
+    return `${baseURL}/verify/${verificationToken}`;
+  },
+  regenerateLink: async (certId: string): Promise<Certificate> => {
+    const res = await apiClient.patch(`/certificates/${certId}/regenerate-link`);
+    return res.data.data;
   },
 };

@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Linking,
   RefreshControl,
   ScrollView,
@@ -25,20 +26,35 @@ export default function CertificatesScreen() {
   const isRTL = useIsRTL();
   const { theme, darkMode } = useThemeSettings();
   const COLORS = getColors(theme, darkMode);
-  const { certificates, isLoading, error, fetchCertificates, getDownloadUrl } = useCertificates();
+  const { certificates, isLoading, error, fetchCertificates, getDownloadUrl, getVerifyUrl, regenerateLink } =
+    useCertificates();
 
   const handleOpen = async (certId: string) => {
     const url = await getDownloadUrl(certId);
     Linking.openURL(url);
   };
 
-  const handleShare = async (certId: string) => {
-    const url = await getDownloadUrl(certId);
+  // Shares the public, no-login verification page — never the PDF download
+  // URL, which carries a live auth token and would leak it to whoever
+  // receives the share.
+  const handleShare = async (verificationToken: string) => {
+    const url = getVerifyUrl(verificationToken);
     try {
       await Share.share({ url, message: url });
     } catch {
       Linking.openURL(url);
     }
+  };
+
+  const handleRegenerateLink = (certId: string) => {
+    Alert.alert(t('regenerateLinkTitle'), t('regenerateLinkBody'), [
+      { text: t('cancel'), style: 'cancel' },
+      {
+        text: t('regenerateLink'),
+        style: 'destructive',
+        onPress: () => regenerateLink(certId).catch(() => Alert.alert(t('error'))),
+      },
+    ]);
   };
 
   return (
@@ -109,7 +125,7 @@ export default function CertificatesScreen() {
                   </TouchableOpacity>
                   <TouchableOpacity
                     accessibilityRole="button"
-                    onPress={() => handleShare(cert.id)}
+                    onPress={() => handleShare(cert.verificationToken)}
                     style={[
                       styles.btn,
                       { backgroundColor: COLORS.surface, borderColor: COLORS.borderSubtle, borderWidth: 1 },
@@ -119,6 +135,14 @@ export default function CertificatesScreen() {
                     <AppText variant="bodySmall" color={COLORS.textPrimary}>
                       {t('shareCertificate')}
                     </AppText>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    onPress={() => handleRegenerateLink(cert.id)}
+                    style={[styles.iconBtn, { borderColor: COLORS.borderSubtle }]}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons name="refresh-outline" size={18} color={COLORS.textSecondary} />
                   </TouchableOpacity>
                 </View>
               </AppCard>
@@ -147,4 +171,11 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   actions: { flexDirection: 'row', gap: SPACING.sm, marginTop: SPACING.md },
   btn: { flex: 1, padding: SPACING.md, borderRadius: RADIUS.md, alignItems: 'center' },
+  iconBtn: {
+    width: 44,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

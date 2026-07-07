@@ -1,5 +1,15 @@
 import React, { useMemo } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Linking,
+  RefreshControl,
+  Share,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -39,7 +49,31 @@ export default function StudentIjazahsScreen() {
   const COLORS = getColors(theme, darkMode);
   const styles = useMemo(() => createStyles(COLORS), [COLORS]);
 
-  const { ijazahs, isLoading, error, refetch } = useIjazahs();
+  const { ijazahs, isLoading, error, refetch, getVerifyUrl, regenerateLink } = useIjazahs();
+
+  const handleShare = async (verificationToken: string) => {
+    const url = getVerifyUrl(verificationToken);
+    try {
+      await Share.share({ url, message: url });
+    } catch {
+      Linking.openURL(url);
+    }
+  };
+
+  const handleRegenerateLink = (ijazahId: string) => {
+    Alert.alert(
+      isAr ? 'تجديد الرابط؟' : 'Regenerate link?',
+      isAr ? 'سيتوقف الرابط القديم عن العمل فوراً.' : 'The old shared link will stop working immediately.',
+      [
+        { text: isAr ? 'إلغاء' : 'Cancel', style: 'cancel' },
+        {
+          text: isAr ? 'تجديد' : 'Regenerate',
+          style: 'destructive',
+          onPress: () => regenerateLink(ijazahId).catch(() => Alert.alert(isAr ? 'خطأ' : 'Error')),
+        },
+      ]
+    );
+  };
 
   const renderItem = ({ item }: { item: Ijazah }) => {
     const teacherName = item.teacher ? `${item.teacher.firstName} ${item.teacher.lastName}` : '';
@@ -70,6 +104,24 @@ export default function StudentIjazahsScreen() {
             {item.teacherChainRef}
           </AppText>
         ) : null}
+
+        <View style={styles.shareRow}>
+          <TouchableOpacity
+            style={[styles.shareBtn, { backgroundColor: COLORS.primary }]}
+            onPress={() => handleShare(item.verificationToken)}
+          >
+            <Ionicons name="share-outline" size={16} color="#fff" />
+            <AppText variant="bodySmall" color="#FFFFFF" style={{ marginStart: 6 }}>
+              {isAr ? 'مشاركة' : 'Share'}
+            </AppText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.iconBtn, { borderColor: COLORS.borderSubtle }]}
+            onPress={() => handleRegenerateLink(item.id)}
+          >
+            <Ionicons name="refresh-outline" size={18} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+        </View>
       </AppCard>
     );
   };
@@ -145,6 +197,22 @@ function createStyles(COLORS: ReturnType<typeof getColors>) {
     cardHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
     medal: { width: 44, height: 44, borderRadius: RADIUS.md, alignItems: 'center', justifyContent: 'center' },
     divider: { height: StyleSheet.hairlineWidth },
+    shareRow: { flexDirection: 'row', gap: SPACING.sm, marginTop: SPACING.xs },
+    shareBtn: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: RADIUS.sm,
+      paddingVertical: SPACING.sm,
+    },
+    iconBtn: {
+      width: 40,
+      borderRadius: RADIUS.sm,
+      borderWidth: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     emptyContainer: { flex: 1, justifyContent: 'center' },
     errorBox: { margin: SPACING.md, alignItems: 'center' },
   });

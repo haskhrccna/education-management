@@ -12,6 +12,8 @@ export interface Ijazah {
   teacherChainRef: string | null;
   chainIjazahId: string | null;
   issuedAt: string;
+  verificationToken: string;
+  active: boolean;
   surah?: { id: number; nameAr: string; nameEn: string } | null;
   teacher?: { id: string; firstName: string; lastName: string };
   student?: { id: string; firstName: string; lastName: string };
@@ -30,5 +32,15 @@ export const ijazahsApi = {
   list: async (): Promise<Ijazah[]> => {
     const res = await apiClient.get('/ijazahs');
     return res.data?.data ?? [];
+  },
+
+  verifyUrl: (verificationToken: string): string => {
+    const baseURL = apiClient.defaults.baseURL || '';
+    return `${baseURL}/verify/${verificationToken}`;
+  },
+
+  regenerateLink: async (ijazahId: string): Promise<Ijazah> => {
+    const res = await apiClient.patch(`/ijazahs/${ijazahId}/regenerate-link`);
+    return res.data.data;
   },
 };

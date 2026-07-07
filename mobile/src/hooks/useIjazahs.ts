@@ -23,11 +23,24 @@ export function useIjazahs() {
     [qc]
   );
 
+  const getVerifyUrl = useCallback((verificationToken: string) => ijazahsApi.verifyUrl(verificationToken), []);
+
+  const regenerateLink = useCallback(
+    async (ijazahId: string) => {
+      const updated = await ijazahsApi.regenerateLink(ijazahId);
+      await qc.invalidateQueries({ queryKey: ['ijazahs'] });
+      return updated;
+    },
+    [qc]
+  );
+
   return {
     ijazahs: q.data ?? [],
     isLoading: q.isLoading,
     error: q.error ? (q.error as Error).message : null,
     refetch: q.refetch,
     issue,
+    getVerifyUrl,
+    regenerateLink,
   };
 }
