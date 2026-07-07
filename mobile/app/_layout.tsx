@@ -12,6 +12,10 @@ import { useAuthStore } from '@/src/auth/store';
 import { SettingsProvider } from '@/src/components/SettingsContext';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { queryClient, queryPersister } from '@/src/lib/queryClient';
+import { setupOnlineManager } from '@/src/lib/onlineManager';
+import { OfflineBanner } from '@/src/components/OfflineBanner';
+
+setupOnlineManager();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -76,9 +80,22 @@ export default function RootLayout() {
   }
 
   return (
-    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: queryPersister }}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: queryPersister,
+        dehydrateOptions: { shouldDehydrateMutation: () => true },
+      }}
+      onSuccess={() => {
+        // A mutation the user made while offline (e.g. submitting a grade) is
+        // queued paused rather than lost — resume it once the cache (and any
+        // paused mutations in it) has been restored from disk.
+        queryClient.resumePausedMutations();
+      }}
+    >
       <SettingsProvider>
         <ThemeProvider value={darkMode ? DarkTheme : DefaultTheme}>
+          <OfflineBanner />
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="index" />
             <Stack.Screen name="notifications" />
