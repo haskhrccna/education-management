@@ -205,6 +205,14 @@ export default function TeacherHomeScreen() {
       route: '/teacher/plans',
       tone: 'primary',
     },
+    {
+      id: 'ijazahs',
+      title: isAr ? 'الإجازات' : 'Ijazahs',
+      subtitle: isAr ? 'إصدار إجازة' : 'Issue an ijazah',
+      icon: 'ribbon-outline' as const,
+      route: '/teacher/ijazahs',
+      tone: 'gold',
+    },
   ];
 
   return (

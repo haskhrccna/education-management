@@ -191,6 +191,14 @@ export default function StudentHomeScreen() {
       route: '/student/plans',
       tone: 'primary',
     },
+    {
+      id: 'ijazahs',
+      icon: 'ribbon-outline' as const,
+      title: isAr ? 'الإجازات' : 'Ijazahs',
+      subtitle: isAr ? 'سندك الموثق' : 'Your certified sanad',
+      route: '/student/ijazahs',
+      tone: 'gold',
+    },
   ];
 
   return (
