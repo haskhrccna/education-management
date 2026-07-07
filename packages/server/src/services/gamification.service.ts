@@ -111,20 +111,24 @@ export const awardBadge = async (userId: string, code: string) => {
 };
 
 /**
- * Run all milestone checks for a user and award any newly-earned badges.
- * Safe to call on every activity (the UNIQUE on user_badges makes it idempotent).
+ * Run every active milestone definition for a user and award any
+ * newly-earned badges. Safe to call on every activity (the UNIQUE on
+ * user_badges makes it idempotent).
+ *
+ * Roadmap 3.2: data-driven against MilestoneDefinition instead of
+ * hardcoded conditionals — a new milestone is a new catalog row, never a
+ * code deploy. IJAZAH_ISSUED and HALAQA_ATTENDANCE_COUNT are wired here
+ * but always evaluate to 0 until roadmap 3.1/3.4 give them a real data
+ * source; a definition using either trigger simply never fires yet.
  *
  * Returns the list of badges newly awarded this run (for UI toasts etc.).
  */
 export const evaluateMilestones = async (userId: string) => {
-  const streak = await prisma.streak.findUnique({
-    where: { userId },
-    select: { currentStreak: true },
-  });
+  const definitions = await prisma.milestoneDefinition.findMany({ where: { active: true } });
+  if (definitions.length === 0) return [];
 
-  const [completedSurahs, completedRevisions, distinctSurahs] = await Promise.all([
-    prisma.memorizationProgress.count({ where: { userId, status: 'COMPLETE' } }),
-    prisma.revisionSchedule.count({ where: { userId, status: 'COMPLETED' } }),
+  const [streak, distinctSurahs, completedRevisions, completedPlans] = await Promise.all([
+    prisma.streak.findUnique({ where: { userId }, select: { currentStreak: true } }),
     // Phase 5 simplified: a "juz" = 30 distinct memorized surahs.
     // Phase 6 (Mushaf) will introduce a real juz map; tighten then.
     prisma.memorizationProgress.findMany({
@@ -132,21 +136,24 @@ export const evaluateMilestones = async (userId: string) => {
       distinct: ['surahId'],
       select: { surahId: true },
     }),
+    prisma.revisionSchedule.count({ where: { userId, status: 'COMPLETED' } }),
+    prisma.curriculumPlan.count({ where: { studentId: userId, status: 'COMPLETED' } }),
   ]);
 
-  const candidates: Array<{ code: string; condition: boolean }> = [
-    { code: 'first_surah_memorized', condition: completedSurahs >= 1 },
-    { code: 'first_revision_completed', condition: completedRevisions >= 1 },
-    { code: 'juz_complete', condition: distinctSurahs.length >= 30 },
-    { code: 'streak_7', condition: (streak?.currentStreak ?? 0) >= 7 },
-    { code: 'streak_30', condition: (streak?.currentStreak ?? 0) >= 30 },
-  ];
+  const metricByTrigger: Record<(typeof definitions)[number]['triggerType'], number> = {
+    SURAH_COUNT: distinctSurahs.length,
+    REVISION_COUNT: completedRevisions,
+    STREAK_LENGTH: streak?.currentStreak ?? 0,
+    PLAN_COMPLETION: completedPlans,
+    IJAZAH_ISSUED: 0,
+    HALAQA_ATTENDANCE_COUNT: 0,
+  };
 
   const awarded: Array<{ code: string; newlyAwarded: boolean }> = [];
-  for (const c of candidates) {
-    if (!c.condition) continue;
-    const result = await awardBadge(userId, c.code);
-    awarded.push({ code: c.code, newlyAwarded: result.newlyAwarded });
+  for (const def of definitions) {
+    if (metricByTrigger[def.triggerType] < def.threshold) continue;
+    const result = await awardBadge(userId, def.badgeCode);
+    awarded.push({ code: def.badgeCode, newlyAwarded: result.newlyAwarded });
   }
   return awarded;
 };

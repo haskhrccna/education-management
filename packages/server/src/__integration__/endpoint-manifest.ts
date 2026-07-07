@@ -83,6 +83,9 @@ const v1: EndpointSpec[] = [
   { method: 'POST', path: '/api/v1/curriculum-plans', access: ['TEACHER'] },
   { method: 'GET', path: '/api/v1/curriculum-plans', access: 'authenticated' },
   { method: 'GET', path: '/api/v1/curriculum-plans/:id', access: 'authenticated' },
+  // milestones (new capability — admin-managed milestone catalog)
+  { method: 'POST', path: '/api/v1/milestones', access: ['ADMIN'] },
+  { method: 'GET', path: '/api/v1/milestones', access: ['ADMIN'] },
   // files (fileAuthenticate: Bearer header OR ?token=)
   { method: 'GET', path: '/api/v1/files/recordings/:id', access: 'authenticated' },
   { method: 'GET', path: '/api/v1/files/reports/:id', access: 'authenticated' },

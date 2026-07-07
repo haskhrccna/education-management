@@ -34,4 +34,5 @@ export * from './contracts/parent-links.contracts';
 export * from './contracts/recurring-slots.contracts';
 export * from './contracts/weak-ayahs.contracts';
 export * from './contracts/curriculum-plans.contracts';
+export * from './contracts/milestones.contracts';
 export * from './contracts/client';

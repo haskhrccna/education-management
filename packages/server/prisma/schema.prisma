@@ -550,6 +550,7 @@ model Badge {
   iconKey     String
   createdAt   DateTime    @default(now())
   userBadges  UserBadge[] @relation("BadgeAwards")
+  milestoneDefinition MilestoneDefinition?
 
   @@map("badges")
 }
@@ -568,6 +569,34 @@ model UserBadge {
   @@unique([userId, badgeId])
   @@index([userId, earnedAt])
   @@map("user_badges")
+}
+
+enum MilestoneTriggerType {
+  SURAH_COUNT
+  REVISION_COUNT
+  STREAK_LENGTH
+  PLAN_COMPLETION
+  IJAZAH_ISSUED
+  HALAQA_ATTENDANCE_COUNT
+}
+
+/**
+ * Roadmap 3.2: one row per milestone, each tied to exactly one Badge.
+ * evaluateMilestones is data-driven against this table instead of hardcoded
+ * conditionals — a new milestone needs a new row here, never a code deploy.
+ */
+model MilestoneDefinition {
+  id          String               @id @default(cuid())
+  badgeCode   String               @unique
+  triggerType MilestoneTriggerType
+  threshold   Int
+  active      Boolean              @default(true)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  badge Badge @relation(fields: [badgeCode], references: [code], onDelete: Cascade)
+
+  @@map("milestone_definitions")
 }
 
 // Auto-issued when a student's MemorizationProgress reaches COMPLETE for all 114 surahs.

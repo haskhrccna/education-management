@@ -185,29 +185,40 @@ describe('gamification.service', () => {
   // ─── evaluateMilestones ────────────────────────────────────────────────
 
   describe('evaluateMilestones', () => {
-    it('awards first_surah_memorized when at least one surah is COMPLETE', async () => {
-      m.streak.findUnique.mockResolvedValue({ currentStreak: 0 } as any);
-      m.memorizationProgress.count.mockResolvedValueOnce(1); // completedSurahs
-      m.revisionSchedule.count.mockResolvedValueOnce(0); // completedRevisions
-      m.memorizationProgress.findMany.mockResolvedValue([] as any); // distinctSurahs
-      m.badge.findUnique.mockResolvedValue({ id: 'badge_first_surah' } as any);
+    // Roadmap 3.2: catalog-driven. These 5 rows reproduce the exact five
+    // conditions that used to be hardcoded — the migration's real seed data.
+    const CATALOG = [
+      { badgeCode: 'first_surah_memorized', triggerType: 'SURAH_COUNT', threshold: 1 },
+      { badgeCode: 'first_revision_completed', triggerType: 'REVISION_COUNT', threshold: 1 },
+      { badgeCode: 'juz_complete', triggerType: 'SURAH_COUNT', threshold: 30 },
+      { badgeCode: 'streak_7', triggerType: 'STREAK_LENGTH', threshold: 7 },
+      { badgeCode: 'streak_30', triggerType: 'STREAK_LENGTH', threshold: 30 },
+    ] as any;
+
+    beforeEach(() => {
+      m.milestoneDefinition.findMany.mockResolvedValue(CATALOG);
+      m.curriculumPlan.count.mockResolvedValue(0);
+      m.badge.findUnique.mockResolvedValue({ id: 'badge-x' } as any);
       m.userBadge.findUnique.mockResolvedValue(null);
       m.userBadge.create.mockResolvedValue({} as any);
+    });
+
+    it('awards first_surah_memorized when at least one surah is COMPLETE', async () => {
+      m.streak.findUnique.mockResolvedValue({ currentStreak: 0 } as any);
+      m.memorizationProgress.findMany.mockResolvedValue([{ surahId: 1 }] as any); // 1 distinct surah
+      m.revisionSchedule.count.mockResolvedValue(0);
 
       const result = await evaluateMilestones('student-1');
 
       const codes = result.map((r) => r.code);
       expect(codes).toContain('first_surah_memorized');
+      expect(codes).not.toContain('juz_complete'); // only 1 surah, not 30
     });
 
     it('awards first_revision_completed when at least one revision is COMPLETED', async () => {
       m.streak.findUnique.mockResolvedValue({ currentStreak: 0 } as any);
-      m.memorizationProgress.count.mockResolvedValueOnce(0); // completedSurahs
-      m.revisionSchedule.count.mockResolvedValueOnce(1); // completedRevisions
       m.memorizationProgress.findMany.mockResolvedValue([] as any);
-      m.badge.findUnique.mockResolvedValue({ id: 'badge_first_review' } as any);
-      m.userBadge.findUnique.mockResolvedValue(null);
-      m.userBadge.create.mockResolvedValue({} as any);
+      m.revisionSchedule.count.mockResolvedValue(1);
 
       const result = await evaluateMilestones('student-1');
 
@@ -217,28 +228,33 @@ describe('gamification.service', () => {
 
     it('awards streak_7 when current streak is 7', async () => {
       m.streak.findUnique.mockResolvedValue({ currentStreak: 7 } as any);
-      m.memorizationProgress.count.mockResolvedValue(0);
-      m.revisionSchedule.count.mockResolvedValue(0);
       m.memorizationProgress.findMany.mockResolvedValue([] as any);
-      m.badge.findUnique.mockResolvedValue({ id: 'badge_streak_7' } as any);
-      m.userBadge.findUnique.mockResolvedValue(null);
-      m.userBadge.create.mockResolvedValue({} as any);
+      m.revisionSchedule.count.mockResolvedValue(0);
 
       const result = await evaluateMilestones('student-1');
 
       const codes = result.map((r) => r.code);
       expect(codes).toContain('streak_7');
+      expect(codes).not.toContain('streak_30');
     });
 
     it('does not award streak_7 when current streak is 6 and no other conditions met', async () => {
       m.streak.findUnique.mockResolvedValue({ currentStreak: 6 } as any);
-      m.memorizationProgress.count.mockResolvedValue(0);
-      m.revisionSchedule.count.mockResolvedValue(0);
       m.memorizationProgress.findMany.mockResolvedValue([] as any);
+      m.revisionSchedule.count.mockResolvedValue(0);
 
       const result = await evaluateMilestones('student-1');
 
       expect(result).toHaveLength(0);
+    });
+
+    it('returns [] immediately when the catalog is empty (no hardcoded fallback)', async () => {
+      m.milestoneDefinition.findMany.mockResolvedValue([]);
+
+      const result = await evaluateMilestones('student-1');
+
+      expect(result).toEqual([]);
+      expect(m.streak.findUnique).not.toHaveBeenCalled();
     });
   });
 
