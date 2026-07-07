@@ -20,4 +20,26 @@ export const parentLinksContracts = {
       404: ErrorEnvelope,
     },
   }),
+  decideConsent: defineContract({
+    method: 'PATCH',
+    path: '/api/v1/parent-links/:id/consent',
+    summary:
+      'A parent grants or declines consent for recitation voice-recording collection for their linked child. 404s if the link is not theirs.',
+    access: [UserRole.PARENT],
+    request: {
+      params: z.object({ id: z.string() }),
+      body: z.object({ granted: z.boolean() }),
+    },
+    responses: {
+      200: z.looseObject({
+        id: z.string(),
+        guardianConsentStatus: z.enum(['PENDING', 'GRANTED', 'DECLINED']).nullable(),
+      }),
+      400: ErrorEnvelope,
+      401: ErrorEnvelope,
+      403: ErrorEnvelope,
+      404: ErrorEnvelope,
+      409: ErrorEnvelope,
+    },
+  }),
 };

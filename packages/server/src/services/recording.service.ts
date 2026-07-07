@@ -6,6 +6,7 @@ import { AppError } from '../middleware/error.middleware';
 import { recordActivity, evaluateMilestones } from './gamification.service';
 import { addScoringJob } from '../lib/queue';
 import { scoreRecording } from './recitation-scorer.service';
+import { isRecordingBlockedByConsent } from './guardian-consent.service';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 
@@ -24,6 +25,10 @@ export const uploadRecording = async (
   contentType: string,
   tempFilePath?: string
 ) => {
+  if (await isRecordingBlockedByConsent(studentId)) {
+    throw new AppError(403, 'A linked guardian must consent before recitation recordings can be uploaded');
+  }
+
   await ensureUploadDir();
   const safeName = path.basename(fileName).replace(/[^a-zA-Z0-9._-]/g, '_');
   const uniqueName = `${crypto.randomUUID()}-${safeName}`;

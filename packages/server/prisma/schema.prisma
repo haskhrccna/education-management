@@ -27,6 +27,19 @@ enum ParentLinkStatus {
   DENIED
 }
 
+/**
+ * Roadmap 4.1: separate from ParentLinkStatus (which verifies WHO the
+ * parent is). This tracks whether that parent has consented to the
+ * specific data processing — recitation voice recordings — for their
+ * child. Null means no parent link has ever been approved for this
+ * student, so the app is entirely unaffected for them.
+ */
+enum GuardianConsentStatus {
+  PENDING
+  GRANTED
+  DECLINED
+}
+
 enum AppointmentStatus {
   REQUESTED
   ACCEPTED
@@ -108,11 +121,16 @@ model User {
   passwordChangedAt     DateTime?
   deletedAt             DateTime?
   assignedTeacherId     String?
+  guardianConsentStatus GuardianConsentStatus?
+  guardianConsentAt     DateTime?
+  guardianConsentDecidedBy String?
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
   assignedTeacher        User?                  @relation("StudentTeacherAssignment", fields: [assignedTeacherId], references: [id], onDelete: SetNull)
   assignedStudents       User[]                 @relation("StudentTeacherAssignment")
+  guardianConsentDecider   User?                @relation("GuardianConsentDecider", fields: [guardianConsentDecidedBy], references: [id], onDelete: SetNull)
+  guardianConsentDecisionsFor User[]            @relation("GuardianConsentDecider")
   appointmentsAsStudent  Appointment[]          @relation("StudentAppointments")
   appointmentsAsTeacher  Appointment[]          @relation("TeacherAppointments")
   recurringSlotsAsStudent RecurringSlot[]       @relation("RecurringSlotStudent")

@@ -71,6 +71,8 @@ const v1: EndpointSpec[] = [
   { method: 'GET', path: '/api/v1/roster/health', access: ['TEACHER'] },
   // parent-links (new capability — weekly digest opt-out)
   { method: 'PATCH', path: '/api/v1/parent-links/:id/digest-preference', access: ['PARENT'] },
+  // parent-links consent (new capability — guardian consent, roadmap 4.1)
+  { method: 'PATCH', path: '/api/v1/parent-links/:id/consent', access: ['PARENT'] },
   // recurring-slots (new capability — standing weekly appointment slots)
   { method: 'POST', path: '/api/v1/recurring-slots', access: ['STUDENT'] },
   { method: 'GET', path: '/api/v1/recurring-slots', access: 'authenticated' },

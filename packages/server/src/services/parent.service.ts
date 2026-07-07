@@ -1,6 +1,7 @@
 import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
 import { notifyUser } from './notification.service';
+import { initializeConsentIfNeeded } from './guardian-consent.service';
 
 // ─── Link request / approval flow ───────────────────────────────────────────
 
@@ -59,6 +60,14 @@ export const approveLink = async (linkId: string, adminId: string) => {
     data: { linkId: link.id, studentId: link.studentId },
     push: { title: 'Link approved', body: "You can now view your child's dashboard." },
   });
+
+  // Roadmap 4.1: open a guardian consent request now that a verified
+  // parent-child relationship exists. Best-effort — never blocks approval.
+  try {
+    await initializeConsentIfNeeded(link.studentId);
+  } catch {
+    /* consent init is best-effort */
+  }
 
   return updated;
 };
