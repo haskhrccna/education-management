@@ -79,6 +79,10 @@ const v1: EndpointSpec[] = [
   // weak-ayahs (new capability — per-ayah weak-spot drilling)
   { method: 'POST', path: '/api/v1/weak-ayahs', access: ['TEACHER'] },
   { method: 'GET', path: '/api/v1/weak-ayahs', access: 'authenticated' },
+  // curriculum-plans (new capability — structured memorization plans with pace)
+  { method: 'POST', path: '/api/v1/curriculum-plans', access: ['TEACHER'] },
+  { method: 'GET', path: '/api/v1/curriculum-plans', access: 'authenticated' },
+  { method: 'GET', path: '/api/v1/curriculum-plans/:id', access: 'authenticated' },
   // files (fileAuthenticate: Bearer header OR ?token=)
   { method: 'GET', path: '/api/v1/files/recordings/:id', access: 'authenticated' },
   { method: 'GET', path: '/api/v1/files/reports/:id', access: 'authenticated' },

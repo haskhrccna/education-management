@@ -96,6 +96,18 @@ export const updateProgress = async (
     /* gamification is best-effort */
   }
 
+  // Roadmap 2.2: this surah completing may also complete one of the
+  // student's curriculum plans. Isolated in its own try/catch — a failure
+  // here must not affect the certificate/gamification logic above or below.
+  if (transitionedIntoComplete) {
+    try {
+      const { checkAndCompletePlans } = await import('./curriculum-plan.service');
+      await checkAndCompletePlans(studentId);
+    } catch {
+      /* best-effort */
+    }
+  }
+
   // Phase 6: check if the student has now completed all 114 surahs.
   // Issue a certificate if so (idempotent: skip if one was already issued today).
   if (transitionedIntoComplete) {
