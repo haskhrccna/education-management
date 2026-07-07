@@ -42,6 +42,7 @@ import { recurringSlotsRouter } from './modules/recurring-slots/recurring-slots.
 import { weakAyahsRouter } from './modules/weak-ayahs/weak-ayahs.module';
 import { curriculumPlansRouter } from './modules/curriculum-plans/curriculum-plans.module';
 import { milestonesRouter } from './modules/milestones/milestones.module';
+import { ijazahsRouter } from './modules/ijazahs/ijazahs.module';
 import { errorResponse } from './lib/response';
 
 const app: Application = express();
@@ -104,6 +105,7 @@ app.use('/api/v1/recurring-slots', authenticate, standardLimiter, recurringSlots
 app.use('/api/v1/weak-ayahs', authenticate, standardLimiter, weakAyahsRouter);
 app.use('/api/v1/curriculum-plans', authenticate, standardLimiter, curriculumPlansRouter);
 app.use('/api/v1/milestones', authenticate, standardLimiter, milestonesRouter);
+app.use('/api/v1/ijazahs', authenticate, standardLimiter, ijazahsRouter);
 app.use('/api/v1/files', standardLimiter, fileRoutes); // fileAuthenticate applied inside file.routes.ts
 app.use('/api/v1/exports', authenticate, standardLimiter, exportRoutes);
 app.use('/api/v1/teacher-changes', authenticate, standardLimiter, teacherChangeRouter);

@@ -86,6 +86,10 @@ const v1: EndpointSpec[] = [
   // milestones (new capability — admin-managed milestone catalog)
   { method: 'POST', path: '/api/v1/milestones', access: ['ADMIN'] },
   { method: 'GET', path: '/api/v1/milestones', access: ['ADMIN'] },
+  // ijazahs (new capability — sanad/chain-of-transmission tracking)
+  { method: 'POST', path: '/api/v1/ijazahs', access: ['TEACHER'] },
+  { method: 'GET', path: '/api/v1/ijazahs', access: 'authenticated' },
+  { method: 'GET', path: '/api/v1/ijazahs/:id', access: 'authenticated' },
   // files (fileAuthenticate: Bearer header OR ?token=)
   { method: 'GET', path: '/api/v1/files/recordings/:id', access: 'authenticated' },
   { method: 'GET', path: '/api/v1/files/reports/:id', access: 'authenticated' },

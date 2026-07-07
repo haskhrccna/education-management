@@ -117,9 +117,9 @@ export const awardBadge = async (userId: string, code: string) => {
  *
  * Roadmap 3.2: data-driven against MilestoneDefinition instead of
  * hardcoded conditionals — a new milestone is a new catalog row, never a
- * code deploy. IJAZAH_ISSUED and HALAQA_ATTENDANCE_COUNT are wired here
- * but always evaluate to 0 until roadmap 3.1/3.4 give them a real data
- * source; a definition using either trigger simply never fires yet.
+ * code deploy. HALAQA_ATTENDANCE_COUNT is wired here but always evaluates
+ * to 0 until roadmap 3.4 gives it a real data source; a definition using
+ * it simply never fires yet.
  *
  * Returns the list of badges newly awarded this run (for UI toasts etc.).
  */
@@ -127,7 +127,7 @@ export const evaluateMilestones = async (userId: string) => {
   const definitions = await prisma.milestoneDefinition.findMany({ where: { active: true } });
   if (definitions.length === 0) return [];
 
-  const [streak, distinctSurahs, completedRevisions, completedPlans] = await Promise.all([
+  const [streak, distinctSurahs, completedRevisions, completedPlans, issuedIjazahs] = await Promise.all([
     prisma.streak.findUnique({ where: { userId }, select: { currentStreak: true } }),
     // Phase 5 simplified: a "juz" = 30 distinct memorized surahs.
     // Phase 6 (Mushaf) will introduce a real juz map; tighten then.
@@ -138,6 +138,7 @@ export const evaluateMilestones = async (userId: string) => {
     }),
     prisma.revisionSchedule.count({ where: { userId, status: 'COMPLETED' } }),
     prisma.curriculumPlan.count({ where: { studentId: userId, status: 'COMPLETED' } }),
+    prisma.ijazah.count({ where: { studentId: userId } }),
   ]);
 
   const metricByTrigger: Record<(typeof definitions)[number]['triggerType'], number> = {
@@ -145,7 +146,7 @@ export const evaluateMilestones = async (userId: string) => {
     REVISION_COUNT: completedRevisions,
     STREAK_LENGTH: streak?.currentStreak ?? 0,
     PLAN_COMPLETION: completedPlans,
-    IJAZAH_ISSUED: 0,
+    IJAZAH_ISSUED: issuedIjazahs,
     HALAQA_ATTENDANCE_COUNT: 0,
   };
 

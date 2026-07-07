@@ -131,6 +131,8 @@ model User {
   weakAyahFlagsFlagged   WeakAyahFlag[]         @relation("WeakAyahFlagger")
   curriculumPlansAsStudent CurriculumPlan[]     @relation("CurriculumPlanStudent")
   curriculumPlansAsTeacher CurriculumPlan[]     @relation("CurriculumPlanTeacher")
+  ijazahsAsStudent       Ijazah[]               @relation("IjazahStudent")
+  ijazahsAsTeacher       Ijazah[]               @relation("IjazahTeacher")
   auditLogs              AuditLog[]
   teacherChangeRequestsAsStudent  TeacherChangeRequest[] @relation("StudentChangeRequests")
   teacherChangeRequestsAsTeacher  TeacherChangeRequest[] @relation("TeacherChangeRequests")
@@ -327,6 +329,7 @@ model Surah {
   grades                 Grade[]
   ayahs                  Ayah[]
   curriculumPlanItems    CurriculumPlanItem[]
+  ijazahs                Ijazah[]
 
   @@index([juz])
   @@index([number])
@@ -597,6 +600,40 @@ model MilestoneDefinition {
   badge Badge @relation(fields: [badgeCode], references: [code], onDelete: Cascade)
 
   @@map("milestone_definitions")
+}
+
+enum IjazahScope {
+  SURAH
+  JUZ
+  FULL_QURAN
+}
+
+/**
+ * Roadmap 3.1: a teacher formally endorses a student's completed portion.
+ * chainIjazahId optionally links to the endorsing teacher's OWN certifying
+ * ijazah if it's in-system, building a real sanad; teacherChainRef is a
+ * free-text fallback when it isn't ("Sheikh X, certified 2010").
+ */
+model Ijazah {
+  id              String      @id @default(cuid())
+  studentId       String
+  teacherId       String
+  scope           IjazahScope
+  surahId         Int?
+  juzNumber       Int?
+  teacherChainRef String?
+  chainIjazahId   String?
+  issuedAt        DateTime    @default(now())
+
+  student     User     @relation("IjazahStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  teacher     User     @relation("IjazahTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  surah       Surah?   @relation(fields: [surahId], references: [id], onDelete: SetNull)
+  chainIjazah Ijazah?  @relation("IjazahChain", fields: [chainIjazahId], references: [id], onDelete: SetNull)
+  chainedFrom Ijazah[] @relation("IjazahChain")
+
+  @@index([studentId])
+  @@index([teacherId])
+  @@map("ijazahs")
 }
 
 // Auto-issued when a student's MemorizationProgress reaches COMPLETE for all 114 surahs.
