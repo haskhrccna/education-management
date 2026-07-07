@@ -95,6 +95,34 @@ feature branch off `main`, merged when its features are green.
 
 Stage 3 complete — all 4 features green. Ready to merge `feat/roadmap-stage3` into `main`.
 
+## Stage 4 — Trust & reliability (Q4)
+
+- [x] 4.1 Guardian Consent Flow (2026-07-07) — new `GuardianConsentStatus` on `User`, deliberately separate from
+      `ParentLinkStatus` (which verifies WHO the parent is — this tracks whether they consent to the specific
+      data processing, recitation voice recordings, for their child). Opens to PENDING as a best-effort side
+      effect of `approveLink`. `PATCH /api/v1/parent-links/:id/consent` (PARENT-only) grants/declines.
+      `uploadRecording` blocks only when a parent link exists AND consent isn't GRANTED — a student with no
+      parent link at all is completely unaffected, so this can never lock a student out where the platform has
+      no guardian contact on file. Mobile: a card on `parent/home.tsx` next to the digest toggle. 1019 itests
+      (8 new) / 327 unit tests / mobile+server tsc clean.
+- [x] 4.2 Retention & Data Portability (2026-07-07) — `GET /api/v1/account/data-export`: everything the
+      platform holds about the caller (appointments, grades, recordings, memorization, revisions, messages,
+      certificates, ijazahs, streak, parent links — both directions where applicable), strictly scoped to the
+      caller's own userId. `DELETE /api/v1/account`: self-service deletion reusing the existing admin
+      anonymization exactly (no new deletion logic to keep in sync). Marked `skip` in the authz matrix since it
+      destroys the calling identity itself — covered by its own itest instead. Mobile: new shared `/account`
+      screen linked from all 4 home screens. 1029 itests (3 new) / 327 unit tests / mobile+server tsc clean.
+- [x] 4.3 Offline-First Reliability (2026-07-07), mobile-only — the persisted query cache
+      (`PersistQueryClientProvider` + MMKV) was already wired from the earlier TanStack Query migration; the
+      real gap was React Query's `onlineManager` defaulting to browser online/offline events (nonexistent in
+      React Native), silently assuming "always online" so paused queries/mutations never resumed on reconnect.
+      Added `@react-native-community/netinfo` backing `onlineManager` with real device connectivity (the
+      official RN recipe), mutation persistence (`shouldDehydrateMutation` + `resumePausedMutations()` on
+      restore) so a mutation made offline survives an app kill, and a small always-mounted `OfflineBanner`.
+      No backend change — server regression unaffected (327 unit tests green); mobile tsc clean.
+
+Stage 4 complete — all 3 features green. Ready to merge `feat/roadmap-stage4` into `main`.
+
 ---
 
 # REBUILD 10x — full-codebase strangler rewrite (SPEC APPROVED 2026-07-04)
