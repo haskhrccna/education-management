@@ -1,4 +1,11 @@
-import { authContracts, createContractClient, ContractClientError } from '@quran-review/shared';
+import {
+  authContracts,
+  createContractClient,
+  ContractClientError,
+  defineContract,
+  rawResponse,
+  UserRole,
+} from '@quran-review/shared';
 
 type FetchArgs = { url: string; init: RequestInit };
 
@@ -61,6 +68,27 @@ describe('createContractClient', () => {
     const res = await client.call(authContracts.login, { body: { email: 'a@b.c', password: 'no' } });
     expect(res.status).toBe(401);
     if (res.status === 401) expect(res.body.error).toBe('Invalid credentials');
+  });
+
+  it('raw statuses hand back the unconsumed Response without calling json()', async () => {
+    const jsonSpy = jest.fn();
+    const csvContract = defineContract({
+      method: 'GET',
+      path: '/api/v1/exports/grades',
+      summary: 'raw client test',
+      access: [UserRole.TEACHER],
+      responses: { 200: rawResponse('text/csv') },
+    });
+    const fakeResponse = { status: 200, json: jsonSpy, text: async () => 'a,b\n1,2' } as unknown as Response;
+    const client = createContractClient({
+      baseUrl: 'http://api.local',
+      fetchImpl: (async () => fakeResponse) as typeof fetch,
+    });
+    const res = await client.call(csvContract);
+    expect(res.status).toBe(200);
+    expect(res.body).toBe(fakeResponse);
+    expect(jsonSpy).not.toHaveBeenCalled();
+    if (res.status === 200) expect(await res.body.text()).toBe('a,b\n1,2');
   });
 
   it('undeclared statuses throw ContractClientError', async () => {

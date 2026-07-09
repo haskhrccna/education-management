@@ -1,4 +1,11 @@
-import { AnyRouteContract, ContractBody, ContractParams, ContractQuery, ContractResponse } from './types';
+import {
+  AnyRouteContract,
+  ContractBody,
+  ContractClientResponse,
+  ContractParams,
+  ContractQuery,
+  isRawResponse,
+} from './types';
 
 export class ContractClientError extends Error {
   constructor(
@@ -26,7 +33,7 @@ export interface CallArgs<C extends AnyRouteContract> {
 export function createContractClient(opts: ContractClientOptions) {
   const doFetch = opts.fetchImpl ?? fetch;
   return {
-    async call<C extends AnyRouteContract>(contract: C, args: CallArgs<C> = {}): Promise<ContractResponse<C>> {
+    async call<C extends AnyRouteContract>(contract: C, args: CallArgs<C> = {}): Promise<ContractClientResponse<C>> {
       let path = contract.path;
       for (const [key, value] of Object.entries((args.params ?? {}) as Record<string, string>)) {
         path = path.replace(`:${key}`, encodeURIComponent(value));
@@ -53,8 +60,12 @@ export function createContractClient(opts: ContractClientOptions) {
         const raw = await res.json().catch(() => undefined);
         throw new ContractClientError(res.status, raw);
       }
+      // Raw statuses: hand back the unconsumed Response (file/CSV payloads).
+      if (isRawResponse(schema)) {
+        return { status: res.status, body: res } as ContractClientResponse<C>;
+      }
       const raw = res.status === 204 ? undefined : await res.json();
-      return { status: res.status, body: schema.parse(raw) } as ContractResponse<C>;
+      return { status: res.status, body: schema.parse(raw) } as ContractClientResponse<C>;
     },
   };
 }

@@ -1,7 +1,14 @@
 import '../types/express';
 import { Router, Request, Response, RequestHandler } from 'express';
-import { AnyRouteContract, ContractBody, ContractParams, ContractQuery, ContractResponse } from '@quran-review/shared';
-import { authenticate, authorize } from '../middleware/auth.middleware';
+import {
+  AnyRouteContract,
+  ContractBody,
+  ContractParams,
+  ContractQuery,
+  ContractResponse,
+  isRawResponse,
+} from '@quran-review/shared';
+import { authenticate, authorize, fileAuthenticate } from '../middleware/auth.middleware';
 import { validate } from '../middleware/validate.middleware';
 import { config } from '../config';
 
@@ -50,7 +57,9 @@ export function buildContractRouter(routes: Array<ContractRoute<any>>, opts: { m
     }
     const sub = contract.path.slice(opts.mountPrefix.length) || '/';
     const chain: RequestHandler[] = [];
-    if (contract.access !== 'public') chain.push(authenticate);
+    if (contract.access !== 'public') {
+      chain.push(contract.authVia === 'headerOrQueryToken' ? fileAuthenticate : authenticate);
+    }
     if (Array.isArray(contract.access)) chain.push(authorize(...contract.access));
     if (pre) chain.push(...pre);
     if (contract.request?.body) chain.push(validate(contract.request.body));
@@ -67,16 +76,21 @@ export function buildContractRouter(routes: Array<ContractRoute<any>>, opts: { m
           req,
           res,
         });
-        // Fail loud outside production if a handler violates its own contract.
-        const schema = (contract.responses as Record<number, { parse: (v: unknown) => unknown }>)[result.status];
-        if (config.env !== 'production' && schema && result.status !== 204) {
-          schema.parse(result.body);
+        // Raw responses: the handler already streamed/sent via res (sendFile, CSV).
+        if ('handled' in result && result.handled) {
+          return;
         }
-        if (result.status === 204) {
+        const { status, body } = result as { status: number; body: unknown };
+        // Fail loud outside production if a handler violates its own contract.
+        const schema = (contract.responses as Record<number, { parse: (v: unknown) => unknown }>)[status];
+        if (config.env !== 'production' && schema && !isRawResponse(schema) && status !== 204) {
+          schema.parse(body);
+        }
+        if (status === 204) {
           res.status(204).send();
           return;
         }
-        res.status(result.status).json(result.body);
+        res.status(status).json(body);
       } catch (err) {
         next(err);
       }

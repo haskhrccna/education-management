@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineContract, ErrorEnvelope, UserRole } from '@quran-review/shared';
+import { defineContract, ErrorEnvelope, UserRole, rawResponse, isRawResponse } from '@quran-review/shared';
 import type { ContractResponse } from '@quran-review/shared';
 
 describe('contract DSL', () => {
@@ -26,6 +26,28 @@ describe('contract DSL', () => {
     };
     expect(ok.status).toBe(200);
     expect(denied.status).toBe(403);
+  });
+
+  it('raw responses: rawResponse marker discriminates and yields the handled variant', () => {
+    const csv = defineContract({
+      method: 'GET',
+      path: '/api/v1/csv',
+      summary: 'raw test contract',
+      access: 'authenticated',
+      authVia: 'headerOrQueryToken',
+      responses: { 200: rawResponse('text/csv'), 401: ErrorEnvelope },
+    });
+    expect(isRawResponse(csv.responses[200])).toBe(true);
+    expect(isRawResponse(csv.responses[401])).toBe(false);
+    expect(csv.responses[200].contentType).toBe('text/csv');
+    expect(csv.authVia).toBe('headerOrQueryToken');
+    const handled: ContractResponse<typeof csv> = { status: 200, handled: true };
+    const err: ContractResponse<typeof csv> = {
+      status: 401,
+      body: { success: false, error: 'Authentication required' },
+    };
+    expect(handled.status).toBe(200);
+    expect(err.status).toBe(401);
   });
 
   it('ErrorEnvelope matches the pinned error shape', () => {
