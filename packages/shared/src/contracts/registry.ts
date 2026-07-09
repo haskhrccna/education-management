@@ -15,6 +15,7 @@ import { milestonesContracts } from './milestones.contracts';
 import { ijazahsContracts } from './ijazahs.contracts';
 import { certificatesContracts } from './certificates.contracts';
 import { accountContracts } from './account.contracts';
+import { mediaContracts } from './media.contracts';
 
 /** Every declared contract. Tests iterate this; an endpoint here but absent
  *  from the endpoint manifest (or vice versa, once its module is swapped) fails CI. */
@@ -35,4 +36,5 @@ export const contractRegistry: AnyRouteContract[] = [
   ...Object.values(ijazahsContracts),
   ...Object.values(certificatesContracts),
   ...Object.values(accountContracts),
+  ...Object.values(mediaContracts),
 ];

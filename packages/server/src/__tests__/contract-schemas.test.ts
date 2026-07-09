@@ -1,10 +1,46 @@
-import { authContracts, healthContracts, contractRegistry } from '@quran-review/shared';
+import { authContracts, healthContracts, contractRegistry, mediaContracts, isRawResponse } from '@quran-review/shared';
 
 describe('contract schemas pin current response shapes', () => {
-  it('registry has 69 contracts with unique method+path', () => {
-    expect(contractRegistry).toHaveLength(69);
+  it('registry has 81 contracts with unique method+path', () => {
+    expect(contractRegistry).toHaveLength(81);
     const keys = contractRegistry.map((c) => `${c.method} ${c.path}`);
     expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it('RecordingRow accepts the raw Prisma echo (incl. list student include)', () => {
+    const observed = {
+      id: 'c3a1e2d4-0000-4000-8000-000000000001',
+      studentId: 'c3a1e2d4-0000-4000-8000-000000000002',
+      url: '/uploads/uuid-test.mp3',
+      fileName: 'test.mp3',
+      fileSizeBytes: 4,
+      contentType: 'audio/mpeg',
+      previewImageUrl: null,
+      reviewNotes: null,
+      approvedAt: null,
+      rejectedAt: null,
+      reviewedBy: null,
+      createdAt: '2026-07-10T00:00:00.000Z',
+      updatedAt: '2026-07-10T00:00:00.000Z',
+      accuracyScore: null,
+      scoreStatus: 'PENDING',
+      student: { id: 'c3a1e2d4-0000-4000-8000-000000000002', firstName: 'A', lastName: 'B', email: 'a@b.c' },
+    };
+    expect(() => mediaContracts.uploadRecording.responses[201].parse(observed)).not.toThrow();
+    expect(() => mediaContracts.listRecordings.responses[200].parse([observed])).not.toThrow();
+  });
+
+  it('reviewRecording deliberately declares no request body (legacy had no validation)', () => {
+    expect(mediaContracts.reviewRecording.request).toBeUndefined();
+  });
+
+  it('file downloads use headerOrQueryToken auth and raw 200s; exports are raw text/csv', () => {
+    expect(mediaContracts.downloadRecordingFile.authVia).toBe('headerOrQueryToken');
+    expect(mediaContracts.downloadReportFile.authVia).toBe('headerOrQueryToken');
+    expect(mediaContracts.downloadCertificateFile.authVia).toBe('headerOrQueryToken');
+    expect(isRawResponse(mediaContracts.downloadRecordingFile.responses[200])).toBe(true);
+    expect(isRawResponse(mediaContracts.exportGrades.responses[200])).toBe(true);
+    expect(mediaContracts.exportGrades.responses[200].contentType).toBe('text/csv');
   });
 
   it('login 200 schema accepts the observed login body', () => {
