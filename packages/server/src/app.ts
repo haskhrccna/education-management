@@ -2,10 +2,8 @@ import './types/express';
 import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import messageRoutes from './routes/message.routes';
 import docsRoutes from './routes/docs.routes';
 import metricsRoutes from './routes/metrics.routes';
-import notificationRoutes from './routes/notification.routes';
 import parentRoutes from './routes/parent.routes';
 import gamificationRoutes from './routes/gamification.routes';
 import analyticsRoutes from './routes/analytics.routes';
@@ -46,6 +44,8 @@ import { recordingsRouter } from './modules/recordings/recordings.module';
 import { reportsRouter } from './modules/reports/reports.module';
 import { filesRouter } from './modules/files/files.module';
 import { exportsRouter } from './modules/exports/exports.module';
+import { messagesRouter } from './modules/messages/messages.module';
+import { notificationsRouter } from './modules/notifications/notifications.module';
 import { errorResponse } from './lib/response';
 
 const app: Application = express();
@@ -98,7 +98,7 @@ app.use('/api/v1/grades', authenticate, standardLimiter, gradesRouter);
 app.use('/api/v1/recordings', authenticate, uploadLimiter, recordingsRouter);
 app.use('/api/v1/reports', authenticate, standardLimiter, reportsRouter);
 app.use('/api/v1/admin', authenticate, adminLimiter, adminRouter);
-app.use('/api/v1/messages', authenticate, standardLimiter, messageRoutes);
+app.use('/api/v1/messages', authenticate, standardLimiter, messagesRouter);
 app.use('/api/v1/surahs', authenticate, standardLimiter, surahsRouter);
 app.use('/api/v1/memorization', authenticate, standardLimiter, memorizationRouter);
 app.use('/api/v1/mushaf', authenticate, standardLimiter, mushafRouter);
@@ -113,7 +113,7 @@ app.use('/api/v1/files', standardLimiter, filesRouter); // fileAuthenticate appl
 app.use('/api/v1/exports', authenticate, standardLimiter, exportsRouter);
 app.use('/api/v1/teacher-changes', authenticate, standardLimiter, teacherChangeRouter);
 app.use('/api/v1/revisions', authenticate, standardLimiter, revisionsRouter);
-app.use('/api/v1/notifications', authenticate, standardLimiter, notificationRoutes);
+app.use('/api/v1/notifications', authenticate, standardLimiter, notificationsRouter);
 app.use('/api/v1/attendance', authenticate, standardLimiter, attendanceRouter);
 app.use('/api/v1/parents', authenticate, standardLimiter, parentRoutes);
 app.use('/api/v1/gamification', authenticate, standardLimiter, gamificationRoutes);
@@ -134,7 +134,7 @@ app.use('/api/grades', authenticate, standardLimiter, gradesRouter);
 app.use('/api/recordings', authenticate, uploadLimiter, recordingsRouter);
 app.use('/api/reports', authenticate, standardLimiter, reportsRouter);
 app.use('/api/admin', authenticate, adminLimiter, adminRouter);
-app.use('/api/messages', authenticate, standardLimiter, messageRoutes);
+app.use('/api/messages', authenticate, standardLimiter, messagesRouter);
 app.use('/api/files', standardLimiter, filesRouter); // fileAuthenticate applied per-contract (authVia)
 app.use('/api/exports', authenticate, standardLimiter, exportsRouter);
 

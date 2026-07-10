@@ -8,7 +8,7 @@ const MessageRow = z.looseObject({
   id: z.string(),
   senderId: z.string(),
   receiverId: z.string(),
-  type: z.enum(['TEXT', 'FILE']),
+  type: z.enum(['TEXT', 'FILE', 'SYSTEM']),
   content: z.string(),
   attachmentUrl: z.string().nullable(),
   readAt: DateOut.nullable(),
@@ -20,7 +20,7 @@ const ConversationSummary = z.looseObject({
   lastMessage: z.looseObject({
     id: z.string(),
     content: z.string(),
-    type: z.enum(['TEXT', 'FILE']),
+    type: z.enum(['TEXT', 'FILE', 'SYSTEM']),
     createdAt: DateOut,
     readAt: DateOut.nullable(),
     sentByMe: z.boolean(),
@@ -30,7 +30,9 @@ const ConversationSummary = z.looseObject({
 
 const NotificationRow = z.looseObject({
   id: z.string(),
-  userId: z.string(),
+  // Present at runtime (full Prisma rows) but absent from the service's declared
+  // NotificationFeedItem type — optional here; the itest pins its presence.
+  userId: z.string().optional(),
   type: z.string(),
   title: z.string(),
   body: z.string(),

@@ -81,7 +81,9 @@ export const notifyUser = async (options: {
 
 // ─── Phase 1: Notification feed queries ──────────────────────────────────────
 
-export interface NotificationFeedItem {
+// Type alias (not interface): aliases get an implicit index signature, which the
+// contract layer's z.looseObject inference requires for assignability.
+export type NotificationFeedItem = {
   id: string;
   type: string;
   title: string;
@@ -89,7 +91,7 @@ export interface NotificationFeedItem {
   data: unknown;
   readAt: Date | null;
   createdAt: Date;
-}
+};
 
 export const listNotifications = async (
   userId: string,

@@ -104,17 +104,8 @@ describe('Security', () => {
         receiverId: 'user-2',
       } as any);
 
-      const app = express();
-      app.use(express.json());
-      app.use((req: any, _res: any, next: any) => {
-        req.userId = 'user-1';
-        next();
-      });
-      const { markRead } = require('../controllers/message.controller');
-      app.put('/:id/read', markRead);
-
-      const res = await request(app).put('/msg-1/read');
-      expect(res.status).toBe(403);
+      const { markAsRead } = require('../services/message.service');
+      await expect(markAsRead('msg-1', 'user-1')).rejects.toThrow('Permission denied');
     });
   });
 
