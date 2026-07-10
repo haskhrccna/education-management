@@ -12,6 +12,24 @@ const Certificate = z.looseObject({
 });
 
 export const certificatesContracts = {
+  listCertificates: defineContract({
+    method: 'GET',
+    path: '/api/v1/certificates',
+    summary: 'STUDENT ⇒ own; ADMIN ⇒ all or ?studentId=; others 403 (pinned message)',
+    access: 'authenticated',
+    responses: {
+      200: z.looseObject({
+        success: z.literal(true),
+        data: z.array(
+          Certificate.extend({
+            student: z.looseObject({ id: z.string(), firstName: z.string(), lastName: z.string() }),
+          })
+        ),
+      }),
+      401: ErrorEnvelope,
+      403: ErrorEnvelope,
+    },
+  }),
   regenerateLink: defineContract({
     method: 'PATCH',
     path: '/api/v1/certificates/:id/regenerate-link',
