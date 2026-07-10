@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { prisma } from '../prisma/client';
 import { logger } from '../lib/logger';
+import { AppError } from '../middleware/error.middleware';
 
 const REPORTS_DIR = path.join(process.cwd(), 'reports');
 
@@ -99,6 +100,38 @@ export const generatePDFReport = async (teacherId: string, studentId: string, su
   });
 
   return pdfUrl;
+};
+
+/**
+ * Relationship-guarded report creation (moved verbatim from report.controller):
+ * PDF is generated outside the DB write; if the insert fails the orphaned PDF
+ * is deleted so disk usage cannot accumulate.
+ */
+export const createReport = async (teacherId: string, studentId: string, summary: string) => {
+  const appt = await prisma.appointment.findFirst({
+    where: { teacherId, studentId, status: 'ACCEPTED' },
+    select: { id: true },
+  });
+  if (!appt) throw new AppError(403, 'No accepted appointment with this student');
+
+  const pdfUrl = await generatePDFReport(teacherId, studentId, summary);
+  try {
+    return await prisma.report.create({
+      data: { teacherId, studentId, pdfUrl, generatedAt: new Date(), summary },
+    });
+  } catch (dbErr) {
+    // DB insert failed — delete the orphaned PDF to avoid disk accumulation
+    const fileName = pdfUrl.split('/').pop() ?? '';
+    const filePath = path.join(process.cwd(), 'reports', fileName);
+    await fs.promises.unlink(filePath).catch(() => {});
+    throw dbErr;
+  }
+};
+
+/** STUDENT sees reports about them; TEACHER/ADMIN see reports they authored (pinned as-is). */
+export const listMyReports = async (userId: string, userRole?: string) => {
+  const where = userRole === 'STUDENT' ? { studentId: userId } : { teacherId: userId };
+  return prisma.report.findMany({ where, orderBy: { generatedAt: 'desc' } });
 };
 
 function gradeTypeArabic(t: string): string {

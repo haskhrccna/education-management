@@ -5,6 +5,8 @@ import { prisma } from '../prisma/client';
 import { createUser, TestUser } from './factory';
 import { truncateAll, disconnect } from './db';
 
+const agent = request.agent(app);
+
 beforeEach(truncateAll);
 afterAll(disconnect);
 
@@ -24,7 +26,7 @@ async function linkAccepted(student: TestUser, teacher: TestUser) {
 
 /** Upload a small valid mp3 as the given student; returns the created recording body. */
 async function uploadRecording(student: TestUser) {
-  const res = await request(app)
+  const res = await agent
     .post('/api/v1/recordings')
     .set('Authorization', `Bearer ${student.token}`)
     .field('fileName', 'test.mp3')
@@ -48,7 +50,7 @@ describe('recordings', () => {
 
   it('POST 400: disallowed extension is filtered by multer → Audio file is required', async () => {
     const student = await createUser({ role: Role.STUDENT });
-    const res = await request(app)
+    const res = await agent
       .post('/api/v1/recordings')
       .set('Authorization', `Bearer ${student.token}`)
       .field('fileName', 'x.txt')
@@ -65,16 +67,16 @@ describe('recordings', () => {
     const admin = await createUser({ role: Role.ADMIN });
     await uploadRecording(student);
 
-    const own = await request(app).get('/api/v1/recordings').set('Authorization', `Bearer ${student.token}`);
+    const own = await agent.get('/api/v1/recordings').set('Authorization', `Bearer ${student.token}`);
     expect(own.status).toBe(200);
     expect(own.body).toHaveLength(1);
     expect(own.body[0].student).toMatchObject({ email: student.email });
 
-    const none = await request(app).get('/api/v1/recordings').set('Authorization', `Bearer ${unlinkedTeacher.token}`);
+    const none = await agent.get('/api/v1/recordings').set('Authorization', `Bearer ${unlinkedTeacher.token}`);
     expect(none.status).toBe(200);
     expect(none.body).toEqual([]);
 
-    const all = await request(app).get('/api/v1/recordings').set('Authorization', `Bearer ${admin.token}`);
+    const all = await agent.get('/api/v1/recordings').set('Authorization', `Bearer ${admin.token}`);
     expect(all.status).toBe(200);
     expect(all.body).toHaveLength(1);
   });
@@ -86,14 +88,14 @@ describe('recordings', () => {
     await linkAccepted(student, teacher);
     const rec = await uploadRecording(student);
 
-    const forbidden = await request(app)
+    const forbidden = await agent
       .put(`/api/v1/recordings/${rec.id}`)
       .set('Authorization', `Bearer ${unlinked.token}`)
       .send({ approved: true });
     expect(forbidden.status).toBe(403);
     expect(forbidden.body).toMatchObject({ success: false, error: 'No accepted appointment with this student' });
 
-    const rejected = await request(app)
+    const rejected = await agent
       .put(`/api/v1/recordings/${rec.id}`)
       .set('Authorization', `Bearer ${teacher.token}`)
       .send({});
@@ -109,7 +111,7 @@ describe('recordings', () => {
     await linkAccepted(student, teacher);
     const rec = await uploadRecording(student);
 
-    const approved = await request(app)
+    const approved = await agent
       .put(`/api/v1/recordings/${rec.id}`)
       .set('Authorization', `Bearer ${teacher.token}`)
       .send({ approved: true, notes: 'nice' });
@@ -117,13 +119,11 @@ describe('recordings', () => {
     expect(approved.body.approvedAt).not.toBeNull();
     expect(approved.body.reviewNotes).toBe('nice');
 
-    const del = await request(app)
-      .delete(`/api/v1/recordings/${rec.id}`)
-      .set('Authorization', `Bearer ${teacher.token}`);
+    const del = await agent.delete(`/api/v1/recordings/${rec.id}`).set('Authorization', `Bearer ${teacher.token}`);
     expect(del.status).toBe(200);
     expect(del.body).toEqual({ message: 'Recording deleted' });
 
-    const gone = await request(app)
+    const gone = await agent
       .put(`/api/v1/recordings/${FAKE_ID}`)
       .set('Authorization', `Bearer ${teacher.token}`)
       .send({ approved: true });
@@ -137,7 +137,7 @@ describe('reports', () => {
     const student = await createUser({ role: Role.STUDENT });
     const teacher = await createUser({ role: Role.TEACHER });
 
-    const forbidden = await request(app)
+    const forbidden = await agent
       .post('/api/v1/reports')
       .set('Authorization', `Bearer ${teacher.token}`)
       .send({ studentId: student.id, summary: 'term summary' });
@@ -145,7 +145,7 @@ describe('reports', () => {
     expect(forbidden.body).toMatchObject({ success: false, error: 'No accepted appointment with this student' });
 
     await linkAccepted(student, teacher);
-    const created = await request(app)
+    const created = await agent
       .post('/api/v1/reports')
       .set('Authorization', `Bearer ${teacher.token}`)
       .send({ studentId: student.id, summary: 'term summary' });
@@ -160,17 +160,17 @@ describe('reports', () => {
     const teacher = await createUser({ role: Role.TEACHER });
     const otherTeacher = await createUser({ role: Role.TEACHER });
     await linkAccepted(student, teacher);
-    await request(app)
+    await agent
       .post('/api/v1/reports')
       .set('Authorization', `Bearer ${teacher.token}`)
       .send({ studentId: student.id, summary: 's' });
 
-    const mine = await request(app).get('/api/v1/reports').set('Authorization', `Bearer ${student.token}`);
+    const mine = await agent.get('/api/v1/reports').set('Authorization', `Bearer ${student.token}`);
     expect(mine.status).toBe(200);
     expect(mine.body).toHaveLength(1);
     expect(mine.body[0].studentId).toBe(student.id);
 
-    const theirs = await request(app).get('/api/v1/reports').set('Authorization', `Bearer ${otherTeacher.token}`);
+    const theirs = await agent.get('/api/v1/reports').set('Authorization', `Bearer ${otherTeacher.token}`);
     expect(theirs.status).toBe(200);
     expect(theirs.body).toEqual([]);
   });
@@ -181,7 +181,7 @@ describe('files (?token= auth pinned)', () => {
     const student = await createUser({ role: Role.STUDENT });
     const rec = await uploadRecording(student);
 
-    const res = await request(app).get(`/api/v1/files/recordings/${rec.id}?token=${student.token}`);
+    const res = await agent.get(`/api/v1/files/recordings/${rec.id}?token=${student.token}`);
     expect(res.status).toBe(200);
     expect(res.headers['content-disposition']).toMatch(/^attachment; filename=/);
   });
@@ -192,13 +192,13 @@ describe('files (?token= auth pinned)', () => {
     const unlinkedTeacher = await createUser({ role: Role.TEACHER });
     const rec = await uploadRecording(student);
 
-    const parentRes = await request(app)
+    const parentRes = await agent
       .get(`/api/v1/files/recordings/${rec.id}`)
       .set('Authorization', `Bearer ${parent.token}`);
     expect(parentRes.status).toBe(403);
     expect(parentRes.body).toMatchObject({ success: false, error: 'Permission denied' });
 
-    const teacherRes = await request(app)
+    const teacherRes = await agent
       .get(`/api/v1/files/recordings/${rec.id}`)
       .set('Authorization', `Bearer ${unlinkedTeacher.token}`);
     expect(teacherRes.status).toBe(403);
@@ -209,24 +209,24 @@ describe('files (?token= auth pinned)', () => {
     const student = await createUser({ role: Role.STUDENT });
     const teacher = await createUser({ role: Role.TEACHER });
     await linkAccepted(student, teacher);
-    const created = await request(app)
+    const created = await agent
       .post('/api/v1/reports')
       .set('Authorization', `Bearer ${teacher.token}`)
       .send({ studentId: student.id, summary: 's' });
 
-    const dl = await request(app)
+    const dl = await agent
       .get(`/api/v1/files/reports/${created.body.id}`)
       .set('Authorization', `Bearer ${student.token}`);
     expect(dl.status).toBe(200);
     expect(dl.headers['content-disposition']).toMatch(/^attachment; filename=/);
 
-    const noRec = await request(app)
+    const noRec = await agent
       .get(`/api/v1/files/recordings/${FAKE_ID}`)
       .set('Authorization', `Bearer ${student.token}`);
     expect(noRec.status).toBe(404);
     expect(noRec.body).toMatchObject({ success: false, error: 'Recording not found' });
 
-    const noCert = await request(app)
+    const noCert = await agent
       .get(`/api/v1/files/certificates/${FAKE_ID}`)
       .set('Authorization', `Bearer ${student.token}`);
     expect(noCert.status).toBe(404);
@@ -240,13 +240,13 @@ describe('files (?token= auth pinned)', () => {
       data: { studentId: student.id, pdfUrl: '/certificates/does-not-exist.pdf' },
     });
 
-    const owner = await request(app)
+    const owner = await agent
       .get(`/api/v1/files/certificates/${cert.id}`)
       .set('Authorization', `Bearer ${student.token}`);
     expect(owner.status).toBe(404);
     expect(owner.body).toMatchObject({ success: false, error: 'File not found' });
 
-    const stranger = await request(app)
+    const stranger = await agent
       .get(`/api/v1/files/certificates/${cert.id}`)
       .set('Authorization', `Bearer ${otherStudent.token}`);
     expect(stranger.status).toBe(403);
@@ -257,7 +257,7 @@ describe('files (?token= auth pinned)', () => {
 describe('exports (CSV)', () => {
   it('GET /exports/grades as teacher → text/csv attachment with pinned header row', async () => {
     const teacher = await createUser({ role: Role.TEACHER });
-    const res = await request(app).get('/api/v1/exports/grades').set('Authorization', `Bearer ${teacher.token}`);
+    const res = await agent.get('/api/v1/exports/grades').set('Authorization', `Bearer ${teacher.token}`);
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toMatch(/^text\/csv/);
     expect(res.headers['content-disposition']).toBe('attachment; filename="grades.csv"');
@@ -266,7 +266,7 @@ describe('exports (CSV)', () => {
 
   it('GET /exports/appointments as teacher → CSV with pinned header row', async () => {
     const teacher = await createUser({ role: Role.TEACHER });
-    const res = await request(app).get('/api/v1/exports/appointments').set('Authorization', `Bearer ${teacher.token}`);
+    const res = await agent.get('/api/v1/exports/appointments').set('Authorization', `Bearer ${teacher.token}`);
     expect(res.status).toBe(200);
     expect(res.headers['content-disposition']).toBe('attachment; filename="appointments.csv"');
     expect(res.text.split('\n')[0]).toBe('studentName,teacherName,date,time,duration,status');
@@ -276,11 +276,11 @@ describe('exports (CSV)', () => {
     const teacher = await createUser({ role: Role.TEACHER });
     const admin = await createUser({ role: Role.ADMIN });
 
-    const forbidden = await request(app).get('/api/v1/exports/users').set('Authorization', `Bearer ${teacher.token}`);
+    const forbidden = await agent.get('/api/v1/exports/users').set('Authorization', `Bearer ${teacher.token}`);
     expect(forbidden.status).toBe(403);
     expect(forbidden.body).toMatchObject({ success: false, error: 'Insufficient permissions' });
 
-    const res = await request(app).get('/api/v1/exports/users').set('Authorization', `Bearer ${admin.token}`);
+    const res = await agent.get('/api/v1/exports/users').set('Authorization', `Bearer ${admin.token}`);
     expect(res.status).toBe(200);
     expect(res.headers['content-disposition']).toBe('attachment; filename="users.csv"');
     const lines = res.text.split('\n');
@@ -293,7 +293,7 @@ describe('legacy /api/* mirrors', () => {
   it('GET /api/recordings behaves identically to /api/v1/recordings', async () => {
     const student = await createUser({ role: Role.STUDENT });
     await uploadRecording(student);
-    const res = await request(app).get('/api/recordings').set('Authorization', `Bearer ${student.token}`);
+    const res = await agent.get('/api/recordings').set('Authorization', `Bearer ${student.token}`);
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
   });
@@ -301,14 +301,14 @@ describe('legacy /api/* mirrors', () => {
   it('GET /api/files/recordings/:id?token= → 200 attachment', async () => {
     const student = await createUser({ role: Role.STUDENT });
     const rec = await uploadRecording(student);
-    const res = await request(app).get(`/api/files/recordings/${rec.id}?token=${student.token}`);
+    const res = await agent.get(`/api/files/recordings/${rec.id}?token=${student.token}`);
     expect(res.status).toBe(200);
     expect(res.headers['content-disposition']).toMatch(/^attachment; filename=/);
   });
 
   it('GET /api/exports/grades → 200 CSV', async () => {
     const teacher = await createUser({ role: Role.TEACHER });
-    const res = await request(app).get('/api/exports/grades').set('Authorization', `Bearer ${teacher.token}`);
+    const res = await agent.get('/api/exports/grades').set('Authorization', `Bearer ${teacher.token}`);
     expect(res.status).toBe(200);
     expect(res.headers['content-disposition']).toBe('attachment; filename="grades.csv"');
   });

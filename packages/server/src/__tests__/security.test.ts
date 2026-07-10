@@ -119,23 +119,15 @@ describe('Security', () => {
   });
 
   describe('Recording ownership', () => {
-    it('student cannot delete another student recording', async () => {
+    it('student cannot delete another student recording (service-level check)', async () => {
       mockedPrisma.recording.findUnique.mockResolvedValue({
         id: 'rec-1',
         studentId: 'student-2',
+        url: '/uploads/rec-1.mp3',
       } as any);
 
-      const app = express();
-      app.use((req: any, _res: any, next: any) => {
-        req.userId = 'student-1';
-        req.userRole = 'STUDENT';
-        next();
-      });
-      const { deleteRecording } = require('../controllers/recording.controller');
-      app.delete('/:id', deleteRecording);
-
-      const res = await request(app).delete('/rec-1');
-      expect(res.status).toBe(403);
+      const { deleteRecording } = require('../services/recording.service');
+      await expect(deleteRecording('rec-1', 'student-1', false)).rejects.toThrow('Permission denied');
     });
   });
 

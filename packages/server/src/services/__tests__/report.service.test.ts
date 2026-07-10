@@ -10,6 +10,7 @@ jest.mock('fs', () => {
     promises: {
       access: jest.fn(),
       mkdir: jest.fn(),
+      unlink: jest.fn().mockResolvedValue(undefined),
     },
   };
 });
@@ -20,7 +21,7 @@ jest.mock('../../prisma/client', () => ({
 }));
 
 import { prisma } from '../../prisma/client';
-import { generatePDFReport } from '../report.service';
+import { generatePDFReport, createReport, listMyReports } from '../report.service';
 
 const mockedPrisma = prisma as unknown as DeepMockProxy<PrismaClient>;
 const mockedFs = fs as jest.Mocked<typeof fs>;
@@ -101,6 +102,58 @@ describe('report.service', () => {
 
       const result = await generatePDFReport('teacher-1', 'student-1', '');
       expect(result).toContain('/reports/');
+    });
+  });
+
+  describe('createReport (moved from report.controller)', () => {
+    function stubWriteStream() {
+      mockedFs.createWriteStream.mockReturnValue({
+        on: jest.fn((event, cb) => {
+          if (event === 'finish') setTimeout(cb, 0);
+          return { on: jest.fn() } as any;
+        }),
+        write: jest.fn(),
+        end: jest.fn(),
+        destroy: jest.fn(),
+        once: jest.fn(),
+        emit: jest.fn(),
+        pipe: jest.fn(),
+      } as any);
+    }
+
+    it('throws 403 without an accepted appointment', async () => {
+      mockedPrisma.appointment.findFirst.mockResolvedValue(null);
+      await expect(createReport('teacher-1', 'student-1', 's')).rejects.toThrow(
+        'No accepted appointment with this student'
+      );
+    });
+
+    it('deletes the orphaned PDF and re-throws when the DB insert fails', async () => {
+      mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appt-1' } as any);
+      mockedPrisma.user.findUnique.mockResolvedValue({ firstName: 'A', lastName: 'B', email: 'a@b.c' } as any);
+      mockedPrisma.grade.findMany.mockResolvedValue([]);
+      mockedPrisma.recording.count.mockResolvedValue(0);
+      stubWriteStream();
+      mockedPrisma.report.create.mockRejectedValue(new Error('DB error'));
+
+      await expect(createReport('teacher-1', 'student-1', 's')).rejects.toThrow('DB error');
+      expect(mockedFs.promises.unlink).toHaveBeenCalled();
+    });
+  });
+
+  describe('listMyReports', () => {
+    it('filters by studentId for STUDENT and teacherId otherwise', async () => {
+      mockedPrisma.report.findMany.mockResolvedValue([]);
+      await listMyReports('u-1', 'STUDENT');
+      expect(mockedPrisma.report.findMany).toHaveBeenLastCalledWith({
+        where: { studentId: 'u-1' },
+        orderBy: { generatedAt: 'desc' },
+      });
+      await listMyReports('u-1', 'TEACHER');
+      expect(mockedPrisma.report.findMany).toHaveBeenLastCalledWith({
+        where: { teacherId: 'u-1' },
+        orderBy: { generatedAt: 'desc' },
+      });
     });
   });
 });
