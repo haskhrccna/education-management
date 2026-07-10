@@ -1,4 +1,5 @@
-import apiClient from './client';
+import { schedulingContracts } from '@quran-review/shared';
+import { contractClient, expectStatus } from './contract';
 
 export interface Appointment {
   id: string;
@@ -14,8 +15,8 @@ export interface Appointment {
 
 export const appointmentsApi = {
   getMine: async (): Promise<Appointment[]> => {
-    const res = await apiClient.get('/appointments');
-    return res.data;
+    const res = expectStatus(await contractClient.call(schedulingContracts.listAppointments), 200);
+    return res.body as unknown as Appointment[];
   },
 
   create: async (data: {
@@ -24,12 +25,21 @@ export const appointmentsApi = {
     requestedTime: string;
     durationMinutes?: number;
   }) => {
-    const res = await apiClient.post('/appointments', data);
-    return res.data;
+    const res = expectStatus(
+      await contractClient.call(schedulingContracts.createAppointment, { body: data as never }),
+      201
+    );
+    return res.body as unknown as Appointment;
   },
 
   manage: async (id: string, action: string, amendedNote?: string) => {
-    const res = await apiClient.put(`/appointments/${id}`, { action, amendedNote });
-    return res.data;
+    const res = expectStatus(
+      await contractClient.call(schedulingContracts.manageAppointment, {
+        params: { id },
+        body: { action, amendedNote } as never,
+      }),
+      200
+    );
+    return res.body as unknown as Appointment;
   },
 };

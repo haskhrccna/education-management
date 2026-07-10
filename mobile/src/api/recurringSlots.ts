@@ -1,4 +1,5 @@
-import apiClient from './client';
+import { recurringSlotsContracts } from '@quran-review/shared';
+import { contractClient, expectStatus } from './contract';
 
 export interface RecurringSlot {
   id: string;
@@ -24,17 +25,22 @@ export const recurringSlotsApi = {
     time: string,
     durationMinutes?: number
   ): Promise<{ slot: RecurringSlot; occurrences: GeneratedOccurrence[] }> => {
-    const res = await apiClient.post('/recurring-slots', { teacherId, dayOfWeek, time, durationMinutes });
-    return res.data.data;
+    const res = expectStatus(
+      await contractClient.call(recurringSlotsContracts.create, {
+        body: { teacherId, dayOfWeek, time, durationMinutes } as never,
+      }),
+      201
+    );
+    return (res.body as unknown as { data: { slot: RecurringSlot; occurrences: GeneratedOccurrence[] } }).data;
   },
 
   list: async (): Promise<RecurringSlot[]> => {
-    const res = await apiClient.get('/recurring-slots');
-    return res.data?.data ?? [];
+    const res = expectStatus(await contractClient.call(recurringSlotsContracts.list), 200);
+    return (res.body as unknown as { data: RecurringSlot[] }).data;
   },
 
   cancel: async (id: string): Promise<RecurringSlot> => {
-    const res = await apiClient.patch(`/recurring-slots/${id}/cancel`);
-    return res.data.data;
+    const res = expectStatus(await contractClient.call(recurringSlotsContracts.cancel, { params: { id } }), 200);
+    return (res.body as unknown as { data: RecurringSlot }).data;
   },
 };

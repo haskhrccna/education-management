@@ -1,4 +1,6 @@
+import { mediaContracts } from '@quran-review/shared';
 import apiClient from './client';
+import { contractClient, expectStatus } from './contract';
 
 export type RecordingStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
@@ -37,16 +39,22 @@ export const getRecordingStatus = (recording: Recording): RecordingStatus => {
 
 export const recordingsApi = {
   list: async (params?: RecordingListParams): Promise<Recording[]> => {
-    const res = await apiClient.get('/recordings', { params });
-    return res.data;
+    const res = expectStatus(
+      await contractClient.call(mediaContracts.listRecordings, {
+        query: params ? (params as never) : undefined,
+      }),
+      200
+    );
+    return res.body as unknown as Recording[];
   },
 
   // Alias matching task naming
   getRecordings: async (params?: RecordingListParams): Promise<Recording[]> => {
-    const res = await apiClient.get('/recordings', { params });
-    return res.data;
+    return recordingsApi.list(params);
   },
 
+  // HOLDOUT: multipart upload — the contract client is JSON-only; multer parses
+  // this on the server before validation (pinned ordering).
   uploadRecording: async (formData: FormData): Promise<Recording> => {
     const res = await apiClient.post('/recordings', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -70,12 +78,18 @@ export const recordingsApi = {
   },
 
   reviewRecording: async (id: string, body: ReviewRecordingBody): Promise<Recording> => {
-    const res = await apiClient.put(`/recordings/${id}`, body);
-    return res.data;
+    const res = expectStatus(
+      await contractClient.call(mediaContracts.reviewRecording, {
+        params: { id },
+        body: body as never, // contract pins NO validation; body passes through untyped
+      }),
+      200
+    );
+    return res.body as unknown as Recording;
   },
 
   deleteRecording: async (id: string): Promise<{ message: string }> => {
-    const res = await apiClient.delete(`/recordings/${id}`);
-    return res.data;
+    const res = expectStatus(await contractClient.call(mediaContracts.deleteRecording, { params: { id } }), 200);
+    return res.body as unknown as { message: string };
   },
 };

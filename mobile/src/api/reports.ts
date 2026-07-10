@@ -1,5 +1,6 @@
 import * as WebBrowser from 'expo-web-browser';
-import apiClient from './client';
+import { mediaContracts } from '@quran-review/shared';
+import { contractClient, expectStatus, API_ORIGIN } from './contract';
 import { secureStorage } from '../storage/secureStorage';
 
 export interface Report {
@@ -22,23 +23,31 @@ export interface CreateReportInput {
 
 export const reportsApi = {
   getReports: async (params?: { studentId?: string }): Promise<Report[]> => {
-    const res = await apiClient.get('/reports', { params });
-    return res.data;
+    const res = expectStatus(
+      await contractClient.call(mediaContracts.listReports, {
+        query: params?.studentId ? ({ studentId: params.studentId } as never) : undefined,
+      }),
+      200
+    );
+    return res.body as unknown as Report[];
   },
 
   createReport: async (input: CreateReportInput): Promise<Report> => {
     const summary = input.period ? `[${input.period}] ${input.notes || ''}`.trim() : input.notes;
-    const res = await apiClient.post('/reports', {
-      studentId: input.studentId,
-      summary,
-    });
-    return res.data;
+    const res = expectStatus(
+      await contractClient.call(mediaContracts.generateReport, {
+        body: { studentId: input.studentId, summary } as never,
+      }),
+      201
+    );
+    return res.body as unknown as Report;
   },
 
+  // HOLDOUT: browser download — the PDF opens in the system browser with the
+  // pinned ?token= auth; no JSON transport involved.
   downloadReport: async (id: string): Promise<void> => {
     const token = (await secureStorage.getItem('auth_token')) ?? '';
-    const baseURL = (apiClient.defaults.baseURL ?? '').replace(/\/$/, '');
-    const url = `${baseURL}/files/reports/${id}?token=${encodeURIComponent(token)}`;
+    const url = `${API_ORIGIN}/api/v1/files/reports/${id}?token=${encodeURIComponent(token)}`;
     await WebBrowser.openBrowserAsync(url);
   },
 };

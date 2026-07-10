@@ -1,4 +1,5 @@
-import apiClient from './client';
+import { curriculumPlansContracts } from '@quran-review/shared';
+import { contractClient, expectStatus } from './contract';
 
 export interface PlanItem {
   id: string;
@@ -24,12 +25,15 @@ export const curriculumPlansApi = {
     name: string,
     items: { surahId: number; targetDate: string }[]
   ): Promise<CurriculumPlan> => {
-    const res = await apiClient.post('/curriculum-plans', { studentId, name, items });
-    return res.data.data;
+    const res = expectStatus(
+      await contractClient.call(curriculumPlansContracts.create, { body: { studentId, name, items } as never }),
+      201
+    );
+    return (res.body as unknown as { data: CurriculumPlan }).data;
   },
 
   list: async (): Promise<CurriculumPlan[]> => {
-    const res = await apiClient.get('/curriculum-plans');
-    return res.data?.data ?? [];
+    const res = expectStatus(await contractClient.call(curriculumPlansContracts.list), 200);
+    return (res.body as unknown as { data: CurriculumPlan[] }).data;
   },
 };

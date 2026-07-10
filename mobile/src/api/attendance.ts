@@ -1,5 +1,6 @@
 // Phase 2 — Attendance + Session Completion: mobile API client
-import apiClient from './client';
+import { schedulingContracts } from '@quran-review/shared';
+import { contractClient, expectStatus } from './contract';
 
 export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED';
 
@@ -20,11 +21,24 @@ export interface SessionRecord {
 
 export const attendanceApi = {
   record: async (appointmentId: string, status: AttendanceStatus, notes?: string): Promise<SessionRecord> => {
-    const { data } = await apiClient.post(`/appointments/${appointmentId}/attendance`, { status, notes });
-    return data;
+    const res = expectStatus(
+      await contractClient.call(schedulingContracts.recordAttendance, {
+        params: { id: appointmentId },
+        body: { status, notes } as never,
+      }),
+      201
+    );
+    // Fidelity: the axios version returned the whole response body (the
+    // {success,data} envelope) typed as SessionRecord — preserved as-is.
+    return res.body as unknown as SessionRecord;
   },
   list: async (studentId?: string): Promise<SessionRecord[]> => {
-    const { data } = await apiClient.get('/attendance', { params: studentId ? { studentId } : undefined });
-    return data;
+    const res = expectStatus(
+      await contractClient.call(schedulingContracts.listAttendance, {
+        query: studentId ? ({ studentId } as never) : undefined,
+      }),
+      200
+    );
+    return res.body as unknown as SessionRecord[];
   },
 };
