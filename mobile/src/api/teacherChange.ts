@@ -9,14 +9,14 @@ export const teacherChangeApi = {
     );
     return res.body as unknown;
   },
-  list: async (status?: 'PENDING' | 'APPROVED' | 'DENIED') => {
+  list: async (status?: 'PENDING' | 'APPROVED' | 'DENIED'): Promise<unknown[]> => {
     const res = expectStatus(
       await contractClient.call(schedulingContracts.listTeacherChanges, {
         query: status ? ({ status } as never) : undefined,
       }),
       200
     );
-    return res.body as unknown;
+    return res.body as unknown as unknown[];
   },
   decide: async (id: string, action: 'APPROVE' | 'DENY', adminNote?: string, newTeacherId?: string) => {
     const res = expectStatus(
