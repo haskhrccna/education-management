@@ -1,4 +1,5 @@
-import apiClient from './client';
+import { progressContracts } from '@quran-review/shared';
+import { contractClient, expectStatus } from './contract';
 
 export interface Streak {
   userId: string;
@@ -30,11 +31,14 @@ export interface LeaderboardEntry {
 
 export const gamificationApi = {
   getMine: async (): Promise<MyGamification> => {
-    const res = await apiClient.get('/gamification/me');
-    return res.data?.data ?? res.data;
+    const res = expectStatus(await contractClient.call(progressContracts.gamificationMe), 200);
+    return (res.body as unknown as { data: MyGamification }).data;
   },
   getLeaderboard: async (scope?: string, limit = 20): Promise<LeaderboardEntry[]> => {
-    const res = await apiClient.get('/gamification/leaderboard', { params: { scope, limit } });
-    return res.data?.data ?? res.data;
+    const res = expectStatus(
+      await contractClient.call(progressContracts.leaderboard, { query: { scope, limit } }),
+      200
+    );
+    return (res.body as unknown as { data: LeaderboardEntry[] }).data;
   },
 };
