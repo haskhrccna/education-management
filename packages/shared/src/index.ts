@@ -39,4 +39,5 @@ export * from './contracts/ijazahs.contracts';
 export * from './contracts/certificates.contracts';
 export * from './contracts/account.contracts';
 export * from './contracts/media.contracts';
+export * from './contracts/communication.contracts';
 export * from './contracts/client';

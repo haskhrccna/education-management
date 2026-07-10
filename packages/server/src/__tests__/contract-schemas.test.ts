@@ -1,8 +1,15 @@
-import { authContracts, healthContracts, contractRegistry, mediaContracts, isRawResponse } from '@quran-review/shared';
+import {
+  authContracts,
+  healthContracts,
+  contractRegistry,
+  mediaContracts,
+  communicationContracts,
+  isRawResponse,
+} from '@quran-review/shared';
 
 describe('contract schemas pin current response shapes', () => {
-  it('registry has 81 contracts with unique method+path', () => {
-    expect(contractRegistry).toHaveLength(81);
+  it('registry has 88 contracts with unique method+path', () => {
+    expect(contractRegistry).toHaveLength(88);
     const keys = contractRegistry.map((c) => `${c.method} ${c.path}`);
     expect(new Set(keys).size).toBe(keys.length);
   });
@@ -28,6 +35,39 @@ describe('contract schemas pin current response shapes', () => {
     };
     expect(() => mediaContracts.uploadRecording.responses[201].parse(observed)).not.toThrow();
     expect(() => mediaContracts.listRecordings.responses[200].parse([observed])).not.toThrow();
+  });
+
+  it('listMessages 200 union accepts BOTH pinned shapes (dual response)', () => {
+    const summary = [
+      {
+        partner: { id: 'u-1', firstName: 'A', lastName: 'B' },
+        lastMessage: {
+          id: 'm-1',
+          content: 'salam',
+          type: 'TEXT',
+          createdAt: '2026-07-10T00:00:00.000Z',
+          readAt: null,
+          sentByMe: false,
+        },
+        unreadCount: 1,
+      },
+    ];
+    const raw = [
+      {
+        id: 'm-1',
+        senderId: 'u-1',
+        receiverId: 'u-2',
+        type: 'TEXT',
+        content: 'salam',
+        attachmentUrl: null,
+        readAt: null,
+        createdAt: '2026-07-10T00:00:00.000Z',
+        sender: { id: 'u-1', firstName: 'A', lastName: 'B' },
+      },
+    ];
+    const schema = communicationContracts.listMessages.responses[200];
+    expect(() => schema.parse(summary)).not.toThrow();
+    expect(() => schema.parse(raw)).not.toThrow();
   });
 
   it('reviewRecording deliberately declares no request body (legacy had no validation)', () => {
