@@ -1,4 +1,5 @@
-import apiClient from './client';
+import { certificatesContracts } from '@quran-review/shared';
+import { contractClient, expectStatus, API_ORIGIN } from './contract';
 
 export interface Certificate {
   id: string;
@@ -12,21 +13,25 @@ export interface Certificate {
 
 export const certificatesApi = {
   list: async (studentId?: string): Promise<Certificate[]> => {
-    const params: Record<string, string> = {};
-    if (studentId) params.studentId = studentId;
-    const res = await apiClient.get('/certificates', { params });
-    return res.data?.data ?? res.data;
+    const res = expectStatus(
+      await contractClient.call(certificatesContracts.listCertificates, {
+        query: studentId ? ({ studentId } as never) : undefined,
+      }),
+      200
+    );
+    return (res.body as unknown as { data: Certificate[] }).data;
   },
   downloadUrl: (certId: string, token: string): string => {
-    const baseURL = apiClient.defaults.baseURL || '';
-    return `${baseURL}/files/certificates/${certId}?token=${encodeURIComponent(token)}`;
+    return `${API_ORIGIN}/api/v1/files/certificates/${certId}?token=${encodeURIComponent(token)}`;
   },
   verifyUrl: (verificationToken: string): string => {
-    const baseURL = apiClient.defaults.baseURL || '';
-    return `${baseURL}/verify/${verificationToken}`;
+    return `${API_ORIGIN}/api/v1/verify/${verificationToken}`;
   },
   regenerateLink: async (certId: string): Promise<Certificate> => {
-    const res = await apiClient.patch(`/certificates/${certId}/regenerate-link`);
-    return res.data.data;
+    const res = expectStatus(
+      await contractClient.call(certificatesContracts.regenerateLink, { params: { id: certId } }),
+      200
+    );
+    return (res.body as unknown as { data: Certificate }).data;
   },
 };

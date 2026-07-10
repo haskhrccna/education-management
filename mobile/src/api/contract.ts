@@ -15,6 +15,9 @@ function getOrigin(): string {
 
 const ORIGIN = getOrigin();
 
+/** Server origin (no /api/v1 suffix) for building browser/download URLs. */
+export const API_ORIGIN = ORIGIN;
+
 // Single-flight refresh shared across concurrent 401s (mirrors the axios
 // installAuthRefreshInterceptor; logout redirect stays with the axios path
 // until the auth store adopts the contract client in M10–M12).

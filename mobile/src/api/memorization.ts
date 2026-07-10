@@ -1,4 +1,5 @@
-import apiClient from './client';
+import { learningContracts } from '@quran-review/shared';
+import { contractClient, expectStatus } from './contract';
 
 export interface MemorizationEntry {
   surahId: number;
@@ -19,13 +20,16 @@ export interface Surah {
 
 export const memorizationApi = {
   getMine: async (): Promise<MemorizationEntry[]> => {
-    const res = await apiClient.get('/memorization');
-    return res.data;
+    const res = expectStatus(await contractClient.call(learningContracts.getMemorization), 200);
+    return res.body as unknown as MemorizationEntry[];
   },
 
   getStudentProgress: async (studentId: string): Promise<MemorizationEntry[]> => {
-    const res = await apiClient.get('/memorization', { params: { studentId } });
-    return res.data;
+    const res = expectStatus(
+      await contractClient.call(learningContracts.getMemorization, { query: { studentId } as never }),
+      200
+    );
+    return res.body as unknown as MemorizationEntry[];
   },
 
   updateProgress: async (
@@ -34,12 +38,18 @@ export const memorizationApi = {
     memorizedAyahs: number,
     status?: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETE'
   ): Promise<MemorizationEntry> => {
-    const res = await apiClient.put(`/memorization/${surahId}`, { studentId, memorizedAyahs, status });
-    return res.data;
+    const res = expectStatus(
+      await contractClient.call(learningContracts.updateMemorization, {
+        params: { surahId: String(surahId) } as never,
+        body: { studentId, memorizedAyahs, status } as never,
+      }),
+      200
+    );
+    return res.body as unknown as MemorizationEntry;
   },
 
   getSurahs: async (): Promise<Surah[]> => {
-    const res = await apiClient.get('/surahs');
-    return res.data;
+    const res = expectStatus(await contractClient.call(learningContracts.listSurahs), 200);
+    return res.body as unknown as Surah[];
   },
 };

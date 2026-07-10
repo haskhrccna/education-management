@@ -1,11 +1,12 @@
-import apiClient from './client';
+import { accountContracts } from '@quran-review/shared';
+import { contractClient, expectStatus } from './contract';
 
 export const accountApi = {
   exportMyData: async (): Promise<Record<string, unknown>> => {
-    const res = await apiClient.get('/account/data-export');
-    return res.data.data;
+    const res = expectStatus(await contractClient.call(accountContracts.exportMyData), 200);
+    return (res.body as unknown as { data: Record<string, unknown> }).data;
   },
   deleteMyAccount: async (): Promise<void> => {
-    await apiClient.delete('/account');
+    expectStatus(await contractClient.call(accountContracts.deleteMyAccount), 200);
   },
 };

@@ -1,16 +1,28 @@
-import apiClient from './client';
+import { mushafContracts } from '@quran-review/shared';
 import type { SurahWithAyahsDTO, MushafPageDTO } from '@quran-review/shared';
+import { contractClient, expectStatus } from './contract';
 
 export const mushafApi = {
   getSurah: async (id: number): Promise<SurahWithAyahsDTO> => {
-    const res = await apiClient.get(`/mushaf/surahs/${id}`);
-    return res.data?.data ?? res.data;
+    const res = expectStatus(
+      await contractClient.call(mushafContracts.surahAyahs, { params: { id: String(id) } as never }),
+      200
+    );
+    return (res.body as unknown as { data: SurahWithAyahsDTO }).data;
   },
   getPage: async (page: number): Promise<MushafPageDTO> => {
-    const res = await apiClient.get(`/mushaf/pages/${page}`);
-    return res.data?.data ?? res.data;
+    const res = expectStatus(
+      await contractClient.call(mushafContracts.page, { params: { page: String(page) } as never }),
+      200
+    );
+    return (res.body as unknown as { data: MushafPageDTO }).data;
   },
   logMemorization: async (surahId: number, ayahNumber: number, memorized: boolean) => {
-    await apiClient.post('/mushaf/log-memorization', { surahId, ayahNumber, memorized });
+    expectStatus(
+      await contractClient.call(mushafContracts.logMemorization, {
+        body: { surahId, ayahNumber, memorized } as never,
+      }),
+      200
+    );
   },
 };
