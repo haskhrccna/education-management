@@ -10,6 +10,9 @@ import { useThemeSettings } from '../settings/store';
  * import instead of separately wiring the settings store, `getColors`, and
  * `useIsRTL`.
  */
+/** Palette type for style factories and component props. */
+export type ThemeColors = ReturnType<typeof getColors>;
+
 export function useTheme() {
   const { theme, darkMode } = useThemeSettings();
   const isRTL = useIsRTL();

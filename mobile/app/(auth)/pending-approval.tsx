@@ -4,14 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
-import { useThemeSettings } from '@/src/settings/store';
-
+import { SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { useTheme } from '@/src/hooks/useTheme';
 export default function PendingApprovalPage() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const styles = createStyles(COLORS);
 
   return (

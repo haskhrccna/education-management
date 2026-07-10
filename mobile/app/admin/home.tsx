@@ -4,16 +4,16 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
+import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { apiClient } from '@/src/api';
 import { useAuthStore } from '@/src/auth/store';
 import { useMessages } from '@/src/hooks/useMessages';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
-import { useThemeSettings } from '@/src/settings/store';
 import { useNotifications } from '@/src/hooks/useNotifications';
 import { AppCard, Avatar, IconButton, MetricTile, SectionHeader, StatusPill } from '@/src/components/design';
 import { SkeletonCard } from '@/src/components/SkeletonCard';
 import { BottomNav } from '@/src/components/BottomNav';
+import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
 
 interface User {
   id: string;
@@ -57,8 +57,7 @@ export default function AdminHomeScreen() {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const logout = useAuthStore((s) => s.logout);
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const styles = createStyles(COLORS);
 
   const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -322,7 +321,7 @@ export default function AdminHomeScreen() {
   );
 }
 
-const createStyles = (COLORS: ReturnType<typeof getColors>) =>
+const createStyles = (COLORS: ThemeColors) =>
   StyleSheet.create({
     screen: {
       flex: 1,

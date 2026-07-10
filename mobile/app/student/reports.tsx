@@ -15,9 +15,8 @@ import { useTranslation } from 'react-i18next';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { Ionicons } from '@expo/vector-icons';
 import { reportsApi, Report } from '@/src/api';
-import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
-import { useThemeSettings } from '@/src/settings/store';
-
+import { SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { useTheme } from '@/src/hooks/useTheme';
 function parsePeriod(summary: string): { period: string | null; notes: string } {
   const match = summary.match(/^\[([^\]]+)\]\s*(.*)$/s);
   if (match) return { period: match[1].trim(), notes: match[2].trim() };
@@ -28,8 +27,7 @@ export default function StudentReportsScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const isRTL = useIsRTL();
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const styles = useMemo(() => createStyles(COLORS), [COLORS]);
 
   const [reports, setReports] = useState<Report[]>([]);

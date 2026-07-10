@@ -6,16 +6,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useParent } from '@/src/hooks/useParent';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
-import { useThemeSettings } from '@/src/settings/store';
-import { getColors, RADIUS, SPACING } from '@/constants/theme';
+import { RADIUS, SPACING } from '@/constants/theme';
 import { AppCard, AppText } from '@/src/components/design';
+import { useTheme } from '@/src/hooks/useTheme';
 
 export default function ParentLinkRequestScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const isRTL = useIsRTL();
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const [email, setEmail] = useState('');
   const [reason, setReason] = useState('');
   const [isSearching, setIsSearching] = useState(false);

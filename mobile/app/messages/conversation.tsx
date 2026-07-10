@@ -15,12 +15,12 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { getColors, RADIUS, SPACING } from '@/constants/theme';
+import { RADIUS, SPACING } from '@/constants/theme';
 import { useAuthStore } from '@/src/auth/store';
 import { useConversation } from '@/src/hooks/useConversation';
 import { useRequiredParam } from '@/src/hooks/useRequiredParam';
-import { useThemeSettings } from '@/src/settings/store';
 import { Avatar, IconButton } from '@/src/components/design';
+import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
 
 function formatTime(dateStr: string | undefined, lang: string): string {
   if (!dateStr) return '';
@@ -42,8 +42,7 @@ export default function ConversationScreen() {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const { user } = useAuthStore();
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS, darkMode } = useTheme();
   const styles = createStyles(COLORS);
   const { thread, isLoading, error, fetchThread, sendMessage } = useConversation(partnerId ?? '');
 
@@ -183,7 +182,7 @@ export default function ConversationScreen() {
   );
 }
 
-const createStyles = (COLORS: ReturnType<typeof getColors>) =>
+const createStyles = (COLORS: ThemeColors) =>
   StyleSheet.create({
     screen: {
       flex: 1,

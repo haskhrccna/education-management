@@ -7,9 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { Ionicons } from '@expo/vector-icons';
 import { gradesApi, memorizationApi, Grade, MemorizationEntry } from '@/src/api';
-import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
-import { useThemeSettings } from '@/src/settings/store';
-
+import { SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { useTheme } from '@/src/hooks/useTheme';
 const TYPE_COLORS: Record<string, string> = {
   ORAL: '#3b82f6',
   QUIZ: '#22c55e',
@@ -37,9 +36,7 @@ export default function TeacherStudentDetailScreen() {
   const isRTL = useIsRTL();
   const studentId = useRequiredParam('id');
   const { name: studentName } = useLocalSearchParams<{ name?: string }>();
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
-
+  const { colors: COLORS } = useTheme();
   const GRADE_TYPE_LABELS: Record<string, string> = {
     ORAL: t('gradeTypeOral'),
     QUIZ: t('gradeTypeQuiz'),

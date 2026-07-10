@@ -14,12 +14,12 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
-import { useThemeSettings } from '@/src/settings/store';
+import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { Ijazah } from '@/src/api/ijazahs';
 import { useIjazahs } from '@/src/hooks/useIjazahs';
 import { AppCard, AppText, EmptyState, IconButton } from '@/src/components/design';
 import { BottomNav } from '@/src/components/BottomNav';
+import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
 
 function formatDate(dateStr: string, lang: string): string {
   try {
@@ -45,8 +45,7 @@ export default function StudentIjazahsScreen() {
   const insets = useSafeAreaInsets();
   const { i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const styles = useMemo(() => createStyles(COLORS), [COLORS]);
 
   const { ijazahs, isLoading, error, refetch, getVerifyUrl, regenerateLink } = useIjazahs();
@@ -182,7 +181,7 @@ export default function StudentIjazahsScreen() {
   );
 }
 
-function createStyles(COLORS: ReturnType<typeof getColors>) {
+function createStyles(COLORS: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1 },
     header: {

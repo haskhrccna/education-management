@@ -7,10 +7,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNotifications } from '@/src/hooks/useNotifications';
 import { useAuthStore } from '@/src/auth/store';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
-import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
-import { useThemeSettings } from '@/src/settings/store';
+import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { AppCard, AppText, EmptyState, IconButton } from '@/src/components/design';
 import { Notification } from '@/src/api/notifications';
+import { useTheme } from '@/src/hooks/useTheme';
 
 type AppRole = 'student' | 'teacher' | 'admin' | 'parent' | undefined;
 
@@ -62,8 +62,7 @@ export default function NotificationsScreen() {
   const { t } = useTranslation();
   const isRTL = useIsRTL();
   const role = useRole();
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const { notifications, unreadCount, isLoading, error, hasNext, fetchNotifications, markRead, markAllRead } =
     useNotifications();
 

@@ -3,11 +3,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppText } from './AppText';
 import { useSettingsScales } from './SettingsContext';
 import { GestureResponderEvent, StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
-import { getColors, RADIUS, SHADOWS, SPACING, TYPOGRAPHY, FONT_SCALE } from '@/constants/theme';
+import { RADIUS, SHADOWS, SPACING, TYPOGRAPHY, FONT_SCALE } from '@/constants/theme';
+import type { ThemeColors } from '@/src/hooks/useTheme';
 
 export { AppText } from './AppText';
 
-export type Colors = ReturnType<typeof getColors>;
+export type Colors = ThemeColors;
 type IconName = keyof typeof Ionicons.glyphMap;
 
 interface CardProps {

@@ -4,13 +4,12 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
+import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { useAuthStore } from '@/src/auth/store';
 import { useAppointments } from '@/src/hooks/useAppointments';
 import { useGrades } from '@/src/hooks/useGrades';
 import { useMemorization } from '@/src/hooks/useMemorization';
 import { useMessages } from '@/src/hooks/useMessages';
-import { useThemeSettings } from '@/src/settings/store';
 import { useNotifications } from '@/src/hooks/useNotifications';
 import {
   AppCard,
@@ -24,6 +23,7 @@ import {
 } from '@/src/components/design';
 import { BottomNav } from '@/src/components/BottomNav';
 import type { Appointment, Grade } from '@/src/api';
+import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
 
 function gradeNumeric(grade: string): number {
   const n = parseFloat(grade);
@@ -70,8 +70,7 @@ export default function StudentHomeScreen() {
   const insets = useSafeAreaInsets();
   const { i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const styles = createStyles(COLORS);
 
   const user = useAuthStore((s) => s.user);
@@ -456,7 +455,7 @@ export default function StudentHomeScreen() {
   );
 }
 
-const createStyles = (COLORS: ReturnType<typeof getColors>) =>
+const createStyles = (COLORS: ThemeColors) =>
   StyleSheet.create({
     screen: {
       flex: 1,

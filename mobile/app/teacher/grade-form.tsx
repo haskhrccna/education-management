@@ -15,9 +15,8 @@ import { useTranslation } from 'react-i18next';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { Ionicons } from '@expo/vector-icons';
 import { appointmentsApi, gradesApi, memorizationApi, Surah } from '@/src/api';
-import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
-import { useThemeSettings } from '@/src/settings/store';
-
+import { SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { useTheme } from '@/src/hooks/useTheme';
 const GRADE_TYPES = ['QUIZ', 'ASSIGNMENT', 'EXAM', 'ORAL', 'PARTICIPATION'] as const;
 type GradeType = (typeof GRADE_TYPES)[number];
 
@@ -32,9 +31,7 @@ export default function GradeFormScreen() {
   const { t } = useTranslation();
   const isRTL = useIsRTL();
   const { studentId: prefillId } = useLocalSearchParams<{ studentId?: string }>();
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
-
+  const { colors: COLORS } = useTheme();
   const TYPE_LABELS: Record<string, string> = {
     QUIZ: t('gradeTypeQuiz'),
     ASSIGNMENT: t('gradeTypeAssignment'),

@@ -16,16 +16,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useCertificates } from '@/src/hooks/useCertificates';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
-import { useThemeSettings } from '@/src/settings/store';
-import { getColors, RADIUS, SPACING } from '@/constants/theme';
+import { RADIUS, SPACING } from '@/constants/theme';
 import { AppCard, AppText, EmptyState, SectionHeader } from '@/src/components/design';
+import { useTheme } from '@/src/hooks/useTheme';
 
 export default function CertificatesScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const isRTL = useIsRTL();
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const { certificates, isLoading, error, fetchCertificates, getDownloadUrl, getVerifyUrl, regenerateLink } =
     useCertificates();
 

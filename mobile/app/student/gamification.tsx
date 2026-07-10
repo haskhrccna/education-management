@@ -6,10 +6,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useGamification } from '@/src/hooks/useGamification';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
-import { useThemeSettings } from '@/src/settings/store';
-import { getColors, RADIUS, SPACING } from '@/constants/theme';
+import { RADIUS, SPACING } from '@/constants/theme';
 import { AppCard, AppText, EmptyState, MetricTile, SectionHeader, SegmentedControl } from '@/src/components/design';
 import { SkeletonCard } from '@/src/components/SkeletonCard';
+import { useTheme } from '@/src/hooks/useTheme';
 
 const ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
   flame: 'flame-outline',
@@ -26,8 +26,7 @@ export default function GamificationScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const isRTL = useIsRTL();
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const {
     gamification,
     leaderboard,

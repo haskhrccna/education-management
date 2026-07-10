@@ -12,13 +12,13 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { getColors, SPACING } from '@/constants/theme';
+import { SPACING } from '@/constants/theme';
 import { useAuthStore } from '@/src/auth/store';
 import { AppCard, Avatar, EmptyState, IconButton } from '@/src/components/design';
 import { useMessages } from '@/src/hooks/useMessages';
-import { useThemeSettings } from '@/src/settings/store';
 import { BottomNav } from '@/src/components/BottomNav';
 import { usersApi, UserProfile } from '@/src/api/users';
+import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
 
 interface Conversation {
   partnerId: string;
@@ -32,8 +32,7 @@ export default function MessagesScreen() {
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const styles = createStyles(COLORS);
   const { messages, isLoading, fetchMessages } = useMessages();
   const user = useAuthStore((s) => s.user);
@@ -237,7 +236,7 @@ export default function MessagesScreen() {
   );
 }
 
-const createStyles = (COLORS: ReturnType<typeof getColors>) =>
+const createStyles = (COLORS: ThemeColors) =>
   StyleSheet.create({
     screen: {
       flex: 1,

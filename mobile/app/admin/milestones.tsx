@@ -15,10 +15,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
-import { useThemeSettings } from '@/src/settings/store';
+import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { milestonesApi, MilestoneDefinition, MilestoneTriggerType } from '@/src/api/milestones';
 import { BottomNav } from '@/src/components/BottomNav';
+import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
 
 const TRIGGER_TYPES: MilestoneTriggerType[] = [
   'SURAH_COUNT',
@@ -43,8 +43,7 @@ function triggerLabel(trigger: MilestoneTriggerType): string {
 
 export default function AdminMilestonesScreen() {
   const router = useRouter();
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const styles = createStyles(COLORS);
 
   const [milestones, setMilestones] = useState<MilestoneDefinition[]>([]);
@@ -210,7 +209,7 @@ export default function AdminMilestonesScreen() {
   );
 }
 
-function createStyles(COLORS: ReturnType<typeof getColors>) {
+function createStyles(COLORS: ThemeColors) {
   return StyleSheet.create({
     container: { flex: 1 },
     header: {

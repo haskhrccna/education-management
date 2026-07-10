@@ -14,10 +14,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useThemeSettings } from '@/src/settings/store';
-import { getColors, SPACING, RADIUS } from '@/constants/theme';
+import { SPACING, RADIUS } from '@/constants/theme';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
 import { BottomNav } from '@/src/components/BottomNav';
+import { useTheme } from '@/src/hooks/useTheme';
 
 type StatusFilter = 'ALL' | 'PENDING' | 'APPROVED' | 'DENIED';
 
@@ -32,8 +32,7 @@ function initials(first?: string, last?: string) {
 }
 
 export default function ChangeRequestsScreen() {
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const { requests, isLoading, fetchRequests, decideRequest, fetchTeachers } = useTeacherChange();
   const [filter, setFilter] = useState<StatusFilter>('PENDING');
   const [expandedId, setExpandedId] = useState<string | null>(null);

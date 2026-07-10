@@ -16,10 +16,10 @@ import { useHalaqa } from '@/src/hooks/useHalaqa';
 import { useHalaqaGroups } from '@/src/hooks/useHalaqaGroups';
 import { useAuthStore } from '@/src/auth/store';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
-import { useThemeSettings } from '@/src/settings/store';
-import { getColors, RADIUS, SPACING } from '@/constants/theme';
+import { RADIUS, SPACING } from '@/constants/theme';
 import { AppCard, AppText, EmptyState, SectionHeader } from '@/src/components/design';
 import { BottomNav } from '@/src/components/BottomNav';
+import { useTheme } from '@/src/hooks/useTheme';
 
 type AppRole = 'student' | 'teacher' | 'admin' | 'parent' | undefined;
 
@@ -44,8 +44,7 @@ export default function HalaqaListScreen() {
   const isRTL = useIsRTL();
   const role = useRole();
   const user = useAuthStore((s) => s.user);
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const { rooms, isLoading, error, fetchRooms, createRoom, startRoom, endRoom } = useHalaqa();
   const { groups, createGroup } = useHalaqaGroups();
   const [newTitle, setNewTitle] = useState('');

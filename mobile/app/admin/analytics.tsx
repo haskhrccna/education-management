@@ -6,10 +6,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAnalytics } from '@/src/hooks/useAnalytics';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
-import { useThemeSettings } from '@/src/settings/store';
-import { getColors, RADIUS, SPACING } from '@/constants/theme';
+import { RADIUS, SPACING } from '@/constants/theme';
 import { AppCard, AppText, EmptyState, MetricTile, ProgressBar, SectionHeader } from '@/src/components/design';
 import { BottomNav } from '@/src/components/BottomNav';
+import { useTheme } from '@/src/hooks/useTheme';
 
 function formatPct(value: number): string {
   return `${Math.round(value * 100)}%`;
@@ -24,8 +24,7 @@ export default function AdminAnalyticsScreen() {
   const { t, i18n } = useTranslation();
   const isRTL = useIsRTL();
   const lang = i18n.language;
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const { analytics, isLoading, error, fetchAnalytics } = useAnalytics();
 
   return (

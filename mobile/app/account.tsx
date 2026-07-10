@@ -4,19 +4,18 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { getColors, RADIUS, SPACING } from '@/constants/theme';
-import { useThemeSettings } from '@/src/settings/store';
+import { RADIUS, SPACING } from '@/constants/theme';
 import { useAuthStore } from '@/src/auth/store';
 import { accountApi } from '@/src/api/account';
 import { AppCard, AppText, IconButton } from '@/src/components/design';
+import { useTheme } from '@/src/hooks/useTheme';
 
 export default function AccountPrivacyScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const logout = useAuthStore((s) => s.logout);
 
   const [exporting, setExporting] = useState(false);

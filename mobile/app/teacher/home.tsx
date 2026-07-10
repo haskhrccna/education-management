@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
+import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { memorizationApi, MemorizationEntry, getRecordingStatus } from '@/src/api';
 import { useAuthStore } from '@/src/auth/store';
 import { useAppointments } from '@/src/hooks/useAppointments';
@@ -13,7 +13,6 @@ import { useRecordings } from '@/src/hooks/useRecordings';
 import { useRosterHealth } from '@/src/hooks/useRosterHealth';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
 import type { AtRiskReason } from '@/src/api';
-import { useThemeSettings } from '@/src/settings/store';
 import { useNotifications } from '@/src/hooks/useNotifications';
 import {
   AppCard,
@@ -27,6 +26,7 @@ import {
 } from '@/src/components/design';
 import { BottomNav } from '@/src/components/BottomNav';
 import type { Appointment } from '@/src/api';
+import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
 
 type ProgressSummary = { label: string; percent: number | null };
 
@@ -77,8 +77,7 @@ export default function TeacherHomeScreen() {
   const { i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const logout = useAuthStore((s) => s.logout);
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS, darkMode } = useTheme();
   const styles = createStyles(COLORS);
 
   const { appointments, isLoading: isLoadingAppointments, fetchAppointments } = useAppointments();
@@ -497,7 +496,7 @@ export default function TeacherHomeScreen() {
   );
 }
 
-const createStyles = (COLORS: ReturnType<typeof getColors>) =>
+const createStyles = (COLORS: ThemeColors) =>
   StyleSheet.create({
     screen: {
       flex: 1,

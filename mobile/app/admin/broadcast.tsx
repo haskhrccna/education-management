@@ -13,18 +13,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
-import { useThemeSettings } from '@/src/settings/store';
+import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { messagesApi } from '@/src/api/messages';
 import { BottomNav } from '@/src/components/BottomNav';
+import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
 
 type TargetRole = 'ALL' | 'STUDENT' | 'TEACHER';
 
 export default function BroadcastScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const styles = createStyles(COLORS);
 
   const [target, setTarget] = useState<TargetRole>('ALL');
@@ -123,7 +122,7 @@ export default function BroadcastScreen() {
   );
 }
 
-function createStyles(COLORS: ReturnType<typeof getColors>) {
+function createStyles(COLORS: ThemeColors) {
   return StyleSheet.create({
     container: {
       flex: 1,

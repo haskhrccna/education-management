@@ -16,12 +16,12 @@ import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useRecordings } from '@/src/hooks/useRecordings';
 import { Recording, getRecordingStatus } from '@/src/api';
 import { Ionicons } from '@expo/vector-icons';
-import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
-import { useThemeSettings } from '@/src/settings/store';
+import { SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { BottomNav } from '@/src/components/BottomNav';
+import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
 type AudioModule = typeof import('expo-av');
 
-type AnyColors = ReturnType<typeof getColors>;
+type AnyColors = ThemeColors;
 
 const formatBytes = (bytes: number): string => {
   if (!bytes) return '0 B';
@@ -46,8 +46,7 @@ export default function StudentRecordingsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const isRTL = useIsRTL();
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const styles = createStyles(COLORS);
 
   const { recordings, loading, error, refresh, upload } = useRecordings();

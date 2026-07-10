@@ -6,9 +6,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useMushaf } from '@/src/hooks/useMushaf';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
-import { useThemeSettings } from '@/src/settings/store';
-import { getColors, RADIUS, SPACING } from '@/constants/theme';
+import { RADIUS, SPACING } from '@/constants/theme';
 import { AppText } from '@/src/components/design';
+import { useTheme } from '@/src/hooks/useTheme';
 
 const TOTAL_PAGES = 604;
 type AudioModule = typeof import('expo-av');
@@ -18,8 +18,7 @@ export default function MushafScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const isRTL = useIsRTL();
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const { page, isLoading, error, fetchPage } = useMushaf();
   const [currentPage, setCurrentPage] = useState(1);
   const [playingAyahId, setPlayingAyahId] = useState<number | null>(null);

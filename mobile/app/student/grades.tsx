@@ -7,9 +7,9 @@ import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useGrades } from '@/src/hooks/useGrades';
 import { Grade } from '@/src/api';
 import { Ionicons } from '@expo/vector-icons';
-import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
-import { useThemeSettings } from '@/src/settings/store';
+import { SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { BottomNav } from '@/src/components/BottomNav';
+import { useTheme } from '@/src/hooks/useTheme';
 
 function avgScore(grades: Grade[]): string {
   const nums = grades.map((g) => parseFloat(g.grade)).filter((n) => !isNaN(n));
@@ -22,9 +22,7 @@ export default function StudentGradesScreen() {
   const { t, i18n } = useTranslation();
   const isRTL = useIsRTL();
   const { grades, isLoading, error, fetchGrades } = useGrades();
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
-
+  const { colors: COLORS } = useTheme();
   const typeColorMap = {
     ORAL: COLORS.gradeOral,
     QUIZ: COLORS.gradeQuiz,

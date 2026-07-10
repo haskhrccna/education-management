@@ -15,10 +15,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useParent } from '@/src/hooks/useParent';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useAuthStore } from '@/src/auth/store';
-import { useThemeSettings } from '@/src/settings/store';
-import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
+import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { AppCard, AppText, EmptyState, MetricTile, ProgressBar, SectionHeader } from '@/src/components/design';
 import { BottomNav } from '@/src/components/BottomNav';
+import { useTheme } from '@/src/hooks/useTheme';
 
 function fullName(p?: { firstName?: string; lastName?: string }): string {
   return `${p?.firstName ?? ''} ${p?.lastName ?? ''}`.trim() || '?';
@@ -38,8 +38,7 @@ export default function ParentHomeScreen() {
   const isRTL = useIsRTL();
   const lang = i18n.language;
   const isAr = lang === 'ar';
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const user = useAuthStore((s) => s.user);
   const { children, dashboard, isLoading, error, fetchChildren, selectChild, toggleDigest, decideConsent } =
     useParent();

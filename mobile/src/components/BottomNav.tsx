@@ -4,9 +4,9 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
-import { useThemeSettings } from '@/src/settings/store';
+import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { useNotifications } from '@/src/hooks/useNotifications';
+import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
 
 type Role = 'student' | 'teacher' | 'admin' | 'parent';
 
@@ -211,8 +211,7 @@ export function BottomNav({ role, active }: BottomNavProps) {
   const insets = useSafeAreaInsets();
   const { i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS, darkMode } = useTheme();
   const { unreadCount } = useNotifications();
 
   const tabs = role === 'student' ? STUDENT_TABS : role === 'teacher' ? TEACHER_TABS : ADMIN_TABS;
@@ -268,7 +267,7 @@ export function BottomNav({ role, active }: BottomNavProps) {
   );
 }
 
-const navStyles = (COLORS: ReturnType<typeof getColors>) =>
+const navStyles = (COLORS: ThemeColors) =>
   StyleSheet.create({
     safeArea: {
       backgroundColor: COLORS.surface,

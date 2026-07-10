@@ -17,9 +17,8 @@ import { useState } from 'react';
 import { useAuthStore } from '@/src/auth/store';
 import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { getColors, SHADOWS, RADIUS, SPACING } from '@/constants/theme';
-import { useThemeSettings } from '@/src/settings/store';
-
+import { SHADOWS, RADIUS, SPACING } from '@/constants/theme';
+import { useTheme } from '@/src/hooks/useTheme';
 export default function LoginPage() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
@@ -28,8 +27,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const login = useAuthStore((s) => s.login);
   const isLoading = useAuthStore((s) => s.isLoading);
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const styles = createStyles(COLORS);
 
   const handleLogin = async () => {

@@ -4,17 +4,18 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useSettingsStore, ThemeColor, FontSize } from '@/src/settings/store';
-import { getColors, FONT_SCALE, SPACING_SCALE } from '@/constants/theme';
+import { FONT_SCALE, SPACING_SCALE } from '@/constants/theme';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useAuthStore } from '@/src/auth/store';
 import { BottomNav } from '@/src/components/BottomNav';
+import { useTheme } from '@/src/hooks/useTheme';
 
 export default function AdminSettingsScreen() {
   const router = useRouter();
   const { i18n } = useTranslation();
   const settings = useSettingsStore();
   const user = useAuthStore((s) => s.user);
-  const COLORS = getColors(settings.theme, settings.darkMode);
+  const { colors: COLORS } = useTheme();
   const fontScale = FONT_SCALE[settings.fontSize];
   const spacingScale = settings.compactView ? SPACING_SCALE.compact : SPACING_SCALE.normal;
 

@@ -1,15 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, View, StyleSheet } from 'react-native';
-import { useThemeSettings } from '@/src/settings/store';
-import { getColors, SPACING, RADIUS } from '@/constants/theme';
+import { SPACING, RADIUS } from '@/constants/theme';
+import { useTheme } from '@/src/hooks/useTheme';
 
 interface Props {
   lines?: number;
 }
 
 export function SkeletonCard({ lines = 2 }: Props) {
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const opacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {

@@ -10,9 +10,9 @@ import { useWebRTC } from '@/src/hooks/useWebRTC';
 import { useSocket } from '@/src/hooks/useSocket';
 import { useAuthStore } from '@/src/auth/store';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
-import { useThemeSettings } from '@/src/settings/store';
-import { getColors, RADIUS, SPACING } from '@/constants/theme';
+import { RADIUS, SPACING } from '@/constants/theme';
 import { AppCard, AppText } from '@/src/components/design';
+import { useTheme } from '@/src/hooks/useTheme';
 
 export default function HalaqaRoomScreen() {
   const router = useRouter();
@@ -21,8 +21,7 @@ export default function HalaqaRoomScreen() {
   const { t } = useTranslation();
   const isRTL = useIsRTL();
   const user = useAuthStore((s) => s.user);
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const socket = useSocket();
   const [isConnected, setIsConnected] = useState(false);
 

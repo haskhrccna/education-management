@@ -4,11 +4,11 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { getColors, RADIUS, SHADOWS, SPACING } from '@/constants/theme';
-import { useThemeSettings } from '@/src/settings/store';
+import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { CurriculumPlan } from '@/src/api';
 import { useCurriculumPlans } from '@/src/hooks/useCurriculumPlans';
 import { BottomNav } from '@/src/components/BottomNav';
+import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
 
 function formatDate(dateStr: string, lang: string): string {
   try {
@@ -33,8 +33,7 @@ export default function StudentPlansScreen() {
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
-  const { theme, darkMode } = useThemeSettings();
-  const COLORS = getColors(theme, darkMode);
+  const { colors: COLORS } = useTheme();
   const styles = useMemo(() => createStyles(COLORS), [COLORS]);
 
   const { plans, isLoading, error, refetch } = useCurriculumPlans();
@@ -128,7 +127,7 @@ export default function StudentPlansScreen() {
   );
 }
 
-function createStyles(COLORS: ReturnType<typeof getColors>) {
+function createStyles(COLORS: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1 },
     header: {
