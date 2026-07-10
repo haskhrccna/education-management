@@ -78,7 +78,9 @@ export const setupSocketIO = (server: http.Server) => {
       }
     );
 
-    socket.on('disconnect', async () => {
+    // 'disconnecting' (not 'disconnect'): socket.rooms is already emptied by the
+    // time 'disconnect' fires, so the auto-leave below never ran on the old event.
+    socket.on('disconnecting', async () => {
       logger.info({ socketId: socket.id, userId }, 'Socket disconnected');
       // Auto-leave any halaqa rooms this socket was in
       const halaqaRooms = [...socket.rooms].filter((r) => r.startsWith('halaqa:'));
