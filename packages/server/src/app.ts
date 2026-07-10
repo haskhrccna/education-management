@@ -4,10 +4,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import docsRoutes from './routes/docs.routes';
 import metricsRoutes from './routes/metrics.routes';
-import parentRoutes from './routes/parent.routes';
-import gamificationRoutes from './routes/gamification.routes';
-import analyticsRoutes from './routes/analytics.routes';
-import certificateRoutes from './routes/certificate.routes';
 import halaqaRoutes from './routes/halaqa.routes';
 import verifyRoutes from './routes/verify.routes';
 import { errorHandler } from './middleware/error.middleware';
@@ -46,6 +42,9 @@ import { filesRouter } from './modules/files/files.module';
 import { exportsRouter } from './modules/exports/exports.module';
 import { messagesRouter } from './modules/messages/messages.module';
 import { notificationsRouter } from './modules/notifications/notifications.module';
+import { gamificationRouter } from './modules/gamification/gamification.module';
+import { analyticsRouter } from './modules/analytics/analytics.module';
+import { parentsRouter } from './modules/parents/parents.module';
 import { errorResponse } from './lib/response';
 
 const app: Application = express();
@@ -115,10 +114,9 @@ app.use('/api/v1/teacher-changes', authenticate, standardLimiter, teacherChangeR
 app.use('/api/v1/revisions', authenticate, standardLimiter, revisionsRouter);
 app.use('/api/v1/notifications', authenticate, standardLimiter, notificationsRouter);
 app.use('/api/v1/attendance', authenticate, standardLimiter, attendanceRouter);
-app.use('/api/v1/parents', authenticate, standardLimiter, parentRoutes);
-app.use('/api/v1/gamification', authenticate, standardLimiter, gamificationRoutes);
-app.use('/api/v1/analytics', authenticate, standardLimiter, analyticsRoutes);
-app.use('/api/v1/certificates', authenticate, standardLimiter, certificateRoutes);
+app.use('/api/v1/parents', authenticate, standardLimiter, parentsRouter);
+app.use('/api/v1/gamification', authenticate, standardLimiter, gamificationRouter);
+app.use('/api/v1/analytics', authenticate, standardLimiter, analyticsRouter);
 app.use('/api/v1/certificates', authenticate, standardLimiter, certificatesRouter);
 app.use('/api/v1/account', authenticate, standardLimiter, accountRouter);
 // Public, no-login verification page — deliberately NOT behind authenticate.
