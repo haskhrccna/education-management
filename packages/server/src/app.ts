@@ -4,7 +4,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import docsRoutes from './routes/docs.routes';
 import metricsRoutes from './routes/metrics.routes';
-import halaqaRoutes from './routes/halaqa.routes';
 import verifyRoutes from './routes/verify.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { authenticate, authorize } from './middleware/auth.middleware';
@@ -45,6 +44,7 @@ import { notificationsRouter } from './modules/notifications/notifications.modul
 import { gamificationRouter } from './modules/gamification/gamification.module';
 import { analyticsRouter } from './modules/analytics/analytics.module';
 import { parentsRouter } from './modules/parents/parents.module';
+import { halaqaRouter } from './modules/halaqa/halaqa.module';
 import { errorResponse } from './lib/response';
 
 const app: Application = express();
@@ -121,7 +121,7 @@ app.use('/api/v1/certificates', authenticate, standardLimiter, certificatesRoute
 app.use('/api/v1/account', authenticate, standardLimiter, accountRouter);
 // Public, no-login verification page — deliberately NOT behind authenticate.
 app.use('/api/v1/verify', standardLimiter, verifyRoutes);
-app.use('/api/v1/halaqa', authenticate, standardLimiter, halaqaRoutes);
+app.use('/api/v1/halaqa', authenticate, standardLimiter, halaqaRouter);
 
 // Legacy redirects (optional - remove after mobile update)
 // Mirroring exact same middleware stack as v1 for consistent protection
