@@ -71,6 +71,10 @@ export function discoverEndpoints(): DiscoveredEndpoint[] {
     '/api/v1/admin': '/api/admin',
     '/api/v1/appointments': '/api/appointments',
     '/api/v1/grades': '/api/grades',
+    '/api/v1/recordings': '/api/recordings',
+    '/api/v1/reports': '/api/reports',
+    '/api/v1/files': '/api/files',
+    '/api/v1/exports': '/api/exports',
   };
   for (const c of contractRegistry) {
     endpoints.push({ method: c.method, path: c.path });

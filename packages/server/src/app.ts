@@ -3,8 +3,6 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import messageRoutes from './routes/message.routes';
-import fileRoutes from './routes/file.routes';
-import exportRoutes from './routes/export.routes';
 import docsRoutes from './routes/docs.routes';
 import metricsRoutes from './routes/metrics.routes';
 import notificationRoutes from './routes/notification.routes';
@@ -46,6 +44,8 @@ import { certificatesRouter } from './modules/certificates/certificates.module';
 import { accountRouter } from './modules/account/account.module';
 import { recordingsRouter } from './modules/recordings/recordings.module';
 import { reportsRouter } from './modules/reports/reports.module';
+import { filesRouter } from './modules/files/files.module';
+import { exportsRouter } from './modules/exports/exports.module';
 import { errorResponse } from './lib/response';
 
 const app: Application = express();
@@ -109,8 +109,8 @@ app.use('/api/v1/weak-ayahs', authenticate, standardLimiter, weakAyahsRouter);
 app.use('/api/v1/curriculum-plans', authenticate, standardLimiter, curriculumPlansRouter);
 app.use('/api/v1/milestones', authenticate, standardLimiter, milestonesRouter);
 app.use('/api/v1/ijazahs', authenticate, standardLimiter, ijazahsRouter);
-app.use('/api/v1/files', standardLimiter, fileRoutes); // fileAuthenticate applied inside file.routes.ts
-app.use('/api/v1/exports', authenticate, standardLimiter, exportRoutes);
+app.use('/api/v1/files', standardLimiter, filesRouter); // fileAuthenticate applied per-contract (authVia)
+app.use('/api/v1/exports', authenticate, standardLimiter, exportsRouter);
 app.use('/api/v1/teacher-changes', authenticate, standardLimiter, teacherChangeRouter);
 app.use('/api/v1/revisions', authenticate, standardLimiter, revisionsRouter);
 app.use('/api/v1/notifications', authenticate, standardLimiter, notificationRoutes);
@@ -135,8 +135,8 @@ app.use('/api/recordings', authenticate, uploadLimiter, recordingsRouter);
 app.use('/api/reports', authenticate, standardLimiter, reportsRouter);
 app.use('/api/admin', authenticate, adminLimiter, adminRouter);
 app.use('/api/messages', authenticate, standardLimiter, messageRoutes);
-app.use('/api/files', standardLimiter, fileRoutes); // fileAuthenticate applied inside file.routes.ts
-app.use('/api/exports', authenticate, standardLimiter, exportRoutes);
+app.use('/api/files', standardLimiter, filesRouter); // fileAuthenticate applied per-contract (authVia)
+app.use('/api/exports', authenticate, standardLimiter, exportsRouter);
 
 // 404 handler
 app.use((_req, res) => {
