@@ -305,6 +305,81 @@ const arTranslations: Record<string, string> = {
   statusMissed: 'فائتة',
   revisionScheduleTitle: 'جدول المراجعة',
   studentRevisionsFor: 'مراجعات {{name}}',
+
+  // Notifications
+  notifications: 'الإشعارات',
+  noNotifications: 'لا توجد إشعارات',
+  noNotificationsDesc: 'ستظهر إشعاراتك هنا عند وصولها',
+  markAllRead: 'تعليم الكل كمقروء',
+
+  // Halaqa
+  halaqa: 'الحلقة',
+  halaqaRooms: 'الحلقات المباشرة',
+  noHalaqaRooms: 'لا توجد حلقات متاحة الآن',
+  createRoom: 'إنشاء حلقة',
+  roomTitlePlaceholder: 'عنوان الحلقة',
+  startRoom: 'بدء الحلقة',
+  endRoom: 'إنهاء الحلقة',
+  leaveRoom: 'مغادرة الحلقة',
+  liveNow: 'مباشر الآن',
+  participants: 'المشاركون',
+  participant: 'مشارك',
+  connected: 'متصل',
+  connecting: 'جارٍ الاتصال…',
+  muted: 'مكتوم',
+  you: 'أنت',
+
+  // Certificates
+  certificates: 'الشهادات',
+  certificate: 'شهادة',
+  noCertificates: 'لا توجد شهادات بعد',
+  certificateIssuedAt: 'تاريخ الإصدار',
+  downloadCertificate: 'تنزيل الشهادة',
+  shareCertificate: 'مشاركة الشهادة',
+  achievements: 'الإنجازات',
+
+  // Parent
+  parentDashboard: 'لوحة ولي الأمر',
+  requestChildLink: 'طلب ربط بحساب الابن',
+  linkRequestInstructions: 'أدخل البريد الإلكتروني لحساب الطالب لطلب الربط. يتطلب الطلب موافقة المشرف.',
+  childEmail: 'البريد الإلكتروني للطالب',
+  childEmailPlaceholder: 'student@example.com',
+  searchStudent: 'البحث عن الطالب',
+  studentNotFound: 'لم يتم العثور على الطالب',
+  studentNotFoundDesc: 'تأكد من البريد الإلكتروني وحاول مرة أخرى',
+  requestReason: 'سبب الطلب',
+  reasonPlaceholder: 'مثال: أنا ولي أمر هذا الطالب',
+  linkRequested: 'تم إرسال طلب الربط',
+  linkPending: 'طلب الربط قيد الموافقة',
+  failedToSubmitRequest: 'تعذر إرسال الطلب',
+  noChildrenYet: 'لا يوجد أبناء مرتبطون بعد',
+  noChildrenYetDesc: 'اطلب ربطاً بحساب ابنك لمتابعة تقدمه في الحفظ',
+  childProgress: 'تقدم الابن',
+  childGrades: 'الدرجات',
+  childAttendance: 'الحضور',
+  childAppointments: 'المواعيد',
+  childRevisions: 'المراجعات',
+  readOnlyNote: 'عرض للقراءة فقط',
+
+  // Analytics (admin)
+  analytics: 'التحليلات',
+  weeklyActiveStudents: 'الطلاب النشطون أسبوعياً',
+  surahMissRates: 'نسب الأخطاء حسب السورة',
+  teacherLoad: 'توزيع أعباء المعلمين',
+  activeRate: 'نسبة النشاط',
+  sessionsLast30d: 'الجلسات خلال ٣٠ يوماً',
+  gradesLast30d: 'الدرجات خلال ٣٠ يوماً',
+  surahsInProgress: 'سور قيد الحفظ',
+  noData: 'لا توجد بيانات',
+
+  // Misc
+  present: 'حاضر',
+  absent: 'غائب',
+  teacher: 'المعلم',
+  revision: 'مراجعة',
+  goBack: 'رجوع',
+  notFound: 'غير موجود',
+  unsupportedRole: 'دور غير مدعوم',
 };
 
 const enTranslations: Record<string, string> = {
@@ -611,6 +686,81 @@ const enTranslations: Record<string, string> = {
   statusMissed: 'Missed',
   revisionScheduleTitle: 'Revision Schedule',
   studentRevisionsFor: 'Revisions for {{name}}',
+
+  // Notifications
+  notifications: 'Notifications',
+  noNotifications: 'No notifications',
+  noNotificationsDesc: 'Your notifications will appear here when they arrive',
+  markAllRead: 'Mark all as read',
+
+  // Halaqa
+  halaqa: 'Halaqa',
+  halaqaRooms: 'Live halaqa rooms',
+  noHalaqaRooms: 'No halaqa rooms available right now',
+  createRoom: 'Create room',
+  roomTitlePlaceholder: 'Room title',
+  startRoom: 'Start session',
+  endRoom: 'End session',
+  leaveRoom: 'Leave room',
+  liveNow: 'Live now',
+  participants: 'Participants',
+  participant: 'Participant',
+  connected: 'Connected',
+  connecting: 'Connecting…',
+  muted: 'Muted',
+  you: 'You',
+
+  // Certificates
+  certificates: 'Certificates',
+  certificate: 'Certificate',
+  noCertificates: 'No certificates yet',
+  certificateIssuedAt: 'Issued on',
+  downloadCertificate: 'Download certificate',
+  shareCertificate: 'Share certificate',
+  achievements: 'Achievements',
+
+  // Parent
+  parentDashboard: 'Parent dashboard',
+  requestChildLink: "Request a link to your child's account",
+  linkRequestInstructions: "Enter the student's account email to request a link. Admin approval is required.",
+  childEmail: "Student's email",
+  childEmailPlaceholder: 'student@example.com',
+  searchStudent: 'Search for student',
+  studentNotFound: 'Student not found',
+  studentNotFoundDesc: 'Check the email address and try again',
+  requestReason: 'Reason for request',
+  reasonPlaceholder: "e.g. I am this student's guardian",
+  linkRequested: 'Link request sent',
+  linkPending: 'Link request pending approval',
+  failedToSubmitRequest: 'Could not submit the request',
+  noChildrenYet: 'No linked children yet',
+  noChildrenYetDesc: "Request a link to your child's account to follow their memorization progress",
+  childProgress: "Child's progress",
+  childGrades: 'Grades',
+  childAttendance: 'Attendance',
+  childAppointments: 'Appointments',
+  childRevisions: 'Revisions',
+  readOnlyNote: 'Read-only view',
+
+  // Analytics (admin)
+  analytics: 'Analytics',
+  weeklyActiveStudents: 'Weekly active students',
+  surahMissRates: 'Miss rates by surah',
+  teacherLoad: 'Teacher load',
+  activeRate: 'Active rate',
+  sessionsLast30d: 'Sessions (last 30 days)',
+  gradesLast30d: 'Grades (last 30 days)',
+  surahsInProgress: 'Surahs in progress',
+  noData: 'No data',
+
+  // Misc
+  present: 'Present',
+  absent: 'Absent',
+  teacher: 'Teacher',
+  revision: 'Revision',
+  goBack: 'Go back',
+  notFound: 'Not found',
+  unsupportedRole: 'Unsupported role',
 };
 
 i18next.use(initReactI18next).init({
