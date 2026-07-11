@@ -11,6 +11,14 @@ android/app/build/
 .claude/
 .DS_Store
 
+# Server runtime output (user uploads + generated PDFs — never source)
+packages/server/uploads/
+packages/server/reports/
+packages/server/certificates/
+
+# Tooling scratch output
+graphify-out/
+
 # Ignore Flutter/Dart build and tool files
 .dart_tool/
 .flutter-plugins-dependencies
