@@ -38,7 +38,11 @@ describe('authorization matrix', () => {
       const allowed = isAllowed(spec, id);
       it(`${spec.method} ${spec.path} — ${id}: ${allowed ? 'passes authz' : 'rejected'}`, async () => {
         const method = spec.method.toLowerCase() as 'get' | 'post' | 'put' | 'patch' | 'delete';
-        let req = agent[method](urlFor(spec));
+        // Connection: close — one shared server, but a fresh socket per request.
+        // Keep-alive reuse intermittently cross-wired responses (phantom 404s
+        // for requests the server never logged); closing per request removes
+        // the desync while keeping the single-server setup described above.
+        let req = agent[method](urlFor(spec)).set('Connection', 'close');
         if (id !== 'anon') req = req.set('Authorization', `Bearer ${tokens[id as Role]}`);
         if (method !== 'get' && method !== 'delete') req = req.send({});
         const res = await req;
