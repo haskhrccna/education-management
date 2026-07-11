@@ -1,4 +1,5 @@
-import apiClient from './client';
+import { usersContracts, adminContracts } from '@quran-review/shared';
+import { contractClient, expectStatus } from './contract';
 
 export interface UserProfile {
   id: string;
@@ -13,22 +14,29 @@ export interface UserProfile {
 
 export const usersApi = {
   getProfile: async (): Promise<UserProfile> => {
-    const res = await apiClient.get('/users/profile');
-    return res.data;
+    // Pinned: GET /users/profile returns a RAW object (no success envelope).
+    const res = expectStatus(await contractClient.call(usersContracts.getProfile), 200);
+    return res.body as unknown as UserProfile;
   },
 
   listAll: async (): Promise<UserProfile[]> => {
-    const res = await apiClient.get('/admin/users', { params: { limit: 200 } });
-    return res.data.data ?? res.data;
+    const res = expectStatus(
+      await contractClient.call(adminContracts.listUsers, { query: { limit: 200 } as never }),
+      200
+    );
+    return (res.body as unknown as { data: UserProfile[] }).data;
   },
 
   updateProfile: async (data: { firstName?: string; lastName?: string }) => {
-    const res = await apiClient.put('/users/profile', data);
-    return res.data;
+    const res = expectStatus(await contractClient.call(usersContracts.updateProfile, { body: data as never }), 200);
+    return res.body as unknown;
   },
 
   changePassword: async (currentPassword: string, newPassword: string) => {
-    const res = await apiClient.put('/users/change-password', { currentPassword, newPassword });
-    return res.data;
+    const res = expectStatus(
+      await contractClient.call(usersContracts.changePassword, { body: { currentPassword, newPassword } as never }),
+      200
+    );
+    return res.body as unknown;
   },
 };

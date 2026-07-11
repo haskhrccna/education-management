@@ -1,4 +1,5 @@
-import apiClient from './client';
+import { communicationContracts } from '@quran-review/shared';
+import { contractClient, expectStatus } from './contract';
 
 export interface Notification {
   id: string;
@@ -24,19 +25,27 @@ export interface PaginatedNotifications {
 
 export const notificationsApi = {
   list: async (page = 1, limit = 20): Promise<PaginatedNotifications> => {
-    const res = await apiClient.get('/notifications', { params: { page, limit } });
-    return res.data;
+    const res = expectStatus(
+      await contractClient.call(communicationContracts.listNotifications, {
+        query: { page, limit } as never,
+      }),
+      200
+    );
+    return res.body as unknown as PaginatedNotifications;
   },
   unreadCount: async (): Promise<{ unread: number }> => {
-    const res = await apiClient.get('/notifications/unread-count');
-    return res.data?.data ?? { unread: 0 };
+    const res = expectStatus(await contractClient.call(communicationContracts.unreadNotificationCount), 200);
+    return (res.body as unknown as { data: { unread: number } }).data;
   },
   markAllRead: async (): Promise<{ markedRead: number }> => {
-    const res = await apiClient.post('/notifications/read-all');
-    return res.data?.data ?? { markedRead: 0 };
+    const res = expectStatus(await contractClient.call(communicationContracts.markAllNotificationsRead), 200);
+    return (res.body as unknown as { data: { markedRead: number } }).data;
   },
   markRead: async (id: string): Promise<Notification> => {
-    const res = await apiClient.patch(`/notifications/${id}/read`);
-    return res.data?.data ?? res.data;
+    const res = expectStatus(
+      await contractClient.call(communicationContracts.markNotificationRead, { params: { id } }),
+      200
+    );
+    return (res.body as unknown as { data: Notification }).data;
   },
 };

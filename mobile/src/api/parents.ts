@@ -1,4 +1,5 @@
-import apiClient from './client';
+import { progressContracts, parentLinksContracts } from '@quran-review/shared';
+import { contractClient, expectStatus } from './contract';
 
 export type ParentLinkStatus = 'PENDING' | 'APPROVED' | 'DENIED';
 
@@ -68,34 +69,57 @@ export interface StudentSearchResult {
 
 export const parentsApi = {
   listLinks: async (): Promise<ParentLink[]> => {
-    const res = await apiClient.get('/parents/links');
-    return res.data?.data ?? [];
+    const res = expectStatus(await contractClient.call(progressContracts.listParentLinks), 200);
+    return (res.body as unknown as { data: ParentLink[] }).data;
   },
   requestLink: async (studentId: string, reason?: string): Promise<ParentLink> => {
-    const res = await apiClient.post('/parents/links', { studentId, reason });
-    return res.data?.data ?? res.data;
+    const res = expectStatus(
+      await contractClient.call(progressContracts.requestParentLink, { body: { studentId, reason } as never }),
+      201
+    );
+    return (res.body as unknown as { data: ParentLink }).data;
   },
   searchStudent: async (email: string): Promise<StudentSearchResult> => {
-    const res = await apiClient.get('/parents/student-search', { params: { email } });
-    return res.data?.data ?? res.data;
+    const res = expectStatus(
+      await contractClient.call(progressContracts.parentStudentSearch, { query: { email } as never }),
+      200
+    );
+    return (res.body as unknown as { data: StudentSearchResult }).data;
   },
   listChildren: async (): Promise<ChildSummary[]> => {
-    const res = await apiClient.get('/parents/children');
-    return res.data?.data ?? [];
+    const res = expectStatus(await contractClient.call(progressContracts.parentChildren), 200);
+    return (res.body as unknown as { data: ChildSummary[] }).data;
   },
   setDigestPreference: async (linkId: string, digestOptOut: boolean): Promise<{ digestOptOut: boolean }> => {
-    const res = await apiClient.patch(`/parent-links/${linkId}/digest-preference`, { digestOptOut });
-    return res.data;
+    const res = expectStatus(
+      await contractClient.call(parentLinksContracts.setDigestPreference, {
+        params: { id: linkId },
+        body: { digestOptOut } as never,
+      }),
+      200
+    );
+    // Fidelity: the axios version returned the whole response body.
+    return res.body as unknown as { digestOptOut: boolean };
   },
   decideConsent: async (
     linkId: string,
     granted: boolean
   ): Promise<{ guardianConsentStatus: GuardianConsentStatus }> => {
-    const res = await apiClient.patch(`/parent-links/${linkId}/consent`, { granted });
-    return res.data;
+    const res = expectStatus(
+      await contractClient.call(parentLinksContracts.decideConsent, {
+        params: { id: linkId },
+        body: { granted } as never,
+      }),
+      200
+    );
+    // Fidelity: the axios version returned the whole response body.
+    return res.body as unknown as { guardianConsentStatus: GuardianConsentStatus };
   },
   getChildDashboard: async (studentId: string): Promise<ChildDashboard> => {
-    const res = await apiClient.get(`/parents/children/${studentId}/dashboard`);
-    return res.data?.data ?? res.data;
+    const res = expectStatus(
+      await contractClient.call(progressContracts.childDashboard, { params: { studentId } }),
+      200
+    );
+    return (res.body as unknown as { data: ChildDashboard }).data;
   },
 };

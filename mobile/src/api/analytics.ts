@@ -1,4 +1,5 @@
-import apiClient from './client';
+import { progressContracts } from '@quran-review/shared';
+import { contractClient, expectStatus } from './contract';
 
 export interface SurahMissRate {
   surah: { id: number; number: number; nameAr: string; nameEn: string };
@@ -28,7 +29,7 @@ export interface AdminAnalytics {
 
 export const analyticsApi = {
   getAdminAnalytics: async (): Promise<AdminAnalytics> => {
-    const res = await apiClient.get('/analytics');
-    return res.data?.data ?? res.data;
+    const res = expectStatus(await contractClient.call(progressContracts.adminAnalytics), 200);
+    return (res.body as unknown as { data: AdminAnalytics }).data;
   },
 };

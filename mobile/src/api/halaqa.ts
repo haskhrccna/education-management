@@ -1,4 +1,5 @@
-import apiClient from './client';
+import { halaqaContracts } from '@quran-review/shared';
+import { contractClient, expectStatus } from './contract';
 
 export type HalaqaStatus = 'WAITING' | 'LIVE' | 'ENDED';
 
@@ -27,38 +28,49 @@ export interface HalaqaGroup {
 
 export const halaqaApi = {
   list: async (status?: HalaqaStatus): Promise<HalaqaRoom[]> => {
-    const res = await apiClient.get('/halaqa', { params: { status } });
-    return res.data?.data ?? res.data;
+    const res = expectStatus(
+      await contractClient.call(halaqaContracts.listRooms, {
+        query: status ? ({ status } as never) : undefined,
+      }),
+      200
+    );
+    return (res.body as unknown as { data: HalaqaRoom[] }).data;
   },
   create: async (title: string, groupId?: string): Promise<HalaqaRoom> => {
-    const res = await apiClient.post('/halaqa', { title, groupId });
-    return res.data?.data ?? res.data;
+    const res = expectStatus(
+      await contractClient.call(halaqaContracts.createRoom, { body: { title, groupId } as never }),
+      201
+    );
+    return (res.body as unknown as { data: HalaqaRoom }).data;
   },
   get: async (id: string): Promise<HalaqaRoom> => {
-    const res = await apiClient.get(`/halaqa/${id}`);
-    return res.data?.data ?? res.data;
+    const res = expectStatus(await contractClient.call(halaqaContracts.getRoom, { params: { id } }), 200);
+    return (res.body as unknown as { data: HalaqaRoom }).data;
   },
   start: async (id: string): Promise<HalaqaRoom> => {
-    const res = await apiClient.patch(`/halaqa/${id}/start`);
-    return res.data?.data ?? res.data;
+    const res = expectStatus(await contractClient.call(halaqaContracts.startRoom, { params: { id } }), 200);
+    return (res.body as unknown as { data: HalaqaRoom }).data;
   },
   end: async (id: string): Promise<HalaqaRoom> => {
-    const res = await apiClient.patch(`/halaqa/${id}/end`);
-    return res.data?.data ?? res.data;
+    const res = expectStatus(await contractClient.call(halaqaContracts.endRoom, { params: { id } }), 200);
+    return (res.body as unknown as { data: HalaqaRoom }).data;
   },
 };
 
 export const halaqaGroupsApi = {
   list: async (): Promise<HalaqaGroup[]> => {
-    const res = await apiClient.get('/halaqa/groups');
-    return res.data?.data ?? [];
+    const res = expectStatus(await contractClient.call(halaqaContracts.listGroups), 200);
+    return (res.body as unknown as { data: HalaqaGroup[] }).data;
   },
   create: async (title: string, attendanceThreshold: number): Promise<HalaqaGroup> => {
-    const res = await apiClient.post('/halaqa/groups', { title, attendanceThreshold });
-    return res.data.data;
+    const res = expectStatus(
+      await contractClient.call(halaqaContracts.createGroup, { body: { title, attendanceThreshold } as never }),
+      201
+    );
+    return (res.body as unknown as { data: HalaqaGroup }).data;
   },
   get: async (id: string): Promise<HalaqaGroup> => {
-    const res = await apiClient.get(`/halaqa/groups/${id}`);
-    return res.data.data;
+    const res = expectStatus(await contractClient.call(halaqaContracts.getGroup, { params: { id } }), 200);
+    return (res.body as unknown as { data: HalaqaGroup }).data;
   },
 };

@@ -1,4 +1,5 @@
-import apiClient from './client';
+import { milestonesContracts } from '@quran-review/shared';
+import { contractClient, expectStatus } from './contract';
 
 export type MilestoneTriggerType =
   'SURAH_COUNT' | 'REVISION_COUNT' | 'STREAK_LENGTH' | 'PLAN_COMPLETION' | 'IJAZAH_ISSUED' | 'HALAQA_ATTENDANCE_COUNT';
@@ -20,12 +21,17 @@ export const milestonesApi = {
     triggerType: MilestoneTriggerType,
     threshold: number
   ): Promise<MilestoneDefinition> => {
-    const res = await apiClient.post('/milestones', { name, description, iconKey, triggerType, threshold });
-    return res.data.data;
+    const res = expectStatus(
+      await contractClient.call(milestonesContracts.create, {
+        body: { name, description, iconKey, triggerType, threshold } as never,
+      }),
+      201
+    );
+    return (res.body as unknown as { data: MilestoneDefinition }).data;
   },
 
   list: async (): Promise<MilestoneDefinition[]> => {
-    const res = await apiClient.get('/milestones');
-    return res.data?.data ?? [];
+    const res = expectStatus(await contractClient.call(milestonesContracts.list), 200);
+    return (res.body as unknown as { data: MilestoneDefinition[] }).data;
   },
 };

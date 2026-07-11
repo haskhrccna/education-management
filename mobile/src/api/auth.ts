@@ -1,3 +1,7 @@
+// HOLDOUT (M10–M12 typed-client adoption): auth stays on axios. The auth store
+// owns the interceptor installation and the credential lifecycle around these
+// calls; migrating login/refresh/logout to the contract client is an M13-scope
+// decision to make together with retiring the axios client entirely.
 import apiClient from './client';
 
 export interface AuthUser {
