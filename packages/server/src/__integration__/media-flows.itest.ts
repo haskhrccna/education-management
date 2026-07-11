@@ -288,28 +288,3 @@ describe('exports (CSV)', () => {
     expect(lines.length).toBeGreaterThan(1);
   });
 });
-
-describe('legacy /api/* mirrors', () => {
-  it('GET /api/recordings behaves identically to /api/v1/recordings', async () => {
-    const student = await createUser({ role: Role.STUDENT });
-    await uploadRecording(student);
-    const res = await agent.get('/api/recordings').set('Authorization', `Bearer ${student.token}`);
-    expect(res.status).toBe(200);
-    expect(res.body).toHaveLength(1);
-  });
-
-  it('GET /api/files/recordings/:id?token= → 200 attachment', async () => {
-    const student = await createUser({ role: Role.STUDENT });
-    const rec = await uploadRecording(student);
-    const res = await agent.get(`/api/files/recordings/${rec.id}?token=${student.token}`);
-    expect(res.status).toBe(200);
-    expect(res.headers['content-disposition']).toMatch(/^attachment; filename=/);
-  });
-
-  it('GET /api/exports/grades → 200 CSV', async () => {
-    const teacher = await createUser({ role: Role.TEACHER });
-    const res = await agent.get('/api/exports/grades').set('Authorization', `Bearer ${teacher.token}`);
-    expect(res.status).toBe(200);
-    expect(res.headers['content-disposition']).toBe('attachment; filename="grades.csv"');
-  });
-});

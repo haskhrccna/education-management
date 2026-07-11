@@ -108,13 +108,6 @@ describe('grades', () => {
     expect(byAdmin.status).toBe(200);
     expect(byAdmin.body).toHaveLength(1);
   });
-
-  it('legacy mirror GET /api/grades behaves identically', async () => {
-    const student = await createUser({ role: Role.STUDENT });
-    const res = await request(app).get('/api/grades').set('Authorization', `Bearer ${student.token}`);
-    expect(res.status).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
-  });
 });
 
 describe('surahs', () => {

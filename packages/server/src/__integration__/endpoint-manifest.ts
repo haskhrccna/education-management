@@ -162,22 +162,5 @@ const topLevel: EndpointSpec[] = [
   { method: 'GET', path: '/metrics', access: ['ADMIN'] },
 ];
 
-/** Legacy /api/* mounts in app.ts that mirror /api/v1/* with identical middleware. */
-const LEGACY_PREFIXES = [
-  '/api/v1/auth',
-  '/api/v1/users',
-  '/api/v1/appointments',
-  '/api/v1/grades',
-  '/api/v1/recordings',
-  '/api/v1/reports',
-  '/api/v1/admin',
-  '/api/v1/messages',
-  '/api/v1/files',
-  '/api/v1/exports',
-];
-
-const legacy: EndpointSpec[] = v1
-  .filter((e) => LEGACY_PREFIXES.some((p) => e.path === p || e.path.startsWith(`${p}/`)))
-  .map((e) => ({ ...e, path: e.path.replace('/api/v1/', '/api/') }));
-
-export const endpointManifest: EndpointSpec[] = [...v1, ...topLevel, ...legacy];
+// Legacy /api/* mirrors were retired in M13 — mobile is fully on /api/v1.
+export const endpointManifest: EndpointSpec[] = [...v1, ...topLevel];

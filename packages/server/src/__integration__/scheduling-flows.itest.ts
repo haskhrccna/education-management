@@ -338,12 +338,3 @@ describe('teacher-change lifecycle', () => {
     expect(again.body.error).toBe('Request already decided');
   });
 });
-
-describe('legacy mirror /api/appointments', () => {
-  it('GET /api/appointments behaves identically', async () => {
-    const student = await createUser({ role: Role.STUDENT });
-    const res = await request(app).get('/api/appointments').set('Authorization', `Bearer ${student.token}`);
-    expect(res.status).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
-  });
-});

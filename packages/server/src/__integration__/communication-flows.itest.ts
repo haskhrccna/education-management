@@ -156,13 +156,6 @@ describe('messages — POST + mark read', () => {
     expect(ghost.status).toBe(404);
     expect(ghost.body).toMatchObject({ success: false, error: 'Message not found' });
   });
-
-  it('legacy mirror GET /api/messages behaves identically', async () => {
-    const student = await createUser({ role: Role.STUDENT });
-    const res = await agent.get('/api/messages').set('Authorization', `Bearer ${student.token}`);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual([]);
-  });
 });
 
 describe('notifications', () => {

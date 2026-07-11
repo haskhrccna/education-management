@@ -62,30 +62,8 @@ export function discoverEndpoints(): DiscoveredEndpoint[] {
 
   // Contract-mounted routes are invisible to static source parsing —
   // union the registry (dedup below absorbs endpoints that exist in both).
-  // Legacy /api/* mounts mirror /api/v1/* (same manifest convention). If a
-  // mirror mount is ever removed from app.ts, the authz-matrix itest hits a
-  // live 404 and fails — this map cannot silently drift.
-  const CONTRACT_MIRRORS: Record<string, string> = {
-    '/api/v1/auth': '/api/auth',
-    '/api/v1/users': '/api/users',
-    '/api/v1/admin': '/api/admin',
-    '/api/v1/appointments': '/api/appointments',
-    '/api/v1/grades': '/api/grades',
-    '/api/v1/messages': '/api/messages',
-    '/api/v1/recordings': '/api/recordings',
-    '/api/v1/reports': '/api/reports',
-    '/api/v1/files': '/api/files',
-    '/api/v1/exports': '/api/exports',
-  };
   for (const c of contractRegistry) {
     endpoints.push({ method: c.method, path: c.path });
-    for (const [canonical, mirror] of Object.entries(CONTRACT_MIRRORS)) {
-      // Match the manifest's LEGACY_PREFIXES semantics: the prefix itself
-      // (root-level GET/POST) mirrors too, not only subpaths.
-      if (c.path === canonical || c.path.startsWith(`${canonical}/`)) {
-        endpoints.push({ method: c.method, path: mirror + c.path.slice(canonical.length) });
-      }
-    }
   }
 
   // Dedup (docs router is mounted in both branches of an env conditional).

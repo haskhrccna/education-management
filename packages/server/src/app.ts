@@ -123,19 +123,6 @@ app.use('/api/v1/account', authenticate, standardLimiter, accountRouter);
 app.use('/api/v1/verify', standardLimiter, verifyRoutes);
 app.use('/api/v1/halaqa', authenticate, standardLimiter, halaqaRouter);
 
-// Legacy redirects (optional - remove after mobile update)
-// Mirroring exact same middleware stack as v1 for consistent protection
-app.use('/api/auth', authLimiter, authRouter);
-app.use('/api/users', authenticate, standardLimiter, usersRouter);
-app.use('/api/appointments', authenticate, standardLimiter, appointmentsRouter);
-app.use('/api/grades', authenticate, standardLimiter, gradesRouter);
-app.use('/api/recordings', authenticate, uploadLimiter, recordingsRouter);
-app.use('/api/reports', authenticate, standardLimiter, reportsRouter);
-app.use('/api/admin', authenticate, adminLimiter, adminRouter);
-app.use('/api/messages', authenticate, standardLimiter, messagesRouter);
-app.use('/api/files', standardLimiter, filesRouter); // fileAuthenticate applied per-contract (authVia)
-app.use('/api/exports', authenticate, standardLimiter, exportsRouter);
-
 // 404 handler
 app.use((_req, res) => {
   res.status(404).json(errorResponse('Not found'));

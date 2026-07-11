@@ -260,13 +260,3 @@ describe('POST /api/v1/admin/bulk/*', () => {
     ]);
   });
 });
-
-describe('legacy mirror /api/admin', () => {
-  it('GET /api/admin/users behaves identically', async () => {
-    const admin = await createUser({ role: Role.ADMIN });
-    const res = await request(app).get('/api/admin/users').set('Authorization', `Bearer ${admin.token}`);
-    expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('data');
-    expect(res.body).toHaveProperty('meta');
-  });
-});

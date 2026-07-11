@@ -169,12 +169,3 @@ describe('forgot-password / reset-password', () => {
     expect(res.body.error).toBe('Invalid or expired reset token');
   });
 });
-
-describe('legacy mirror /api/auth', () => {
-  it('POST /api/auth/login behaves identically to /api/v1/auth/login', async () => {
-    const u = await createUser({ role: Role.STUDENT, password: PW });
-    const res = await request(app).post('/api/auth/login').send({ email: u.email, password: PW });
-    expect(res.status).toBe(200);
-    expect(res.body.user.role).toBe('student');
-  });
-});

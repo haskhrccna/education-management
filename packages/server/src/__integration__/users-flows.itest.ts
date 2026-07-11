@@ -99,12 +99,3 @@ describe('POST /api/v1/users/device-token', () => {
     expect(res.body.error).toMatch(/^Validation failed: deviceToken:/);
   });
 });
-
-describe('legacy mirror /api/users', () => {
-  it('GET /api/users/profile behaves identically', async () => {
-    const u = await createUser({ role: Role.STUDENT });
-    const res = await request(app).get('/api/users/profile').set('Authorization', `Bearer ${u.token}`);
-    expect(res.status).toBe(200);
-    expect(res.body.role).toBe('student');
-  });
-});
