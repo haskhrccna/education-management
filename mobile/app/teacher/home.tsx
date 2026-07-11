@@ -114,10 +114,17 @@ export default function TeacherHomeScreen() {
     refreshAll();
   }, [refreshAll]);
 
+  // `students` gets a fresh array reference on every render (it is memoized off
+  // `appointments`, which the query hook returns anew while loading). Keying the
+  // effect on the array reference looped: setState -> render -> new array ->
+  // effect -> setState. Depend on a value-stable key (the joined ids) instead,
+  // and never replace an already-empty map with a new {} object.
+  const studentIds = students.map((student) => student.id).filter(Boolean);
+  const studentIdsKey = studentIds.join(',');
+
   useEffect(() => {
-    const studentIds = students.map((student) => student.id).filter(Boolean);
     if (studentIds.length === 0) {
-      setProgressByStudent({});
+      setProgressByStudent((prev) => (Object.keys(prev).length === 0 ? prev : {}));
       return;
     }
 
@@ -138,13 +145,15 @@ export default function TeacherHomeScreen() {
         );
       })
       .catch(() => {
-        if (mounted) setProgressByStudent({});
+        if (mounted) setProgressByStudent((prev) => (Object.keys(prev).length === 0 ? prev : {}));
       });
 
     return () => {
       mounted = false;
     };
-  }, [students, isAr]);
+    // studentIds is captured for the current key; re-run only when the id set or language changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studentIdsKey, isAr]);
 
   const handleLogout = async () => {
     await logout();

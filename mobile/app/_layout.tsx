@@ -97,19 +97,18 @@ export default function RootLayout() {
         <ThemeProvider value={darkMode ? DarkTheme : DefaultTheme}>
           <OfflineBanner />
           <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
+            <Stack.Screen name="(auth)/index" />
             <Stack.Screen name="notifications" />
             <Stack.Screen name="parent" />
             <Stack.Screen name="halaqa" />
             <Stack.Screen name="admin/analytics" />
             <Stack.Screen name="student/mushaf" />
-            <Stack.Screen name="student" />
             <Stack.Screen name="student/certificates" />
             <Stack.Screen name="student/gamification" />
-            <Stack.Screen name="register" />
-            <Stack.Screen name="first-login" />
-            <Stack.Screen name="pending-approval" />
-            <Stack.Screen name="forgot-password" />
+            <Stack.Screen name="(auth)/register" />
+            <Stack.Screen name="(auth)/first-login" />
+            <Stack.Screen name="(auth)/pending-approval" />
+            <Stack.Screen name="(auth)/forgot-password" />
 
             {/* Student */}
             <Stack.Screen name="student/home" />
