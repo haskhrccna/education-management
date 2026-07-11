@@ -6,6 +6,26 @@ export const logger = pino({
   level: config.env === 'production' ? 'info' : 'debug',
   transport: config.env === 'development' ? { target: 'pino-pretty', options: { colorize: true } } : undefined,
   base: { service: 'education-api' },
+  // Central safety net (M13 security review #6): even if a caller logs an object
+  // carrying a secret directly, pino masks it. The response sanitizer and audit
+  // middleware remain the primary redaction layers.
+  redact: {
+    paths: [
+      'password',
+      'passwordHash',
+      'token',
+      'refreshToken',
+      'tokenHash',
+      '*.password',
+      '*.passwordHash',
+      '*.token',
+      '*.refreshToken',
+      'details.passwordHash',
+      'req.headers.authorization',
+      'headers.authorization',
+    ],
+    censor: '[REDACTED]',
+  },
 });
 
 interface TrackedRequest extends Request {

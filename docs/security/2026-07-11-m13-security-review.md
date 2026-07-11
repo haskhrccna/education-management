@@ -9,11 +9,11 @@ Scope: the rebuilt server (`packages/server`) at the end of the M0–M13 strangl
 | # | Area | Finding | Severity | Status |
 |---|------|---------|----------|--------|
 | 1 | Logging | `requestLogger` logged `req.originalUrl` verbatim, so file-download JWTs (`?token=<JWT>`) were persisted to logs twice per request | **High** | **FIXED** — `redactUrl()` replaces token values with `[REDACTED]` (`lib/logger.ts`) |
-| 2 | Rate limiting | `passwordResetLimiter` keys by attacker-supplied `req.body.email`: one IP can spray resets across unlimited distinct emails (3/hour each) | Medium | Recommend compound key `ip + email` |
-| 3 | CORS | HTTP CORS `origin: '*'` with `credentials: true` and Socket.IO CORS `'*'` outside production | Medium | Dev-only by config; ensure `CLIENT_URL` is always set in staging/prod deploys (fails closed without it: `origin: false` for sockets, `config.clientUrl` for HTTP) |
-| 4 | Headers | helmet CSP + COEP enabled only in production | Low | Fine for a JSON API; revisit if HTML surfaces grow beyond `/api/v1/verify` |
-| 5 | Storage | `LocalStorageAdapter.getLocalPath` does `path.join(baseDir, key)` without a normalized prefix check. Keys are server-derived (`url.split('/').pop()` strips separators; upload filenames sanitized `[^a-zA-Z0-9._-]` + UUID prefix), so no current traversal path exists | Low (defense-in-depth) | Recommend `path.resolve` + `startsWith(baseDir)` guard inside the adapter |
-| 6 | Redaction | Sensitive-field redaction (e.g. `passwordHash: [REDACTED]` in audit details) is done at call sites rather than centrally | Low | Recommend a pino `redact` config as a single choke point |
+| 2 | Rate limiting | `passwordResetLimiter` keyed by attacker-supplied `req.body.email`: one IP could spray resets across unlimited distinct emails (3/hour each) | Medium | **FIXED** — keyed by IP (caps total reset requests per host); max raised 3→5 to preserve legit UX (`rate-limit.middleware.ts`) |
+| 3 | CORS | HTTP CORS `origin: '*'` with `credentials: true` and Socket.IO CORS `'*'` outside production | Medium | ACCEPTED (dev-only by config) — deployment note: ensure `CLIENT_URL` is set in staging/prod (fails closed without it: `origin: false` for sockets, `config.clientUrl` for HTTP) |
+| 4 | Headers | helmet CSP + COEP enabled only in production | Low | ACCEPTED — fine for a JSON API; revisit if HTML surfaces grow beyond `/api/v1/verify` |
+| 5 | Storage | `LocalStorageAdapter` joined `baseDir + key` without a normalized prefix check | Low (defense-in-depth) | **FIXED** — `resolveKey()` resolves against baseDir and throws `AppError(400)` on escape; routes all four methods through it (`lib/storage.ts`) |
+| 6 | Redaction | Sensitive-field redaction was done only at call sites (response sanitizer + audit middleware) | Low | **FIXED** — added a central pino `redact` config as a third safety net for anything logged directly (`lib/logger.ts`) |
 
 ## Checklist results (verified good)
 

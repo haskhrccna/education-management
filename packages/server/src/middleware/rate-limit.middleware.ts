@@ -47,12 +47,15 @@ export const broadcastLimiter = rateLimit({
   keyGenerator: (req) => req.userId ?? ipKeyGenerator(req.ip || 'unknown'),
 });
 
+// Key by IP (M13 security review #2). Keying by the attacker-supplied
+// req.body.email let a single host spray resets across unlimited distinct
+// emails (3/hour each); an IP key caps total reset requests per host.
 export const passwordResetLimiter = rateLimit({
   skip: () => process.env.NODE_ENV === 'test',
   windowMs: 60 * 60 * 1000,
-  max: process.env.NODE_ENV === 'development' ? 1000 : 3,
+  max: process.env.NODE_ENV === 'development' ? 1000 : 5,
   message: { error: 'Too many password reset attempts, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => req.body?.email || ipKeyGenerator(req.ip || 'unknown'),
+  keyGenerator: (req) => ipKeyGenerator(req.ip || 'unknown'),
 });

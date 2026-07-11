@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { logger } from './logger';
+import { AppError } from '../middleware/error.middleware';
 
 export interface StorageAdapter {
   save(sourcePath: string, key: string): Promise<string>;
@@ -16,6 +16,21 @@ class LocalStorageAdapter implements StorageAdapter {
     this.baseDir = baseDir;
   }
 
+  /**
+   * Defense-in-depth (M13 security review #5): resolve the key against baseDir
+   * and reject anything that escapes it. Keys are server-derived today
+   * (`url.split('/').pop()`, UUID-prefixed uploads), so this never rejects a
+   * legitimate key — it only forecloses a future traversal path.
+   */
+  private resolveKey(key: string): string {
+    const root = path.resolve(this.baseDir);
+    const resolved = path.resolve(root, key);
+    if (resolved !== root && !resolved.startsWith(root + path.sep)) {
+      throw new AppError(400, 'Invalid file path');
+    }
+    return resolved;
+  }
+
   async ensureDir() {
     try {
       await fs.access(this.baseDir);
@@ -26,13 +41,13 @@ class LocalStorageAdapter implements StorageAdapter {
 
   async save(sourcePath: string, key: string): Promise<string> {
     await this.ensureDir();
-    const destPath = path.join(this.baseDir, key);
+    const destPath = this.resolveKey(key);
     await fs.copyFile(sourcePath, destPath);
     return destPath;
   }
 
   async delete(key: string): Promise<void> {
-    const filePath = path.join(this.baseDir, key);
+    const filePath = this.resolveKey(key);
     try {
       await fs.unlink(filePath);
     } catch {
@@ -42,7 +57,7 @@ class LocalStorageAdapter implements StorageAdapter {
 
   async exists(key: string): Promise<boolean> {
     try {
-      await fs.access(path.join(this.baseDir, key));
+      await fs.access(this.resolveKey(key));
       return true;
     } catch {
       return false;
@@ -50,7 +65,7 @@ class LocalStorageAdapter implements StorageAdapter {
   }
 
   getLocalPath(key: string): string {
-    return path.join(this.baseDir, key);
+    return this.resolveKey(key);
   }
 }
 
