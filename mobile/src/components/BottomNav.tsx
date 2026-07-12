@@ -66,7 +66,7 @@ const STUDENT_TABS: Tab[] = [
     iconActive: 'person',
     labelAr: 'حسابي',
     labelEn: 'Profile',
-    route: '/student/teacher-change',
+    route: '/account',
   },
 ];
 
