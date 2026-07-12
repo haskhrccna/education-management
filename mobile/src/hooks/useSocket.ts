@@ -92,9 +92,17 @@ export function useSocket() {
 
     consumerCount += 1;
     let mounted = true;
-    ensureSocket(userId).then((connectedSocket) => {
-      if (mounted) setSocket(connectedSocket);
-    });
+    ensureSocket(userId)
+      .then((connectedSocket) => {
+        if (mounted) setSocket(connectedSocket);
+      })
+      .catch((err) => {
+        // Socket is best-effort (realtime is an enhancement, not required) —
+        // swallow connect failures so they never surface as an unhandled
+        // rejection. connect_error is already logged inside ensureSocket.
+        console.warn('[Socket] connect failed:', err instanceof Error ? err.message : err);
+        if (mounted) setSocket(null);
+      });
 
     return () => {
       mounted = false;
