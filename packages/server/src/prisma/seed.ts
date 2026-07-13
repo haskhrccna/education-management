@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { importAyahs } from './import-ayahs';
 
 const prisma = new PrismaClient();
 
@@ -320,6 +321,23 @@ async function main() {
   await prisma.surah.createMany({ data: SURAH_DATA, skipDuplicates: true });
   const surahs = await prisma.surah.findMany({ select: { id: true, number: true } });
   const surahMap = new Map(surahs.map((s) => [s.number, s.id]));
+
+  // Quran ayahs (verified KFGQPC Uthmani text) — required for the mushaf
+  // reader. Best-effort: needs network, so a fetch failure warns instead of
+  // aborting the seed. Skip entirely in offline/CI runs with SKIP_AYAH_IMPORT=1.
+  if (process.env.SKIP_AYAH_IMPORT === '1') {
+    console.log('  ⏭  Skipping ayah import (SKIP_AYAH_IMPORT=1).');
+  } else {
+    try {
+      const { inserted, total } = await importAyahs(prisma, { quiet: true });
+      console.log(`  📖 Ayahs imported: ${inserted} new, ${total} total.`);
+    } catch (err) {
+      console.warn(
+        `  ⚠️  Ayah import skipped (network unavailable?): ${err instanceof Error ? err.message : err}\n` +
+          `     Populate later with: npx ts-node --transpile-only src/prisma/import-ayahs.ts`
+      );
+    }
+  }
 
   // Quran-domain grades only. Surah ids are resolved from the surahMap.
   // One grade intentionally has surahId = null to exercise the

@@ -171,12 +171,15 @@ cd packages/server && npm test -- --testPathPattern=appointment.service
 
 ## Seeded Test Users
 
-| Email | Password | Role |
-|-------|----------|------|
-| admin@education.com | Admin1234! | ADMIN |
-| teacher@education.com | Teacher1234! | TEACHER |
-| sarah@education.com | Teacher1234! | TEACHER |
-| ali@education.com | Student1234! | STUDENT |
-| student@education.com | Student1234! | STUDENT |
+Emails use the `@quran-review.com` domain (see `packages/server/src/prisma/seed.ts`). Passwords are the defaults below, overridable via `SEED_ADMIN_PASSWORD` / `SEED_TEACHER_PASSWORD` / `SEED_STUDENT_PASSWORD`.
 
-`ali@education.com` has an ACCEPTED appointment with `sarah@education.com` — use this pair for teacher-student messaging tests. `student@education.com` (Omar) has an ACCEPTED appointment with `teacher@education.com` (Ahmad).
+| Email | Password | Role | Name | Status |
+|-------|----------|------|------|--------|
+| admin@quran-review.com | Admin1234! | ADMIN | Super Admin | ACTIVE |
+| teacher@quran-review.com | Teacher1234! | TEACHER | Ahmad Al-Rashid | ACTIVE |
+| sarah@quran-review.com | Teacher1234! | TEACHER | Sarah Khalil | ACTIVE |
+| ali@quran-review.com | Student1234! | STUDENT | Ali Ahmad | ACTIVE |
+| fatima@quran-review.com | Student1234! | STUDENT | Fatima Hassan | PENDING |
+| student@quran-review.com | Student1234! | STUDENT | Omar Demo | ACTIVE |
+
+`ali@quran-review.com` (Ali) has an **ACCEPTED** appointment with `teacher@quran-review.com` (Ahmad) — use this pair for teacher-student messaging and relationship-guard tests. `student@quran-review.com` (Omar) has a **REQUESTED** (not-yet-accepted) appointment with `sarah@quran-review.com` (Sarah). `fatima@quran-review.com` is a PENDING (unapproved) student.
