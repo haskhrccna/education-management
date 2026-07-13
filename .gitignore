@@ -16,6 +16,10 @@ packages/server/uploads/
 packages/server/reports/
 packages/server/certificates/
 
+# Mushaf page images (~51MB) — generated from a source PDF by
+# scripts/extract_mushaf_pages.py, served statically. Regenerate, don't commit.
+packages/server/mushaf-pages/
+
 # Tooling scratch output
 graphify-out/
 

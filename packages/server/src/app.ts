@@ -1,4 +1,5 @@
 import './types/express';
+import path from 'path';
 import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -88,6 +89,18 @@ app.use('/metrics', authenticate, authorize(UserRole.ADMIN), metricsRoutes);
 
 // Health check — first contract-driven route (M1 pilot)
 app.use('/api', healthRouter);
+
+// Mushaf page images — the real scanned Madani Mushaf (KFGQPC) shown by the
+// reader. Public (the Quran is not sensitive) and immutable, so cache hard.
+// Populate the directory with scripts/extract_mushaf_pages.py.
+app.use(
+  '/mushaf-pages',
+  express.static(path.join(__dirname, '..', 'mushaf-pages'), {
+    immutable: true,
+    maxAge: '365d',
+    index: false,
+  })
+);
 
 // API v1 Routes
 app.use('/api/v1/auth', authLimiter, authRouter);
