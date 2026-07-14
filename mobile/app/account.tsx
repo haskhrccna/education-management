@@ -17,6 +17,8 @@ export default function AccountPrivacyScreen() {
   const isAr = i18n.language === 'ar';
   const { colors: COLORS } = useTheme();
   const logout = useAuthStore((s) => s.logout);
+  const user = useAuthStore((s) => s.user);
+  const isStudent = user?.role === 'student';
 
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -82,6 +84,30 @@ export default function AccountPrivacyScreen() {
       </View>
 
       <View style={styles.body}>
+        {isStudent && (
+          <AppCard colors={COLORS} style={styles.card}>
+            <View style={styles.row}>
+              <Ionicons name="swap-horizontal-outline" size={22} color={COLORS.primary} />
+              <AppText variant="titleMedium" color={COLORS.textPrimary} style={{ marginStart: SPACING.sm }}>
+                {isAr ? 'طلب تغيير المعلم' : 'Request a teacher change'}
+              </AppText>
+            </View>
+            <AppText variant="bodySmall" color={COLORS.textSecondary} style={{ marginTop: SPACING.xs }}>
+              {isAr
+                ? 'أرسل طلباً إلى الإدارة لتغيير معلمك مع ذكر السبب. يتم تعيين المعلم الجديد بعد موافقة الإدارة.'
+                : 'Send a request to the admin to change your teacher, stating your reason. A new teacher is assigned after admin approval.'}
+            </AppText>
+            <TouchableOpacity
+              style={[styles.action, { backgroundColor: COLORS.primary }]}
+              onPress={() => router.push('/student/teacher-change')}
+            >
+              <AppText variant="bodyMedium" color="#FFFFFF">
+                {isAr ? 'طلب تغيير المعلم' : 'Request teacher change'}
+              </AppText>
+            </TouchableOpacity>
+          </AppCard>
+        )}
+
         <AppCard colors={COLORS} style={styles.card}>
           <View style={styles.row}>
             <Ionicons name="download-outline" size={22} color={COLORS.primary} />
