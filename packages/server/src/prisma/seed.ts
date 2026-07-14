@@ -317,6 +317,11 @@ async function main() {
     skipDuplicates: true,
   });
 
+  // Canonical assignment: a student has exactly one assigned teacher, changed
+  // only through the admin teacher-change flow. ali ↔ Ahmad matches the ACCEPTED
+  // appointment above; Omar (student3) is left unassigned to exercise that state.
+  await prisma.user.update({ where: { id: student1.id }, data: { assignedTeacherId: teacher1.id } });
+
   // Quran: Surahs must be seeded before grades so the FK is satisfied.
   await prisma.surah.createMany({ data: SURAH_DATA, skipDuplicates: true });
   const surahs = await prisma.surah.findMany({ select: { id: true, number: true } });

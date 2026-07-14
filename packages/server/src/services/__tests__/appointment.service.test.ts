@@ -13,7 +13,6 @@ jest.mock('../socket.service', () => ({
 
 import { prisma } from '../../prisma/client';
 import { createAppointment, manageAppointment } from '../appointment.service';
-import { AppError } from '../../middleware/error.middleware';
 import { notifyScheduleChange } from '../socket.service';
 
 const mockedPrisma = prisma as unknown as DeepMockProxy<PrismaClient>;
@@ -27,11 +26,12 @@ describe('appointment.service', () => {
   });
 
   describe('createAppointment', () => {
-    it('should create appointment when no conflicts exist', async () => {
-      mockedPrisma.user.findUnique.mockResolvedValue({
-        id: 'teacher-1',
-        role: 'TEACHER',
-      } as any);
+    // The student's assignment is checked first (user.findUnique #1), then the
+    // teacher's validity (user.findUnique #2), so tests mock both calls in order.
+    it('should create appointment with the assigned teacher when no conflicts exist', async () => {
+      mockedPrisma.user.findUnique
+        .mockResolvedValueOnce({ assignedTeacherId: 'teacher-1' } as any)
+        .mockResolvedValueOnce({ id: 'teacher-1', role: 'TEACHER' } as any);
       mockedPrisma.appointment.findMany.mockResolvedValue([]);
       mockedPrisma.appointment.create.mockResolvedValue({
         id: 'appt-1',
@@ -46,14 +46,26 @@ describe('appointment.service', () => {
       expect(notifyScheduleChange).toHaveBeenCalledWith('teacher-1', expect.objectContaining({ id: 'appt-1' }));
     });
 
-    it('should reject invalid teacher', async () => {
-      mockedPrisma.user.findUnique.mockResolvedValue(null);
+    it('should reject when the student has no assigned teacher', async () => {
+      mockedPrisma.user.findUnique.mockResolvedValueOnce({ assignedTeacherId: null } as any);
 
-      await expect(createAppointment('student-1', 'invalid', '2025-01-15', '10:00', 60)).rejects.toThrow(AppError);
+      await expect(createAppointment('student-1', 'teacher-1', '2025-01-15', '10:00', 60)).rejects.toThrow(
+        'assigned teacher'
+      );
+    });
+
+    it('should reject booking a teacher who is not the assigned teacher', async () => {
+      mockedPrisma.user.findUnique.mockResolvedValueOnce({ assignedTeacherId: 'teacher-1' } as any);
+
+      await expect(createAppointment('student-1', 'other-teacher', '2025-01-15', '10:00', 60)).rejects.toThrow(
+        'assigned teacher'
+      );
     });
 
     it('should reject overlapping appointments', async () => {
-      mockedPrisma.user.findUnique.mockResolvedValue({ id: 'teacher-1', role: 'TEACHER' } as any);
+      mockedPrisma.user.findUnique
+        .mockResolvedValueOnce({ assignedTeacherId: 'teacher-1' } as any)
+        .mockResolvedValueOnce({ id: 'teacher-1', role: 'TEACHER' } as any);
       mockedPrisma.appointment.findMany.mockResolvedValue([
         { id: 'existing', requestedTime: '09:30', durationMinutes: 60, status: 'ACCEPTED' },
       ] as any);
@@ -64,7 +76,9 @@ describe('appointment.service', () => {
     });
 
     it('should allow non-overlapping same-day appointments', async () => {
-      mockedPrisma.user.findUnique.mockResolvedValue({ id: 'teacher-1', role: 'TEACHER' } as any);
+      mockedPrisma.user.findUnique
+        .mockResolvedValueOnce({ assignedTeacherId: 'teacher-1' } as any)
+        .mockResolvedValueOnce({ id: 'teacher-1', role: 'TEACHER' } as any);
       mockedPrisma.appointment.findMany.mockResolvedValue([
         { id: 'existing', requestedTime: '09:00', durationMinutes: 60, status: 'ACCEPTED' },
       ] as any);

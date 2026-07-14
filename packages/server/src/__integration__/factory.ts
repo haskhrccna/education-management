@@ -23,6 +23,7 @@ export async function createUser(opts: {
   status?: UserStatus;
   email?: string;
   password?: string;
+  assignedTeacherId?: string;
 }): Promise<TestUser> {
   const email = opts.email ?? `itest-${opts.role.toLowerCase()}-${++seq}-${Date.now()}@itest.local`;
   const passwordHash = await bcrypt.hash(opts.password ?? 'Test1234!', 4); // low cost: test speed
@@ -34,6 +35,7 @@ export async function createUser(opts: {
       firstName: 'Itest',
       lastName: opts.role,
       status: opts.status ?? UserStatus.ACTIVE,
+      assignedTeacherId: opts.assignedTeacherId ?? null,
     },
   });
   return { id: user.id, email: user.email, role: user.role, token: tokenFor(user.id, user.role) };

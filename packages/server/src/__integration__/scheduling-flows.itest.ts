@@ -8,8 +8,10 @@ import { truncateAll, disconnect } from './db';
 beforeEach(truncateAll);
 afterAll(disconnect);
 
-/** Book via API: student requests, teacher accepts. Returns the appointment id. */
+/** Book via API: student requests, teacher accepts. Returns the appointment id.
+ * Students may only book their assigned teacher, so assign first. */
 async function bookAccepted(student: TestUser, teacher: TestUser, date = '2027-01-15', time = '10:00') {
+  await prisma.user.update({ where: { id: student.id }, data: { assignedTeacherId: teacher.id } });
   const created = await request(app)
     .post('/api/v1/appointments')
     .set('Authorization', `Bearer ${student.token}`)
@@ -25,8 +27,8 @@ async function bookAccepted(student: TestUser, teacher: TestUser, date = '2027-0
 
 describe('POST /api/v1/appointments', () => {
   it('201: raw appointment echo, REQUESTED, duration defaults to 60', async () => {
-    const student = await createUser({ role: Role.STUDENT });
     const teacher = await createUser({ role: Role.TEACHER });
+    const student = await createUser({ role: Role.STUDENT, assignedTeacherId: teacher.id });
     const res = await request(app)
       .post('/api/v1/appointments')
       .set('Authorization', `Bearer ${student.token}`)
@@ -42,21 +44,33 @@ describe('POST /api/v1/appointments', () => {
     expect(res.body.success).toBeUndefined(); // raw echo
   });
 
-  it('400 when target is not a teacher', async () => {
-    const student = await createUser({ role: Role.STUDENT });
-    const other = await createUser({ role: Role.STUDENT, email: 'other@example.com' });
+  it('403 when the student has no assigned teacher', async () => {
+    const teacher = await createUser({ role: Role.TEACHER });
+    const student = await createUser({ role: Role.STUDENT }); // unassigned
+    const res = await request(app)
+      .post('/api/v1/appointments')
+      .set('Authorization', `Bearer ${student.token}`)
+      .send({ teacherId: teacher.id, requestedDate: '2027-01-15', requestedTime: '10:00' });
+    expect(res.status).toBe(403);
+    expect(res.body.error).toBe('You do not have an assigned teacher yet. Please request one from your administrator.');
+  });
+
+  it('403 when booking a teacher who is not the assigned teacher', async () => {
+    const assigned = await createUser({ role: Role.TEACHER });
+    const other = await createUser({ role: Role.TEACHER, email: 'other-teacher@example.com' });
+    const student = await createUser({ role: Role.STUDENT, assignedTeacherId: assigned.id });
     const res = await request(app)
       .post('/api/v1/appointments')
       .set('Authorization', `Bearer ${student.token}`)
       .send({ teacherId: other.id, requestedDate: '2027-01-15', requestedTime: '10:00' });
-    expect(res.status).toBe(400);
-    expect(res.body.error).toBe('Invalid teacher');
+    expect(res.status).toBe(403);
+    expect(res.body.error).toBe('You can only book sessions with your assigned teacher.');
   });
 
   it('409 on duplicate slot and on overlapping teacher slot', async () => {
-    const s1 = await createUser({ role: Role.STUDENT });
-    const s2 = await createUser({ role: Role.STUDENT, email: 's2@example.com' });
     const teacher = await createUser({ role: Role.TEACHER });
+    const s1 = await createUser({ role: Role.STUDENT, assignedTeacherId: teacher.id });
+    const s2 = await createUser({ role: Role.STUDENT, email: 's2@example.com', assignedTeacherId: teacher.id });
     const first = await request(app)
       .post('/api/v1/appointments')
       .set('Authorization', `Bearer ${s1.token}`)
@@ -97,8 +111,8 @@ describe('GET /api/v1/appointments', () => {
 
 describe('PUT /api/v1/appointments/:id', () => {
   it("403 'You can only manage your own appointments' for another teacher; admin may manage any", async () => {
-    const student = await createUser({ role: Role.STUDENT });
     const teacher = await createUser({ role: Role.TEACHER });
+    const student = await createUser({ role: Role.STUDENT, assignedTeacherId: teacher.id });
     const stranger = await createUser({ role: Role.TEACHER, email: 'stranger@example.com' });
     const admin = await createUser({ role: Role.ADMIN });
     const created = await request(app)
@@ -327,8 +341,9 @@ describe('teacher-change lifecycle', () => {
     expect(denied.status).toBe(200);
     expect(denied.body.status).toBe('DENIED');
 
+    // DENY has no side effects: the existing assignment (from bookAccepted) is unchanged.
     const studentRow = await prisma.user.findUnique({ where: { id: student.id } });
-    expect(studentRow!.assignedTeacherId).toBeNull();
+    expect(studentRow!.assignedTeacherId).toBe(teacher.id);
 
     const again = await request(app)
       .patch(`/api/v1/teacher-changes/${reqRes.body.id}`)

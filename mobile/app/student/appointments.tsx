@@ -9,7 +9,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -20,17 +19,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { appointmentsApi, Appointment } from '@/src/api';
 import { useAuthStore } from '@/src/auth/store';
-import { useTeacherChange } from '@/src/hooks/useTeacherChange';
 import { useRecurringSlots } from '@/src/hooks/useRecurringSlots';
 import { AppCard, Avatar, EmptyState, IconButton, SectionHeader, StatusPill } from '@/src/components/design';
 import { BottomNav } from '@/src/components/BottomNav';
 import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
-
-interface TeacherOption {
-  id: string;
-  firstName: string;
-  lastName: string;
-}
 
 function fullName(person?: { firstName?: string; lastName?: string } | null): string {
   return `${person?.firstName ?? ''} ${person?.lastName ?? ''}`.trim() || '?';
@@ -105,16 +97,12 @@ export default function StudentAppointmentsScreen() {
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
-  const { colors: COLORS, darkMode } = useTheme();
+  const { colors: COLORS } = useTheme();
   const styles = createStyles(COLORS);
   const { user } = useAuthStore();
-  const { fetchTeachers } = useTeacherChange();
   const { slots: recurringSlots, createSlot, cancelSlot } = useRecurringSlots();
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [teachers, setTeachers] = useState<TeacherOption[]>([]);
-  const [selectedTeacherId, setSelectedTeacherId] = useState(user?.assignedTeacher?.id ?? '');
-  const [manualTeacherId, setManualTeacherId] = useState('');
   const [dateStr, setDateStr] = useState('');
   const [timeStr, setTimeStr] = useState('');
   const [duration, setDuration] = useState('30');
@@ -128,18 +116,12 @@ export default function StudentAppointmentsScreen() {
   const dateOptions = useMemo(() => buildDateOptions(120), []);
   const timeOptions = useMemo(() => buildTimeOptions(30), []);
 
-  const teacherOptions = useMemo(() => {
-    const map = new Map<string, TeacherOption>();
-    teachers.forEach((teacher) => map.set(teacher.id, teacher));
-    if (user?.assignedTeacher?.id) {
-      map.set(user.assignedTeacher.id, {
-        id: user.assignedTeacher.id,
-        firstName: user.assignedTeacher.firstName,
-        lastName: user.assignedTeacher.lastName,
-      });
-    }
-    return Array.from(map.values());
-  }, [teachers, user?.assignedTeacher]);
+  // A student has exactly one assigned teacher and books only with them. Prefer
+  // the profile's assignedTeacher, falling back to the teacher on an ACCEPTED
+  // appointment (same derivation as the student home screen). Changing teacher
+  // goes through the admin request flow (the teacher-change screen).
+  const assignedTeacher =
+    user?.assignedTeacher ?? appointments.find((a) => a.status?.toUpperCase() === 'ACCEPTED')?.teacher ?? null;
 
   const fetchAppointments = useCallback(async () => {
     setIsLoading(true);
@@ -152,36 +134,20 @@ export default function StudentAppointmentsScreen() {
     }
   }, [t]);
 
-  const loadTeachers = useCallback(async () => {
-    try {
-      const data = await fetchTeachers();
-      if (Array.isArray(data)) setTeachers(data);
-    } catch {
-      setTeachers([]);
-    }
-  }, [fetchTeachers]);
-
   useEffect(() => {
     fetchAppointments();
-    loadTeachers();
-  }, [fetchAppointments, loadTeachers]);
-
-  useEffect(() => {
-    if (!selectedTeacherId && teacherOptions[0]?.id) {
-      setSelectedTeacherId(teacherOptions[0].id);
-    }
-  }, [teacherOptions, selectedTeacherId]);
+  }, [fetchAppointments]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([fetchAppointments(), loadTeachers()]);
+    await fetchAppointments();
     setRefreshing(false);
   };
 
   const handleSubmit = async () => {
-    const teacherId = selectedTeacherId || manualTeacherId.trim();
+    const teacherId = assignedTeacher?.id;
     if (!teacherId) {
-      Alert.alert(t('error'), t('teacherIdRequired'));
+      Alert.alert(t('error'), isAr ? 'ليس لديك معلم معيّن بعد.' : 'You do not have an assigned teacher yet.');
       return;
     }
     if (!dateStr.trim() || !timeStr.trim()) {
@@ -210,7 +176,6 @@ export default function StudentAppointmentsScreen() {
       setDateStr('');
       setTimeStr('');
       setDuration('30');
-      setManualTeacherId('');
       setMakeRecurring(false);
       await fetchAppointments();
     } catch (err: any) {
@@ -299,39 +264,35 @@ export default function StudentAppointmentsScreen() {
           <AppCard colors={COLORS} style={styles.formCard}>
             <SectionHeader title={isAr ? 'تفاصيل الجلسة' : 'Session details'} colors={COLORS} />
 
-            <Text style={styles.label}>{t('selectTeacher')}</Text>
-            {teacherOptions.length > 0 ? (
-              <View style={styles.teacherGrid}>
-                {teacherOptions.map((teacher) => {
-                  const selected = selectedTeacherId === teacher.id;
-                  const name = fullName(teacher);
-                  return (
-                    <TouchableOpacity
-                      key={teacher.id}
-                      activeOpacity={0.85}
-                      onPress={() => setSelectedTeacherId(teacher.id)}
-                      style={[styles.teacherChip, selected && styles.teacherChipActive]}
-                    >
-                      <Avatar colors={COLORS} label={name} size={32} />
-                      <Text
-                        style={[styles.teacherChipText, selected && styles.teacherChipTextActive]}
-                        numberOfLines={1}
-                      >
-                        {name}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
+            <Text style={styles.label}>{isAr ? 'معلمك' : 'Your teacher'}</Text>
+            {assignedTeacher ? (
+              <View style={styles.assignedTeacherRow}>
+                <Avatar colors={COLORS} label={fullName(assignedTeacher)} size={36} />
+                <Text style={styles.assignedTeacherName} numberOfLines={1}>
+                  {fullName(assignedTeacher)}
+                </Text>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => router.push('/student/teacher-change')}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Text style={styles.changeTeacherLink}>{isAr ? 'طلب تغيير' : 'Request change'}</Text>
+                </TouchableOpacity>
               </View>
             ) : (
-              <TextInput
-                style={styles.input}
-                value={manualTeacherId}
-                onChangeText={setManualTeacherId}
-                placeholder={t('enterTeacherId')}
-                placeholderTextColor={COLORS.textMuted}
-                textAlign={isAr ? 'right' : 'left'}
-              />
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={styles.requestTeacherBox}
+                onPress={() => router.push('/student/teacher-change')}
+              >
+                <Ionicons name="person-add-outline" size={20} color={COLORS.primary} />
+                <Text style={styles.requestTeacherText}>
+                  {isAr
+                    ? 'ليس لديك معلم معيّن بعد. اطلب تعيين معلم من الإدارة.'
+                    : 'You have no assigned teacher yet. Request one from the admin.'}
+                </Text>
+                <Ionicons name={isAr ? 'chevron-back' : 'chevron-forward'} size={18} color={COLORS.primary} />
+              </TouchableOpacity>
             )}
 
             <View style={styles.inputRow}>
@@ -410,9 +371,9 @@ export default function StudentAppointmentsScreen() {
 
             <TouchableOpacity
               activeOpacity={0.85}
-              style={[styles.submitButton, submitting && styles.disabled]}
+              style={[styles.submitButton, (submitting || !assignedTeacher) && styles.disabled]}
               onPress={handleSubmit}
-              disabled={submitting}
+              disabled={submitting || !assignedTeacher}
             >
               {submitting ? (
                 <ActivityIndicator color="#FFFFFF" />
@@ -703,6 +664,46 @@ const createStyles = (COLORS: ThemeColors) =>
     },
     teacherChipTextActive: {
       color: COLORS.primary,
+    },
+    assignedTeacherRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.sm,
+      borderRadius: RADIUS.md,
+      backgroundColor: COLORS.primaryMuted,
+      borderWidth: 1,
+      borderColor: COLORS.primary,
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.sm,
+    },
+    assignedTeacherName: {
+      flex: 1,
+      color: COLORS.textPrimary,
+      fontSize: 14,
+      fontWeight: '800',
+    },
+    changeTeacherLink: {
+      color: COLORS.primary,
+      fontSize: 12,
+      fontWeight: '800',
+    },
+    requestTeacherBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.sm,
+      borderRadius: RADIUS.md,
+      borderWidth: 1,
+      borderColor: COLORS.primary,
+      borderStyle: 'dashed',
+      backgroundColor: COLORS.darkMode ? COLORS.surfaceAlt : '#F2F5F1',
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.md,
+    },
+    requestTeacherText: {
+      flex: 1,
+      color: COLORS.textPrimary,
+      fontSize: 13,
+      fontWeight: '700',
     },
     inputRow: {
       flexDirection: 'row',

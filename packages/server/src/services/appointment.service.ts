@@ -90,6 +90,20 @@ export const createAppointment = async (
 ) => {
   const appointment = await prisma.$transaction(
     async (tx) => {
+      // A student has exactly one assigned teacher and may only book with them.
+      // Changing teacher goes through the admin teacher-change request flow,
+      // which is what updates assignedTeacherId.
+      const student = await tx.user.findUnique({
+        where: { id: studentId },
+        select: { assignedTeacherId: true },
+      });
+      if (!student?.assignedTeacherId) {
+        throw new AppError(403, 'You do not have an assigned teacher yet. Please request one from your administrator.');
+      }
+      if (student.assignedTeacherId !== teacherId) {
+        throw new AppError(403, 'You can only book sessions with your assigned teacher.');
+      }
+
       const teacherUser = await tx.user.findUnique({ where: { id: teacherId } });
       if (!teacherUser || teacherUser.role !== 'TEACHER') throw new AppError(400, 'Invalid teacher');
 
