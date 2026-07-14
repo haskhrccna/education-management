@@ -2,6 +2,9 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  FlatList,
+  Modal,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -70,6 +73,22 @@ function formatDate(dateStr: string | undefined, lang: string): string {
   }
 }
 
+// Selectable dates for the picker: today plus the next `count` days, as
+// local `YYYY-MM-DD` values (local components avoid the UTC day-shift that
+// toISOString() introduces).
+function buildDateOptions(count = 120): string[] {
+  const out: string[] = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  for (let i = 0; i < count; i += 1) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    out.push(value);
+  }
+  return out;
+}
+
 export default function StudentAppointmentsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -93,6 +112,8 @@ export default function StudentAppointmentsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const dateOptions = useMemo(() => buildDateOptions(120), []);
 
   const teacherOptions = useMemo(() => {
     const map = new Map<string, TeacherOption>();
@@ -303,14 +324,18 @@ export default function StudentAppointmentsScreen() {
             <View style={styles.inputRow}>
               <View style={styles.inputHalf}>
                 <Text style={styles.label}>{t('date')}</Text>
-                <TextInput
-                  style={styles.input}
-                  value={dateStr}
-                  onChangeText={setDateStr}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor={COLORS.textMuted}
-                  textAlign="center"
-                />
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  style={[styles.input, styles.selectBox]}
+                  onPress={() => setShowDatePicker(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('date')}
+                >
+                  <Text style={[styles.selectText, !dateStr && styles.selectPlaceholder]} numberOfLines={1}>
+                    {dateStr ? formatDate(dateStr, i18n.language) : isAr ? 'اختر التاريخ' : 'Select date'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={18} color={COLORS.textMuted} />
+                </TouchableOpacity>
               </View>
               <View style={styles.inputHalf}>
                 <Text style={styles.label}>{t('time')}</Text>
@@ -444,6 +469,53 @@ export default function StudentAppointmentsScreen() {
           </>
         )}
       </ScrollView>
+
+      <Modal visible={showDatePicker} transparent animationType="slide" onRequestClose={() => setShowDatePicker(false)}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setShowDatePicker(false)}>
+          <Pressable style={styles.modalSheet} onPress={() => {}}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{isAr ? 'اختر التاريخ' : 'Select date'}</Text>
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(false)}
+                accessibilityRole="button"
+                accessibilityLabel={t('close')}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
+                <Ionicons name="close" size={22} color={COLORS.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={dateOptions}
+              keyExtractor={(value) => value}
+              style={styles.dateList}
+              initialNumToRender={14}
+              renderItem={({ item }) => {
+                const selected = item === dateStr;
+                return (
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() => {
+                      setDateStr(item);
+                      setShowDatePicker(false);
+                    }}
+                    style={[
+                      styles.dateRow,
+                      { flexDirection: isAr ? 'row-reverse' : 'row' },
+                      selected && styles.dateRowActive,
+                    ]}
+                  >
+                    <Text style={[styles.dateRowText, selected && styles.dateRowTextActive]}>
+                      {formatDate(item, i18n.language)}
+                    </Text>
+                    {selected ? <Ionicons name="checkmark" size={18} color={COLORS.primary} /> : null}
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       <BottomNav role="student" active="sessions" />
     </View>
   );
@@ -589,6 +661,69 @@ const createStyles = (COLORS: ThemeColors) =>
       paddingHorizontal: SPACING.md,
       fontSize: 14,
       fontWeight: '700',
+    },
+    selectBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: SPACING.sm,
+    },
+    selectText: {
+      flex: 1,
+      color: COLORS.textPrimary,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    selectPlaceholder: {
+      color: COLORS.textMuted,
+    },
+    modalBackdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.45)',
+      justifyContent: 'flex-end',
+    },
+    modalSheet: {
+      backgroundColor: COLORS.surface,
+      borderTopLeftRadius: RADIUS['2xl'],
+      borderTopRightRadius: RADIUS['2xl'],
+      paddingBottom: SPACING.xl,
+      maxHeight: '72%',
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.md,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: COLORS.divider,
+    },
+    modalTitle: {
+      color: COLORS.textPrimary,
+      fontSize: 16,
+      fontWeight: '800',
+    },
+    dateList: {
+      paddingHorizontal: SPACING.lg,
+    },
+    dateRow: {
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: SPACING.md,
+      paddingHorizontal: SPACING.md,
+      borderRadius: RADIUS.md,
+      marginTop: SPACING.xs,
+    },
+    dateRowActive: {
+      backgroundColor: COLORS.primaryMuted,
+    },
+    dateRowText: {
+      color: COLORS.textPrimary,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    dateRowTextActive: {
+      color: COLORS.primary,
     },
     durationRow: {
       flexDirection: 'row',
