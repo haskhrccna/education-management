@@ -89,6 +89,17 @@ function buildDateOptions(count = 120): string[] {
   return out;
 }
 
+// Selectable start times across the day as `HH:MM` (24-hour), in fixed steps.
+function buildTimeOptions(stepMinutes = 30): string[] {
+  const out: string[] = [];
+  for (let m = 0; m < 24 * 60; m += stepMinutes) {
+    const h = Math.floor(m / 60);
+    const min = m % 60;
+    out.push(`${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`);
+  }
+  return out;
+}
+
 export default function StudentAppointmentsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -113,7 +124,9 @@ export default function StudentAppointmentsScreen() {
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const dateOptions = useMemo(() => buildDateOptions(120), []);
+  const timeOptions = useMemo(() => buildTimeOptions(30), []);
 
   const teacherOptions = useMemo(() => {
     const map = new Map<string, TeacherOption>();
@@ -339,14 +352,18 @@ export default function StudentAppointmentsScreen() {
               </View>
               <View style={styles.inputHalf}>
                 <Text style={styles.label}>{t('time')}</Text>
-                <TextInput
-                  style={styles.input}
-                  value={timeStr}
-                  onChangeText={setTimeStr}
-                  placeholder="HH:MM"
-                  placeholderTextColor={COLORS.textMuted}
-                  textAlign="center"
-                />
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  style={[styles.input, styles.selectBox]}
+                  onPress={() => setShowTimePicker(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('time')}
+                >
+                  <Text style={[styles.selectText, !timeStr && styles.selectPlaceholder]} numberOfLines={1}>
+                    {timeStr ? timeStr : isAr ? 'اختر الوقت' : 'Select time'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={18} color={COLORS.textMuted} />
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -507,6 +524,50 @@ export default function StudentAppointmentsScreen() {
                     <Text style={[styles.dateRowText, selected && styles.dateRowTextActive]}>
                       {formatDate(item, i18n.language)}
                     </Text>
+                    {selected ? <Ionicons name="checkmark" size={18} color={COLORS.primary} /> : null}
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal visible={showTimePicker} transparent animationType="slide" onRequestClose={() => setShowTimePicker(false)}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setShowTimePicker(false)}>
+          <Pressable style={styles.modalSheet} onPress={() => {}}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{isAr ? 'اختر الوقت' : 'Select time'}</Text>
+              <TouchableOpacity
+                onPress={() => setShowTimePicker(false)}
+                accessibilityRole="button"
+                accessibilityLabel={t('close')}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
+                <Ionicons name="close" size={22} color={COLORS.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={timeOptions}
+              keyExtractor={(value) => value}
+              style={styles.dateList}
+              initialNumToRender={16}
+              renderItem={({ item }) => {
+                const selected = item === timeStr;
+                return (
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() => {
+                      setTimeStr(item);
+                      setShowTimePicker(false);
+                    }}
+                    style={[
+                      styles.dateRow,
+                      { flexDirection: isAr ? 'row-reverse' : 'row' },
+                      selected && styles.dateRowActive,
+                    ]}
+                  >
+                    <Text style={[styles.dateRowText, selected && styles.dateRowTextActive]}>{item}</Text>
                     {selected ? <Ionicons name="checkmark" size={18} color={COLORS.primary} /> : null}
                   </TouchableOpacity>
                 );
