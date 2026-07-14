@@ -2,14 +2,15 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
+  Modal,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   useWindowDimensions,
   View,
+  ViewToken,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -43,12 +44,13 @@ export default function MushafScreen() {
   const { t } = useTranslation();
   const isRTL = useIsRTL();
   const { colors: COLORS } = useTheme();
-  const { width: W } = useWindowDimensions();
+  const { width: W, height: H } = useWindowDimensions();
 
   const listRef = useRef<FlatList<number>>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [bodyHeight, setBodyHeight] = useState(0);
   const [juz, setJuz] = useState<number | null>(null);
+  const [zoomPage, setZoomPage] = useState<number | null>(null);
 
   // Juz label for the toolbar — best-effort, never blocks the image.
   React.useEffect(() => {
@@ -72,41 +74,35 @@ export default function MushafScreen() {
     listRef.current?.scrollToIndex({ index: clamped - 1, animated: true });
   }, []);
 
-  const onMomentumEnd = useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (W === 0) return;
-      const index = Math.round(e.nativeEvent.contentOffset.x / W);
-      const page = index + 1;
-      setCurrentPage((prev) => (prev === page ? prev : page));
-    },
-    [W]
-  );
+  // Track the visible page by index — robust to LTR/RTL scroll mirroring, unlike
+  // manual contentOffset math. Kept in a ref: RN forbids changing these on the fly.
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 60 }).current;
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    const first = viewableItems[0];
+    if (first?.index != null) setCurrentPage(first.index + 1);
+  }).current;
 
   const getItemLayout = useCallback((_: unknown, index: number) => ({ length: W, offset: W * index, index }), [W]);
 
   const renderPage = useCallback(
     ({ item }: { item: number }) => (
-      <ScrollView
-        style={{ width: W }}
-        contentContainerStyle={styles.zoomContent}
-        maximumZoomScale={4}
-        minimumZoomScale={1}
-        bouncesZoom
-        centerContent
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
+      <Pressable
+        onPress={() => setZoomPage(item)}
+        accessibilityRole="imagebutton"
+        accessibilityLabel={`${t('pageNumber')} ${item}`}
+        style={{ width: W, height: bodyHeight, alignItems: 'center', justifyContent: 'center' }}
       >
         <Image
           source={{ uri: pageUri(item) }}
           style={{ width: W, height: bodyHeight || undefined, flex: bodyHeight ? undefined : 1 }}
           contentFit="contain"
           cachePolicy="disk"
-          transition={120}
+          transition={100}
           recyclingKey={String(item)}
         />
-      </ScrollView>
+      </Pressable>
     ),
-    [W, bodyHeight]
+    [W, bodyHeight, t]
   );
 
   // Prev/next respect reading direction: in RTL "next" advances the page number.
@@ -142,7 +138,7 @@ export default function MushafScreen() {
           setBodyHeight((prev) => (prev === h ? prev : h));
         }}
       >
-        {W > 0 && (
+        {W > 0 && bodyHeight > 0 && (
           <FlatList
             ref={listRef}
             data={PAGES}
@@ -153,11 +149,11 @@ export default function MushafScreen() {
             showsHorizontalScrollIndicator={false}
             initialScrollIndex={initialIndex}
             getItemLayout={getItemLayout}
-            onMomentumScrollEnd={onMomentumEnd}
-            initialNumToRender={1}
-            maxToRenderPerBatch={2}
-            windowSize={3}
-            removeClippedSubviews
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig}
+            initialNumToRender={2}
+            maxToRenderPerBatch={3}
+            windowSize={5}
             ListEmptyComponent={<ActivityIndicator color={COLORS.primary} style={{ marginTop: SPACING.xl }} />}
           />
         )}
@@ -197,6 +193,40 @@ export default function MushafScreen() {
           <Ionicons name={nextChevron} size={28} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
+
+      {/* Tap-to-zoom: a standalone zoomable image (no paging to fight the pinch). */}
+      <Modal visible={zoomPage != null} transparent={false} onRequestClose={() => setZoomPage(null)}>
+        <View style={styles.zoomModal}>
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ width: W, height: H }}
+            maximumZoomScale={5}
+            minimumZoomScale={1}
+            bouncesZoom
+            centerContent
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+          >
+            {zoomPage != null && (
+              <Image
+                source={{ uri: pageUri(zoomPage) }}
+                style={{ width: W, height: H }}
+                contentFit="contain"
+                cachePolicy="disk"
+              />
+            )}
+          </ScrollView>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t('close')}
+            onPress={() => setZoomPage(null)}
+            style={styles.zoomClose}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <Ionicons name="close" size={26} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -213,7 +243,6 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: RADIUS.lg,
   },
   body: { flex: 1 },
-  zoomContent: { flexGrow: 1, justifyContent: 'center' },
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -221,5 +250,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  zoomModal: { flex: 1, backgroundColor: '#000000' },
+  zoomClose: {
+    position: 'absolute',
+    top: 44,
+    right: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
