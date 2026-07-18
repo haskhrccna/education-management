@@ -28,7 +28,7 @@ npm test                             # jest
 npm test -- --watch                  # watch mode
 npm test -- --testPathPattern=auth   # run a single test file
 npm run build                        # tsc
-npx prisma migrate dev               # run migrations
+npx prisma migrate dev               # run migrations (never db push — verify ledger with scripts/verify-migrations.sh)
 npx prisma db seed                   # seed test users
 
 # Mobile (mobile/)

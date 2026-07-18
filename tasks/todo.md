@@ -316,4 +316,33 @@ Final commit: `ae53ef9`.
 - Database: `quran_review` on PostgreSQL localhost:5432.
 - Env files created at `packages/server/.env` and repo root `.env`.
 - Seed uses dedicated `tsconfig.seed.json` with relaxed compiler flags.
-- Migration ledger repaired for idempotent SQL on fresh databases.
+- Migration ledger baseline-repaired (F4a, 2026-07-18): `20260606120000_baseline_db_push_repair` creates the six db-push-only tables; `20260716120000_capture_db_push_drift` captures column/index/FK drift. Fresh `migrate deploy` builds the full schema (proof: `scripts/verify-migrations.sh`; itest globalSetup now uses `migrate deploy`, never `db push`).
+
+---
+
+# 2026-07-16 — Full 10× Roadmap Implementation Plan (approved → execute)
+
+**Plan file:** `docs/superpowers/plans/2026-07-16-10x-roadmap-implementation.md`  
+**Roadmap review:** `docs/10x-roadmap-independent-review-2026-07-16.md`  
+**Goal:** move the platform from a management/booking tool to the student's daily hifz instrument.
+
+## Immediate next tasks
+
+- [ ] F4a — Repair `surahs` baseline migration so `prisma migrate reset --force` works on a fresh DB.
+- [ ] F4b — Mushaf asset pipeline: documented one-command populate + production fail-loud guard.
+- [ ] F1 — Page-level memorization on the real Mushaf (schema + contracts + reader UI + progress surfaces).
+
+## Horizon schedule
+
+1. **H1 — Hifz Engine:** F4a → F4b → F1 → F2 → F3 (~6.5 days)
+2. **H2 — Activation & Teacher Leverage:** F5 → F6 → F7 (~5 days)
+3. **H3 — Acquisition & Academy-Readiness:** F8 → F9 → F10 → F11 (~3.5 days)
+
+## Cross-cutting gates (every branch)
+
+- Server integration + unit tests green.
+- Mobile `npx tsc --noEmit` + `npm run check-i18n` clean.
+- New endpoints added to authz matrix.
+- `security-reviewer` agent sign-off on auth/public/admin/offline surfaces.
+- ar + en i18n for every new string.
+- No completion without proof (tests, logs, or diffs).

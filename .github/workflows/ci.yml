@@ -51,6 +51,11 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/education_test?schema=public
 
+      - name: Migration ledger drift check
+        run: npm exec --workspace=@quran-review/server -- prisma migrate diff --from-schema-datasource packages/server/prisma/schema.prisma --to-schema-datamodel packages/server/prisma/schema.prisma --exit-code
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/education_test?schema=public
+
       - name: Run tests
         run: npm test --workspace=@quran-review/server
         env:
