@@ -1,5 +1,4 @@
 import './types/express';
-import path from 'path';
 import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -47,6 +46,7 @@ import { analyticsRouter } from './modules/analytics/analytics.module';
 import { parentsRouter } from './modules/parents/parents.module';
 import { halaqaRouter } from './modules/halaqa/halaqa.module';
 import { errorResponse } from './lib/response';
+import { getMushafPagesDir } from './lib/mushaf-assets';
 
 const app: Application = express();
 
@@ -92,10 +92,11 @@ app.use('/api', healthRouter);
 
 // Mushaf page images — the real scanned Madani Mushaf (KFGQPC) shown by the
 // reader. Public (the Quran is not sensitive) and immutable, so cache hard.
-// Populate the directory with scripts/extract_mushaf_pages.py.
+// Dir is env-overridable (MUSHAF_PAGES_DIR); populate with
+// scripts/extract_mushaf_pages.py. Startup completeness check in server.ts.
 app.use(
   '/mushaf-pages',
-  express.static(path.join(__dirname, '..', 'mushaf-pages'), {
+  express.static(getMushafPagesDir(), {
     immutable: true,
     maxAge: '365d',
     index: false,

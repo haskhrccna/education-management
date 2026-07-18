@@ -6,7 +6,22 @@ import { closeQueues } from './lib/queue';
 import { initFCM } from './services/fcm.service';
 import { prisma } from './prisma/client';
 import { logger } from './lib/logger';
+import { verifyMushafAssets, getMushafPagesDir, TOTAL_MUSHAF_PAGES } from './lib/mushaf-assets';
 import http from 'http';
+
+// Mushaf pages are core content: refuse to serve a production API that would
+// 404 the Quran. Override consciously with ALLOW_MISSING_MUSHAF_PAGES=1.
+const mushafAssets = verifyMushafAssets(getMushafPagesDir());
+if (mushafAssets.present < TOTAL_MUSHAF_PAGES) {
+  const msg = `mushaf-pages incomplete: ${mushafAssets.present}/${TOTAL_MUSHAF_PAGES} present (first missing: ${mushafAssets.missing[0]})`;
+  if (config.env === 'production' && !config.allowMissingMushafPages) {
+    logger.error(
+      msg + ' — refusing to start. Populate with scripts/extract_mushaf_pages.py or set ALLOW_MISSING_MUSHAF_PAGES=1.'
+    );
+    process.exit(1);
+  }
+  logger.warn(msg);
+}
 
 const server = http.createServer(app);
 setupSocketIO(server);

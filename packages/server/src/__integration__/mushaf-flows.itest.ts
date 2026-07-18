@@ -85,3 +85,14 @@ describe('mushaf API (mounted for the first time — mobile reader depends on it
     expect((await request(app).post('/api/v1/mushaf/log-memorization').send({})).status).toBe(401);
   });
 });
+
+describe('mushaf page images (static, F4b)', () => {
+  it('serves 1.webp and 604.webp from MUSHAF_PAGES_DIR with long cache; 404 out of range', async () => {
+    const res1 = await request(app).get('/mushaf-pages/1.webp');
+    const res604 = await request(app).get('/mushaf-pages/604.webp');
+    expect(res1.status).toBe(200);
+    expect(res604.status).toBe(200);
+    expect(res1.headers['cache-control']).toContain('immutable');
+    expect((await request(app).get('/mushaf-pages/605.webp')).status).toBe(404);
+  });
+});
