@@ -144,6 +144,7 @@ model User {
   reportsReceived        Report[]               @relation("StudentReports")
   reviewedRecordings     Recording[]            @relation("ReviewedRecordings")
   memorizationProgresses MemorizationProgress[] @relation("UserMemorizations")
+  pageMemorizations      PageMemorization[]     @relation("UserPageMemorizations")
   revisionSchedules      RevisionSchedule[]     @relation("UserRevisions")
   weakAyahFlagsAsStudent WeakAyahFlag[]         @relation("WeakAyahStudent")
   weakAyahFlagsFlagged   WeakAyahFlag[]         @relation("WeakAyahFlagger")
@@ -373,6 +374,30 @@ model MemorizationProgress {
   @@index([userId])
   @@index([surahId])
   @@map("memorization_progress")
+}
+
+enum PageMemorizationStatus {
+  NOT_STARTED
+  LEARNING
+  MEMORIZED
+  SOLID
+}
+
+// Hifz progress on the canonical unit — the 604-page Madani mushaf page.
+model PageMemorization {
+  id             String                 @id @default(uuid())
+  userId         String
+  page           Int
+  status         PageMemorizationStatus @default(LEARNING)
+  lastReviewedAt DateTime?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  user User @relation("UserPageMemorizations", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, page])
+  @@index([userId])
+  @@map("page_memorizations")
 }
 
 model RevisionSchedule {

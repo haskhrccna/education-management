@@ -1,8 +1,11 @@
 import { z } from 'zod';
 import { mushafContracts } from '@quran-review/shared';
 import * as mushafService from '../../services/mushaf.service';
+import * as pageMemorizationService from '../../services/page-memorization.service';
 import { AppError } from '../../middleware/error.middleware';
 import { defineRoute, buildContractRouter } from '../../lib/contract-router';
+
+type Role = 'STUDENT' | 'TEACHER' | 'ADMIN' | 'PARENT';
 
 const surahAyahs = defineRoute(mushafContracts.surahAyahs, async ({ params }) => {
   const surahId = parseInt(String(params.id), 10);
@@ -30,6 +33,27 @@ const logMemorization = defineRoute(mushafContracts.logMemorization, async ({ bo
   };
 });
 
-export const mushafRouter = buildContractRouter([surahAyahs, page, logMemorization], {
+const myPages = defineRoute(mushafContracts.myPages, async ({ query, userId, userRole }) => {
+  const data = await pageMemorizationService.getPages(
+    userId!,
+    userRole as Role,
+    (query as { studentId?: string } | undefined)?.studentId
+  );
+  return { status: 200 as const, body: { success: true as const, data } };
+});
+
+const setPageStatus = defineRoute(mushafContracts.setPageStatus, async ({ params, body, userId, userRole }) => {
+  const pageNum = parseInt(String(params.page), 10);
+  const data = await pageMemorizationService.setPageStatus(
+    userId!,
+    userRole as Role,
+    pageNum,
+    body.status,
+    body.studentId
+  );
+  return { status: 200 as const, body: { success: true as const, data } };
+});
+
+export const mushafRouter = buildContractRouter([surahAyahs, page, logMemorization, myPages, setPageStatus], {
   mountPrefix: '/api/v1/mushaf',
 });

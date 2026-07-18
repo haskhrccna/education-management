@@ -67,6 +67,9 @@ const v1: EndpointSpec[] = [
   { method: 'GET', path: '/api/v1/mushaf/surahs/:id', access: 'authenticated' },
   { method: 'GET', path: '/api/v1/mushaf/pages/:page', access: 'authenticated' },
   { method: 'POST', path: '/api/v1/mushaf/log-memorization', access: 'authenticated' },
+  // hifz engine F1 — page-level memorization on the 604-page mushaf
+  { method: 'GET', path: '/api/v1/mushaf/my-pages', access: 'authenticated' },
+  { method: 'PUT', path: '/api/v1/mushaf/pages/:page/status', access: 'authenticated' },
   // roster (new capability — teacher-only at-risk aggregation)
   { method: 'GET', path: '/api/v1/roster/health', access: ['TEACHER'] },
   // parent-links (new capability — weekly digest opt-out)

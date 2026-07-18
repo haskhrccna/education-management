@@ -1,6 +1,12 @@
 import { z } from 'zod';
-import { defineContract, ErrorEnvelope } from './types';
-import { logAyahMemorizationSchema } from '../validators/mushaf';
+import { defineContract, ErrorEnvelope, DateOut } from './types';
+import { logAyahMemorizationSchema, PageStatusEnum, setPageStatusSchema } from '../validators/mushaf';
+
+const PageMemorizationRow = z.looseObject({
+  page: z.number(),
+  status: PageStatusEnum,
+  lastReviewedAt: DateOut.nullable(),
+});
 
 const AyahRow = z.looseObject({
   number: z.number(),
@@ -54,6 +60,32 @@ export const mushafContracts = {
       400: ErrorEnvelope,
       401: ErrorEnvelope,
       404: ErrorEnvelope,
+    },
+  }),
+  myPages: defineContract({
+    method: 'GET',
+    path: '/api/v1/mushaf/my-pages',
+    summary:
+      'All page-memorization statuses in one call (own; ?studentId= for assigned teacher / linked parent / admin)',
+    access: 'authenticated',
+    request: { query: z.object({ studentId: z.string().uuid().optional() }) },
+    responses: {
+      200: z.object({ success: z.literal(true), data: z.array(PageMemorizationRow) }),
+      401: ErrorEnvelope,
+      403: ErrorEnvelope,
+    },
+  }),
+  setPageStatus: defineContract({
+    method: 'PUT',
+    path: '/api/v1/mushaf/pages/:page/status',
+    summary: 'Mark a mushaf page NOT_STARTED/LEARNING/MEMORIZED/SOLID (self, or assigned teacher via studentId)',
+    access: 'authenticated',
+    request: { params: z.object({ page: z.string() }), body: setPageStatusSchema },
+    responses: {
+      200: z.object({ success: z.literal(true), data: PageMemorizationRow }),
+      400: ErrorEnvelope,
+      401: ErrorEnvelope,
+      403: ErrorEnvelope,
     },
   }),
 };
