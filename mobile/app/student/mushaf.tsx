@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   FlatList,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -22,22 +21,13 @@ import { RADIUS, SPACING } from '@/constants/theme';
 import { AppText } from '@/src/components/design';
 import { useTheme } from '@/src/hooks/useTheme';
 import { mushafApi } from '@/src/api/mushaf';
-
-const TOTAL_PAGES = 604;
-
-// The Mushaf pages are served as static images by the API, one WebP per page,
-// under /mushaf-pages/<page>.webp (see packages/server/scripts/extract_mushaf_pages.py).
-// The API base ends in /api/v1; the image host is the same origin without it.
-function getImageOrigin(): string {
-  const base =
-    process.env.EXPO_PUBLIC_API_URL ??
-    (Platform.OS === 'android' ? 'http://10.0.2.2:4000/api/v1' : 'http://localhost:4000/api/v1');
-  return base.replace(/\/api\/v1\/?$/, '');
-}
-const IMAGE_ORIGIN = getImageOrigin();
-const pageUri = (page: number) => `${IMAGE_ORIGIN}/mushaf-pages/${page}.webp`;
+import { mushafPageUri as pageUri, TOTAL_MUSHAF_PAGES as TOTAL_PAGES } from '@/src/lib/mushafAssets';
+import { useMushafPages } from '@/src/hooks/useMushafPages';
+import type { PageStatus } from '@/src/api/mushafPages';
 
 const PAGES = Array.from({ length: TOTAL_PAGES }, (_, i) => i + 1);
+
+const STATUS_ORDER: PageStatus[] = ['NOT_STARTED', 'LEARNING', 'MEMORIZED', 'SOLID'];
 
 export default function MushafScreen() {
   const router = useRouter();
@@ -51,6 +41,22 @@ export default function MushafScreen() {
   const [bodyHeight, setBodyHeight] = useState(0);
   const [juz, setJuz] = useState<number | null>(null);
   const [zoomPage, setZoomPage] = useState<number | null>(null);
+  const [statusPickerOpen, setStatusPickerOpen] = useState(false);
+  const { statuses, setStatus } = useMushafPages();
+
+  // Status → label/color. Gold marks the earned states only (Rationed Gold);
+  // the text label always accompanies the dot (Status-Is-Not-Only-Color).
+  const statusMeta = useCallback(
+    (s: PageStatus) =>
+      ({
+        NOT_STARTED: { label: t('statusNotStarted'), color: COLORS.textSecondary },
+        LEARNING: { label: t('statusLearning'), color: COLORS.primary },
+        MEMORIZED: { label: t('statusMemorized'), color: COLORS.gold },
+        SOLID: { label: t('statusSolid'), color: COLORS.gold },
+      })[s],
+    [t, COLORS]
+  );
+  const currentStatus: PageStatus = statuses.get(currentPage) ?? 'NOT_STARTED';
 
   // Juz label for the toolbar — best-effort, never blocks the image.
   React.useEffect(() => {
@@ -171,7 +177,7 @@ export default function MushafScreen() {
           <Ionicons name={prevChevron} size={28} color={COLORS.primary} />
         </TouchableOpacity>
 
-        <View style={{ alignItems: 'center' }}>
+        <View style={{ alignItems: 'center', gap: 4 }}>
           <AppText variant="titleMedium" color={COLORS.textPrimary}>
             {t('pageNumber')} {currentPage} / {TOTAL_PAGES}
           </AppText>
@@ -180,6 +186,18 @@ export default function MushafScreen() {
               {t('juz')} {juz}
             </AppText>
           )}
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t('pageStatus')}
+            onPress={() => setStatusPickerOpen(true)}
+            style={[styles.statusChip, { borderColor: statusMeta(currentStatus).color }]}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <View style={[styles.statusDot, { backgroundColor: statusMeta(currentStatus).color }]} />
+            <AppText variant="labelLarge" color={statusMeta(currentStatus).color}>
+              {statusMeta(currentStatus).label}
+            </AppText>
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity
@@ -193,6 +211,53 @@ export default function MushafScreen() {
           <Ionicons name={nextChevron} size={28} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
+
+      {/* Page memorization status picker (F1): mark the current page in 2 taps. */}
+      <Modal
+        visible={statusPickerOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setStatusPickerOpen(false)}
+      >
+        <Pressable style={styles.statusBackdrop} onPress={() => setStatusPickerOpen(false)}>
+          <Pressable style={[styles.statusSheet, { backgroundColor: COLORS.surface }]} onPress={() => {}}>
+            <AppText variant="titleMedium" color={COLORS.textPrimary} style={{ textAlign: 'center' }}>
+              {t('pageStatus')} — {t('pageNumber')} {currentPage}
+            </AppText>
+            {STATUS_ORDER.map((s) => {
+              const meta = statusMeta(s);
+              const selected = s === currentStatus;
+              return (
+                <TouchableOpacity
+                  key={s}
+                  accessibilityRole="button"
+                  accessibilityLabel={meta.label}
+                  onPress={() => {
+                    setStatusPickerOpen(false);
+                    setStatus(currentPage, s).catch(() => {});
+                  }}
+                  style={[
+                    styles.statusOption,
+                    { flexDirection: isRTL ? 'row-reverse' : 'row' },
+                    selected && { backgroundColor: COLORS.primaryMuted },
+                  ]}
+                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                >
+                  <View style={[styles.statusDot, { backgroundColor: meta.color }]} />
+                  <AppText
+                    variant="bodyMedium"
+                    color={selected ? COLORS.primary : COLORS.textPrimary}
+                    style={{ flex: 1 }}
+                  >
+                    {meta.label}
+                  </AppText>
+                  {selected ? <Ionicons name="checkmark" size={18} color={COLORS.primary} /> : null}
+                </TouchableOpacity>
+              );
+            })}
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* Tap-to-zoom: a standalone zoomable image (no paging to fight the pinch). */}
       <Modal visible={zoomPage != null} transparent={false} onRequestClose={() => setZoomPage(null)}>
@@ -250,6 +315,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  statusChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: RADIUS.full,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 3,
+  },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  statusBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    paddingHorizontal: SPACING.xl,
+  },
+  statusSheet: {
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
+    gap: SPACING.sm,
+  },
+  statusOption: {
+    alignItems: 'center',
+    gap: SPACING.sm,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.md,
   },
   zoomModal: { flex: 1, backgroundColor: '#000000' },
   zoomClose: {
