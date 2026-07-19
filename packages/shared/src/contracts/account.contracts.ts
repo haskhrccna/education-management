@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineContract, ErrorEnvelope } from './types';
+import { defineContract, ErrorEnvelope, DateOut } from './types';
 
 export const accountContracts = {
   exportMyData: defineContract({
@@ -22,6 +22,16 @@ export const accountContracts = {
       200: z.object({ success: z.literal(true), data: z.object({ id: z.string(), deleted: z.literal(true) }) }),
       401: ErrorEnvelope,
       404: ErrorEnvelope,
+    },
+  }),
+  completeOnboarding: defineContract({
+    method: 'POST',
+    path: '/api/v1/account/complete-onboarding',
+    summary: 'Stamp first-run onboarding as done (idempotent; all roles)',
+    access: 'authenticated',
+    responses: {
+      200: z.object({ success: z.literal(true), data: z.object({ onboardingCompletedAt: DateOut }) }),
+      401: ErrorEnvelope,
     },
   }),
 };

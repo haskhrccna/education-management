@@ -81,6 +81,8 @@ const v1: EndpointSpec[] = [
   { method: 'PATCH', path: '/api/v1/parent-links/:id/consent', access: ['PARENT'] },
   // account (new capability — self-service data export + deletion, roadmap 4.2)
   { method: 'GET', path: '/api/v1/account/data-export', access: 'authenticated' },
+  // F5 onboarding stamp
+  { method: 'POST', path: '/api/v1/account/complete-onboarding', access: 'authenticated' },
   {
     method: 'DELETE',
     path: '/api/v1/account',

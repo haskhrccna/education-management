@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineContract, ErrorEnvelope } from './types';
+import { defineContract, ErrorEnvelope, DateOut } from './types';
 import { LoginSchema, RegisterSchema, RefreshTokenSchema } from '../validators/common';
 import { ForgotPasswordSchema, ResetPasswordSchema } from '../validators/auth';
 
@@ -23,6 +23,8 @@ const SessionUser = z.object({
   firstName: z.string(),
   lastName: z.string(),
   status: z.enum(['pending', 'approved', 'active', 'banned']),
+  // F5: null → first-run onboarding wizard shows on the client.
+  onboardingCompletedAt: DateOut.nullable(),
 });
 
 export const authContracts = {

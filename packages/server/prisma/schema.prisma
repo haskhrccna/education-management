@@ -114,6 +114,8 @@ model User {
   lastName          String
   status            UserStatus @default(PENDING)
   emailVerifiedAt   DateTime?
+  // First-run onboarding wizard stamp (F5): null → wizard shows on sign-in.
+  onboardingCompletedAt DateTime?
   deviceToken       String?
   refreshTokenHash  String?
   passwordResetToken  String?

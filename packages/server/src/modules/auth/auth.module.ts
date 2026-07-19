@@ -64,6 +64,7 @@ const login = defineRoute(authContracts.login, async ({ body }) => {
         firstName: user.firstName,
         lastName: user.lastName,
         status: lc(user.status) as 'pending' | 'approved' | 'active' | 'banned',
+        onboardingCompletedAt: user.onboardingCompletedAt,
       },
       token,
       refreshToken,
