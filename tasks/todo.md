@@ -301,6 +301,13 @@ Final commit: `ae53ef9`.
   - Commit: `10d75dd`
 
 - [x] Stage 8 — Tech-Debt & Hardening
+- [x] H1 Hifz Engine (2026-07-19, branch feat/h1-hifz-engine) — roadmap `2026-07-16-10x-roadmap.md` F1–F4. Gates: 304 unit + 900 integration tests green, tsc clean (server/shared/mobile), check-i18n OK, `scripts/verify-migrations.sh` green. AC proof map:
+  - AC1.1–1.2 reader chips + single-fetch statuses (`useMushafPages`, hifz-engine.itest F1); AC1.3 pages/604 on student home + teacher student-detail + parent card (`derivePageProgress` single source); AC1.4 guard itests (cross-student 403, assigned-teacher 200); AC1.5 additive migration + ledger green; AC1.6 MEMORIZED/SOLID stamp lastReviewedAt (unit + itest)
+  - AC2.1 mic on reader → tagged upload (itest echo); AC2.2 review modal renders the recited page, legacy nulls regression-pinned (media-flows untouched); AC2.3 one-tap weak-ayah flag from the page's ayah list; AC2.4 page tags on rows (student rows deep-link; teacher tag display-only — /student/* routes are role-gated); AC2.5 media-flows green untouched
+  - AC3.1 pure deterministic buildRevisionQueue (8 unit tests incl. exact-array + double-run); AC3.2 band ordering + weak boost unit-tested; AC3.3 reviewed→optimistic removal (hook) + itest queue-drop; AC3.4 override-first itest; AC3.5 compute path itested; cached path via in-process LRU (see deviations); AC3.6 adherence on teacher/parent surfaces
+  - AC4.1 fresh `migrate deploy` builds full schema (harness + itest globalSetup now uses migrate deploy every run); AC4.2 db push removed from toolchain + docs; AC4.3 DEPLOYMENT.md populate path; AC4.4 fail-loud production start; AC4.5 static smoke itest (1/604/immutable/404)
+  - **Conscious deviations:** (a) F3 nightly precompute → in-process LRU cache-aside with write-invalidation (single-node deploy; Redis version is a deploy-time follow-up); (b) AC4.1 "CI on every PR" limited — the workflow lives under `education_management/.github/` but the git root is the parent `opencode/`, so GitHub Actions never runs it (ask user: copy to repo root?); (c) teacher recording page-tag is display-only (role-gated routes)
+  - **Found during work:** stray branch `fix/migration-baseline` was created from this branch's tip during a session gap (not by this work); left untouched.
   - Added accessibility labels/roles and `hitSlop` to new screens and `BottomNav`.
   - Added loading/error/retry states across new screens.
   - Hardened server route mounts with `authenticate` + `standardLimiter`.
