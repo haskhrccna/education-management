@@ -5,6 +5,7 @@ import {
   FlatList,
   Modal,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -18,6 +19,11 @@ import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { Ionicons } from '@expo/vector-icons';
 import { useRecordings } from '@/src/hooks/useRecordings';
 import { Recording, getRecordingStatus } from '@/src/api';
+import { Image } from 'expo-image';
+import { mushafPageUri } from '@/src/lib/mushafAssets';
+import { mushafApi } from '@/src/api/mushaf';
+import { weakAyahsApi } from '@/src/api/weakAyahs';
+import type { AyahDTO } from '@quran-review/shared';
 import { SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { BottomNav } from '@/src/components/BottomNav';
 import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
@@ -188,6 +194,35 @@ export default function TeacherRecordingsScreen() {
     setReviewNotes(rec.reviewNotes ?? '');
   };
 
+  // Weak-ayah flag (F2/AC2.3): pick an ayah from the recited page, flag it
+  // for the student — feeds the F3 revision queue's weak-page boost.
+  const [flagAyahs, setFlagAyahs] = useState<AyahDTO[] | null>(null);
+  const [flagLoading, setFlagLoading] = useState(false);
+
+  const openFlagPicker = async () => {
+    if (!reviewing?.page) return;
+    setFlagLoading(true);
+    try {
+      const pageData = await mushafApi.getPage(reviewing.page);
+      setFlagAyahs(pageData.ayahs);
+    } catch {
+      Alert.alert(t('error'), t('fetchError'));
+    } finally {
+      setFlagLoading(false);
+    }
+  };
+
+  const flagAyah = async (ayahId: number) => {
+    if (!reviewing) return;
+    try {
+      await weakAyahsApi.flag(reviewing.studentId, ayahId);
+      setFlagAyahs(null);
+      Alert.alert(t('weakAyahFlagged'));
+    } catch (err) {
+      Alert.alert(t('error'), err instanceof Error ? err.message : String(err));
+    }
+  };
+
   const submitReview = async () => {
     if (!reviewing) return;
     setSubmittingReview(true);
@@ -306,6 +341,40 @@ export default function TeacherRecordingsScreen() {
                 <Text style={[styles.modalFile, { color: COLORS.textSecondary, textAlign: isRTL ? 'right' : 'left' }]}>
                   {reviewing.fileName}
                 </Text>
+                {reviewing.page ? (
+                  <>
+                    {/* AC2.2: the exact recited page beside the audio */}
+                    <Image
+                      source={{ uri: mushafPageUri(reviewing.page) }}
+                      style={{ width: '100%', height: 240, borderRadius: RADIUS.md, marginTop: SPACING.sm }}
+                      contentFit="contain"
+                      cachePolicy="disk"
+                    />
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityLabel={t('flagWeakAyah')}
+                      onPress={openFlagPicker}
+                      disabled={flagLoading}
+                      style={{
+                        flexDirection: isRTL ? 'row-reverse' : 'row',
+                        alignItems: 'center',
+                        gap: SPACING.xs,
+                        alignSelf: isRTL ? 'flex-end' : 'flex-start',
+                        paddingVertical: SPACING.xs,
+                      }}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      {flagLoading ? (
+                        <ActivityIndicator size="small" color={COLORS.warning} />
+                      ) : (
+                        <Ionicons name="flag-outline" size={16} color={COLORS.warning} />
+                      )}
+                      <Text style={{ color: COLORS.warning, fontSize: 13, fontWeight: '700' }}>
+                        {t('flagWeakAyah')}
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                ) : null}
               </>
             ) : null}
 
@@ -357,6 +426,48 @@ export default function TeacherRecordingsScreen() {
                 )}
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Weak-ayah picker: the recited page's ayahs, one tap to flag (AC2.3). */}
+      <Modal visible={flagAyahs !== null} animationType="slide" transparent onRequestClose={() => setFlagAyahs(null)}>
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { backgroundColor: COLORS.surface, maxHeight: '75%' }]}>
+            <Text style={[styles.modalTitle, { color: COLORS.textPrimary, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('flagWeakAyah')}
+            </Text>
+            <ScrollView>
+              {(flagAyahs ?? []).map((ayah) => (
+                <TouchableOpacity
+                  key={ayah.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('ayah')} ${ayah.number}`}
+                  onPress={() => flagAyah(ayah.id)}
+                  style={{
+                    paddingVertical: SPACING.sm,
+                    paddingHorizontal: SPACING.md,
+                    borderBottomWidth: StyleSheet.hairlineWidth,
+                    borderBottomColor: COLORS.surfaceAlt,
+                  }}
+                >
+                  <Text
+                    style={{ color: COLORS.textPrimary, fontSize: 15, textAlign: 'right', writingDirection: 'rtl' }}
+                    numberOfLines={2}
+                  >
+                    ({ayah.number}) {ayah.text ?? `${t('ayah')} ${ayah.number}`}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={t('cancel')}
+              onPress={() => setFlagAyahs(null)}
+              style={[styles.modalBtn, { backgroundColor: COLORS.surfaceAlt, marginTop: SPACING.sm }]}
+            >
+              <Text style={[styles.modalBtnText, { color: COLORS.textPrimary }]}>{t('cancel')}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -430,6 +541,11 @@ function TeacherRecordingCard({
           >
             {recording.fileName}
           </Text>
+          {recording.page ? (
+            <Text style={[cardStyles.fileName, { color: COLORS.primary, textAlign: isRTL ? 'right' : 'left' }]}>
+              {t('pageNumber')} {recording.page}
+            </Text>
+          ) : null}
         </View>
         <View style={[cardStyles.statusBadge, { backgroundColor: statusBg }]}>
           <Text style={[cardStyles.statusBadgeText, { color: statusColor }]}>{statusLabel}</Text>

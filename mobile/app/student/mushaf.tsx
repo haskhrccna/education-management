@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Modal,
   Pressable,
@@ -24,6 +25,9 @@ import { mushafApi } from '@/src/api/mushaf';
 import { mushafPageUri as pageUri, TOTAL_MUSHAF_PAGES as TOTAL_PAGES } from '@/src/lib/mushafAssets';
 import { useMushafPages } from '@/src/hooks/useMushafPages';
 import type { PageStatus } from '@/src/api/mushafPages';
+import { recordingsApi } from '@/src/api/recordings';
+
+type ExpoAvRecording = import('expo-av').Audio.Recording;
 
 const PAGES = Array.from({ length: TOTAL_PAGES }, (_, i) => i + 1);
 
@@ -58,21 +62,115 @@ export default function MushafScreen() {
   );
   const currentStatus: PageStatus = statuses.get(currentPage) ?? 'NOT_STARTED';
 
-  // Juz label for the toolbar — best-effort, never blocks the image.
+  // Juz label + surah tag for the toolbar/recorder — best-effort, never blocks the image.
+  const [pageSurahId, setPageSurahId] = useState<number | null>(null);
   React.useEffect(() => {
     let active = true;
     mushafApi
       .getPage(currentPage)
       .then((p) => {
-        if (active) setJuz(p.juz ?? null);
+        if (active) {
+          setJuz(p.juz ?? null);
+          setPageSurahId(p.ayahs?.[0]?.surahId ?? null);
+        }
       })
       .catch(() => {
-        if (active) setJuz(null);
+        if (active) {
+          setJuz(null);
+          setPageSurahId(null);
+        }
       });
     return () => {
       active = false;
     };
   }, [currentPage]);
+
+  // ── Recite-from-the-page (F2): record directly on the open page ──────────
+  const [recOpen, setRecOpen] = useState(false);
+  const [recObj, setRecObj] = useState<ExpoAvRecording | null>(null);
+  const [recMillis, setRecMillis] = useState(0);
+  const [uploading, setUploading] = useState(false);
+
+  const getAudio = async () => {
+    try {
+      return await import('expo-av');
+    } catch {
+      Alert.alert(t('error'), t('audioNotAvailable'));
+      return null;
+    }
+  };
+
+  const startRec = async () => {
+    try {
+      const av = await getAudio();
+      if (!av) return;
+      const { Audio } = av;
+      const perm = await Audio.requestPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert(t('recordAudio'), t('micPermissionDenied'));
+        return;
+      }
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY,
+        (status) => {
+          if (status.isRecording && status.durationMillis != null) setRecMillis(status.durationMillis);
+        },
+        500
+      );
+      setRecObj(recording);
+      setRecMillis(0);
+    } catch (err) {
+      Alert.alert(t('error'), err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  const stopAndUploadRec = async () => {
+    if (!recObj) return;
+    const pageAtRecording = currentPage;
+    try {
+      await recObj.stopAndUnloadAsync();
+      const uri = recObj.getURI();
+      setRecObj(null);
+      const av = await getAudio();
+      if (av) await av.Audio.setAudioModeAsync({ allowsRecordingIOS: false, playsInSilentModeIOS: true });
+      if (!uri) {
+        Alert.alert(t('uploadFailed'));
+        return;
+      }
+      setUploading(true);
+      const ext = (uri.split('.').pop() ?? 'm4a').toLowerCase();
+      const contentType =
+        ext === 'm4a' ? 'audio/x-m4a' : ext === 'mp4' ? 'audio/mp4' : ext === 'wav' ? 'audio/wav' : 'audio/mpeg';
+      await recordingsApi.upload(
+        uri,
+        `page-${pageAtRecording}.${ext}`,
+        0,
+        contentType,
+        pageAtRecording,
+        pageSurahId ?? undefined
+      );
+      setRecOpen(false);
+      Alert.alert(t('recordingSaved'));
+    } catch (err) {
+      Alert.alert(t('uploadFailed'), err instanceof Error ? err.message : String(err));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const cancelRec = async () => {
+    if (recObj) {
+      try {
+        await recObj.stopAndUnloadAsync();
+      } catch {
+        /* ignore */
+      }
+    }
+    setRecObj(null);
+    setRecMillis(0);
+    setRecOpen(false);
+  };
 
   const goToPage = useCallback((page: number) => {
     const clamped = Math.min(TOTAL_PAGES, Math.max(1, page));
@@ -186,18 +284,29 @@ export default function MushafScreen() {
               {t('juz')} {juz}
             </AppText>
           )}
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel={t('pageStatus')}
-            onPress={() => setStatusPickerOpen(true)}
-            style={[styles.statusChip, { borderColor: statusMeta(currentStatus).color }]}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <View style={[styles.statusDot, { backgroundColor: statusMeta(currentStatus).color }]} />
-            <AppText variant="labelLarge" color={statusMeta(currentStatus).color}>
-              {statusMeta(currentStatus).label}
-            </AppText>
-          </TouchableOpacity>
+          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: SPACING.sm }}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={t('pageStatus')}
+              onPress={() => setStatusPickerOpen(true)}
+              style={[styles.statusChip, { borderColor: statusMeta(currentStatus).color }]}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <View style={[styles.statusDot, { backgroundColor: statusMeta(currentStatus).color }]} />
+              <AppText variant="labelLarge" color={statusMeta(currentStatus).color}>
+                {statusMeta(currentStatus).label}
+              </AppText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={t('recordThisPage')}
+              onPress={() => setRecOpen(true)}
+              style={[styles.statusChip, { borderColor: COLORS.primary }]}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="mic-outline" size={16} color={COLORS.primary} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <TouchableOpacity
@@ -211,6 +320,62 @@ export default function MushafScreen() {
           <Ionicons name={nextChevron} size={28} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
+
+      {/* Recite-from-the-page (F2): record on the open page, upload carries the page tag. */}
+      <Modal visible={recOpen} transparent animationType="fade" onRequestClose={cancelRec}>
+        <Pressable style={styles.statusBackdrop} onPress={recObj || uploading ? undefined : cancelRec}>
+          <Pressable style={[styles.statusSheet, { backgroundColor: COLORS.surface }]} onPress={() => {}}>
+            <AppText variant="titleMedium" color={COLORS.textPrimary} style={{ textAlign: 'center' }}>
+              {t('recordThisPage')} — {t('pageNumber')} {currentPage}
+            </AppText>
+            {uploading ? (
+              <ActivityIndicator color={COLORS.primary} style={{ marginVertical: SPACING.md }} />
+            ) : recObj ? (
+              <>
+                <AppText variant="headlineSmall" color={COLORS.error} style={{ textAlign: 'center' }}>
+                  {Math.floor(recMillis / 60000)}:{String(Math.floor((recMillis % 60000) / 1000)).padStart(2, '0')}
+                </AppText>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={t('stopRecording')}
+                  onPress={stopAndUploadRec}
+                  style={[styles.recAction, { backgroundColor: COLORS.error }]}
+                >
+                  <Ionicons name="stop" size={20} color="#FFFFFF" />
+                  <AppText variant="bodyMedium" color="#FFFFFF">
+                    {t('stopRecording')}
+                  </AppText>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={t('startRecording')}
+                onPress={startRec}
+                style={[styles.recAction, { backgroundColor: COLORS.primary }]}
+              >
+                <Ionicons name="mic" size={20} color="#FFFFFF" />
+                <AppText variant="bodyMedium" color="#FFFFFF">
+                  {t('startRecording')}
+                </AppText>
+              </TouchableOpacity>
+            )}
+            {!uploading && (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={t('cancel')}
+                onPress={cancelRec}
+                style={{ alignItems: 'center', paddingVertical: SPACING.xs }}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <AppText variant="bodyMedium" color={COLORS.textSecondary}>
+                  {t('cancel')}
+                </AppText>
+              </TouchableOpacity>
+            )}
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* Page memorization status picker (F1): mark the current page in 2 taps. */}
       <Modal
@@ -343,6 +508,14 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
     borderRadius: RADIUS.md,
+  },
+  recAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+    borderRadius: RADIUS.md,
+    paddingVertical: SPACING.sm,
   },
   zoomModal: { flex: 1, backgroundColor: '#000000' },
   zoomClose: {
