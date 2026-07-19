@@ -6,6 +6,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { memorizationApi, MemorizationEntry, getRecordingStatus } from '@/src/api';
+import { mushafPagesApi } from '@/src/api/mushafPages';
+import { derivePageProgress } from '@/src/hooks/useMushafPages';
+import { revisionQueueApi } from '@/src/api/revisionQueue';
 import { useAuthStore } from '@/src/auth/store';
 import { useAppointments } from '@/src/hooks/useAppointments';
 import { useMessages } from '@/src/hooks/useMessages';
@@ -28,7 +31,20 @@ import { BottomNav } from '@/src/components/BottomNav';
 import type { Appointment } from '@/src/api';
 import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
 
-type ProgressSummary = { label: string; percent: number | null };
+type ProgressSummary = {
+  label: string;
+  percent: number | null;
+  /** H1/F6: page-based hifz progress + today's revision load (AC6.2). */
+  pagesMemorized?: number;
+  dueToday?: number;
+};
+
+function isTodayDate(d?: string): boolean {
+  if (!d) return false;
+  const x = new Date(d);
+  const n = new Date();
+  return x.getFullYear() === n.getFullYear() && x.getMonth() === n.getMonth() && x.getDate() === n.getDate();
+}
 
 function summarizeProgress(entries: MemorizationEntry[], isAr: boolean): ProgressSummary {
   const active =
@@ -74,7 +90,7 @@ function atRiskReasonLabel(reason: AtRiskReason, isAr: boolean): string {
 export default function TeacherHomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const logout = useAuthStore((s) => s.logout);
   const { colors: COLORS, darkMode } = useTheme();
@@ -88,6 +104,16 @@ export default function TeacherHomeScreen() {
   const [progressByStudent, setProgressByStudent] = useState<Record<string, ProgressSummary>>({});
 
   const pendingAppointments = useMemo(() => appointments.filter(isPendingAppointment), [appointments]);
+  // F6 Today-first cockpit: today's sessions, sorted by time.
+  const todaysSessions = useMemo(
+    () =>
+      appointments
+        .filter(
+          (a) => ['ACCEPTED', 'REQUESTED'].includes(a.status?.toUpperCase() ?? '') && isTodayDate(a.requestedDate)
+        )
+        .sort((a, b) => (a.requestedTime ?? '').localeCompare(b.requestedTime ?? '')),
+    [appointments]
+  );
   const acceptedAppointments = useMemo(
     () => appointments.filter((appointment) => appointment.status?.toUpperCase() === 'ACCEPTED'),
     [appointments]
@@ -130,10 +156,22 @@ export default function TeacherHomeScreen() {
 
     let mounted = true;
     Promise.all(
-      studentIds.map(async (id) => ({
-        id,
-        progress: summarizeProgress(await memorizationApi.getStudentProgress(id), isAr),
-      }))
+      studentIds.map(async (id) => {
+        const [entries, pages, queue] = await Promise.all([
+          memorizationApi.getStudentProgress(id),
+          // H1 numbers (AC6.2) — guard-denial tolerant.
+          mushafPagesApi.getMyPages(id).catch(() => []),
+          revisionQueueApi.getQueue(id).catch(() => null),
+        ]);
+        return {
+          id,
+          progress: {
+            ...summarizeProgress(entries, isAr),
+            pagesMemorized: derivePageProgress(pages).memorized,
+            dueToday: queue?.items.length ?? 0,
+          },
+        };
+      })
     )
       .then((results) => {
         if (!mounted) return;
@@ -273,6 +311,67 @@ export default function TeacherHomeScreen() {
             />
           </View>
         </View>
+
+        {/* F6 Today-first cockpit: what needs doing NOW (S1-AC1). */}
+        <SectionHeader title={t('todaySection')} colors={COLORS} />
+        {todaysSessions.length === 0 ? (
+          <AppCard colors={COLORS}>
+            <Text style={styles.rowMeta}>{t('noSessionsToday')}</Text>
+          </AppCard>
+        ) : (
+          <View style={styles.listStack}>
+            {todaysSessions.map((session) => {
+              const name = fullName(session.student);
+              return (
+                <AppCard key={session.id} colors={COLORS} style={styles.studentCard}>
+                  <View style={styles.studentInfo}>
+                    <Text style={styles.rowTitle}>
+                      {session.requestedTime ?? '—'} · {name}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={t('gradeAction')}
+                    onPress={() =>
+                      router.push(
+                        `/teacher/grade-form?studentId=${session.student?.id ?? ''}&name=${encodeURIComponent(name)}`
+                      )
+                    }
+                    style={[styles.todayChip, { backgroundColor: COLORS.primary }]}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Text style={styles.todayChipText}>{t('gradeAction')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={t('reviewAction')}
+                    onPress={() => router.push('/teacher/recordings')}
+                    style={[styles.todayChip, { backgroundColor: COLORS.primaryMuted }]}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Text style={[styles.todayChipText, { color: COLORS.primary }]}>{t('reviewAction')}</Text>
+                  </TouchableOpacity>
+                </AppCard>
+              );
+            })}
+          </View>
+        )}
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={t('pendingReviews')}
+          onPress={() => router.push('/teacher/recordings')}
+          activeOpacity={0.85}
+        >
+          <AppCard colors={COLORS} style={styles.studentCard}>
+            <Ionicons name="mic-outline" size={22} color={COLORS.primary} />
+            <View style={styles.studentInfo}>
+              <Text style={styles.rowTitle}>
+                {pendingRecordings.length} {t('pendingReviews')}
+              </Text>
+            </View>
+            <Ionicons name={isAr ? 'chevron-back' : 'chevron-forward'} size={18} color={COLORS.textSecondary} />
+          </AppCard>
+        </TouchableOpacity>
 
         <View style={styles.metricsRow}>
           <MetricTile colors={COLORS} value={students.length} label={isAr ? 'طلاب' : 'Students'} />
@@ -420,7 +519,7 @@ export default function TeacherHomeScreen() {
         />
         {atRiskStudents.length > 0 ? (
           <View style={styles.listStack}>
-            {atRiskStudents.slice(0, 5).map((row) => {
+            {atRiskStudents.slice(0, 3).map((row) => {
               const name = `${row.firstName} ${row.lastName}`.trim();
               return (
                 <TouchableOpacity
@@ -474,6 +573,11 @@ export default function TeacherHomeScreen() {
                       <Text style={styles.rowMeta}>
                         {progress?.label ?? (isAr ? 'جار تحميل التقدم' : 'Loading progress')}
                       </Text>
+                      {progress?.pagesMemorized != null ? (
+                        <Text style={styles.rowMeta}>
+                          {progress.pagesMemorized}/604 {t('pagesMemorized')} · {progress.dueToday ?? 0} {t('dueToday')}
+                        </Text>
+                      ) : null}
                       {progress?.percent != null ? (
                         <ProgressBar
                           colors={COLORS}
@@ -662,6 +766,16 @@ const createStyles = (COLORS: ThemeColors) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: SPACING.md,
+    },
+    todayChip: {
+      borderRadius: RADIUS.full,
+      paddingHorizontal: SPACING.md,
+      paddingVertical: 6,
+    },
+    todayChipText: {
+      color: '#FFFFFF',
+      fontSize: 12,
+      fontWeight: '800',
     },
     studentInfo: {
       flex: 1,
