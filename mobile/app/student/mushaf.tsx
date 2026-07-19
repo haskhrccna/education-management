@@ -41,8 +41,9 @@ export default function MushafScreen() {
   const { width: W, height: H } = useWindowDimensions();
 
   const listRef = useRef<FlatList<number>>(null);
-  // Deep link support: /student/mushaf?page=N opens the reader at that page.
-  const { page: pageParam } = useLocalSearchParams<{ page?: string }>();
+  // Deep link support: /student/mushaf?page=N opens the reader at that page;
+  // record=1 additionally opens the recorder (onboarding first-recitation flow).
+  const { page: pageParam, record } = useLocalSearchParams<{ page?: string; record?: string }>();
   const [currentPage, setCurrentPage] = useState(() => {
     const p = parseInt(String(pageParam ?? '1'), 10);
     return Number.isFinite(p) && p >= 1 && p <= TOTAL_PAGES ? p : 1;
@@ -92,6 +93,9 @@ export default function MushafScreen() {
 
   // ── Recite-from-the-page (F2): record directly on the open page ──────────
   const [recOpen, setRecOpen] = useState(false);
+  React.useEffect(() => {
+    if (record === '1') setRecOpen(true);
+  }, [record]);
   const [recObj, setRecObj] = useState<ExpoAvRecording | null>(null);
   const [recMillis, setRecMillis] = useState(0);
   const [uploading, setUploading] = useState(false);
