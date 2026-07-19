@@ -1,5 +1,6 @@
 import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
+import { invalidateRevisionQueue } from '../lib/cache';
 
 const TOTAL_PAGES = 604;
 type Role = 'STUDENT' | 'TEACHER' | 'ADMIN' | 'PARENT';
@@ -51,10 +52,26 @@ export async function setPageStatus(
   }
   // A page counts as reviewed the moment it is marked memorized/solid (AC1.6).
   const reviewedStamp = status === 'MEMORIZED' || status === 'SOLID' ? new Date() : undefined;
-  return prisma.pageMemorization.upsert({
+  const row = await prisma.pageMemorization.upsert({
     where: { userId_page: { userId: target, page } },
     create: { userId: target, page, status, lastReviewedAt: reviewedStamp ?? null },
     update: { status, ...(reviewedStamp ? { lastReviewedAt: reviewedStamp } : {}) },
     select: { page: true, status: true, lastReviewedAt: true },
   });
+  invalidateRevisionQueue(target);
+  return row;
+}
+
+/** Stamp a revision pass on a tracked page (F3/AC3.3) — drops it from today's queue. */
+export async function markPageReviewed(userId: string, page: number) {
+  if (!Number.isInteger(page) || page < 1 || page > TOTAL_PAGES) throw new AppError(400, 'Invalid page number');
+  const existing = await prisma.pageMemorization.findUnique({ where: { userId_page: { userId, page } } });
+  if (!existing) throw new AppError(404, 'Page not tracked');
+  const row = await prisma.pageMemorization.update({
+    where: { userId_page: { userId, page } },
+    data: { lastReviewedAt: new Date() },
+    select: { page: true, lastReviewedAt: true },
+  });
+  invalidateRevisionQueue(userId);
+  return row;
 }

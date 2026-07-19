@@ -88,4 +88,43 @@ export const mushafContracts = {
       403: ErrorEnvelope,
     },
   }),
+  revisionQueue: defineContract({
+    method: 'GET',
+    path: '/api/v1/mushaf/revision-queue',
+    summary:
+      "Today's Sabaq/Sabqi/Manzil revision queue (own; ?studentId= for assigned teacher / linked parent / admin)",
+    access: 'authenticated',
+    request: { query: z.object({ studentId: z.string().uuid().optional() }) },
+    responses: {
+      200: z.object({
+        success: z.literal(true),
+        data: z.object({
+          items: z.array(
+            z.looseObject({
+              page: z.number().nullable(),
+              surahId: z.number().nullable(),
+              band: z.enum(['OVERRIDE', 'MANZIL', 'SABQI', 'SABAQ']),
+              overdueDays: z.number(),
+            })
+          ),
+          reviewedThisWeek: z.number(),
+        }),
+      }),
+      401: ErrorEnvelope,
+      403: ErrorEnvelope,
+    },
+  }),
+  pageReviewed: defineContract({
+    method: 'POST',
+    path: '/api/v1/mushaf/pages/:page/reviewed',
+    summary: "Stamp a revision pass on a page (updates lastReviewedAt, drops it from today's queue)",
+    access: 'authenticated',
+    request: { params: z.object({ page: z.string() }) },
+    responses: {
+      200: z.object({ success: z.literal(true), data: z.looseObject({ page: z.number(), lastReviewedAt: DateOut }) }),
+      400: ErrorEnvelope,
+      401: ErrorEnvelope,
+      404: ErrorEnvelope,
+    },
+  }),
 };

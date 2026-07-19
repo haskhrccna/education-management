@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { mushafContracts } from '@quran-review/shared';
 import * as mushafService from '../../services/mushaf.service';
 import * as pageMemorizationService from '../../services/page-memorization.service';
+import * as revisionQueueService from '../../services/revision-queue.service';
 import { AppError } from '../../middleware/error.middleware';
 import { defineRoute, buildContractRouter } from '../../lib/contract-router';
 
@@ -54,6 +55,39 @@ const setPageStatus = defineRoute(mushafContracts.setPageStatus, async ({ params
   return { status: 200 as const, body: { success: true as const, data } };
 });
 
-export const mushafRouter = buildContractRouter([surahAyahs, page, logMemorization, myPages, setPageStatus], {
-  mountPrefix: '/api/v1/mushaf',
+const revisionQueue = defineRoute(mushafContracts.revisionQueue, async ({ query, userId, userRole }) => {
+  const data = await revisionQueueService.getRevisionQueue(
+    userId!,
+    userRole as Role,
+    (query as { studentId?: string } | undefined)?.studentId
+  );
+  // looseObject rows carry an index signature the service interface doesn't —
+  // same widening cast precedent as logMemorization above.
+  return {
+    status: 200 as const,
+    body: {
+      success: true as const,
+      data: data as z.infer<(typeof mushafContracts.revisionQueue.responses)[200]>['data'],
+    },
+  };
 });
+
+const pageReviewed = defineRoute(mushafContracts.pageReviewed, async ({ params, userId }) => {
+  const pageNum = parseInt(String(params.page), 10);
+  const data = await pageMemorizationService.markPageReviewed(userId!, pageNum);
+  // Prisma types lastReviewedAt as nullable; markPageReviewed always stamps it.
+  return {
+    status: 200 as const,
+    body: {
+      success: true as const,
+      data: data as z.infer<(typeof mushafContracts.pageReviewed.responses)[200]>['data'],
+    },
+  };
+});
+
+export const mushafRouter = buildContractRouter(
+  [surahAyahs, page, logMemorization, myPages, setPageStatus, revisionQueue, pageReviewed],
+  {
+    mountPrefix: '/api/v1/mushaf',
+  }
+);
