@@ -7,10 +7,12 @@ import apiClient from './client';
 export interface AuthUser {
   id: string;
   email: string;
-  role: 'student' | 'teacher' | 'admin';
+  role: 'student' | 'teacher' | 'admin' | 'parent';
   firstName: string;
   lastName: string;
   status: 'pending' | 'active' | 'banned';
+  /** F5: null → the first-run onboarding wizard shows after sign-in. */
+  onboardingCompletedAt?: string | null;
   assignedTeacher?: { id: string; firstName: string; lastName: string } | null;
   assignedStudents?: { id: string; firstName: string; lastName: string }[];
 }

@@ -59,7 +59,7 @@ export default function RootLayout() {
 
     // Any route segment that starts with a protected role folder is protected;
     // everything else (login, register, forgot-password, pending-approval, index) is public.
-    const protectedRoots = new Set(['student', 'teacher', 'admin', 'messages']);
+    const protectedRoots = new Set(['student', 'teacher', 'admin', 'messages', 'parent', 'onboarding']);
     const inProtectedScreen = protectedRoots.has(segments[0]);
 
     if (!user) {
@@ -68,6 +68,14 @@ export default function RootLayout() {
       }
     } else if (user.status === 'pending') {
       router.replace('/pending-approval');
+    } else if (
+      // F5: first sign-in → role onboarding wizard (admin exempt; stamped users skip).
+      user.status === 'active' &&
+      user.onboardingCompletedAt == null &&
+      ['student', 'teacher', 'parent'].includes(user.role) &&
+      segments[0] !== 'onboarding'
+    ) {
+      router.replace(`/onboarding/${user.role}` as never);
     }
   }, [isLoaded, user, segments]);
 
@@ -98,6 +106,9 @@ export default function RootLayout() {
           <OfflineBanner />
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(auth)/index" />
+            <Stack.Screen name="onboarding/student" />
+            <Stack.Screen name="onboarding/teacher" />
+            <Stack.Screen name="onboarding/parent" />
             <Stack.Screen name="notifications" />
             <Stack.Screen name="parent" />
             <Stack.Screen name="halaqa" />

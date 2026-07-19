@@ -21,6 +21,8 @@ interface AuthState {
   logout: () => Promise<void>;
   loadSession: () => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  /** F5: locally mirror the server's onboarding stamp so the gate stops redirecting. */
+  markOnboarded: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -95,6 +97,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   changePassword: async (currentPassword: string, newPassword: string) => {
     await apiClient.put('/users/change-password', { currentPassword, newPassword });
+  },
+
+  markOnboarded: () => {
+    set((s) => (s.user ? { user: { ...s.user, onboardingCompletedAt: new Date().toISOString() } } : {}));
   },
 }));
 

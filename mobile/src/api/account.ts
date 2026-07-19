@@ -9,4 +9,8 @@ export const accountApi = {
   deleteMyAccount: async (): Promise<void> => {
     expectStatus(await contractClient.call(accountContracts.deleteMyAccount), 200);
   },
+  completeOnboarding: async (): Promise<string> => {
+    const res = expectStatus(await contractClient.call(accountContracts.completeOnboarding), 200);
+    return (res.body as unknown as { data: { onboardingCompletedAt: string } }).data.onboardingCompletedAt;
+  },
 };
