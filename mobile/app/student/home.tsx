@@ -9,6 +9,9 @@ import { useAuthStore } from '@/src/auth/store';
 import { useAppointments } from '@/src/hooks/useAppointments';
 import { useGrades } from '@/src/hooks/useGrades';
 import { useMemorization } from '@/src/hooks/useMemorization';
+import { useMushafPages } from '@/src/hooks/useMushafPages';
+import { useRevisionQueue } from '@/src/hooks/useRevisionQueue';
+import type { RevisionBand } from '@/src/api/revisionQueue';
 import { useMessages } from '@/src/hooks/useMessages';
 import { useNotifications } from '@/src/hooks/useNotifications';
 import {
@@ -68,7 +71,7 @@ function sortAppointments(a: Appointment, b: Appointment): number {
 export default function StudentHomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const { colors: COLORS } = useTheme();
   const styles = createStyles(COLORS);
@@ -77,6 +80,18 @@ export default function StudentHomeScreen() {
   const logout = useAuthStore((s) => s.logout);
   const loadSession = useAuthStore((s) => s.loadSession);
   const { progress, surahs, isLoading: isLoadingProgress, fetchProgress } = useMemorization();
+  // Pages-memorized is THE hifz headline number (F1 / AC1.3) — one source of truth.
+  const { progress: pagesProgress } = useMushafPages();
+  // Today's Sabaq/Sabqi/Manzil queue (F3) — computed server-side, zero manual scheduling.
+  const { items: revisionItems, markReviewed } = useRevisionQueue();
+  const bandLabel = (band: RevisionBand) =>
+    band === 'SABAQ'
+      ? t('bandSabaq')
+      : band === 'SABQI'
+        ? t('bandSabqi')
+        : band === 'MANZIL'
+          ? t('bandManzil')
+          : t('bandOverride');
   const { unreadCount, fetchMessages } = useMessages();
   const { appointments, isLoading: isLoadingAppointments, fetchAppointments } = useAppointments();
   const { grades, isLoading: isLoadingGrades, fetchGrades } = useGrades();
@@ -101,13 +116,6 @@ export default function StudentHomeScreen() {
     router.replace('/');
   };
 
-  const totalAyahs = surahs.reduce((sum, surah) => sum + surah.ayahCount, 0);
-  const memorizedAyahs = progress.reduce((sum, entry) => sum + entry.memorizedAyahs, 0);
-  const overallPercent = totalAyahs > 0 ? Math.round((memorizedAyahs / totalAyahs) * 100) : 0;
-  const completedSurahs = progress.filter((entry) => {
-    const surah = surahs.find((candidate) => candidate.id === entry.surahId);
-    return surah ? entry.memorizedAyahs >= surah.ayahCount : false;
-  }).length;
   const activeEntry = progress.find((entry) => {
     const surah = surahs.find((candidate) => candidate.id === entry.surahId);
     return surah && entry.memorizedAyahs > 0 && entry.memorizedAyahs < surah.ayahCount;
@@ -273,7 +281,7 @@ export default function StudentHomeScreen() {
             </Text>
           </View>
           <View style={styles.progressRing}>
-            <Text style={styles.progressValue}>{overallPercent}%</Text>
+            <Text style={styles.progressValue}>{pagesProgress.pct}%</Text>
           </View>
         </View>
 
@@ -295,8 +303,55 @@ export default function StudentHomeScreen() {
           </View>
         </AppCard>
 
+        {/* F3: today's self-running revision queue */}
+        <AppCard colors={COLORS} style={{ gap: SPACING.sm }}>
+          <Text style={styles.cardLabel}>{t('todaysRevision')}</Text>
+          {revisionItems.length === 0 ? (
+            <Text style={styles.rowMeta}>{t('revisionAllDone')}</Text>
+          ) : (
+            revisionItems.slice(0, 5).map((item, idx) => (
+              <View
+                key={`${item.page ?? 's' + item.surahId}-${idx}`}
+                style={{ flexDirection: isAr ? 'row-reverse' : 'row', alignItems: 'center', gap: SPACING.sm }}
+              >
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    item.page != null ? `${t('pageNumber')} ${item.page}` : `${t('surah')} ${item.surahId}`
+                  }
+                  style={{ flex: 1 }}
+                  onPress={() =>
+                    item.page != null &&
+                    router.push({ pathname: '/student/mushaf', params: { page: String(item.page) } })
+                  }
+                >
+                  <Text style={styles.rowTitle}>
+                    {item.page != null ? `${t('pageNumber')} ${item.page}` : `${t('surah')} ${item.surahId}`}
+                    {'  '}
+                    <Text style={[styles.rowMeta, { color: COLORS.primary }]}>{bandLabel(item.band)}</Text>
+                  </Text>
+                </TouchableOpacity>
+                {item.page != null && (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={t('markReviewed')}
+                    onPress={() => markReviewed(item.page!)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons name="checkmark-circle-outline" size={24} color={COLORS.primary} />
+                  </TouchableOpacity>
+                )}
+              </View>
+            ))
+          )}
+        </AppCard>
+
         <View style={styles.metricsRow}>
-          <MetricTile colors={COLORS} value={completedSurahs} label={isAr ? 'سورة مكتملة' : 'Completed'} />
+          <MetricTile
+            colors={COLORS}
+            value={`${pagesProgress.memorized}/604`}
+            label={isAr ? 'صفحة محفوظة' : 'Pages memorized'}
+          />
           <MetricTile colors={COLORS} value={averageGrade ?? '-'} label={isAr ? 'المتوسط' : 'Average'} tone="gold" />
           <MetricTile
             colors={COLORS}

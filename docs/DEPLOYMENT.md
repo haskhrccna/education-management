@@ -121,3 +121,41 @@ eas build --platform ios     # or android
 ```
 
 Update `mobile/src/api/client.ts` with production API URL.
+
+### 11. Database migrations
+
+Fresh environments are built **from the migration ledger only** — never `db push`:
+
+```bash
+cd packages/server
+npx prisma migrate deploy
+```
+
+Prove the ledger builds the full schema from an empty database (throwaway
+Docker Postgres + schema-parity diff):
+
+```bash
+packages/server/scripts/verify-migrations.sh
+```
+
+The integration suite's globalSetup also runs `migrate deploy`, so every test
+run regression-checks the ledger.
+
+### 12. Mushaf page images
+
+The Quran reader serves the 604 scanned Madani pages (KFGQPC) as static WebPs.
+They are **not in git** (~51 MB). Populate them on every host:
+
+```bash
+pip install pymupdf pillow
+python3 packages/server/scripts/extract_mushaf_pages.py /path/to/standard2-quran.pdf
+```
+
+(or restore an archived copy of `packages/server/mushaf-pages/` from object storage).
+
+Env vars:
+
+- `MUSHAF_PAGES_DIR` — override the directory (default `packages/server/mushaf-pages`)
+- `ALLOW_MISSING_MUSHAF_PAGES=1` — let a production server start with an
+  incomplete set (otherwise it refuses to boot, by design — the app must never
+  404 the Quran)

@@ -46,3 +46,18 @@ class LRUCache<T> {
 export const userCache = new LRUCache<any>(50);
 export const teacherListCache = new LRUCache<any[]>(10);
 export const gradeCache = new LRUCache<any[]>(50);
+
+// F3 revision queue — cache-aside with write-invalidation (in-process; the
+// deployment is single-node, so this meets the <=100ms cached-read target
+// with zero extra infrastructure).
+export const revisionQueueCache = new LRUCache<unknown>(500);
+
+/** Today's revision-queue cache key for a user (UTC date bucket). */
+export function revisionQueueKey(userId: string, date = new Date()): string {
+  return `revq:${userId}:${date.toISOString().slice(0, 10)}`;
+}
+
+/** Drop a user's cached queue — called by every page-status / review write. */
+export function invalidateRevisionQueue(userId: string): void {
+  revisionQueueCache.delete(revisionQueueKey(userId));
+}

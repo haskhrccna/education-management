@@ -15,6 +15,9 @@ const RecordingRow = z.looseObject({
   approvedAt: DateOut.nullable(),
   rejectedAt: DateOut.nullable(),
   createdAt: DateOut,
+  // Recite-from-the-page (F2): mushaf page / surah the recitation covers.
+  page: z.number().nullable().optional(),
+  surahId: z.number().nullable().optional(),
 });
 
 const ReportRow = z.looseObject({

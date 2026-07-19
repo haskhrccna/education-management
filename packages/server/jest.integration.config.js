@@ -8,7 +8,7 @@ module.exports = {
     '^@edu/shared$': '<rootDir>/../shared/src/index.ts',
     '^@quran-review/shared$': '<rootDir>/../shared/src/index.ts',
   },
-  setupFiles: ['<rootDir>/src/__integration__/env.ts'],
+  setupFiles: ['<rootDir>/src/__integration__/env.ts', '<rootDir>/src/__integration__/setup-mushaf-assets.ts'],
   globalSetup: '<rootDir>/src/__integration__/global-setup.ts',
   testTimeout: 30000,
   maxWorkers: 1,

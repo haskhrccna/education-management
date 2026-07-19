@@ -6,7 +6,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { Ionicons } from '@expo/vector-icons';
-import { gradesApi, memorizationApi, Grade, MemorizationEntry } from '@/src/api';
+import { gradesApi, Grade } from '@/src/api';
+import { mushafPagesApi, type PageMemorizationRow } from '@/src/api/mushafPages';
+import { derivePageProgress } from '@/src/hooks/useMushafPages';
+import { revisionQueueApi, type RevisionQueueResult } from '@/src/api/revisionQueue';
 import { SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useTheme } from '@/src/hooks/useTheme';
 const TYPE_COLORS: Record<string, string> = {
@@ -21,13 +24,6 @@ function avgScore(grades: Grade[]): string {
   const nums = grades.map((g) => parseFloat(g.grade)).filter((n) => !isNaN(n));
   if (nums.length === 0) return '—';
   return Math.round(nums.reduce((a, b) => a + b, 0) / nums.length).toString();
-}
-
-function memPct(entries: MemorizationEntry[]): string {
-  const total = entries.reduce((s, e) => s + e.surah.ayahCount, 0);
-  const done = entries.reduce((s, e) => s + e.memorizedAyahs, 0);
-  if (total === 0) return '—';
-  return Math.round((done / total) * 100) + '%';
 }
 
 export default function TeacherStudentDetailScreen() {
@@ -46,16 +42,24 @@ export default function TeacherStudentDetailScreen() {
   };
 
   const [grades, setGrades] = useState<Grade[]>([]);
-  const [memorization, setMemorization] = useState<MemorizationEntry[]>([]);
+  const [pages, setPages] = useState<PageMemorizationRow[]>([]);
+  const [queue, setQueue] = useState<RevisionQueueResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!studentId) return;
-    Promise.all([gradesApi.getStudentGrades(studentId), memorizationApi.getStudentProgress(studentId)])
-      .then(([g, m]) => {
+    Promise.all([
+      gradesApi.getStudentGrades(studentId),
+      // Page-level hifz progress (F1) — 403-tolerant so a guard denial never blanks the screen.
+      mushafPagesApi.getMyPages(studentId).catch(() => [] as PageMemorizationRow[]),
+      // Revision adherence (F3/AC3.6) — same tolerance.
+      revisionQueueApi.getQueue(studentId).catch(() => null),
+    ])
+      .then(([g, p, q]) => {
         setGrades(g);
-        setMemorization(m);
+        setPages(p);
+        setQueue(q);
       })
       .catch((err) => setError(err.message))
       .finally(() => setIsLoading(false));
@@ -98,11 +102,17 @@ export default function TeacherStudentDetailScreen() {
                 <Text style={styles.statLbl}>{t('gradesCountLabel')}</Text>
               </View>
               <View style={styles.stat}>
-                <Text style={styles.statVal}>{memPct(memorization)}</Text>
-                <Text style={styles.statLbl}>{t('memorizedLabel')}</Text>
+                <Text style={styles.statVal}>{`${derivePageProgress(pages).memorized}/604`}</Text>
+                <Text style={styles.statLbl}>{t('pagesMemorized')}</Text>
               </View>
             </View>
           )}
+          {!isLoading && queue ? (
+            <Text style={[styles.statLbl, { textAlign: 'center', marginTop: SPACING.xs }]}>
+              {t('revisionAdherence')}: {queue.reviewedThisWeek} {t('reviewedThisWeek')} · {queue.items.length}{' '}
+              {t('dueToday')}
+            </Text>
+          ) : null}
         </View>
 
         {isLoading ? (

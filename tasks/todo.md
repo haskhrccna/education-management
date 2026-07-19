@@ -301,6 +301,13 @@ Final commit: `ae53ef9`.
   - Commit: `10d75dd`
 
 - [x] Stage 8 — Tech-Debt & Hardening
+- [x] H1 Hifz Engine (2026-07-19, branch feat/h1-hifz-engine) — roadmap `2026-07-16-10x-roadmap.md` F1–F4. Gates: 304 unit + 900 integration tests green, tsc clean (server/shared/mobile), check-i18n OK, `scripts/verify-migrations.sh` green. AC proof map:
+  - AC1.1–1.2 reader chips + single-fetch statuses (`useMushafPages`, hifz-engine.itest F1); AC1.3 pages/604 on student home + teacher student-detail + parent card (`derivePageProgress` single source); AC1.4 guard itests (cross-student 403, assigned-teacher 200); AC1.5 additive migration + ledger green; AC1.6 MEMORIZED/SOLID stamp lastReviewedAt (unit + itest)
+  - AC2.1 mic on reader → tagged upload (itest echo); AC2.2 review modal renders the recited page, legacy nulls regression-pinned (media-flows untouched); AC2.3 one-tap weak-ayah flag from the page's ayah list; AC2.4 page tags on rows (student rows deep-link; teacher tag display-only — /student/* routes are role-gated); AC2.5 media-flows green untouched
+  - AC3.1 pure deterministic buildRevisionQueue (8 unit tests incl. exact-array + double-run); AC3.2 band ordering + weak boost unit-tested; AC3.3 reviewed→optimistic removal (hook) + itest queue-drop; AC3.4 override-first itest; AC3.5 compute path itested; cached path via in-process LRU (see deviations); AC3.6 adherence on teacher/parent surfaces
+  - AC4.1 fresh `migrate deploy` builds full schema (harness + itest globalSetup now uses migrate deploy every run); AC4.2 db push removed from toolchain + docs; AC4.3 DEPLOYMENT.md populate path; AC4.4 fail-loud production start; AC4.5 static smoke itest (1/604/immutable/404)
+  - **Conscious deviations:** (a) F3 nightly precompute → in-process LRU cache-aside with write-invalidation (single-node deploy; Redis version is a deploy-time follow-up); (b) AC4.1 "CI on every PR" limited — the workflow lives under `education_management/.github/` but the git root is the parent `opencode/`, so GitHub Actions never runs it (ask user: copy to repo root?); (c) teacher recording page-tag is display-only (role-gated routes)
+  - **Found during work:** stray branch `fix/migration-baseline` was created from this branch's tip during a session gap (not by this work); left untouched.
   - Added accessibility labels/roles and `hitSlop` to new screens and `BottomNav`.
   - Added loading/error/retry states across new screens.
   - Hardened server route mounts with `authenticate` + `standardLimiter`.
@@ -316,4 +323,33 @@ Final commit: `ae53ef9`.
 - Database: `quran_review` on PostgreSQL localhost:5432.
 - Env files created at `packages/server/.env` and repo root `.env`.
 - Seed uses dedicated `tsconfig.seed.json` with relaxed compiler flags.
-- Migration ledger repaired for idempotent SQL on fresh databases.
+- Migration ledger baseline-repaired (F4a, 2026-07-18): `20260606120000_baseline_db_push_repair` creates the six db-push-only tables; `20260716120000_capture_db_push_drift` captures column/index/FK drift. Fresh `migrate deploy` builds the full schema (proof: `scripts/verify-migrations.sh`; itest globalSetup now uses `migrate deploy`, never `db push`).
+
+---
+
+# 2026-07-16 — Full 10× Roadmap Implementation Plan (approved → execute)
+
+**Plan file:** `docs/superpowers/plans/2026-07-16-10x-roadmap-implementation.md`  
+**Roadmap review:** `docs/10x-roadmap-independent-review-2026-07-16.md`  
+**Goal:** move the platform from a management/booking tool to the student's daily hifz instrument.
+
+## Immediate next tasks
+
+- [ ] F4a — Repair `surahs` baseline migration so `prisma migrate reset --force` works on a fresh DB.
+- [ ] F4b — Mushaf asset pipeline: documented one-command populate + production fail-loud guard.
+- [ ] F1 — Page-level memorization on the real Mushaf (schema + contracts + reader UI + progress surfaces).
+
+## Horizon schedule
+
+1. **H1 — Hifz Engine:** F4a → F4b → F1 → F2 → F3 (~6.5 days)
+2. **H2 — Activation & Teacher Leverage:** F5 → F6 → F7 (~5 days)
+3. **H3 — Acquisition & Academy-Readiness:** F8 → F9 → F10 → F11 (~3.5 days)
+
+## Cross-cutting gates (every branch)
+
+- Server integration + unit tests green.
+- Mobile `npx tsc --noEmit` + `npm run check-i18n` clean.
+- New endpoints added to authz matrix.
+- `security-reviewer` agent sign-off on auth/public/admin/offline surfaces.
+- ar + en i18n for every new string.
+- No completion without proof (tests, logs, or diffs).

@@ -144,6 +144,7 @@ model User {
   reportsReceived        Report[]               @relation("StudentReports")
   reviewedRecordings     Recording[]            @relation("ReviewedRecordings")
   memorizationProgresses MemorizationProgress[] @relation("UserMemorizations")
+  pageMemorizations      PageMemorization[]     @relation("UserPageMemorizations")
   revisionSchedules      RevisionSchedule[]     @relation("UserRevisions")
   weakAyahFlagsAsStudent WeakAyahFlag[]         @relation("WeakAyahStudent")
   weakAyahFlagsFlagged   WeakAyahFlag[]         @relation("WeakAyahFlagger")
@@ -264,12 +265,17 @@ model Recording {
   updatedAt       DateTime  @updatedAt
   accuracyScore   Float?
   scoreStatus     RecordingScoreStatus @default(PENDING)
+  // Recite-from-the-page (F2): which Madani mushaf page / surah was recited.
+  // Plain nullable columns (no FK) — a page tag must survive surah reseeds.
+  page            Int?
+  surahId         Int?
 
   student  User  @relation("StudentRecordings", fields: [studentId], references: [id], onDelete: Cascade)
   reviewer User? @relation("ReviewedRecordings", fields: [reviewedBy], references: [id], onDelete: SetNull)
 
   @@index([studentId])
   @@index([studentId, createdAt])
+  @@index([studentId, page])
   @@index([reviewedBy])
   @@index([createdAt])
   @@map("recordings")
@@ -373,6 +379,30 @@ model MemorizationProgress {
   @@index([userId])
   @@index([surahId])
   @@map("memorization_progress")
+}
+
+enum PageMemorizationStatus {
+  NOT_STARTED
+  LEARNING
+  MEMORIZED
+  SOLID
+}
+
+// Hifz progress on the canonical unit — the 604-page Madani mushaf page.
+model PageMemorization {
+  id             String                 @id @default(uuid())
+  userId         String
+  page           Int
+  status         PageMemorizationStatus @default(LEARNING)
+  lastReviewedAt DateTime?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  user User @relation("UserPageMemorizations", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, page])
+  @@index([userId])
+  @@map("page_memorizations")
 }
 
 model RevisionSchedule {

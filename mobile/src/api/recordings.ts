@@ -18,6 +18,9 @@ export interface Recording {
   createdAt: string;
   accuracyScore?: number | null;
   scoreStatus?: 'PENDING' | 'SCORED' | 'UNAVAILABLE';
+  // Recite-from-the-page (F2): mushaf page / surah the recitation covers.
+  page?: number | null;
+  surahId?: number | null;
   student?: { id: string; firstName: string; lastName: string; email: string };
 }
 
@@ -64,7 +67,14 @@ export const recordingsApi = {
   },
 
   // Legacy uri-based helper for callers that don't already have a FormData
-  upload: async (fileUri: string, fileName: string, fileSize: number, contentType: string): Promise<Recording> => {
+  upload: async (
+    fileUri: string,
+    fileName: string,
+    fileSize: number,
+    contentType: string,
+    page?: number,
+    surahId?: number
+  ): Promise<Recording> => {
     const formData = new FormData();
     formData.append('file', {
       uri: fileUri,
@@ -74,6 +84,8 @@ export const recordingsApi = {
     formData.append('fileName', fileName);
     formData.append('fileSizeBytes', String(fileSize));
     formData.append('contentType', contentType);
+    if (page != null) formData.append('page', String(page));
+    if (surahId != null) formData.append('surahId', String(surahId));
     return recordingsApi.uploadRecording(formData);
   },
 

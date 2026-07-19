@@ -336,6 +336,7 @@ export default function StudentRecordingsScreen() {
 
 function RecordingCard({ recording, COLORS, isRTL }: { recording: Recording; COLORS: AnyColors; isRTL: boolean }) {
   const { t, i18n } = useTranslation();
+  const cardRouter = useRouter();
   const status = getRecordingStatus(recording);
 
   const statusColor = status === 'APPROVED' ? COLORS.success : status === 'REJECTED' ? COLORS.error : COLORS.warning;
@@ -370,6 +371,18 @@ function RecordingCard({ recording, COLORS, isRTL }: { recording: Recording; COL
       >
         {recording.fileName}
       </Text>
+      {recording.page ? (
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={`${t('pageNumber')} ${recording.page}`}
+          onPress={() => cardRouter.push({ pathname: '/student/mushaf', params: { page: String(recording.page) } })}
+          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        >
+          <Text style={[cardStyles.meta, { color: COLORS.primary, textAlign: isRTL ? 'right' : 'left' }]}>
+            {t('pageNumber')} {recording.page} ↗
+          </Text>
+        </TouchableOpacity>
+      ) : null}
       <Text style={[cardStyles.meta, { color: COLORS.textSecondary }]}>
         {formatBytes(recording.fileSizeBytes)} ·{' '}
         {new Date(recording.createdAt).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', {

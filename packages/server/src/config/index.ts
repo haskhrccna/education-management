@@ -1,3 +1,4 @@
+import path from 'path';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -47,6 +48,10 @@ export const config = {
   firebaseProjectId: process.env.FIREBASE_PROJECT_ID || '',
   firebaseClientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
   firebasePrivateKey: process.env.FIREBASE_PRIVATE_KEY || '',
+  // Mushaf page images (604 WebPs) served statically; populated by
+  // scripts/extract_mushaf_pages.py. Env-overridable for tests/deploys.
+  mushafPagesDir: process.env.MUSHAF_PAGES_DIR || path.join(__dirname, '..', '..', 'mushaf-pages'),
+  allowMissingMushafPages: process.env.ALLOW_MISSING_MUSHAF_PAGES === '1',
 };
 
 // Validate CLIENT_URL in production to prevent silent CORS failures
