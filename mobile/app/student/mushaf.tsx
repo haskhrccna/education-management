@@ -12,7 +12,7 @@ import {
   View,
   ViewToken,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -41,7 +41,12 @@ export default function MushafScreen() {
   const { width: W, height: H } = useWindowDimensions();
 
   const listRef = useRef<FlatList<number>>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  // Deep link support: /student/mushaf?page=N opens the reader at that page.
+  const { page: pageParam } = useLocalSearchParams<{ page?: string }>();
+  const [currentPage, setCurrentPage] = useState(() => {
+    const p = parseInt(String(pageParam ?? '1'), 10);
+    return Number.isFinite(p) && p >= 1 && p <= TOTAL_PAGES ? p : 1;
+  });
   const [bodyHeight, setBodyHeight] = useState(0);
   const [juz, setJuz] = useState<number | null>(null);
   const [zoomPage, setZoomPage] = useState<number | null>(null);

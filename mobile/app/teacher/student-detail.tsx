@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { gradesApi, Grade } from '@/src/api';
 import { mushafPagesApi, type PageMemorizationRow } from '@/src/api/mushafPages';
 import { derivePageProgress } from '@/src/hooks/useMushafPages';
+import { revisionQueueApi, type RevisionQueueResult } from '@/src/api/revisionQueue';
 import { SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useTheme } from '@/src/hooks/useTheme';
 const TYPE_COLORS: Record<string, string> = {
@@ -42,6 +43,7 @@ export default function TeacherStudentDetailScreen() {
 
   const [grades, setGrades] = useState<Grade[]>([]);
   const [pages, setPages] = useState<PageMemorizationRow[]>([]);
+  const [queue, setQueue] = useState<RevisionQueueResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,10 +53,13 @@ export default function TeacherStudentDetailScreen() {
       gradesApi.getStudentGrades(studentId),
       // Page-level hifz progress (F1) — 403-tolerant so a guard denial never blanks the screen.
       mushafPagesApi.getMyPages(studentId).catch(() => [] as PageMemorizationRow[]),
+      // Revision adherence (F3/AC3.6) — same tolerance.
+      revisionQueueApi.getQueue(studentId).catch(() => null),
     ])
-      .then(([g, p]) => {
+      .then(([g, p, q]) => {
         setGrades(g);
         setPages(p);
+        setQueue(q);
       })
       .catch((err) => setError(err.message))
       .finally(() => setIsLoading(false));
@@ -102,6 +107,12 @@ export default function TeacherStudentDetailScreen() {
               </View>
             </View>
           )}
+          {!isLoading && queue ? (
+            <Text style={[styles.statLbl, { textAlign: 'center', marginTop: SPACING.xs }]}>
+              {t('revisionAdherence')}: {queue.reviewedThisWeek} {t('reviewedThisWeek')} · {queue.items.length}{' '}
+              {t('dueToday')}
+            </Text>
+          ) : null}
         </View>
 
         {isLoading ? (
