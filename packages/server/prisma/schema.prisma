@@ -265,12 +265,17 @@ model Recording {
   updatedAt       DateTime  @updatedAt
   accuracyScore   Float?
   scoreStatus     RecordingScoreStatus @default(PENDING)
+  // Recite-from-the-page (F2): which Madani mushaf page / surah was recited.
+  // Plain nullable columns (no FK) — a page tag must survive surah reseeds.
+  page            Int?
+  surahId         Int?
 
   student  User  @relation("StudentRecordings", fields: [studentId], references: [id], onDelete: Cascade)
   reviewer User? @relation("ReviewedRecordings", fields: [reviewedBy], references: [id], onDelete: SetNull)
 
   @@index([studentId])
   @@index([studentId, createdAt])
+  @@index([studentId, page])
   @@index([reviewedBy])
   @@index([createdAt])
   @@map("recordings")

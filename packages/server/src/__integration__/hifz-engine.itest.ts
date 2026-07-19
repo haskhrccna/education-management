@@ -70,3 +70,49 @@ describe('F1 page memorization', () => {
     expect((await request(app).put('/api/v1/mushaf/pages/1/status').send({ status: 'LEARNING' })).status).toBe(401);
   });
 });
+
+describe('F2 page-anchored recordings', () => {
+  it('upload carries page + surahId and echoes them (AC2.1 server half)', async () => {
+    const t = await createUser({ role: Role.TEACHER });
+    const s = await createUser({ role: Role.STUDENT, assignedTeacherId: t.id });
+    const res = await request(app)
+      .post('/api/v1/recordings')
+      .set('Authorization', `Bearer ${s.token}`)
+      .field('fileName', 'p3.m4a')
+      .field('fileSizeBytes', '4')
+      .field('contentType', 'audio/x-m4a')
+      .field('page', '3')
+      .field('surahId', '1')
+      .attach('file', Buffer.from('abcd'), { filename: 'p3.m4a', contentType: 'audio/x-m4a' });
+    expect(res.status).toBe(201);
+    expect(res.body.page).toBe(3);
+    expect(res.body.surahId).toBe(1);
+  });
+
+  it('legacy upload without page still works — nullable, zero regression (AC2.2)', async () => {
+    const s = await createUser({ role: Role.STUDENT });
+    const res = await request(app)
+      .post('/api/v1/recordings')
+      .set('Authorization', `Bearer ${s.token}`)
+      .field('fileName', 'x.m4a')
+      .field('fileSizeBytes', '1')
+      .field('contentType', 'audio/x-m4a')
+      .attach('file', Buffer.from('a'), { filename: 'x.m4a', contentType: 'audio/x-m4a' });
+    expect(res.status).toBe(201);
+    expect(res.body.page).toBeNull();
+    expect(res.body.surahId).toBeNull();
+  });
+
+  it('page 700 → 400 validation error', async () => {
+    const s = await createUser({ role: Role.STUDENT });
+    const res = await request(app)
+      .post('/api/v1/recordings')
+      .set('Authorization', `Bearer ${s.token}`)
+      .field('fileName', 'x.m4a')
+      .field('fileSizeBytes', '1')
+      .field('contentType', 'audio/x-m4a')
+      .field('page', '700')
+      .attach('file', Buffer.from('a'), { filename: 'x.m4a', contentType: 'audio/x-m4a' });
+    expect(res.status).toBe(400);
+  });
+});

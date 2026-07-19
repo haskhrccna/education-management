@@ -23,7 +23,9 @@ export const uploadRecording = async (
   fileName: string,
   fileSizeBytes: number,
   contentType: string,
-  tempFilePath?: string
+  tempFilePath?: string,
+  page?: number,
+  surahId?: number
 ) => {
   if (await isRecordingBlockedByConsent(studentId)) {
     throw new AppError(403, 'A linked guardian must consent before recitation recordings can be uploaded');
@@ -50,7 +52,15 @@ export const uploadRecording = async (
   }
 
   const recording = await prisma.recording.create({
-    data: { studentId, url: `/uploads/${uniqueName}`, fileName: safeName, fileSizeBytes, contentType },
+    data: {
+      studentId,
+      url: `/uploads/${uniqueName}`,
+      fileName: safeName,
+      fileSizeBytes,
+      contentType,
+      page: page ?? null,
+      surahId: surahId ?? null,
+    },
   });
 
   // Phase 5: a successful upload counts as daily activity. Best-effort —

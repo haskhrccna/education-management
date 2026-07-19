@@ -63,6 +63,10 @@ export const CreateRecordingSchema = z.object({
   fileName: fileNameSchema,
   fileSizeBytes: z.coerce.number().int().min(0),
   contentType: z.string().min(1).max(100),
+  // Recite-from-the-page (F2): coerced because multer delivers multipart
+  // fields as strings and validate() runs after multer (pinned ordering).
+  page: z.coerce.number().int().min(1).max(604).optional(),
+  surahId: z.coerce.number().int().min(1).max(114).optional(),
 });
 
 export const GenerateReportSchema = z.object({

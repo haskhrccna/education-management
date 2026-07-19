@@ -45,12 +45,18 @@ const uploadRecording = defineRoute(
     const actualType = file.mimetype || body.contentType || 'audio/mpeg';
 
     if (!actualFileName) throw new AppError(400, 'fileName is required');
+    // validate() checks but does not write back Zod's coerced output (pinned
+    // M0 behavior), so multer's string fields must be coerced here.
+    const pageNum = body.page != null ? Number(body.page) : undefined;
+    const surahNum = body.surahId != null ? Number(body.surahId) : undefined;
     const recording = await recordingService.uploadRecording(
       userId!,
       actualFileName,
       actualSize,
       actualType,
-      file.path
+      file.path,
+      pageNum,
+      surahNum
     );
     return { status: 201 as const, body: recording };
   },
