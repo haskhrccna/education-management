@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -13,6 +13,8 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useParent } from '@/src/hooks/useParent';
+import { mushafPagesApi, type PageMemorizationRow } from '@/src/api/mushafPages';
+import { derivePageProgress } from '@/src/hooks/useMushafPages';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useAuthStore } from '@/src/auth/store';
 import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
@@ -45,6 +47,30 @@ export default function ParentHomeScreen() {
 
   const selectedStudentId = dashboard?.student.id;
   const selectedChild = children.find((c) => c.student.id === selectedStudentId);
+
+  // Page-level hifz progress for the selected child (F1) — 403-tolerant
+  // (a pending link simply hides the line).
+  const [childPages, setChildPages] = useState<PageMemorizationRow[]>([]);
+  const childId = dashboard?.student.id;
+  useEffect(() => {
+    let active = true;
+    if (!childId) {
+      setChildPages([]);
+      return;
+    }
+    mushafPagesApi
+      .getMyPages(childId)
+      .then((rows) => {
+        if (active) setChildPages(rows);
+      })
+      .catch(() => {
+        if (active) setChildPages([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [childId]);
+  const childProgress = derivePageProgress(childPages);
 
   const renderChildSelector = () => {
     if (children.length <= 1) return null;
@@ -153,6 +179,9 @@ export default function ParentHomeScreen() {
                       </AppText>
                       <AppText variant="bodySmall" color={COLORS.textSecondary}>
                         {dashboard.student.email}
+                      </AppText>
+                      <AppText variant="bodySmall" color={COLORS.textSecondary}>
+                        {t('pagesMemorized')}: {childProgress.memorized} / 604 ({childProgress.pct}%)
                       </AppText>
                       <View
                         style={[

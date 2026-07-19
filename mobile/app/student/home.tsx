@@ -9,6 +9,7 @@ import { useAuthStore } from '@/src/auth/store';
 import { useAppointments } from '@/src/hooks/useAppointments';
 import { useGrades } from '@/src/hooks/useGrades';
 import { useMemorization } from '@/src/hooks/useMemorization';
+import { useMushafPages } from '@/src/hooks/useMushafPages';
 import { useMessages } from '@/src/hooks/useMessages';
 import { useNotifications } from '@/src/hooks/useNotifications';
 import {
@@ -77,6 +78,8 @@ export default function StudentHomeScreen() {
   const logout = useAuthStore((s) => s.logout);
   const loadSession = useAuthStore((s) => s.loadSession);
   const { progress, surahs, isLoading: isLoadingProgress, fetchProgress } = useMemorization();
+  // Pages-memorized is THE hifz headline number (F1 / AC1.3) — one source of truth.
+  const { progress: pagesProgress } = useMushafPages();
   const { unreadCount, fetchMessages } = useMessages();
   const { appointments, isLoading: isLoadingAppointments, fetchAppointments } = useAppointments();
   const { grades, isLoading: isLoadingGrades, fetchGrades } = useGrades();
@@ -101,13 +104,6 @@ export default function StudentHomeScreen() {
     router.replace('/');
   };
 
-  const totalAyahs = surahs.reduce((sum, surah) => sum + surah.ayahCount, 0);
-  const memorizedAyahs = progress.reduce((sum, entry) => sum + entry.memorizedAyahs, 0);
-  const overallPercent = totalAyahs > 0 ? Math.round((memorizedAyahs / totalAyahs) * 100) : 0;
-  const completedSurahs = progress.filter((entry) => {
-    const surah = surahs.find((candidate) => candidate.id === entry.surahId);
-    return surah ? entry.memorizedAyahs >= surah.ayahCount : false;
-  }).length;
   const activeEntry = progress.find((entry) => {
     const surah = surahs.find((candidate) => candidate.id === entry.surahId);
     return surah && entry.memorizedAyahs > 0 && entry.memorizedAyahs < surah.ayahCount;
@@ -273,7 +269,7 @@ export default function StudentHomeScreen() {
             </Text>
           </View>
           <View style={styles.progressRing}>
-            <Text style={styles.progressValue}>{overallPercent}%</Text>
+            <Text style={styles.progressValue}>{pagesProgress.pct}%</Text>
           </View>
         </View>
 
@@ -296,7 +292,11 @@ export default function StudentHomeScreen() {
         </AppCard>
 
         <View style={styles.metricsRow}>
-          <MetricTile colors={COLORS} value={completedSurahs} label={isAr ? 'سورة مكتملة' : 'Completed'} />
+          <MetricTile
+            colors={COLORS}
+            value={`${pagesProgress.memorized}/604`}
+            label={isAr ? 'صفحة محفوظة' : 'Pages memorized'}
+          />
           <MetricTile colors={COLORS} value={averageGrade ?? '-'} label={isAr ? 'المتوسط' : 'Average'} tone="gold" />
           <MetricTile
             colors={COLORS}
