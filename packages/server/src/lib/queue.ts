@@ -24,6 +24,7 @@ export const notificationQueue = createQueue<{ userId: string; event: string; da
   'notification'
 );
 export const digestQueue = createQueue<Record<string, never>>('weekly-digest');
+export const streakNudgeQueue = createQueue<Record<string, never>>('streak-nudge');
 export const scoringQueue = createQueue<{ recordingId: string }>('recitation-scoring');
 export const recurringSlotsQueue = createQueue<Record<string, never>>('recurring-slots-extend');
 
@@ -54,6 +55,7 @@ export const closeQueues = async (): Promise<void> => {
     emailQueue,
     notificationQueue,
     digestQueue,
+    streakNudgeQueue,
     scoringQueue,
     recurringSlotsQueue,
   ].filter(Boolean) as Queue[];
@@ -134,6 +136,25 @@ if (process.env.ENABLE_WORKERS === 'true') {
     // day/time is not yet admin-configurable (follow-up, not built).
     digestQueue.add('trigger', {}, { repeat: { pattern: '0 8 * * 0' } }).catch((err) => {
       logger.error({ err }, 'Failed to schedule the weekly digest job');
+    });
+  }
+
+  if (streakNudgeQueue) {
+    workers.push(
+      new Worker(
+        'streak-nudge',
+        async () => {
+          const { sendStreakNudges } = await import('../services/streak-nudge.service');
+          const sent = await sendStreakNudges();
+          logger.info({ sent }, 'Streak nudge job completed');
+        },
+        { connection }
+      )
+    );
+    // Daily 20:00 server-local (F7): evening streak-risk reminder. Same
+    // dedupe-by-repeat-key behavior as the digest above.
+    streakNudgeQueue.add('trigger', {}, { repeat: { pattern: '0 20 * * *' } }).catch((err) => {
+      logger.error({ err }, 'Failed to schedule the streak nudge job');
     });
   }
 
