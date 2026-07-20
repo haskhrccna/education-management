@@ -14,6 +14,7 @@ const Profile = z.object({
   lastName: z.string(),
   status: z.enum(['pending', 'approved', 'active', 'banned']),
   emailVerifiedAt: DateOut.nullable(),
+  onboardingCompletedAt: DateOut.nullable(),
   createdAt: DateOut,
   assignedTeacher: NameCard.nullable(),
   assignedStudents: z.array(NameCard),

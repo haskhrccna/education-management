@@ -20,6 +20,7 @@ const getProfile = defineRoute(usersContracts.getProfile, async ({ userId }) => 
       lastName: true,
       status: true,
       emailVerifiedAt: true,
+      onboardingCompletedAt: true,
       createdAt: true,
       assignedTeacher: { select: { id: true, firstName: true, lastName: true } },
       assignedStudents: { select: { id: true, firstName: true, lastName: true } },

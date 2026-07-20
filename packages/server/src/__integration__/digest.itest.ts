@@ -63,6 +63,20 @@ describe('buildWeeklyDigest', () => {
     expect(content.gradesSinceLastDigest).toHaveLength(1);
     expect(content.gradesSinceLastDigest[0].grade).toBe('A');
   });
+
+  it('counts pages memorized this week and flags activity (F7/AC7.2)', async () => {
+    const student = await createUser({ role: Role.STUDENT });
+    await prisma.pageMemorization.create({
+      data: { userId: student.id, page: 3, status: 'MEMORIZED', lastReviewedAt: new Date() },
+    });
+
+    const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const content = await buildWeeklyDigest(student.id, since);
+    expect(content.pagesMemorizedThisWeek).toBe(1);
+    expect(content.hasActivity).toBe(true);
+    // Freshly memorized + just reviewed → sabaq interval 1 not yet elapsed.
+    expect(content.revisionDueToday).toBe(0);
+  });
 });
 
 describe('sendWeeklyDigests', () => {

@@ -96,9 +96,25 @@ export default function TeacherRecordingsScreen() {
     };
   }, []);
 
+  // F6/S1-AC5: the queue orders itself by "needs teacher attention first" —
+  // pending before decided; within pending: unscoreable first, then unscored,
+  // oldest first. Decided items follow, newest first. Pure + deterministic.
+  const sortForReview = (list: Recording[]): Recording[] =>
+    [...list].sort((a, b) => {
+      const aPending = !a.approvedAt && !a.rejectedAt;
+      const bPending = !b.approvedAt && !b.rejectedAt;
+      if (aPending !== bPending) return aPending ? -1 : 1;
+      if (aPending) {
+        const rank = (r: Recording) => (r.scoreStatus === 'UNAVAILABLE' ? 0 : r.accuracyScore == null ? 1 : 2);
+        if (rank(a) !== rank(b)) return rank(a) - rank(b);
+        return a.createdAt.localeCompare(b.createdAt); // oldest first
+      }
+      return b.createdAt.localeCompare(a.createdAt); // decided: newest first
+    });
+
   const filtered = useMemo(() => {
-    if (filter === 'ALL') return recordings;
-    return recordings.filter((r) => getRecordingStatus(r) === filter);
+    const base = filter === 'ALL' ? recordings : recordings.filter((r) => getRecordingStatus(r) === filter);
+    return sortForReview(base);
   }, [recordings, filter]);
 
   const counts = useMemo(() => {

@@ -29,6 +29,7 @@ describe('createContractClient', () => {
       firstName: 'A',
       lastName: 'B',
       status: 'active',
+      onboardingCompletedAt: null,
     },
     token: 't',
     refreshToken: 'r'.repeat(64),
