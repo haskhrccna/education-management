@@ -229,7 +229,7 @@ export default function MushafScreen() {
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
         <TouchableOpacity
           accessibilityRole="button"
-          onPress={() => router.back()}
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/student/home'))}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
           <Ionicons
