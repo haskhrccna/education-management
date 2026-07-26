@@ -3,15 +3,29 @@ import { logger } from './logger';
 
 let redis: Redis | null = null;
 
+// Bounded retries + no offline command queueing, so a genuinely absent Redis
+// fails each command fast instead of retrying forever in the background —
+// the same fix applied to lib/queue.ts after CI (no Redis service) exposed
+// the default ioredis retry strategy leaving zombie reconnect timers running
+// past test teardown. This client had zero callers until F9's academy-health
+// cache, so the bug was latent rather than yet observed here.
+const RETRY_OPTIONS = {
+  maxRetriesPerRequest: 1,
+  enableOfflineQueue: false,
+  connectTimeout: 1000,
+  retryStrategy: (times: number) => (times > 2 ? null : Math.min(times * 200, 1000)),
+};
+
 export const getRedis = (): Redis | null => {
   if (redis) return redis;
 
   try {
     redis = process.env.REDIS_URL
-      ? new Redis(process.env.REDIS_URL)
+      ? new Redis(process.env.REDIS_URL, RETRY_OPTIONS)
       : new Redis({
           host: process.env.REDIS_HOST || 'localhost',
           port: parseInt(process.env.REDIS_PORT || '6379', 10),
+          ...RETRY_OPTIONS,
         });
 
     redis.on('error', (err) => {
