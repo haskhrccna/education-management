@@ -1,15 +1,35 @@
 import { Queue, Worker } from 'bullmq';
 import { logger } from './logger';
 
-const connection = process.env.REDIS_URL
+const redisAddress = process.env.REDIS_URL
   ? { url: process.env.REDIS_URL }
   : { host: process.env.REDIS_HOST || 'localhost', port: parseInt(process.env.REDIS_PORT || '6379', 10) };
+
+// Producer-side (Queue) connection: bounded retries + no offline command
+// queueing, so an absent Redis fails each `.add()` fast instead of retrying
+// forever in the background (previously left zombie reconnect timers running
+// well past process/test-suite teardown — "Cannot log after tests are done").
+const connection = {
+  ...redisAddress,
+  maxRetriesPerRequest: 1,
+  enableOfflineQueue: false,
+  retryStrategy: (times: number) => (times > 2 ? null : Math.min(times * 200, 1000)),
+};
+
+// Worker-side connection: BullMQ requires maxRetriesPerRequest: null for the
+// blocking commands a Worker issues. Workers only ever construct when
+// ENABLE_WORKERS=true, where Redis is expected to be present.
+const workerConnection = { ...redisAddress, maxRetriesPerRequest: null };
 
 const workers: Worker[] = [];
 
 function createQueue<T>(name: string) {
   try {
     const queue = new Queue<T>(name, { connection });
+    // Bounded retries mean a genuinely absent Redis now reaches a terminal
+    // failure instead of retrying indefinitely — an unhandled 'error' listener
+    // on an EventEmitter throws, so this keeps that terminal state a log line.
+    queue.on('error', (err) => logger.warn({ err, queue: name }, 'Queue connection error'));
     return queue;
   } catch {
     logger.warn(`Redis not available — ${name} queue disabled`);
@@ -30,22 +50,42 @@ export const recurringSlotsQueue = createQueue<Record<string, never>>('recurring
 
 export async function addScoringJob(recordingId: string) {
   if (!scoringQueue) return null;
-  return scoringQueue.add('score-recording', { recordingId });
+  try {
+    return await scoringQueue.add('score-recording', { recordingId });
+  } catch (err) {
+    logger.warn({ err }, 'scoring queue add failed — Redis unavailable, falling back');
+    return null;
+  }
 }
 
 export async function addBroadcastJob(message: string, targetRole?: string) {
   if (!broadcastQueue) return null;
-  return broadcastQueue.add('broadcast', { message, targetRole });
+  try {
+    return await broadcastQueue.add('broadcast', { message, targetRole });
+  } catch (err) {
+    logger.warn({ err }, 'broadcast queue add failed — Redis unavailable, falling back');
+    return null;
+  }
 }
 
 export async function addReportJob(teacherId: string, studentId: string, summary: string) {
   if (!reportQueue) return null;
-  return reportQueue.add('generate-report', { teacherId, studentId, summary });
+  try {
+    return await reportQueue.add('generate-report', { teacherId, studentId, summary });
+  } catch (err) {
+    logger.warn({ err }, 'report queue add failed — Redis unavailable, falling back');
+    return null;
+  }
 }
 
 export async function addEmailJob(to: string, subject: string, html: string, text?: string) {
   if (!emailQueue) return null;
-  return emailQueue.add('send-email', { to, subject, html, text });
+  try {
+    return await emailQueue.add('send-email', { to, subject, html, text });
+  } catch (err) {
+    logger.warn({ err }, 'email queue add failed — Redis unavailable, falling back');
+    return null;
+  }
 }
 
 export const closeQueues = async (): Promise<void> => {
@@ -84,7 +124,7 @@ if (process.env.ENABLE_WORKERS === 'true') {
           }
           logger.info({ recipients: users.length }, 'Broadcast job completed');
         },
-        { connection }
+        { connection: workerConnection }
       )
     );
   }
@@ -99,7 +139,7 @@ if (process.env.ENABLE_WORKERS === 'true') {
           await sendEmail({ to, subject, html, text });
           logger.info({ to, subject }, 'Email job completed');
         },
-        { connection }
+        { connection: workerConnection }
       )
     );
   }
@@ -113,7 +153,7 @@ if (process.env.ENABLE_WORKERS === 'true') {
           await notifyUser(job.data);
           logger.info({ userId: job.data.userId, event: job.data.event }, 'Notification job completed');
         },
-        { connection }
+        { connection: workerConnection }
       )
     );
   }
@@ -127,7 +167,7 @@ if (process.env.ENABLE_WORKERS === 'true') {
           const sent = await sendWeeklyDigests();
           logger.info({ sent }, 'Weekly digest job completed');
         },
-        { connection }
+        { connection: workerConnection }
       )
     );
     // Registers the recurring trigger once at startup. BullMQ dedupes
@@ -148,7 +188,7 @@ if (process.env.ENABLE_WORKERS === 'true') {
           const sent = await sendStreakNudges();
           logger.info({ sent }, 'Streak nudge job completed');
         },
-        { connection }
+        { connection: workerConnection }
       )
     );
     // Daily 20:00 server-local (F7): evening streak-risk reminder. Same
@@ -167,7 +207,7 @@ if (process.env.ENABLE_WORKERS === 'true') {
           await scoreRecording(job.data.recordingId);
           logger.info({ recordingId: job.data.recordingId }, 'Recitation scoring job completed');
         },
-        { connection }
+        { connection: workerConnection }
       )
     );
   }
@@ -181,7 +221,7 @@ if (process.env.ENABLE_WORKERS === 'true') {
           const generated = await extendActiveRecurringSlots();
           logger.info({ generated }, 'Recurring slots extension job completed');
         },
-        { connection }
+        { connection: workerConnection }
       )
     );
     // Weekly Monday 06:00 — extends every active slot's rolling window by

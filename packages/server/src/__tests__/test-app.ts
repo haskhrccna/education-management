@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import { UserRole } from '@quran-review/shared'
+import { UserRole } from '@quran-review/shared';
 
 // Create a test app with overrideable auth
 export function createTestApp(userOverride?: { userId: string; userRole: UserRole }) {
