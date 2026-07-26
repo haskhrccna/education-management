@@ -37,6 +37,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Prisma generate
+        run: npm exec --workspace=@quran-review/server -- prisma generate
+
       - name: Prettier check
         run: npx prettier --check "packages/server/src/**/*.ts"
 
