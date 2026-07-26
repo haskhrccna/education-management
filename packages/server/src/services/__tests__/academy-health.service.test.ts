@@ -75,6 +75,28 @@ describe('computeAcademyHealth', () => {
     const result = await computeAcademyHealth();
     expect(result.completionRatePct).toBe(0);
   });
+
+  it('does not count a student with zero grades and no ACCEPTED appointment as at-risk (regression: 1 student, 0 grades used to → 100% at-risk)', async () => {
+    // totalStudents includes a never-approved/never-assigned student who has
+    // zero grades — but with no ACCEPTED appointments anywhere, nobody is
+    // "enrolled", so atRiskCount must stay 0.
+    mockPrisma.user.count.mockResolvedValue(1);
+    mockPrisma.appointment.findMany.mockResolvedValue([]);
+    // Guards against regressing to the old, unscoped query shape: the buggy
+    // implementation queried `{ role: 'STUDENT', deletedAt: null }` with no
+    // id filter and would have picked up this student directly.
+    mockPrisma.user.findMany.mockImplementation(({ where }: any) => {
+      if (where.role === 'TEACHER') return Promise.resolve([]);
+      if (where.role === 'STUDENT' && !where.id) {
+        return Promise.resolve([{ id: 'unenrolled-student' }]);
+      }
+      return Promise.resolve([]);
+    });
+
+    const result = await computeAcademyHealth();
+    expect(result.totalStudents).toBe(1);
+    expect(result.atRiskCount).toBe(0);
+  });
 });
 
 jest.mock('../../lib/redis', () => ({ cacheGet: jest.fn(), cacheSet: jest.fn() }));

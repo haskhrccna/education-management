@@ -1,5 +1,6 @@
 import { prisma } from '../prisma/client';
 import { cacheGet, cacheSet } from '../lib/redis';
+import { CONSECUTIVE_MISSED_THRESHOLD, STREAK_BROKEN_WINDOW_DAYS, GRADE_GAP_THRESHOLD_DAYS } from './roster.service';
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 const CACHE_KEY = 'academy-health';
@@ -21,16 +22,38 @@ function pct(numerator: number, denominator: number): number {
   return denominator > 0 ? Math.round((numerator / denominator) * 100) : 0;
 }
 
-/** Academy-wide at-risk count — same 3 signals as roster.service.ts's per-teacher
- *  getRosterHealth, computed directly here since that function is scoped to one
- *  teacher's roster and re-querying per teacher would be N+1. */
-async function countAtRiskStudents(since7d: Date, since14d: Date): Promise<number> {
+/** Academy-wide at-risk count — same 3 signals and same thresholds (imported
+ *  from roster.service.ts, the source of truth) as that module's per-teacher
+ *  getRosterHealth, computed directly here since that function is scoped to
+ *  one teacher's roster and re-querying per teacher would be N+1.
+ *
+ *  Only students with at least one ACCEPTED appointment are considered
+ *  "enrolled" — matching what "actively taught" means everywhere else in
+ *  this codebase (see getRosterHealth). Without this scoping, a student who
+ *  was never approved/assigned a teacher and has zero activity gets flagged
+ *  at-risk purely because they have no history to compare against. */
+async function countAtRiskStudents(): Promise<number> {
+  const acceptedAppointments = await prisma.appointment.findMany({
+    where: { status: 'ACCEPTED' },
+    select: { studentId: true },
+    distinct: ['studentId'],
+  });
+  if (acceptedAppointments.length === 0) return 0;
+  const enrolledStudentIds = acceptedAppointments.map((a) => a.studentId);
+
+  // Safety net: deleteUser() soft-deletes (anonymizes) a User row without
+  // touching their appointments, so an ACCEPTED appointment row can outlive
+  // its student. Re-scope to currently-active STUDENT rows before counting.
   const students = await prisma.user.findMany({
-    where: { role: 'STUDENT', deletedAt: null },
+    where: { id: { in: enrolledStudentIds }, role: 'STUDENT', deletedAt: null },
     select: { id: true },
   });
   if (students.length === 0) return 0;
   const studentIds = students.map((s) => s.id);
+
+  const now = Date.now();
+  const streakWindowStart = new Date(now - STREAK_BROKEN_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+  const gradeGapStart = new Date(now - GRADE_GAP_THRESHOLD_DAYS * 24 * 60 * 60 * 1000);
 
   const [streaks, latestGrades, recentSessions] = await Promise.all([
     prisma.streak.findMany({ where: { userId: { in: studentIds } } }),
@@ -47,19 +70,19 @@ async function countAtRiskStudents(since7d: Date, since14d: Date): Promise<numbe
   const recentByStudent = new Map<string, string[]>();
   for (const rec of recentSessions) {
     const list = recentByStudent.get(rec.studentId) ?? [];
-    if (list.length < 2) list.push(rec.status);
+    if (list.length < CONSECUTIVE_MISSED_THRESHOLD) list.push(rec.status);
     recentByStudent.set(rec.studentId, list);
   }
 
   let atRisk = 0;
   for (const id of studentIds) {
     const recent = recentByStudent.get(id) ?? [];
-    const missedSessions = recent.length === 2 && recent.every((s) => s === 'ABSENT');
+    const missedSessions = recent.length === CONSECUTIVE_MISSED_THRESHOLD && recent.every((s) => s === 'ABSENT');
     const streak = streakByStudent.get(id);
     const streakBroken =
-      !!streak && streak.currentStreak === 0 && streak.longestStreak > 0 && streak.lastActiveDate >= since7d;
+      !!streak && streak.currentStreak === 0 && streak.longestStreak > 0 && streak.lastActiveDate >= streakWindowStart;
     const lastGradeAt = latestGradeByStudent.get(id);
-    const gradeGap = !lastGradeAt || lastGradeAt < since14d;
+    const gradeGap = !lastGradeAt || lastGradeAt < gradeGapStart;
     if (missedSessions || streakBroken || gradeGap) atRisk++;
   }
   return atRisk;
@@ -68,7 +91,6 @@ async function countAtRiskStudents(since7d: Date, since14d: Date): Promise<numbe
 export async function computeAcademyHealth(): Promise<AcademyHealthMetrics> {
   const now = new Date();
   const since7d = new Date(now.getTime() - SEVEN_DAYS_MS);
-  const since14d = new Date(now.getTime() - 2 * SEVEN_DAYS_MS);
 
   const [
     totalStudents,
@@ -95,7 +117,7 @@ export async function computeAcademyHealth(): Promise<AcademyHealthMetrics> {
     prisma.pageMemorization.count({ where: { status: { in: ['MEMORIZED', 'SOLID'] }, updatedAt: { gte: since7d } } }),
     prisma.revisionSchedule.count({ where: { status: 'COMPLETED', notedAt: { gte: since7d } } }),
     prisma.revisionSchedule.count({ where: { status: 'MISSED', notedAt: { gte: since7d } } }),
-    countAtRiskStudents(since7d, since14d),
+    countAtRiskStudents(),
     prisma.user.findMany({
       where: { role: 'TEACHER', deletedAt: null },
       select: {

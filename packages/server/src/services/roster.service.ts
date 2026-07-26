@@ -1,8 +1,8 @@
 import { prisma } from '../prisma/client';
 
-const CONSECUTIVE_MISSED_THRESHOLD = 2;
-const STREAK_BROKEN_WINDOW_DAYS = 7;
-const GRADE_GAP_THRESHOLD_DAYS = 14;
+export const CONSECUTIVE_MISSED_THRESHOLD = 2;
+export const STREAK_BROKEN_WINDOW_DAYS = 7;
+export const GRADE_GAP_THRESHOLD_DAYS = 14;
 
 export type AtRiskReason = 'MISSED_SESSIONS' | 'STREAK_BROKEN' | 'GRADE_GAP';
 
