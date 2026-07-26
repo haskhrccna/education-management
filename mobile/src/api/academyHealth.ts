@@ -27,6 +27,6 @@ export const academyHealthApi = {
   },
   /** ?token= pinned — a mobile Linking.openURL() browser open cannot attach an Authorization header. */
   exportPdfUrl(token: string): string {
-    return `${API_ORIGIN}/api/v1/admin/academy-health/export.pdf?token=${encodeURIComponent(token)}`;
+    return `${API_ORIGIN}/api/v1/files/academy-health.pdf?token=${encodeURIComponent(token)}`;
   },
 };

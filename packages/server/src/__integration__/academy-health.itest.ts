@@ -3,7 +3,7 @@ import { Role } from '@prisma/client';
 import app from '../app';
 import { createUser } from './factory';
 import { truncateAll, disconnect } from './db';
-import { getRedis } from '../lib/redis';
+import { getRedis, cacheDelete } from '../lib/redis';
 
 async function isRedisReachable(): Promise<boolean> {
   const client = getRedis();
@@ -16,7 +16,14 @@ async function isRedisReachable(): Promise<boolean> {
   }
 }
 
-beforeEach(truncateAll);
+beforeEach(async () => {
+  await truncateAll();
+  // A locally running Redis persists across test runs/files; without this the
+  // 'academy-health' cache entry can serve stale data from a truncated (or
+  // even a previous run's) database, silently invalidating every assertion
+  // below that expects the metrics to reflect what this test just created.
+  await cacheDelete('academy-health');
+});
 afterAll(disconnect);
 
 describe('GET /api/v1/admin/academy-health', () => {
@@ -61,23 +68,46 @@ describe('GET /api/v1/admin/academy-health', () => {
   });
 });
 
-describe('GET /api/v1/admin/academy-health/export.pdf', () => {
-  it('returns a PDF within 5s (AC9.3)', async () => {
+describe('GET /api/v1/files/academy-health.pdf', () => {
+  function bufferedPdfRequest(req: request.Test): request.Test {
+    return req.buffer(true).parse((r, cb) => {
+      const chunks: Buffer[] = [];
+      r.on('data', (c: Buffer) => chunks.push(c));
+      r.on('end', () => cb(null, Buffer.concat(chunks)));
+    });
+  }
+
+  it('returns a PDF within 5s via Bearer header (AC9.3)', async () => {
     const admin = await createUser({ role: Role.ADMIN });
     const start = Date.now();
-    const res = await request(app)
-      .get('/api/v1/admin/academy-health/export.pdf')
-      .set('Authorization', `Bearer ${admin.token}`)
-      .buffer(true)
-      .parse((r, cb) => {
-        const chunks: Buffer[] = [];
-        r.on('data', (c: Buffer) => chunks.push(c));
-        r.on('end', () => cb(null, Buffer.concat(chunks)));
-      });
+    const res = await bufferedPdfRequest(
+      request(app).get('/api/v1/files/academy-health.pdf').set('Authorization', `Bearer ${admin.token}`)
+    );
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toBe('application/pdf');
     const buf = res.body as Buffer;
     expect(buf.subarray(0, 5).toString()).toBe('%PDF-');
     expect(Date.now() - start).toBeLessThan(5000);
+  });
+
+  // Reproduces the exact bug both reviewers found: the mobile app's
+  // Linking.openURL(...) call cannot set an Authorization header, so this is
+  // the ONLY auth path a real export button click exercises in production.
+  // Before the fix (route mounted under /api/v1/admin's blanket `authenticate`,
+  // which only reads the header), this request 401'd even with a valid token.
+  it('returns a PDF via ?token= alone, no Authorization header (the mobile export path)', async () => {
+    const admin = await createUser({ role: Role.ADMIN });
+    const res = await bufferedPdfRequest(request(app).get(`/api/v1/files/academy-health.pdf?token=${admin.token}`));
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toBe('application/pdf');
+    const buf = res.body as Buffer;
+    expect(buf.subarray(0, 5).toString()).toBe('%PDF-');
+  });
+
+  it('a valid non-admin token via ?token= is denied (403, not admin data)', async () => {
+    const student = await createUser({ role: Role.STUDENT });
+    const res = await request(app).get(`/api/v1/files/academy-health.pdf?token=${student.token}`);
+    expect(res.status).toBe(403);
+    expect(res.body.error).toBe('Insufficient permissions');
   });
 });

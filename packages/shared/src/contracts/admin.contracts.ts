@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineContract, ErrorEnvelope, DateOut, rawResponse } from './types';
+import { defineContract, ErrorEnvelope, DateOut } from './types';
 import { UserRole } from '../enums/roles';
 import {
   CreateTeacherSchema,
@@ -275,14 +275,5 @@ export const adminContracts = {
     summary: 'Program-wide health aggregate — pure read, 1h Redis cache with graceful DB fallback',
     access: ADMIN,
     responses: { 200: AcademyHealthMetricsSchema, 401: ErrorEnvelope, 403: ErrorEnvelope },
-  }),
-  exportAcademyHealthPdf: defineContract({
-    method: 'GET',
-    path: '/api/v1/admin/academy-health/export.pdf',
-    summary:
-      'Same metrics as a printable PDF — generated fresh, not cached. ?token= auth pinned (mobile Linking.openURL cannot set headers).',
-    access: ADMIN,
-    authVia: 'headerOrQueryToken',
-    responses: { 200: rawResponse('application/pdf'), 401: ErrorEnvelope, 403: ErrorEnvelope },
   }),
 };

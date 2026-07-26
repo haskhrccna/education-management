@@ -4,7 +4,6 @@ import { prisma } from '../../prisma/client';
 import * as adminService from '../../services/admin.service';
 import * as academyProfileService from '../../services/academy-profile.service';
 import * as academyHealthService from '../../services/academy-health.service';
-import { generateAcademyHealthPDF } from '../../services/academy-health-pdf.service';
 import { auditLog } from '../../lib/audit';
 import { paginate, paginatedResponse, PaginatedRequest } from '../../middleware/pagination.middleware';
 import { broadcastLimiter } from '../../middleware/rate-limit.middleware';
@@ -194,15 +193,6 @@ const getAcademyHealth = defineRoute(adminContracts.getAcademyHealth, async () =
   return { status: 200 as const, body: metrics };
 });
 
-const exportAcademyHealthPdf = defineRoute(adminContracts.exportAcademyHealthPdf, async ({ res }) => {
-  const metrics = await academyHealthService.getAcademyHealth();
-  const pdf = await generateAcademyHealthPDF(metrics);
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', 'attachment; filename="academy-health.pdf"');
-  res.send(pdf);
-  return { status: 200 as const, handled: true as const };
-});
-
 export const adminRouter = buildContractRouter(
   [
     listUsers,
@@ -221,7 +211,6 @@ export const adminRouter = buildContractRouter(
     getAcademyProfile,
     upsertAcademyProfile,
     getAcademyHealth,
-    exportAcademyHealthPdf,
   ],
   { mountPrefix: '/api/v1/admin' }
 );
