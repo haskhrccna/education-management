@@ -1,14 +1,6 @@
 import React from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Linking,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -35,16 +27,24 @@ interface StatCardProps {
  * shared MetricTile (design.tsx) — that component pins its value at
  * variant="headlineMedium" for dense dashboards; this one-pager wants the
  * largest available variant ("headlineLarge") so it reads from across a room.
+ *
+ * `tone: 'warning'` only tints the card background (colors.warningLight) as a
+ * status cue — text always uses colors.textPrimary/colors.error, never
+ * colors.warning or colors.textSecondary, both of which fail WCAG AA against
+ * that background (measured 1.92:1 and 4.34:1 respectively; textPrimary and
+ * error measure 15.16:1 and 4.69:1). Operational metrics also don't get the
+ * gold/amber accent — per DESIGN.md's "Rationed Gold" rule that's reserved
+ * for earned achievement.
  */
 function StatCard({ colors, value, label, sublabel, tone = 'neutral' }: StatCardProps) {
   const background = tone === 'warning' ? colors.warningLight : colors.surface;
-  const valueColor = tone === 'warning' ? colors.warning : colors.textPrimary;
+  const valueColor = tone === 'warning' ? colors.error : colors.textPrimary;
   return (
     <AppCard colors={colors} style={[styles.statCard, { backgroundColor: background }]}>
       <AppText variant="headlineLarge" color={valueColor}>
         {value}
       </AppText>
-      <AppText variant="bodyMedium" color={colors.textSecondary} style={styles.statLabel}>
+      <AppText variant="bodyMedium" color={colors.textPrimary} style={styles.statLabel}>
         {label}
       </AppText>
       {sublabel ? (
@@ -69,8 +69,15 @@ export default function AcademyHealthScreen() {
 
   const handleExportPdf = async () => {
     try {
-      const token = (await secureStorage.getItem('auth_token')) ?? '';
-      await Linking.openURL(academyHealthApi.exportPdfUrl(token));
+      const token = await secureStorage.getItem('auth_token');
+      if (!token) {
+        Alert.alert('', t('error'));
+        return;
+      }
+      // Ephemeral in-app browser session (mirrors reportsApi.downloadReport) —
+      // a leaked academy-health URL carries a full admin JWT via ?token=, so
+      // this avoids handing it to the OS default browser and its synced history.
+      await WebBrowser.openBrowserAsync(academyHealthApi.exportPdfUrl(token));
     } catch {
       Alert.alert('', t('error'));
     }
@@ -120,6 +127,19 @@ export default function AcademyHealthScreen() {
             <RefreshControl refreshing={isLoading} onRefresh={() => refetch()} tintColor={COLORS.primary} />
           }
         >
+          <AppText
+            variant="bodySmall"
+            color={COLORS.textSecondary}
+            style={[styles.asOf, { textAlign: isRTL ? 'right' : 'left' }]}
+          >
+            {t('academyHealthAsOf', {
+              time: new Date(metrics.generatedAt).toLocaleString(isRTL ? 'ar-SA' : 'en-US', {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+              }),
+            })}
+          </AppText>
+
           <View style={styles.grid}>
             <StatCard colors={COLORS} value={metrics.totalStudents} label={t('students')} />
             <StatCard
@@ -206,6 +226,9 @@ const styles = StyleSheet.create({
   body: {
     padding: SPACING.lg,
     paddingBottom: SPACING['2xl'],
+  },
+  asOf: {
+    marginBottom: SPACING.md,
   },
   grid: {
     flexDirection: 'row',

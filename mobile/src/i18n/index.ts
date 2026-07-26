@@ -445,6 +445,7 @@ const arTranslations: Record<string, string> = {
   atRiskStudents: 'الطلاب المعرضون للخطر',
   completionRate: 'معدل الإنجاز',
   exportPdf: 'تصدير PDF',
+  academyHealthAsOf: 'محدّث حتى {{time}}',
 };
 
 const enTranslations: Record<string, string> = {
@@ -892,6 +893,7 @@ const enTranslations: Record<string, string> = {
   atRiskStudents: 'At-risk students',
   completionRate: 'Completion rate',
   exportPdf: 'Export PDF',
+  academyHealthAsOf: 'As of {{time}}',
 };
 
 i18next.use(initReactI18next).init({
