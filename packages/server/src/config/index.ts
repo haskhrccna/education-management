@@ -52,9 +52,25 @@ export const config = {
   // scripts/extract_mushaf_pages.py. Env-overridable for tests/deploys.
   mushafPagesDir: process.env.MUSHAF_PAGES_DIR || path.join(__dirname, '..', '..', 'mushaf-pages'),
   allowMissingMushafPages: process.env.ALLOW_MISSING_MUSHAF_PAGES === '1',
+  // Bundled font for server-side SVG->PNG rendering (share-image.service.ts).
+  // The Docker base image (Alpine) ships zero fonts, and resvg silently
+  // drops <text> nodes rather than throwing when no font is available — so
+  // this must be a font we ship, not one we hope the host has.
+  shareImageFontPath:
+    process.env.SHARE_IMAGE_FONT_PATH || path.join(__dirname, '..', '..', 'assets', 'fonts', 'Cairo-Variable.ttf'),
+  // Absolute base URL this API is publicly reachable at — required for
+  // og:image (WhatsApp/Facebook crawlers need an absolute URL, and the
+  // Host header must not be trusted to build one). Optional in dev, where
+  // we fall back to localhost.
+  publicApiUrl: process.env.PUBLIC_API_URL,
 };
 
 // Validate CLIENT_URL in production to prevent silent CORS failures
 if (config.env === 'production' && !config.clientUrl) {
   throw new Error('Missing required environment variable in production: CLIENT_URL');
+}
+
+// Validate PUBLIC_API_URL in production so og:image is never silently relative/wrong
+if (config.env === 'production' && !config.publicApiUrl) {
+  throw new Error('Missing required environment variable in production: PUBLIC_API_URL');
 }

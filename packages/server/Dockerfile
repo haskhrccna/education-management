@@ -29,6 +29,7 @@ ENV NODE_ENV=production
 # Server compiled output
 COPY --from=builder /app/packages/server/dist ./dist
 COPY --from=builder /app/packages/server/prisma ./prisma
+COPY --from=builder /app/packages/server/assets ./assets
 COPY --from=builder /app/packages/server/package.json ./
 
 # Shared package — workspace symlink in node_modules points here

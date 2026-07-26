@@ -120,7 +120,13 @@ export const UpsertAcademyProfileSchema = z.object({
   displayName: z.string().min(1).max(120),
   programName: z.string().min(1).max(120),
   publicBio: z.string().max(2000).nullable().optional(),
-  logoUrl: z.string().url().max(500).nullable().optional(),
+  logoUrl: z
+    .string()
+    .url()
+    .max(500)
+    .refine((u) => u.startsWith('https://'), 'must be an https URL')
+    .nullable()
+    .optional(),
   contactEmail: z.string().email().max(254).nullable().optional(),
   active: z.boolean().optional(),
 });

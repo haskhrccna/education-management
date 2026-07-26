@@ -204,7 +204,7 @@ function createStyles(COLORS: ThemeColors) {
     },
     backBtn: {
       padding: SPACING.xs,
-      marginRight: SPACING.sm,
+      marginEnd: SPACING.sm,
     },
     headerTitle: {
       flex: 1,

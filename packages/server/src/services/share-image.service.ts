@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import { Resvg } from '@resvg/resvg-js';
 import { AppError } from '../middleware/error.middleware';
 import { shareImageStorage } from '../lib/storage';
+import { config } from '../config';
 import { verifyToken, VerificationResult } from './verification.service';
 import { getActiveDefaultProfile } from './academy-profile.service';
 
@@ -62,15 +63,25 @@ export async function renderShareImage(token: string): Promise<Buffer> {
   if (!result) throw new AppError(404, 'Not found');
 
   const key = `${token}.png`;
-  if (await shareImageStorage.exists(key)) {
+  try {
     const p = shareImageStorage.getLocalPath(key);
     const stat = await fs.stat(p);
-    if (Date.now() - stat.mtimeMs < CACHE_TTL_MS) return fs.readFile(p);
+    if (Date.now() - stat.mtimeMs < CACHE_TTL_MS) return await fs.readFile(p);
+  } catch {
+    // cache miss or file vanished mid-read — fall through to render
   }
 
   const profile = await getActiveDefaultProfile();
   const svg = buildShareSvg(result, profile?.programName ?? result.programName, profile?.displayName ?? null);
-  const png = new Resvg(svg, { font: { loadSystemFonts: true } }).render().asPng();
+  const png = new Resvg(svg, {
+    font: {
+      fontFiles: [config.shareImageFontPath],
+      loadSystemFonts: false,
+      defaultFontFamily: 'Cairo',
+    },
+  })
+    .render()
+    .asPng();
   const buf = Buffer.from(png);
 
   // Best-effort cache write; failure must not break the response.

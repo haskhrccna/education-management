@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
+import { shareImageStorage } from '../lib/storage';
 
 export const PROGRAM_NAME = 'Quran Review';
 
@@ -75,19 +76,34 @@ export const verifyToken = async (token: string): Promise<VerificationResult | n
 
 /** Regenerating IS the revoke — the old token stops resolving the instant the new one replaces it. */
 export const regenerateCertificateLink = async (certId: string, studentId: string) => {
-  const cert = await prisma.certificate.findUnique({ where: { id: certId }, select: { studentId: true } });
+  const cert = await prisma.certificate.findUnique({
+    where: { id: certId },
+    select: { studentId: true, verificationToken: true },
+  });
   if (!cert || cert.studentId !== studentId) throw new AppError(404, 'Certificate not found');
-  return prisma.certificate.update({
+  const updated = await prisma.certificate.update({
     where: { id: certId },
     data: { verificationToken: randomUUID(), active: true },
   });
+  // Best-effort: the endpoint already 404s on the old token regardless of
+  // cache state (AC8.3) — this just stops a rendered PNG containing the
+  // student's name from sitting on disk indefinitely after rotation.
+  const oldToken = cert.verificationToken;
+  await shareImageStorage.delete(`${oldToken}.png`).catch(() => {});
+  return updated;
 };
 
 export const regenerateIjazahLink = async (ijazahId: string, studentId: string) => {
-  const ijazah = await prisma.ijazah.findUnique({ where: { id: ijazahId }, select: { studentId: true } });
+  const ijazah = await prisma.ijazah.findUnique({
+    where: { id: ijazahId },
+    select: { studentId: true, verificationToken: true },
+  });
   if (!ijazah || ijazah.studentId !== studentId) throw new AppError(404, 'Ijazah not found');
-  return prisma.ijazah.update({
+  const updated = await prisma.ijazah.update({
     where: { id: ijazahId },
     data: { verificationToken: randomUUID(), active: true },
   });
+  const oldToken = ijazah.verificationToken;
+  await shareImageStorage.delete(`${oldToken}.png`).catch(() => {});
+  return updated;
 };

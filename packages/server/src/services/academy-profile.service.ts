@@ -5,9 +5,24 @@ import type { ZodUpsertAcademyProfileInput } from '@quran-review/shared';
 export const DEFAULT_SLUG = 'default';
 
 export const getPublicProfile = async (slug: string) => {
-  const profile = await prisma.academyProfile.findUnique({ where: { slug } });
+  // Allowlist-by-inclusion: only these fields are ever public, regardless of
+  // what columns get added to AcademyProfile in the future (was previously
+  // allowlist-by-exclusion via destructure, which leaks new columns by default).
+  const profile = await prisma.academyProfile.findUnique({
+    where: { slug },
+    select: {
+      slug: true,
+      displayName: true,
+      publicBio: true,
+      programName: true,
+      logoUrl: true,
+      contactEmail: true,
+      updatedAt: true,
+      active: true,
+    },
+  });
   if (!profile || !profile.active) throw new AppError(404, 'Academy not found');
-  const { id: _id, active: _active, createdAt: _c, ...pub } = profile;
+  const { active: _active, ...pub } = profile;
   return pub;
 };
 

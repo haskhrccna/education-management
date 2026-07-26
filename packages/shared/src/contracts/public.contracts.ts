@@ -2,15 +2,17 @@ import { z } from 'zod';
 import { defineContract, ErrorEnvelope, DateOut, rawResponse } from './types';
 
 /** Public view of the academy — contactEmail is academy contact info, not student PII. */
-export const AcademyProfilePublic = z.object({
-  slug: z.string(),
-  displayName: z.string(),
-  publicBio: z.string().nullable(),
-  programName: z.string(),
-  logoUrl: z.string().nullable(),
-  contactEmail: z.string().nullable(),
-  updatedAt: DateOut,
-});
+export const AcademyProfilePublic = z
+  .object({
+    slug: z.string(),
+    displayName: z.string(),
+    publicBio: z.string().nullable(),
+    programName: z.string(),
+    logoUrl: z.string().nullable(),
+    contactEmail: z.string().nullable(),
+    updatedAt: DateOut,
+  })
+  .strict();
 
 export const publicContracts = {
   getAcademyProfile: defineContract({

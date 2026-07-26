@@ -63,6 +63,10 @@ describe('GET /api/v1/public/verify/:token/share.png', () => {
     expect(buf.readUInt32BE(16)).toBe(1200);
     expect(buf.readUInt32BE(20)).toBe(630);
     expect(buf.length).toBeLessThanOrEqual(200 * 1024);
+    // Regression guard: a textless render (no bundled font available to
+    // resvg) is ~6.7KB; a real render with text is ~20-38KB. This catches
+    // the share image silently going blank without decoding pixels.
+    expect(buf.length).toBeGreaterThan(15 * 1024);
   });
 
   it('404s an unknown token', async () => {
