@@ -143,10 +143,14 @@ export default function RootLayout() {
             <Stack.Screen name="admin/settings" />
             <Stack.Screen name="admin/broadcast" />
             <Stack.Screen name="admin/change-requests" />
+            <Stack.Screen name="admin/academy-profile" />
 
             {/* Messages */}
             <Stack.Screen name="messages/index" />
             <Stack.Screen name="messages/conversation" />
+
+            {/* Public (unauthenticated — not in protectedRoots above) */}
+            <Stack.Screen name="(public)/academy/[slug]" />
           </Stack>
           <StatusBar style={darkMode ? 'light' : 'dark'} />
         </ThemeProvider>

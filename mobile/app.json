@@ -20,7 +20,8 @@
       "infoPlist": {
         "UIBackgroundModes": ["audio"],
         "NSMicrophoneUsageDescription": "يحتاج التطبيق إلى الميكروفون لتسجيل التلاوة القرآنية.",
-        "NSDocumentsFolderUsageDescription": "يحتاج التطبيق إلى الوصول للملفات لرفع تسجيلات التلاوة."
+        "NSDocumentsFolderUsageDescription": "يحتاج التطبيق إلى الوصول للملفات لرفع تسجيلات التلاوة.",
+        "LSApplicationQueriesSchemes": ["whatsapp"]
       }
     },
     "android": {
