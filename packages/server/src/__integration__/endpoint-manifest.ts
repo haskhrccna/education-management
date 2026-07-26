@@ -58,6 +58,8 @@ const v1: EndpointSpec[] = [
   { method: 'POST', path: '/api/v1/admin/bulk/deactivate', access: ['ADMIN'] },
   { method: 'GET', path: '/api/v1/admin/academy-profile', access: ['ADMIN'] },
   { method: 'PUT', path: '/api/v1/admin/academy-profile', access: ['ADMIN'] },
+  { method: 'GET', path: '/api/v1/admin/academy-health', access: ['ADMIN'] },
+  { method: 'GET', path: '/api/v1/admin/academy-health/export.pdf', access: ['ADMIN'] },
   // messages
   { method: 'GET', path: '/api/v1/messages', access: 'authenticated' },
   { method: 'POST', path: '/api/v1/messages', access: 'authenticated' },
