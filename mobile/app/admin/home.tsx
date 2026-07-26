@@ -254,6 +254,15 @@ export default function AdminHomeScreen() {
             <Ionicons name="business-outline" size={20} color={COLORS.textOnPrimary} />
             <Text style={styles.broadcastText}>{t('academyProfile')}</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.broadcastButton}
+            onPress={() => router.push('/admin/academy-health')}
+          >
+            <Ionicons name="stats-chart-outline" size={20} color={COLORS.textOnPrimary} />
+            <Text style={styles.broadcastText}>{t('academyHealth')}</Text>
+          </TouchableOpacity>
         </View>
 
         {fetchError && !isLoading ? (

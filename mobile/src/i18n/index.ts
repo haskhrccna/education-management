@@ -438,6 +438,13 @@ const arTranslations: Record<string, string> = {
   academyActive: 'الصفحة العامة مفعّلة',
   saved: 'تم الحفظ',
   save: 'حفظ',
+
+  // F9: Academy Health one-pager (board-meeting screen)
+  academyHealth: 'صحة الأكاديمية',
+  pagesMemorizedThisWeek: 'الصفحات المحفوظة هذا الأسبوع',
+  atRiskStudents: 'الطلاب المعرضون للخطر',
+  completionRate: 'معدل الإنجاز',
+  exportPdf: 'تصدير PDF',
 };
 
 const enTranslations: Record<string, string> = {
@@ -878,6 +885,13 @@ const enTranslations: Record<string, string> = {
   academyActive: 'Public page active',
   saved: 'Saved',
   save: 'Save',
+
+  // F9: Academy Health one-pager (board-meeting screen)
+  academyHealth: 'Academy Health',
+  pagesMemorizedThisWeek: 'Pages memorized this week',
+  atRiskStudents: 'At-risk students',
+  completionRate: 'Completion rate',
+  exportPdf: 'Export PDF',
 };
 
 i18next.use(initReactI18next).init({
