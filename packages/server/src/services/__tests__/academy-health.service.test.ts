@@ -76,3 +76,38 @@ describe('computeAcademyHealth', () => {
     expect(result.completionRatePct).toBe(0);
   });
 });
+
+jest.mock('../../lib/redis', () => ({ cacheGet: jest.fn(), cacheSet: jest.fn() }));
+import { cacheGet, cacheSet } from '../../lib/redis';
+import { getAcademyHealth } from '../academy-health.service';
+
+const mockCacheGet = cacheGet as jest.Mock;
+const mockCacheSet = cacheSet as jest.Mock;
+
+describe('getAcademyHealth (cache-aside)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockPrisma.user.count.mockResolvedValue(0);
+    mockPrisma.user.findMany.mockResolvedValue([]);
+    mockPrisma.sessionRecord.findMany.mockResolvedValue([]);
+    mockPrisma.pageMemorization.count.mockResolvedValue(0);
+    mockPrisma.revisionSchedule.count.mockResolvedValue(0);
+    mockPrisma.streak.findMany.mockResolvedValue([]);
+    mockPrisma.grade.groupBy.mockResolvedValue([]);
+  });
+
+  it('returns the cached value without touching Prisma on a cache hit', async () => {
+    const cached = { totalStudents: 99, generatedAt: 'cached' } as any;
+    mockCacheGet.mockResolvedValue(cached);
+    const result = await getAcademyHealth();
+    expect(result).toBe(cached);
+    expect(mockPrisma.user.count).not.toHaveBeenCalled();
+  });
+
+  it('computes fresh and writes the cache on a cache miss (AC9.2)', async () => {
+    mockCacheGet.mockResolvedValue(null);
+    const result = await getAcademyHealth();
+    expect(result.totalStudents).toBe(0);
+    expect(mockCacheSet).toHaveBeenCalledWith('academy-health', expect.any(Object), 3600);
+  });
+});

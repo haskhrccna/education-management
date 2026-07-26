@@ -1,6 +1,9 @@
 import { prisma } from '../prisma/client';
+import { cacheGet, cacheSet } from '../lib/redis';
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const CACHE_KEY = 'academy-health';
+const CACHE_TTL_SECONDS = 3600; // 1h, per spec
 
 export interface AcademyHealthMetrics {
   totalStudents: number;
@@ -123,4 +126,12 @@ export async function computeAcademyHealth(): Promise<AcademyHealthMetrics> {
     completionRatePct: pct(presentOrLate, weekSessionRecords.length),
     generatedAt: now.toISOString(),
   };
+}
+
+export async function getAcademyHealth(): Promise<AcademyHealthMetrics> {
+  const cached = await cacheGet<AcademyHealthMetrics>(CACHE_KEY);
+  if (cached) return cached;
+  const fresh = await computeAcademyHealth();
+  await cacheSet(CACHE_KEY, fresh, CACHE_TTL_SECONDS);
+  return fresh;
 }
