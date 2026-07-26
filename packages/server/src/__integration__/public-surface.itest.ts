@@ -108,3 +108,41 @@ describe('GET /api/v1/public/verify/:token/share.png', () => {
     expect(res.headers['content-type']).toBe('image/png');
   });
 });
+
+describe('admin academy-profile endpoints', () => {
+  it('PUT creates then GET returns it; public reflects the change (AC3.1)', async () => {
+    const admin = await createUser({ role: Role.ADMIN });
+    const put = await request(app)
+      .put('/api/v1/admin/academy-profile')
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({ displayName: 'Dar Al-Huda', programName: 'Hifz Program', active: true });
+    expect(put.status).toBe(200);
+    expect(put.body).toMatchObject({ slug: 'default', displayName: 'Dar Al-Huda', active: true });
+
+    const get = await request(app)
+      .get('/api/v1/admin/academy-profile')
+      .set('Authorization', `Bearer ${admin.token}`);
+    expect(get.status).toBe(200);
+
+    const pub = await request(app).get('/api/v1/public/academy/default');
+    expect(pub.status).toBe(200);
+    expect(pub.body.displayName).toBe('Dar Al-Huda');
+  });
+
+  it('GET 404s before first save', async () => {
+    const admin = await createUser({ role: Role.ADMIN });
+    const res = await request(app)
+      .get('/api/v1/admin/academy-profile')
+      .set('Authorization', `Bearer ${admin.token}`);
+    expect(res.status).toBe(404);
+  });
+
+  it('rejects invalid body with 400', async () => {
+    const admin = await createUser({ role: Role.ADMIN });
+    const res = await request(app)
+      .put('/api/v1/admin/academy-profile')
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({ displayName: '', programName: 'x' });
+    expect(res.status).toBe(400);
+  });
+});
