@@ -245,6 +245,15 @@ export default function AdminHomeScreen() {
             <Ionicons name="trophy-outline" size={20} color={COLORS.textOnPrimary} />
             <Text style={styles.broadcastText}>{isAr ? 'الإنجازات' : 'Milestones'}</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.broadcastButton}
+            onPress={() => router.push('/admin/academy-profile')}
+          >
+            <Ionicons name="business-outline" size={20} color={COLORS.textOnPrimary} />
+            <Text style={styles.broadcastText}>{t('academyProfile')}</Text>
+          </TouchableOpacity>
         </View>
 
         {fetchError && !isLoading ? (

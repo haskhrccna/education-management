@@ -43,7 +43,7 @@ function scopeTitle(item: Ijazah, isAr: boolean): string {
 export default function StudentIjazahsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const { colors: COLORS } = useTheme();
   const styles = useMemo(() => createStyles(COLORS), [COLORS]);
@@ -52,8 +52,18 @@ export default function StudentIjazahsScreen() {
 
   const handleShare = async (verificationToken: string) => {
     const url = getVerifyUrl(verificationToken);
+    const message = t('shareAchievementMessage', { url });
+    const wa = `whatsapp://send?text=${encodeURIComponent(message)}`;
     try {
-      await Share.share({ url, message: url });
+      if (await Linking.canOpenURL(wa)) {
+        await Linking.openURL(wa);
+        return;
+      }
+    } catch {
+      /* fall through to the generic sheet */
+    }
+    try {
+      await Share.share({ message });
     } catch {
       Linking.openURL(url);
     }

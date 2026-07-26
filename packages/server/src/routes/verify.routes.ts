@@ -1,5 +1,7 @@
 import { Router } from 'express';
+import { config } from '../config';
 import { verifyToken, PROGRAM_NAME } from '../services/verification.service';
+import { getActiveDefaultProfile } from '../services/academy-profile.service';
 
 const router = Router();
 
@@ -11,13 +13,31 @@ function formatDate(d: Date): string {
   return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-function page(title: string, body: string): string {
+interface PageMeta {
+  ogImageUrl?: string; // absolute URL — required by Open Graph, WhatsApp/Facebook won't resolve a relative path
+  ogTitle?: string;
+  ogDescription?: string;
+  programName?: string; // branded program name for <title>; falls back to PROGRAM_NAME
+}
+
+function page(title: string, body: string, meta: PageMeta = {}): string {
+  const og = [
+    meta.ogTitle ? `<meta property="og:title" content="${escapeHtml(meta.ogTitle)}" />` : '',
+    meta.ogDescription ? `<meta property="og:description" content="${escapeHtml(meta.ogDescription)}" />` : '',
+    meta.ogImageUrl ? `<meta property="og:image" content="${escapeHtml(meta.ogImageUrl)}" />` : '',
+    meta.ogImageUrl
+      ? `<meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />`
+      : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>${escapeHtml(title)} — ${escapeHtml(PROGRAM_NAME)}</title>
+<title>${escapeHtml(title)} — ${escapeHtml(meta.programName ?? PROGRAM_NAME)}</title>
+${og}
 <style>
   :root { color-scheme: light dark; }
   body {
@@ -67,18 +87,35 @@ router.get('/:token', async (req, res) => {
     return;
   }
 
+  const profile = await getActiveDefaultProfile();
+  const programName = profile?.programName ?? PROGRAM_NAME;
+  const academyName = profile?.displayName ?? null;
+  const brandLine = academyName ? `${academyName} — ${programName}` : programName;
+  const sharePath = `/api/v1/public/verify/${encodeURIComponent(req.params.token)}/share.png`;
+  // NEVER derive this origin from req.get('host') — the Host header is
+  // client-controlled, which would let an attacker point a social-preview
+  // crawler's fetch at an arbitrary host.
+  const shareOrigin = config.publicApiUrl ?? `http://localhost:${config.port}`;
+  const shareUrl = `${shareOrigin}${sharePath}`;
+
   if (result.type === 'CERTIFICATE') {
     res.send(
       page(
         'Certificate',
         `<div class="badge">🏆</div>
-         <p class="program">${escapeHtml(result.programName)}</p>
+         <p class="program">${escapeHtml(brandLine)}</p>
          <h1>Certificate of Completion</h1>
          <p class="sub">The full Quran, memorized cover to cover</p>
          <div class="divider"></div>
          <div class="row"><strong>${escapeHtml(result.studentName)}</strong></div>
          <div class="row">Issued ${formatDate(result.issuedAt)}</div>
-         <div class="footer">Verified by ${escapeHtml(result.programName)}</div>`
+         <div class="footer">Verified by ${escapeHtml(programName)}</div>`,
+        {
+          ogImageUrl: shareUrl,
+          ogTitle: 'Certificate of Completion',
+          ogDescription: `Verified by ${programName}`,
+          programName,
+        }
       )
     );
     return;
@@ -95,14 +132,15 @@ router.get('/:token', async (req, res) => {
     page(
       'Ijazah',
       `<div class="badge">🎗️</div>
-       <p class="program">${escapeHtml(result.programName)}</p>
+       <p class="program">${escapeHtml(brandLine)}</p>
        <h1>Ijazah</h1>
        <p class="sub">Formally endorsed completion of ${escapeHtml(scopeLabel)}</p>
        <div class="divider"></div>
        <div class="row"><strong>${escapeHtml(result.studentName)}</strong></div>
        <div class="row">Endorsed by ${escapeHtml(result.teacherName)}</div>
        <div class="row">Issued ${formatDate(result.issuedAt)}</div>
-       <div class="footer">Verified by ${escapeHtml(result.programName)}</div>`
+       <div class="footer">Verified by ${escapeHtml(programName)}</div>`,
+      { ogImageUrl: shareUrl, ogTitle: 'Ijazah', ogDescription: `Verified by ${programName}`, programName }
     )
   );
 });

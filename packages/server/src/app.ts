@@ -45,6 +45,7 @@ import { gamificationRouter } from './modules/gamification/gamification.module';
 import { analyticsRouter } from './modules/analytics/analytics.module';
 import { parentsRouter } from './modules/parents/parents.module';
 import { halaqaRouter } from './modules/halaqa/halaqa.module';
+import { publicRouter } from './modules/public/public.module';
 import { errorResponse } from './lib/response';
 import { getMushafPagesDir } from './lib/mushaf-assets';
 
@@ -135,6 +136,7 @@ app.use('/api/v1/certificates', authenticate, standardLimiter, certificatesRoute
 app.use('/api/v1/account', authenticate, standardLimiter, accountRouter);
 // Public, no-login verification page — deliberately NOT behind authenticate.
 app.use('/api/v1/verify', standardLimiter, verifyRoutes);
+app.use('/api/v1/public', standardLimiter, publicRouter);
 app.use('/api/v1/halaqa', authenticate, standardLimiter, halaqaRouter);
 
 // 404 handler

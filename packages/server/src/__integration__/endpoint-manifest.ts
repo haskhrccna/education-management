@@ -56,6 +56,8 @@ const v1: EndpointSpec[] = [
   { method: 'POST', path: '/api/v1/admin/broadcast', access: ['ADMIN'] },
   { method: 'POST', path: '/api/v1/admin/bulk/approve', access: ['ADMIN'] },
   { method: 'POST', path: '/api/v1/admin/bulk/deactivate', access: ['ADMIN'] },
+  { method: 'GET', path: '/api/v1/admin/academy-profile', access: ['ADMIN'] },
+  { method: 'PUT', path: '/api/v1/admin/academy-profile', access: ['ADMIN'] },
   // messages
   { method: 'GET', path: '/api/v1/messages', access: 'authenticated' },
   { method: 'POST', path: '/api/v1/messages', access: 'authenticated' },
@@ -113,6 +115,9 @@ const v1: EndpointSpec[] = [
   { method: 'PATCH', path: '/api/v1/certificates/:id/regenerate-link', access: ['STUDENT'] },
   // verify (new capability — public, no-login verification page; not a JSON contract)
   { method: 'GET', path: '/api/v1/verify/:token', access: 'public' },
+  // public surface (F8) — landing profile + share image, contract-routed
+  { method: 'GET', path: '/api/v1/public/academy/:slug', access: 'public' },
+  { method: 'GET', path: '/api/v1/public/verify/:token/share.png', access: 'public' },
   // files (fileAuthenticate: Bearer header OR ?token=)
   { method: 'GET', path: '/api/v1/files/recordings/:id', access: 'authenticated' },
   { method: 'GET', path: '/api/v1/files/reports/:id', access: 'authenticated' },

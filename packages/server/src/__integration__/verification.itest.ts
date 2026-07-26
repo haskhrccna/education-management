@@ -119,3 +119,27 @@ describe('PATCH /api/v1/ijazahs/:id/regenerate-link', () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe('verify page academy branding (F8)', () => {
+  it('shows academy branding and og:image when an active profile exists', async () => {
+    await prisma.academyProfile.create({
+      data: { slug: 'default', displayName: 'Dar Al-Huda', programName: 'Hifz Program', active: true },
+    });
+    const student = await createUser({ role: Role.STUDENT });
+    const cert = await prisma.certificate.create({ data: { studentId: student.id, pdfUrl: '/x.pdf' } });
+
+    const res = await request(app).get(`/api/v1/verify/${cert.verificationToken}`);
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('Dar Al-Huda');
+    expect(res.text).toContain('property="og:image"');
+    expect(res.text).toContain(`/api/v1/public/verify/${cert.verificationToken}/share.png`);
+  });
+
+  it('falls back to the default program name with no active profile', async () => {
+    const student = await createUser({ role: Role.STUDENT });
+    const cert = await prisma.certificate.create({ data: { studentId: student.id, pdfUrl: '/x.pdf' } });
+    const res = await request(app).get(`/api/v1/verify/${cert.verificationToken}`);
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('Quran Review');
+  });
+});

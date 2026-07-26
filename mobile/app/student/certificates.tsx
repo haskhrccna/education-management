@@ -38,8 +38,18 @@ export default function CertificatesScreen() {
   // receives the share.
   const handleShare = async (verificationToken: string) => {
     const url = getVerifyUrl(verificationToken);
+    const message = t('shareAchievementMessage', { url });
+    const wa = `whatsapp://send?text=${encodeURIComponent(message)}`;
     try {
-      await Share.share({ url, message: url });
+      if (await Linking.canOpenURL(wa)) {
+        await Linking.openURL(wa);
+        return;
+      }
+    } catch {
+      /* fall through to the generic sheet */
+    }
+    try {
+      await Share.share({ message });
     } catch {
       Linking.openURL(url);
     }

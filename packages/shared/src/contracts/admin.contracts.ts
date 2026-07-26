@@ -7,6 +7,7 @@ import {
   UpdateUserSchema,
   BulkApproveSchema,
   BulkDeactivateSchema,
+  UpsertAcademyProfileSchema,
 } from '../validators/common';
 
 const ADMIN = [UserRole.ADMIN];
@@ -64,6 +65,20 @@ const BroadcastResult = z.union([
   z.object({ sent: z.literal(true), queued: z.literal(true), message: z.string() }),
   z.object({ sent: z.literal(true), recipients: z.number(), message: z.string() }),
 ]);
+
+// Full row incl. id/active for the admin editor.
+const AcademyProfileRow = z.object({
+  id: z.string(),
+  slug: z.string(),
+  displayName: z.string(),
+  publicBio: z.string().nullable(),
+  programName: z.string(),
+  logoUrl: z.string().nullable(),
+  contactEmail: z.string().nullable(),
+  active: z.boolean(),
+  createdAt: DateOut,
+  updatedAt: DateOut,
+});
 
 export const adminContracts = {
   listUsers: defineContract({
@@ -224,5 +239,20 @@ export const adminContracts = {
       401: ErrorEnvelope,
       403: ErrorEnvelope,
     },
+  }),
+  getAcademyProfile: defineContract({
+    method: 'GET',
+    path: '/api/v1/admin/academy-profile',
+    summary: 'Admin reads the (single, slug="default") academy profile — 404 before first save',
+    access: ADMIN,
+    responses: { 200: AcademyProfileRow, 401: ErrorEnvelope, 403: ErrorEnvelope, 404: ErrorEnvelope },
+  }),
+  upsertAcademyProfile: defineContract({
+    method: 'PUT',
+    path: '/api/v1/admin/academy-profile',
+    summary: 'Admin creates/updates the academy profile (upsert on slug="default")',
+    access: ADMIN,
+    request: { body: UpsertAcademyProfileSchema },
+    responses: { 200: AcademyProfileRow, 400: ErrorEnvelope, 401: ErrorEnvelope, 403: ErrorEnvelope },
   }),
 };

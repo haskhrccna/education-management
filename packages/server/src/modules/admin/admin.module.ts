@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { adminContracts } from '@quran-review/shared';
 import { prisma } from '../../prisma/client';
 import * as adminService from '../../services/admin.service';
+import * as academyProfileService from '../../services/academy-profile.service';
 import { auditLog } from '../../lib/audit';
 import { paginate, paginatedResponse, PaginatedRequest } from '../../middleware/pagination.middleware';
 import { broadcastLimiter } from '../../middleware/rate-limit.middleware';
@@ -167,6 +168,25 @@ const auditLogs = defineRoute(
   { pre: [paginate(20, 100)] }
 );
 
+const getAcademyProfile = defineRoute(adminContracts.getAcademyProfile, async () => {
+  const profile = await academyProfileService.getAdminProfile();
+  return { status: 200 as const, body: profile };
+});
+
+const upsertAcademyProfile = defineRoute(adminContracts.upsertAcademyProfile, async ({ body, userId, req }) => {
+  const profile = await academyProfileService.upsertProfile(body);
+  await auditLog({
+    userId: userId!,
+    action: 'UPSERT_ACADEMY_PROFILE',
+    resourceType: 'ACADEMY_PROFILE',
+    resourceId: profile.id,
+    details: body,
+    ipAddress: req.ip,
+    userAgent: req.get('user-agent'),
+  });
+  return { status: 200 as const, body: profile };
+});
+
 export const adminRouter = buildContractRouter(
   [
     listUsers,
@@ -182,6 +202,8 @@ export const adminRouter = buildContractRouter(
     broadcast,
     bulkApprove,
     bulkDeactivate,
+    getAcademyProfile,
+    upsertAcademyProfile,
   ],
   { mountPrefix: '/api/v1/admin' }
 );

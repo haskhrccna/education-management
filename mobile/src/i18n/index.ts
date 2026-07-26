@@ -426,6 +426,18 @@ const arTranslations: Record<string, string> = {
   goBack: 'رجوع',
   notFound: 'غير موجود',
   unsupportedRole: 'دور غير مدعوم',
+
+  // F8: public academy landing + WhatsApp-first share
+  shareAchievementMessage: 'الحمد لله! تم توثيق هذا الإنجاز في حفظ القرآن الكريم — شاهد الشهادة: {{url}}',
+  academyProfile: 'ملف الأكاديمية',
+  academyNotFound: 'الأكاديمية غير موجودة',
+  academyDisplayName: 'اسم الأكاديمية',
+  academyProgramName: 'اسم البرنامج',
+  academyPublicBio: 'نبذة عامة',
+  academyContactEmail: 'البريد الإلكتروني للتواصل',
+  academyActive: 'الصفحة العامة مفعّلة',
+  saved: 'تم الحفظ',
+  save: 'حفظ',
 };
 
 const enTranslations: Record<string, string> = {
@@ -853,6 +865,19 @@ const enTranslations: Record<string, string> = {
   goBack: 'Go back',
   notFound: 'Not found',
   unsupportedRole: 'Unsupported role',
+
+  // F8: public academy landing + WhatsApp-first share
+  shareAchievementMessage:
+    'Alhamdulillah! This Quran memorization achievement is verified — view the certificate: {{url}}',
+  academyProfile: 'Academy Profile',
+  academyNotFound: 'Academy not found',
+  academyDisplayName: 'Academy name',
+  academyProgramName: 'Program name',
+  academyPublicBio: 'Public bio',
+  academyContactEmail: 'Contact email',
+  academyActive: 'Public page active',
+  saved: 'Saved',
+  save: 'Save',
 };
 
 i18next.use(initReactI18next).init({
