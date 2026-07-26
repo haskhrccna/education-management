@@ -19,6 +19,7 @@ import { mediaContracts } from './media.contracts';
 import { communicationContracts } from './communication.contracts';
 import { progressContracts } from './progress.contracts';
 import { halaqaContracts } from './halaqa.contracts';
+import { publicContracts } from './public.contracts';
 
 /** Every declared contract. Tests iterate this; an endpoint here but absent
  *  from the endpoint manifest (or vice versa, once its module is swapped) fails CI. */
@@ -43,4 +44,5 @@ export const contractRegistry: AnyRouteContract[] = [
   ...Object.values(communicationContracts),
   ...Object.values(progressContracts),
   ...Object.values(halaqaContracts),
+  ...Object.values(publicContracts),
 ];

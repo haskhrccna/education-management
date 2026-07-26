@@ -116,6 +116,15 @@ export const BulkDeactivateSchema = z.object({
   userIds: z.array(uuidSchema).min(1).max(100),
 });
 
+export const UpsertAcademyProfileSchema = z.object({
+  displayName: z.string().min(1).max(120),
+  programName: z.string().min(1).max(120),
+  publicBio: z.string().max(2000).nullable().optional(),
+  logoUrl: z.string().url().max(500).nullable().optional(),
+  contactEmail: z.string().email().max(254).nullable().optional(),
+  active: z.boolean().optional(),
+});
+
 export type ZodLoginInput = z.infer<typeof LoginSchema>;
 export type ZodRegisterInput = z.infer<typeof RegisterSchema>;
 export type ZodCreateAppointmentInput = z.infer<typeof CreateAppointmentSchema>;
@@ -130,3 +139,4 @@ export type ZodUpdateProfileInput = z.infer<typeof UpdateProfileSchema>;
 export type ZodRefreshTokenInput = z.infer<typeof RefreshTokenSchema>;
 export type ZodChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
 export type ZodUpdateUserInput = z.infer<typeof UpdateUserSchema>;
+export type ZodUpsertAcademyProfileInput = z.infer<typeof UpsertAcademyProfileSchema>;
