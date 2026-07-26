@@ -867,7 +867,8 @@ const enTranslations: Record<string, string> = {
   unsupportedRole: 'Unsupported role',
 
   // F8: public academy landing + WhatsApp-first share
-  shareAchievementMessage: 'Alhamdulillah! This Quran memorization achievement is verified — view the certificate: {{url}}',
+  shareAchievementMessage:
+    'Alhamdulillah! This Quran memorization achievement is verified — view the certificate: {{url}}',
   academyProfile: 'Academy Profile',
   academyNotFound: 'Academy not found',
   academyDisplayName: 'Academy name',

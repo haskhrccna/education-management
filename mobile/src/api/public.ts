@@ -13,10 +13,7 @@ export interface AcademyProfilePublic {
 
 export const publicApi = {
   async getAcademyProfile(slug: string): Promise<AcademyProfilePublic> {
-    const res = expectStatus(
-      await contractClient.call(publicContracts.getAcademyProfile, { params: { slug } }),
-      200
-    );
+    const res = expectStatus(await contractClient.call(publicContracts.getAcademyProfile, { params: { slug } }), 200);
     return res.body as unknown as AcademyProfilePublic;
   },
 };
