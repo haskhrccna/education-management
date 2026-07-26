@@ -21,12 +21,7 @@ export const getPage = async (page: number) => {
   return { page, juz: ayahs[0].juz, ayahs };
 };
 
-export const logAyahMemorization = async (
-  userId: string,
-  surahId: number,
-  ayahNumber: number,
-  memorized: boolean
-) => {
+export const logAyahMemorization = async (userId: string, surahId: number, ayahNumber: number, memorized: boolean) => {
   const ayah = await prisma.ayah.findUnique({ where: { surahId_number: { surahId, number: ayahNumber } } });
   if (!ayah) throw new AppError(404, 'Ayah not found');
 
@@ -39,12 +34,9 @@ export const logAyahMemorization = async (
   });
 
   const currentMemorized = existingProgress?.memorizedAyahs ?? 0;
-  const nextMemorized = memorized
-    ? Math.min(surah.ayahCount, currentMemorized + 1)
-    : Math.max(0, currentMemorized - 1);
+  const nextMemorized = memorized ? Math.min(surah.ayahCount, currentMemorized + 1) : Math.max(0, currentMemorized - 1);
 
-  const status =
-    nextMemorized >= surah.ayahCount ? 'COMPLETE' : nextMemorized > 0 ? 'IN_PROGRESS' : 'NOT_STARTED';
+  const status = nextMemorized >= surah.ayahCount ? 'COMPLETE' : nextMemorized > 0 ? 'IN_PROGRESS' : 'NOT_STARTED';
 
   await prisma.memorizationProgress.upsert({
     where: { userId_surahId: { userId, surahId } },
