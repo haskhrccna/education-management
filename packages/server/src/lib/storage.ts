@@ -46,6 +46,13 @@ class LocalStorageAdapter implements StorageAdapter {
     return destPath;
   }
 
+  async saveBuffer(buf: Buffer, key: string): Promise<string> {
+    await this.ensureDir();
+    const destPath = this.resolveKey(key);
+    await fs.writeFile(destPath, buf);
+    return destPath;
+  }
+
   async delete(key: string): Promise<void> {
     const filePath = this.resolveKey(key);
     try {
@@ -72,3 +79,4 @@ class LocalStorageAdapter implements StorageAdapter {
 export const uploadStorage = new LocalStorageAdapter(path.join(process.cwd(), 'uploads'));
 export const reportStorage = new LocalStorageAdapter(path.join(process.cwd(), 'reports'));
 export const certificateStorage = new LocalStorageAdapter(path.join(process.cwd(), 'certificates'));
+export const shareImageStorage = new LocalStorageAdapter(path.join(process.cwd(), 'uploads', 'share'));
