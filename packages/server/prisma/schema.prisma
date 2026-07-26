@@ -704,6 +704,23 @@ model Certificate {
   @@map("certificates")
 }
 
+// Public-facing academy identity for the landing page + branded verify/share
+// surfaces. Single row per platform for the MVP (slug "default"), seeded by admin.
+model AcademyProfile {
+  id           String   @id @default(uuid())
+  slug         String   @unique
+  displayName  String
+  publicBio    String?
+  programName  String
+  logoUrl      String?
+  contactEmail String?
+  active       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("academy_profiles")
+}
+
 enum HalaqaStatus {
   WAITING
   LIVE
