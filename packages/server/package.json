@@ -6,7 +6,6 @@
     "dev": "ts-node-dev --respawn src/server.ts",
     "build": "tsc",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:push": "prisma db push",
     "prisma:seed": "prisma db seed",
     "test": "jest",
     "test:watch": "jest --watch",

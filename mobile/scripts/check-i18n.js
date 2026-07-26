@@ -5,7 +5,7 @@ const path = require('path');
 const root = path.join(__dirname, '..');
 const src = fs.readFileSync(path.join(root, 'src/i18n/index.ts'), 'utf8');
 const arBlock = src.slice(src.indexOf('arTranslations'), src.indexOf('enTranslations'));
-const enBlock = src.slice(src.indexOf('enTranslations'));
+const enBlock = src.slice(src.indexOf('enTranslations'), src.indexOf('i18next.use'));
 const grab = (block) => {
   const keys = new Set();
   const re = /^\s\s([A-Za-z][A-Za-z0-9_]*):\s/gm;
