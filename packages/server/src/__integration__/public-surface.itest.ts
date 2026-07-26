@@ -119,9 +119,7 @@ describe('admin academy-profile endpoints', () => {
     expect(put.status).toBe(200);
     expect(put.body).toMatchObject({ slug: 'default', displayName: 'Dar Al-Huda', active: true });
 
-    const get = await request(app)
-      .get('/api/v1/admin/academy-profile')
-      .set('Authorization', `Bearer ${admin.token}`);
+    const get = await request(app).get('/api/v1/admin/academy-profile').set('Authorization', `Bearer ${admin.token}`);
     expect(get.status).toBe(200);
 
     const pub = await request(app).get('/api/v1/public/academy/default');
@@ -131,9 +129,7 @@ describe('admin academy-profile endpoints', () => {
 
   it('GET 404s before first save', async () => {
     const admin = await createUser({ role: Role.ADMIN });
-    const res = await request(app)
-      .get('/api/v1/admin/academy-profile')
-      .set('Authorization', `Bearer ${admin.token}`);
+    const res = await request(app).get('/api/v1/admin/academy-profile').set('Authorization', `Bearer ${admin.token}`);
     expect(res.status).toBe(404);
   });
 
