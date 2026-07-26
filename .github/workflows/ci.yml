@@ -120,3 +120,6 @@ jobs:
 
       - name: Type check
         run: npm exec --workspace=mobile -- tsc --noEmit
+
+      - name: i18n completeness check
+        run: npm run check-i18n --workspace=mobile
