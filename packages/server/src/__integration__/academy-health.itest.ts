@@ -91,8 +91,8 @@ describe('GET /api/v1/files/academy-health.pdf', () => {
   });
 
   // Reproduces the exact bug both reviewers found: the mobile app's
-  // Linking.openURL(...) call cannot set an Authorization header, so this is
-  // the ONLY auth path a real export button click exercises in production.
+  // WebBrowser.openBrowserAsync(...) call cannot set an Authorization header,
+  // so this is the ONLY auth path a real export button click exercises in production.
   // Before the fix (route mounted under /api/v1/admin's blanket `authenticate`,
   // which only reads the header), this request 401'd even with a valid token.
   it('returns a PDF via ?token= alone, no Authorization header (the mobile export path)', async () => {

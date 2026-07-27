@@ -129,7 +129,7 @@ export default function AcademyHealthScreen() {
         >
           <AppText
             variant="bodySmall"
-            color={COLORS.textSecondary}
+            color={COLORS.textPrimary}
             style={[styles.asOf, { textAlign: isRTL ? 'right' : 'left' }]}
           >
             {t('academyHealthAsOf', {

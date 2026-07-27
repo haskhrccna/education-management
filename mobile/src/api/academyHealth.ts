@@ -25,7 +25,7 @@ export const academyHealthApi = {
     const res = await contractClient.call(adminContracts.getAcademyHealth, {});
     return expectStatus(res, 200).body as unknown as AcademyHealthMetrics;
   },
-  /** ?token= pinned — a mobile Linking.openURL() browser open cannot attach an Authorization header. */
+  /** ?token= pinned — an in-app/external browser open (WebBrowser.openBrowserAsync) cannot attach an Authorization header. */
   exportPdfUrl(token: string): string {
     return `${API_ORIGIN}/api/v1/files/academy-health.pdf?token=${encodeURIComponent(token)}`;
   },

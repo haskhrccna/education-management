@@ -153,7 +153,7 @@ export const mediaContracts = {
     method: 'GET',
     path: '/api/v1/files/academy-health.pdf',
     summary:
-      'Same metrics as a printable PDF; served from the same 1h cache as the metrics endpoint. ?token= auth pinned (mobile Linking.openURL cannot set headers).',
+      'Same metrics as a printable PDF; served from the same 1h cache as the metrics endpoint. ?token= auth pinned (mobile in-app/external browser open cannot set headers).',
     access: [UserRole.ADMIN],
     authVia: 'headerOrQueryToken',
     responses: { 200: rawResponse('application/pdf'), 401: ErrorEnvelope, 403: ErrorEnvelope },

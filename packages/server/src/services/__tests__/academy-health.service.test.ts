@@ -97,6 +97,30 @@ describe('computeAcademyHealth', () => {
     expect(result.totalStudents).toBe(1);
     expect(result.atRiskCount).toBe(0);
   });
+
+  it('counts an enrolled student with a grade gap as at-risk, but not an enrolled student with a recent grade (positive scoping path)', async () => {
+    mockPrisma.user.count.mockResolvedValue(2);
+    mockPrisma.appointment.findMany.mockResolvedValue([
+      { studentId: 'at-risk-student' },
+      { studentId: 'safe-student' },
+    ]);
+    mockPrisma.user.findMany.mockImplementation(({ where }: any) => {
+      if (where.role === 'TEACHER') return Promise.resolve([]);
+      if (where.role === 'STUDENT' && where.id) {
+        return Promise.resolve([{ id: 'at-risk-student' }, { id: 'safe-student' }]);
+      }
+      return Promise.resolve([]);
+    });
+    const recentGradeDate = new Date();
+    mockPrisma.grade.groupBy.mockResolvedValue([{ studentId: 'safe-student', _max: { createdAt: recentGradeDate } }]);
+    mockPrisma.sessionRecord.findMany.mockImplementation(({ where }: any) => {
+      if (where.studentId) return Promise.resolve([]); // no session history for either student
+      return Promise.resolve([]); // computeAcademyHealth's own weekly completion-rate query
+    });
+
+    const result = await computeAcademyHealth();
+    expect(result.atRiskCount).toBe(1);
+  });
 });
 
 jest.mock('../../lib/redis', () => ({ cacheGet: jest.fn(), cacheSet: jest.fn() }));
