@@ -66,6 +66,20 @@ const BroadcastResult = z.union([
   z.object({ sent: z.literal(true), recipients: z.number(), message: z.string() }),
 ]);
 
+const AcademyHealthMetricsSchema = z.object({
+  totalStudents: z.number(),
+  activeThisWeek: z.number(),
+  activeRatePct: z.number(),
+  pagesMemorizedThisWeek: z.number(),
+  revisionAdherencePct: z.number(),
+  atRiskCount: z.number(),
+  teacherLoad: z.array(
+    z.object({ teacherId: z.string(), firstName: z.string(), lastName: z.string(), activeStudents: z.number() })
+  ),
+  completionRatePct: z.number(),
+  generatedAt: z.string(),
+});
+
 // Full row incl. id/active for the admin editor.
 const AcademyProfileRow = z.object({
   id: z.string(),
@@ -254,5 +268,12 @@ export const adminContracts = {
     access: ADMIN,
     request: { body: UpsertAcademyProfileSchema },
     responses: { 200: AcademyProfileRow, 400: ErrorEnvelope, 401: ErrorEnvelope, 403: ErrorEnvelope },
+  }),
+  getAcademyHealth: defineContract({
+    method: 'GET',
+    path: '/api/v1/admin/academy-health',
+    summary: 'Program-wide health aggregate — pure read, 1h Redis cache with graceful DB fallback',
+    access: ADMIN,
+    responses: { 200: AcademyHealthMetricsSchema, 401: ErrorEnvelope, 403: ErrorEnvelope },
   }),
 };

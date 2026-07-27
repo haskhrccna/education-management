@@ -1,5 +1,7 @@
 import { mediaContracts } from '@quran-review/shared';
 import * as fileService from '../../services/file.service';
+import * as academyHealthService from '../../services/academy-health.service';
+import { generateAcademyHealthPDF } from '../../services/academy-health-pdf.service';
 import { defineRoute, buildContractRouter } from '../../lib/contract-router';
 
 // fileAuthenticate (Bearer OR ?token=) comes from each contract's
@@ -32,6 +34,19 @@ const downloadCertificateFile = defineRoute(
   }
 );
 
-export const filesRouter = buildContractRouter([downloadRecordingFile, downloadReportFile, downloadCertificateFile], {
-  mountPrefix: '/api/v1/files',
+const downloadAcademyHealthPdf = defineRoute(mediaContracts.downloadAcademyHealthPdf, async ({ res }) => {
+  const metrics = await academyHealthService.getAcademyHealth();
+  const pdf = await generateAcademyHealthPDF(metrics);
+  const dateStamp = metrics.generatedAt.slice(0, 10); // YYYY-MM-DD
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="academy-health-${dateStamp}.pdf"`);
+  res.send(pdf);
+  return { status: 200 as const, handled: true as const };
 });
+
+export const filesRouter = buildContractRouter(
+  [downloadRecordingFile, downloadReportFile, downloadCertificateFile, downloadAcademyHealthPdf],
+  {
+    mountPrefix: '/api/v1/files',
+  }
+);

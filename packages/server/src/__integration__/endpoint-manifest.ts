@@ -58,6 +58,7 @@ const v1: EndpointSpec[] = [
   { method: 'POST', path: '/api/v1/admin/bulk/deactivate', access: ['ADMIN'] },
   { method: 'GET', path: '/api/v1/admin/academy-profile', access: ['ADMIN'] },
   { method: 'PUT', path: '/api/v1/admin/academy-profile', access: ['ADMIN'] },
+  { method: 'GET', path: '/api/v1/admin/academy-health', access: ['ADMIN'] },
   // messages
   { method: 'GET', path: '/api/v1/messages', access: 'authenticated' },
   { method: 'POST', path: '/api/v1/messages', access: 'authenticated' },
@@ -122,6 +123,7 @@ const v1: EndpointSpec[] = [
   { method: 'GET', path: '/api/v1/files/recordings/:id', access: 'authenticated' },
   { method: 'GET', path: '/api/v1/files/reports/:id', access: 'authenticated' },
   { method: 'GET', path: '/api/v1/files/certificates/:id', access: 'authenticated' },
+  { method: 'GET', path: '/api/v1/files/academy-health.pdf', access: ['ADMIN'] },
   // exports
   { method: 'GET', path: '/api/v1/exports/grades', access: ['TEACHER', 'ADMIN'] },
   { method: 'GET', path: '/api/v1/exports/appointments', access: ['TEACHER', 'ADMIN'] },

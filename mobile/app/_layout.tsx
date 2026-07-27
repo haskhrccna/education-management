@@ -144,6 +144,7 @@ export default function RootLayout() {
             <Stack.Screen name="admin/broadcast" />
             <Stack.Screen name="admin/change-requests" />
             <Stack.Screen name="admin/academy-profile" />
+            <Stack.Screen name="admin/academy-health" />
 
             {/* Messages */}
             <Stack.Screen name="messages/index" />
