@@ -1,17 +1,25 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { RADIUS, SPACING } from '@/constants/theme';
+import { apiClient } from '@/src/api';
 import { AppText } from '@/src/components/AppText';
-import { AppCard, EmptyState, StatusPill } from '@/src/components/design';
+import { AppCard, Avatar, EmptyState, StatusPill } from '@/src/components/design';
 import { SkeletonCard } from '@/src/components/SkeletonCard';
 import { BottomNav } from '@/src/components/BottomNav';
 import { useAuditLogs } from '@/src/hooks/useAuditLogs';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
+
+interface ActorOption {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
 
 export default function AuditLogsScreen() {
   const { t } = useTranslation();
@@ -25,6 +33,36 @@ export default function AuditLogsScreen() {
   const s = createStyles(COLORS);
   const { rows, totalPages, isLoading, error, filters, setFilters, page, setPage, refresh } = useAuditLogs();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // AC5.2 requires filtering by actor. useAuditLogs already plumbs `userId`
+  // end-to-end (server, client, hook) — this is the missing UI control.
+  // Admins pick a name/email rather than typing a raw user id.
+  const [actors, setActors] = useState<ActorOption[]>([]);
+  const [actorQuery, setActorQuery] = useState('');
+  const [selectedActor, setSelectedActor] = useState<ActorOption | null>(null);
+  useEffect(() => {
+    // Envelope is { data, meta }; res.data IS that envelope — one level, not two.
+    apiClient
+      .get('/admin/users?limit=100')
+      .then((res) => setActors(res.data?.data ?? []))
+      .catch(() => setActors([]));
+  }, []);
+  const actorMatches = useMemo(() => {
+    const q = actorQuery.trim().toLowerCase();
+    if (!q || selectedActor) return [];
+    return actors
+      .filter((a) => `${a.firstName} ${a.lastName}`.toLowerCase().includes(q) || a.email.toLowerCase().includes(q))
+      .slice(0, 8);
+  }, [actors, actorQuery, selectedActor]);
+  const pickActor = (a: ActorOption) => {
+    setSelectedActor(a);
+    setActorQuery('');
+    setFilters({ ...filters, userId: a.id });
+  };
+  const clearActor = () => {
+    setSelectedActor(null);
+    setFilters({ ...filters, userId: undefined });
+  };
 
   const hasFilters = Object.values(filters).some((v) => v !== undefined && v !== '');
 
@@ -53,6 +91,55 @@ export default function AuditLogsScreen() {
       </View>
 
       <View style={s.filterCard}>
+        {selectedActor ? (
+          <View style={s.selectedActor}>
+            <Avatar colors={COLORS} label={`${selectedActor.firstName} ${selectedActor.lastName}`} size={32} />
+            <AppText variant="bodyMedium" style={{ color: COLORS.textPrimary, flex: 1 }} numberOfLines={1}>
+              {`${selectedActor.firstName} ${selectedActor.lastName}`.trim()}
+            </AppText>
+            <TouchableOpacity
+              onPress={clearActor}
+              accessibilityRole="button"
+              accessibilityLabel={t('auditLogClearFilters')}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <Ionicons name="close-circle" size={22} color={COLORS.textSecondary} />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View>
+            <TextInput
+              style={s.input}
+              value={actorQuery}
+              onChangeText={setActorQuery}
+              placeholder={t('auditLogFilterActor')}
+              placeholderTextColor={COLORS.textSecondary}
+              autoCapitalize="none"
+            />
+            {actorMatches.length > 0 ? (
+              <View style={s.actorDropdown}>
+                {actorMatches.map((a) => (
+                  <TouchableOpacity
+                    key={a.id}
+                    onPress={() => pickActor(a)}
+                    accessibilityRole="button"
+                    style={s.actorRow}
+                  >
+                    <Avatar colors={COLORS} label={`${a.firstName} ${a.lastName}`} size={28} />
+                    <View style={{ flex: 1 }}>
+                      <AppText variant="bodyMedium" style={{ color: COLORS.textPrimary }} numberOfLines={1}>
+                        {`${a.firstName} ${a.lastName}`.trim()}
+                      </AppText>
+                      <AppText variant="bodySmall" style={{ color: COLORS.textSecondary }} numberOfLines={1}>
+                        {a.email}
+                      </AppText>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : null}
+          </View>
+        )}
         <TextInput
           style={s.input}
           value={filters.action ?? ''}
@@ -88,7 +175,14 @@ export default function AuditLogsScreen() {
           />
         </View>
         {hasFilters ? (
-          <TouchableOpacity onPress={() => setFilters({})} accessibilityRole="button" style={s.clearBtn}>
+          <TouchableOpacity
+            onPress={() => {
+              setSelectedActor(null);
+              setFilters({});
+            }}
+            accessibilityRole="button"
+            style={s.clearBtn}
+          >
             <AppText variant="labelLarge" style={{ color: COLORS.primary }}>
               {t('auditLogClearFilters')}
             </AppText>
@@ -226,6 +320,33 @@ const createStyles = (COLORS: ThemeColors) =>
       color: COLORS.textPrimary,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: COLORS.borderSubtle,
+    },
+    selectedActor: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.sm,
+      minHeight: 44,
+      backgroundColor: COLORS.primaryMuted,
+      borderRadius: RADIUS.sm,
+      paddingHorizontal: SPACING.sm,
+    },
+    actorDropdown: {
+      marginTop: SPACING.xs,
+      borderRadius: RADIUS.sm,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: COLORS.borderSubtle,
+      overflow: 'hidden',
+    },
+    actorRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.sm,
+      minHeight: 44,
+      paddingHorizontal: SPACING.sm,
+      paddingVertical: SPACING.xs,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: COLORS.borderSubtle,
+      backgroundColor: COLORS.surface,
     },
     dateRow: { flexDirection: 'row', gap: SPACING.sm },
     dateInput: { flex: 1 },
