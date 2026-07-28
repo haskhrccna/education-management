@@ -53,4 +53,63 @@ describe('GET /api/v1/admin/audit-logs', () => {
       .set('Authorization', `Bearer ${other.token}`);
     expect(none.body.meta.total).toBe(0);
   });
+
+  it('filters by resourceType', async () => {
+    const admin = await createUser({ role: Role.ADMIN });
+    const s = await createUser({ role: Role.STUDENT, status: UserStatus.PENDING });
+    await request(app).put(`/api/v1/admin/users/${s.id}/approve`).set('Authorization', `Bearer ${admin.token}`);
+
+    const hit = await request(app)
+      .get('/api/v1/admin/audit-logs?resourceType=USER')
+      .set('Authorization', `Bearer ${admin.token}`);
+    expect(hit.status).toBe(200);
+    expect(hit.body.meta.total).toBe(1);
+
+    const miss = await request(app)
+      .get('/api/v1/admin/audit-logs?resourceType=MESSAGE')
+      .set('Authorization', `Bearer ${admin.token}`);
+    expect(miss.body.meta.total).toBe(0);
+  });
+
+  it('filters by dateFrom/dateTo window', async () => {
+    const admin = await createUser({ role: Role.ADMIN });
+    const s = await createUser({ role: Role.STUDENT, status: UserStatus.PENDING });
+    await request(app).put(`/api/v1/admin/users/${s.id}/approve`).set('Authorization', `Bearer ${admin.token}`);
+
+    const past = new Date(Date.now() - 86_400_000).toISOString();
+    const future = new Date(Date.now() + 86_400_000).toISOString();
+
+    const inWindow = await request(app)
+      .get(`/api/v1/admin/audit-logs?dateFrom=${past}&dateTo=${future}`)
+      .set('Authorization', `Bearer ${admin.token}`);
+    expect(inWindow.body.meta.total).toBe(1);
+
+    const beforeWindow = await request(app)
+      .get(`/api/v1/admin/audit-logs?dateTo=${past}`)
+      .set('Authorization', `Bearer ${admin.token}`);
+    expect(beforeWindow.body.meta.total).toBe(0);
+  });
+
+  it('combines filters (action + resourceType + window)', async () => {
+    const admin = await createUser({ role: Role.ADMIN });
+    const s = await createUser({ role: Role.STUDENT, status: UserStatus.PENDING });
+    await request(app).put(`/api/v1/admin/users/${s.id}/approve`).set('Authorization', `Bearer ${admin.token}`);
+    await request(app).put(`/api/v1/admin/users/${s.id}/deactivate`).set('Authorization', `Bearer ${admin.token}`);
+
+    const future = new Date(Date.now() + 86_400_000).toISOString();
+    const res = await request(app)
+      .get(`/api/v1/admin/audit-logs?action=APPROVE_STUDENT&resourceType=USER&dateTo=${future}`)
+      .set('Authorization', `Bearer ${admin.token}`);
+    expect(res.body.meta.total).toBe(1);
+    expect(res.body.data[0].action).toBe('APPROVE_STUDENT');
+  });
+
+  it('400s on an unparseable date rather than 500ing through Prisma', async () => {
+    const admin = await createUser({ role: Role.ADMIN });
+    const res = await request(app)
+      .get('/api/v1/admin/audit-logs?dateFrom=not-a-date')
+      .set('Authorization', `Bearer ${admin.token}`);
+    expect(res.status).toBe(400);
+    expect(String(res.body.error)).toMatch(/dateFrom/);
+  });
 });

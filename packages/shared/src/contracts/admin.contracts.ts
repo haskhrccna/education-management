@@ -220,7 +220,8 @@ export const adminContracts = {
   auditLogs: defineContract({
     method: 'GET',
     path: '/api/v1/admin/audit-logs',
-    summary: 'Paginated audit trail (newest first); filters: ?userId=, ?action=',
+    summary:
+      'Paginated audit trail (newest first); filters: ?userId=, ?action=, ?resourceType=, ?dateFrom=, ?dateTo= (ISO-8601)',
     access: ADMIN,
     request: {
       query: z.object({
@@ -228,6 +229,9 @@ export const adminContracts = {
         limit: z.string().optional(),
         userId: z.string().optional(),
         action: z.string().optional(),
+        resourceType: z.string().optional(),
+        dateFrom: z.string().optional(),
+        dateTo: z.string().optional(),
       }),
     },
     responses: {
@@ -250,6 +254,7 @@ export const adminContracts = {
         ),
         meta: PaginationMeta,
       }),
+      400: ErrorEnvelope,
       401: ErrorEnvelope,
       403: ErrorEnvelope,
     },

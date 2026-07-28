@@ -8,6 +8,7 @@ import { auditLog } from '../../lib/audit';
 import { paginate, paginatedResponse, PaginatedRequest } from '../../middleware/pagination.middleware';
 import { broadcastLimiter } from '../../middleware/rate-limit.middleware';
 import { defineRoute, buildContractRouter } from '../../lib/contract-router';
+import { AppError } from '../../middleware/error.middleware';
 
 const listUsers = defineRoute(
   adminContracts.listUsers,
@@ -146,13 +147,26 @@ const bulkDeactivate = defineRoute(adminContracts.bulkDeactivate, async ({ body,
   return { status: 200 as const, body: results };
 });
 
+const parseFilterDate = (raw: unknown, field: 'dateFrom' | 'dateTo'): Date | undefined => {
+  if (raw === undefined || raw === '') return undefined;
+  const parsed = new Date(String(raw));
+  if (Number.isNaN(parsed.getTime())) {
+    throw new AppError(400, `${field} must be an ISO-8601 date string`);
+  }
+  return parsed;
+};
+
 const auditLogs = defineRoute(
   adminContracts.auditLogs,
   async ({ query, req }) => {
     const { page = 1, limit = 20, skip = 0 } = (req as PaginatedRequest).pagination || {};
+    const gte = parseFilterDate(query.dateFrom, 'dateFrom');
+    const lte = parseFilterDate(query.dateTo, 'dateTo');
     const where = {
       ...(query.userId ? { userId: String(query.userId) } : {}),
       ...(query.action ? { action: String(query.action) } : {}),
+      ...(query.resourceType ? { resourceType: String(query.resourceType) } : {}),
+      ...(gte || lte ? { createdAt: { ...(gte ? { gte } : {}), ...(lte ? { lte } : {}) } } : {}),
     };
     const [rows, total] = await Promise.all([
       prisma.auditLog.findMany({
