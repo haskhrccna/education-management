@@ -65,7 +65,7 @@ if (missing.length) {
  * above the recorded baseline. Lower these numbers as strings are migrated —
  * never raise them.
  */
-const TERNARY_BASELINE = 260;
+const TERNARY_BASELINE = 245;
 const COLLISION_BASELINE = 5;
 
 const pairs = [];

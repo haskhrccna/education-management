@@ -6,13 +6,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { apiClient } from '@/src/api';
+import { parentsApi } from '@/src/api/parents';
 import { useAuthStore } from '@/src/auth/store';
 import { useMessages } from '@/src/hooks/useMessages';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
 import { useNotifications } from '@/src/hooks/useNotifications';
-import { AppCard, Avatar, IconButton, MetricTile, SectionHeader, StatusPill } from '@/src/components/design';
-import { SkeletonCard } from '@/src/components/SkeletonCard';
+import { IconButton, MetricTile, SectionHeader } from '@/src/components/design';
+import { AppText } from '@/src/components/AppText';
 import { BottomNav } from '@/src/components/BottomNav';
+import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
 
 interface User {
@@ -24,51 +26,23 @@ interface User {
   status: string;
 }
 
-type FilterType = 'PENDING' | 'TEACHER' | 'STUDENT' | 'all';
-
-function fullName(user: Pick<User, 'firstName' | 'lastName'>): string {
-  return `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || '?';
-}
-
-function getFilteredUsers(users: User[], filter: FilterType): User[] {
-  if (filter === 'all') return users;
-  if (filter === 'PENDING') return users.filter((user) => user.status === 'PENDING');
-  return users.filter((user) => user.role === filter);
-}
-
-function roleLabel(role: string, isAr: boolean): string {
-  if (role === 'STUDENT') return isAr ? 'طالب' : 'Student';
-  if (role === 'TEACHER') return isAr ? 'معلم' : 'Teacher';
-  if (role === 'ADMIN') return isAr ? 'مشرف' : 'Admin';
-  return role;
-}
-
-function statusLabel(status: string, isAr: boolean): string {
-  if (status === 'ACTIVE') return isAr ? 'نشط' : 'Active';
-  if (status === 'PENDING') return isAr ? 'معلق' : 'Pending';
-  if (status === 'SUSPENDED') return isAr ? 'موقوف' : 'Suspended';
-  if (status === 'INACTIVE') return isAr ? 'غير نشط' : 'Inactive';
-  return status;
-}
-
 export default function AdminHomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
+  const isRTL = useIsRTL();
   const logout = useAuthStore((s) => s.logout);
   const { colors: COLORS } = useTheme();
   const styles = createStyles(COLORS);
 
   const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [activeFilter, setActiveFilter] = useState<FilterType>('PENDING');
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const { unreadCount, fetchMessages } = useMessages();
   const { requests: changeRequests, fetchRequests } = useTeacherChange();
 
   const pendingChangeCount = changeRequests.filter((request: any) => request.status === 'PENDING').length;
-  const users = useMemo(() => getFilteredUsers(allUsers, activeFilter), [allUsers, activeFilter]);
   const stats = useMemo(
     () => ({
       students: allUsers.filter((user) => user.role === 'STUDENT').length,
@@ -104,26 +78,29 @@ export default function AdminHomeScreen() {
     refreshAll();
   }, [refreshAll]);
 
-  const approveStudent = async (id: string) => {
-    try {
-      await apiClient.put(`/admin/users/${id}/approve`);
-      setAllUsers((current) => current.map((user) => (user.id === id ? { ...user, status: 'ACTIVE' } : user)));
-    } catch (err: any) {
-      setFetchError(err?.message ?? t('loadFailed'));
-    }
-  };
+  const [pendingLinkCount, setPendingLinkCount] = useState(0);
+  useEffect(() => {
+    // listLinks has no server-side status filter, so PENDING is counted here.
+    parentsApi
+      .listLinks()
+      .then((all) => setPendingLinkCount(all.filter((l) => l.status === 'PENDING').length))
+      .catch(() => setPendingLinkCount(0));
+  }, []);
+
+  const totalPending = stats.pending + pendingChangeCount + pendingLinkCount;
+
+  const academyCards: { route: string; icon: keyof typeof Ionicons.glyphMap; title: string }[] = [
+    { route: '/admin/academy-health', icon: 'stats-chart-outline', title: t('academyHealth') },
+    { route: '/admin/academy-profile', icon: 'business-outline', title: t('academyProfile') },
+    { route: '/admin/milestones', icon: 'trophy-outline', title: isAr ? 'الإنجازات' : 'Milestones' },
+    { route: '/admin/broadcast', icon: 'megaphone-outline', title: isAr ? 'إشعار عام' : 'Broadcast' },
+    { route: '/admin/audit-logs', icon: 'document-text-outline', title: t('auditLog') },
+  ];
 
   const handleLogout = async () => {
     await logout();
     router.replace('/');
   };
-
-  const filters: { id: FilterType; label: string }[] = [
-    { id: 'PENDING', label: isAr ? 'المعلقة' : 'Pending' },
-    { id: 'TEACHER', label: isAr ? 'المعلمون' : 'Teachers' },
-    { id: 'STUDENT', label: isAr ? 'الطلاب' : 'Students' },
-    { id: 'all', label: isAr ? 'الكل' : 'All' },
-  ];
 
   return (
     <View style={[styles.screen, { backgroundColor: COLORS.background }]}>
@@ -181,90 +158,52 @@ export default function AdminHomeScreen() {
               />
             </View>
           </View>
-
-          <View style={styles.filterRow}>
-            {filters.map((filter) => {
-              const active = activeFilter === filter.id;
-              return (
-                <TouchableOpacity
-                  key={filter.id}
-                  activeOpacity={0.85}
-                  onPress={() => setActiveFilter(filter.id)}
-                  style={[styles.filterChip, active && styles.filterChipActive]}
-                >
-                  <Text style={[styles.filterText, active && styles.filterTextActive]}>{filter.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
         </View>
+
+        <TouchableOpacity
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          style={styles.approvalsSummary}
+          onPress={() => router.push('/admin/change-requests')}
+        >
+          <View style={styles.approvalsIcon}>
+            <Ionicons name="checkmark-done-outline" size={22} color={COLORS.primary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <AppText variant="titleMedium" style={{ color: COLORS.textPrimary }}>
+              {t('approvalsPendingCount', { count: totalPending })}
+            </AppText>
+            <AppText variant="bodySmall" style={{ color: COLORS.textSecondary }}>
+              {t('approvalsReview')}
+            </AppText>
+          </View>
+          <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={18} color={COLORS.textMuted} />
+        </TouchableOpacity>
 
         <View style={styles.metricsRow}>
           <MetricTile colors={COLORS} value={stats.students} label={isAr ? 'طلاب' : 'Students'} />
-          <MetricTile colors={COLORS} value={stats.teachers} label={isAr ? 'معلمون' : 'Teachers'} tone="gold" />
+          {/* Teachers was tone="gold". Gold marks earned achievement only, and a
+              headcount is not one — DESIGN.md Rationed Gold Rule. */}
+          <MetricTile colors={COLORS} value={stats.teachers} label={isAr ? 'معلمون' : 'Teachers'} tone="info" />
           <MetricTile colors={COLORS} value={stats.pending} label={isAr ? 'معلق' : 'Pending'} tone="warning" />
         </View>
 
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.actionBanner}
-            onPress={() => router.push('/admin/change-requests')}
-          >
-            <View style={styles.actionIcon}>
-              <Ionicons name="swap-horizontal-outline" size={22} color={COLORS.warning} />
-            </View>
-            <View style={styles.actionInfo}>
-              <Text style={styles.actionTitle}>
-                {pendingChangeCount}{' '}
-                {isAr
-                  ? pendingChangeCount === 1
-                    ? 'طلب تغيير معلم'
-                    : 'طلبات تغيير معلم'
-                  : pendingChangeCount === 1
-                    ? 'teacher change request'
-                    : 'teacher change requests'}
-              </Text>
-              <Text style={styles.actionMeta}>{isAr ? 'راجع التعيينات' : 'Review assignments'}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={COLORS.warning} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.broadcastButton}
-            onPress={() => router.push('/admin/broadcast')}
-          >
-            <Ionicons name="megaphone-outline" size={20} color={COLORS.textOnPrimary} />
-            <Text style={styles.broadcastText}>{isAr ? 'إشعار عام' : 'Broadcast'}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.broadcastButton}
-            onPress={() => router.push('/admin/milestones')}
-          >
-            <Ionicons name="trophy-outline" size={20} color={COLORS.textOnPrimary} />
-            <Text style={styles.broadcastText}>{isAr ? 'الإنجازات' : 'Milestones'}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.broadcastButton}
-            onPress={() => router.push('/admin/academy-profile')}
-          >
-            <Ionicons name="business-outline" size={20} color={COLORS.textOnPrimary} />
-            <Text style={styles.broadcastText}>{t('academyProfile')}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.broadcastButton}
-            onPress={() => router.push('/admin/academy-health')}
-          >
-            <Ionicons name="stats-chart-outline" size={20} color={COLORS.textOnPrimary} />
-            <Text style={styles.broadcastText}>{t('academyHealth')}</Text>
-          </TouchableOpacity>
+        <SectionHeader title={t('academySection')} colors={COLORS} />
+        <View style={styles.academyGrid}>
+          {academyCards.map((card) => (
+            <TouchableOpacity
+              key={card.route}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              style={styles.academyCard}
+              onPress={() => router.push(card.route as never)}
+            >
+              <Ionicons name={card.icon} size={22} color={COLORS.primary} />
+              <AppText variant="titleMedium" style={{ color: COLORS.textPrimary }} numberOfLines={1}>
+                {card.title}
+              </AppText>
+            </TouchableOpacity>
+          ))}
         </View>
 
         {fetchError && !isLoading ? (
@@ -272,69 +211,6 @@ export default function AdminHomeScreen() {
             <Text style={styles.errorText}>{fetchError}</Text>
           </TouchableOpacity>
         ) : null}
-
-        <SectionHeader title={isAr ? 'قائمة الموافقات' : 'Approval queue'} colors={COLORS} />
-        {isLoading ? (
-          <View style={styles.listStack}>
-            <SkeletonCard lines={3} />
-            <SkeletonCard lines={3} />
-            <SkeletonCard lines={3} />
-          </View>
-        ) : users.length > 0 ? (
-          <View style={styles.listStack}>
-            {users.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                activeOpacity={0.85}
-                onPress={() => router.push(`/admin/user-detail?id=${item.id}`)}
-              >
-                <AppCard colors={COLORS} style={styles.userCard}>
-                  <Avatar colors={COLORS} label={fullName(item)} />
-                  <View style={styles.userInfo}>
-                    <Text style={styles.userName}>{fullName(item)}</Text>
-                    <Text style={styles.userEmail} numberOfLines={1}>
-                      {item.email}
-                    </Text>
-                    <View style={styles.pillRow}>
-                      <StatusPill
-                        colors={COLORS}
-                        label={roleLabel(item.role, isAr)}
-                        status={item.role === 'TEACHER' ? 'warning' : 'info'}
-                      />
-                      <StatusPill
-                        colors={COLORS}
-                        label={statusLabel(item.status, isAr)}
-                        status={
-                          item.status === 'ACTIVE' ? 'success' : item.status === 'PENDING' ? 'warning' : 'neutral'
-                        }
-                      />
-                    </View>
-                  </View>
-                  {item.status === 'PENDING' && item.role === 'STUDENT' ? (
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      accessibilityLabel={isAr ? 'قبول الطالب' : 'Approve student'}
-                      activeOpacity={0.85}
-                      onPress={(event) => {
-                        event.stopPropagation();
-                        approveStudent(item.id);
-                      }}
-                      style={styles.approveButton}
-                    >
-                      <Ionicons name="checkmark-outline" size={24} color="#FFFFFF" />
-                    </TouchableOpacity>
-                  ) : (
-                    <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
-                  )}
-                </AppCard>
-              </TouchableOpacity>
-            ))}
-          </View>
-        ) : (
-          <AppCard colors={COLORS}>
-            <Text style={styles.emptyText}>{isAr ? 'لا توجد عناصر لهذا الفلتر' : 'No items for this filter'}</Text>
-          </AppCard>
-        )}
       </ScrollView>
       <BottomNav role="admin" active="home" />
     </View>
@@ -399,81 +275,9 @@ const createStyles = (COLORS: ThemeColors) =>
       fontSize: 10,
       fontWeight: '800',
     },
-    filterRow: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: SPACING.sm,
-    },
-    filterChip: {
-      borderRadius: RADIUS.full,
-      paddingHorizontal: SPACING.md,
-      paddingVertical: SPACING.sm,
-      backgroundColor: 'rgba(255,255,255,0.12)',
-    },
-    filterChipActive: {
-      backgroundColor: 'rgba(255,255,255,0.25)',
-    },
-    filterText: {
-      color: 'rgba(255,255,255,0.78)',
-      fontSize: 11,
-      fontWeight: '800',
-    },
-    filterTextActive: {
-      color: '#FFFFFF',
-    },
     metricsRow: {
       flexDirection: 'row',
       gap: SPACING.md,
-    },
-    actionRow: {
-      gap: SPACING.md,
-    },
-    actionBanner: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: SPACING.md,
-      backgroundColor: COLORS.warningLight,
-      borderRadius: RADIUS.md,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: COLORS.warning,
-      padding: SPACING.lg,
-    },
-    actionIcon: {
-      width: 42,
-      height: 42,
-      borderRadius: RADIUS.md,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: COLORS.goldMuted,
-    },
-    actionInfo: {
-      flex: 1,
-    },
-    actionTitle: {
-      color: COLORS.textPrimary,
-      fontSize: 14,
-      fontWeight: '800',
-    },
-    actionMeta: {
-      color: COLORS.textSecondary,
-      fontSize: 12,
-      fontWeight: '600',
-      marginTop: 3,
-    },
-    broadcastButton: {
-      alignSelf: 'flex-start',
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: SPACING.sm,
-      backgroundColor: COLORS.primary,
-      borderRadius: RADIUS.full,
-      paddingHorizontal: SPACING.lg,
-      paddingVertical: SPACING.md,
-    },
-    broadcastText: {
-      color: COLORS.textOnPrimary,
-      fontSize: 13,
-      fontWeight: '800',
     },
     errorBanner: {
       backgroundColor: COLORS.errorLight,
@@ -488,46 +292,37 @@ const createStyles = (COLORS: ThemeColors) =>
       fontWeight: '700',
       textAlign: 'center',
     },
-    listStack: {
-      gap: SPACING.md,
-    },
-    userCard: {
+    approvalsSummary: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: SPACING.md,
+      gap: SPACING.sm,
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS.md,
+      padding: SPACING.md,
+      minHeight: 44,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: COLORS.borderSubtle,
+      marginBottom: SPACING.md,
     },
-    userInfo: {
-      flex: 1,
-    },
-    userName: {
-      color: COLORS.textPrimary,
-      fontSize: 15,
-      fontWeight: '800',
-    },
-    userEmail: {
-      color: COLORS.textSecondary,
-      fontSize: 12,
-      fontWeight: '600',
-      marginTop: 2,
-    },
-    pillRow: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: SPACING.xs,
-      marginTop: SPACING.sm,
-    },
-    approveButton: {
-      width: 58,
-      height: 34,
-      borderRadius: RADIUS.full,
-      backgroundColor: COLORS.success,
+    approvalsIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       alignItems: 'center',
       justifyContent: 'center',
+      backgroundColor: COLORS.primaryMuted,
     },
-    emptyText: {
-      color: COLORS.textSecondary,
-      fontSize: 13,
-      fontWeight: '700',
-      textAlign: 'center',
+    academyGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
+    academyCard: {
+      flexGrow: 1,
+      flexBasis: '47%',
+      minHeight: 88,
+      justifyContent: 'center',
+      gap: SPACING.xs,
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS.md,
+      padding: SPACING.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: COLORS.borderSubtle,
     },
   });

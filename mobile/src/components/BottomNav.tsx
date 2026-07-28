@@ -155,7 +155,7 @@ const ADMIN_TABS: Tab[] = [
     id: 'broadcast',
     icon: 'megaphone-outline',
     iconActive: 'megaphone',
-    labelAr: 'إشعارات',
+    labelAr: 'إشعار عام',
     labelEn: 'Broadcast',
     route: '/admin/broadcast',
   },
