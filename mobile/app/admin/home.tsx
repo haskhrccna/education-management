@@ -83,7 +83,9 @@ export default function AdminHomeScreen() {
     setIsLoading(true);
     try {
       const res = await apiClient.get('/admin/users');
-      setAllUsers(res.data?.data?.data ?? []);
+      // paginatedResponse shape is { data: User[], meta } — res.data IS that
+      // envelope, so the rows are res.data.data (one level, not two).
+      setAllUsers(res.data?.data ?? []);
     } catch (err: any) {
       console.error('Failed to load users:', err.message);
       setFetchError(t('loadFailed'));
