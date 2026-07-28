@@ -1,5 +1,14 @@
 import React from 'react';
-import { ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  I18nManager,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -171,10 +180,18 @@ export default function AcademyHealthScreen() {
           ) : (
             metrics.teacherLoad.map((row) => (
               <AppCard key={row.teacherId} colors={COLORS} style={styles.teacherRow}>
-                <AppText variant="titleMedium" color={COLORS.textPrimary} style={{ flex: 1 }}>
+                <AppText
+                  variant="titleMedium"
+                  color={COLORS.textPrimary}
+                  style={{ flex: 1, textAlign: I18nManager.isRTL ? 'right' : 'left' }}
+                >
                   {fullName(row)}
                 </AppText>
-                <AppText variant="headlineSmall" color={COLORS.textPrimary}>
+                <AppText
+                  variant="headlineSmall"
+                  color={COLORS.textPrimary}
+                  style={{ minWidth: 32, textAlign: 'center' }}
+                >
                   {row.activeStudents}
                 </AppText>
               </AppCard>
