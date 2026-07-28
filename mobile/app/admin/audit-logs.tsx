@@ -1,0 +1,264 @@
+import React, { useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { RADIUS, SPACING } from '@/constants/theme';
+import { AppText } from '@/src/components/AppText';
+import { AppCard, EmptyState, StatusPill } from '@/src/components/design';
+import { SkeletonCard } from '@/src/components/SkeletonCard';
+import { BottomNav } from '@/src/components/BottomNav';
+import { useAuditLogs } from '@/src/hooks/useAuditLogs';
+import { useIsRTL } from '@/src/i18n/useIsRTL';
+import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
+
+export default function AuditLogsScreen() {
+  const { t } = useTranslation();
+  // Non-string decisions only (icon direction, Intl locale) — matches the
+  // house convention in academy-health.tsx. Deliberately not a local isAr
+  // ternary variable: scripts/check-i18n.js ratchets those, and this value
+  // never feeds a displayed string, so it would only add false-positive
+  // debt to that gate.
+  const isRTL = useIsRTL();
+  const { colors: COLORS } = useTheme();
+  const s = createStyles(COLORS);
+  const { rows, totalPages, isLoading, error, filters, setFilters, page, setPage, refresh } = useAuditLogs();
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const hasFilters = Object.values(filters).some((v) => v !== undefined && v !== '');
+
+  const actorName = (row: (typeof rows)[number]) =>
+    row.user ? `${row.user.firstName} ${row.user.lastName}`.trim() : t('auditLogUnknownActor');
+
+  return (
+    <SafeAreaView style={s.screen} edges={['top']}>
+      <View style={s.appBar}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel={t('back')}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={COLORS.textPrimary} />
+        </TouchableOpacity>
+        <View style={s.appBarText}>
+          <AppText variant="titleLarge" style={{ color: COLORS.textPrimary }}>
+            {t('auditLog')}
+          </AppText>
+          <AppText variant="bodySmall" style={{ color: COLORS.textSecondary }}>
+            {t('auditLogSubtitle')}
+          </AppText>
+        </View>
+      </View>
+
+      <View style={s.filterCard}>
+        <TextInput
+          style={s.input}
+          value={filters.action ?? ''}
+          onChangeText={(v) => setFilters({ ...filters, action: v || undefined })}
+          placeholder={t('auditLogFilterAction')}
+          placeholderTextColor={COLORS.textSecondary}
+          autoCapitalize="characters"
+        />
+        <TextInput
+          style={s.input}
+          value={filters.resourceType ?? ''}
+          onChangeText={(v) => setFilters({ ...filters, resourceType: v || undefined })}
+          placeholder={t('auditLogFilterEntity')}
+          placeholderTextColor={COLORS.textSecondary}
+          autoCapitalize="characters"
+        />
+        <View style={s.dateRow}>
+          <TextInput
+            style={[s.input, s.dateInput]}
+            value={filters.dateFrom ?? ''}
+            onChangeText={(v) => setFilters({ ...filters, dateFrom: v || undefined })}
+            placeholder={`${t('auditLogFilterFrom')} (YYYY-MM-DD)`}
+            placeholderTextColor={COLORS.textSecondary}
+            autoCapitalize="none"
+          />
+          <TextInput
+            style={[s.input, s.dateInput]}
+            value={filters.dateTo ?? ''}
+            onChangeText={(v) => setFilters({ ...filters, dateTo: v || undefined })}
+            placeholder={`${t('auditLogFilterTo')} (YYYY-MM-DD)`}
+            placeholderTextColor={COLORS.textSecondary}
+            autoCapitalize="none"
+          />
+        </View>
+        {hasFilters ? (
+          <TouchableOpacity onPress={() => setFilters({})} accessibilityRole="button" style={s.clearBtn}>
+            <AppText variant="labelLarge" style={{ color: COLORS.primary }}>
+              {t('auditLogClearFilters')}
+            </AppText>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+
+      <ScrollView
+        contentContainerStyle={s.list}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refresh} tintColor={COLORS.primary} />}
+      >
+        {error ? (
+          <TouchableOpacity onPress={refresh} style={s.errorBanner} accessibilityRole="button">
+            <AppText variant="bodyMedium" style={{ color: COLORS.error, textAlign: 'center' }}>
+              {t('auditLogLoadFailed')}
+            </AppText>
+          </TouchableOpacity>
+        ) : null}
+
+        {isLoading ? (
+          <>
+            <SkeletonCard lines={3} />
+            <SkeletonCard lines={3} />
+            <SkeletonCard lines={3} />
+          </>
+        ) : rows.length === 0 ? (
+          <EmptyState colors={COLORS} icon="document-text-outline" title={t('auditLogEmpty')} />
+        ) : (
+          rows.map((row) => {
+            const expanded = expandedId === row.id;
+            return (
+              <TouchableOpacity
+                key={row.id}
+                activeOpacity={0.85}
+                onPress={() => setExpandedId(expanded ? null : row.id)}
+                accessibilityRole="button"
+              >
+                <AppCard colors={COLORS} style={s.row}>
+                  <View style={s.rowTop}>
+                    <AppText variant="titleMedium" style={{ color: COLORS.textPrimary, flex: 1 }} numberOfLines={1}>
+                      {actorName(row)}
+                    </AppText>
+                    <StatusPill colors={COLORS} label={row.action} status="info" />
+                  </View>
+                  <AppText variant="bodySmall" style={{ color: COLORS.textSecondary }}>
+                    {row.resourceType}
+                    {row.resourceId ? ` · ${row.resourceId}` : ''}
+                  </AppText>
+                  <AppText variant="bodySmall" style={{ color: COLORS.textSecondary }}>
+                    {new Date(row.createdAt).toLocaleString(isRTL ? 'ar' : 'en')}
+                  </AppText>
+
+                  {expanded ? (
+                    <View style={s.detail}>
+                      <AppText variant="labelLarge" style={{ color: COLORS.textSecondary }}>
+                        {t('auditLogIpAddress')}
+                      </AppText>
+                      <AppText variant="bodySmall" style={{ color: COLORS.textPrimary }}>
+                        {row.ipAddress ?? '—'}
+                      </AppText>
+                      <AppText variant="labelLarge" style={{ color: COLORS.textSecondary }}>
+                        {t('auditLogUserAgent')}
+                      </AppText>
+                      <AppText variant="bodySmall" style={{ color: COLORS.textPrimary }}>
+                        {row.userAgent ?? '—'}
+                      </AppText>
+                      <AppText variant="labelLarge" style={{ color: COLORS.textSecondary }}>
+                        {t('auditLogDetails')}
+                      </AppText>
+                      <AppText variant="bodySmall" style={{ color: COLORS.textPrimary }}>
+                        {row.details ? JSON.stringify(row.details, null, 2) : '—'}
+                      </AppText>
+                    </View>
+                  ) : null}
+                </AppCard>
+              </TouchableOpacity>
+            );
+          })
+        )}
+
+        {totalPages > 1 ? (
+          <View style={s.pager}>
+            <TouchableOpacity
+              disabled={page <= 1}
+              onPress={() => setPage(page - 1)}
+              style={[s.pagerBtn, page <= 1 && s.pagerBtnDisabled]}
+              accessibilityRole="button"
+              accessibilityLabel={t('auditLogPrev')}
+            >
+              <AppText variant="labelLarge" style={{ color: COLORS.textOnPrimary }}>
+                {t('auditLogPrev')}
+              </AppText>
+            </TouchableOpacity>
+            <AppText variant="bodySmall" style={{ color: COLORS.textSecondary }}>
+              {t('auditLogPageOf', { page, total: totalPages })}
+            </AppText>
+            <TouchableOpacity
+              disabled={page >= totalPages}
+              onPress={() => setPage(page + 1)}
+              style={[s.pagerBtn, page >= totalPages && s.pagerBtnDisabled]}
+              accessibilityRole="button"
+              accessibilityLabel={t('auditLogNext')}
+            >
+              <AppText variant="labelLarge" style={{ color: COLORS.textOnPrimary }}>
+                {t('auditLogNext')}
+              </AppText>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+      </ScrollView>
+      <BottomNav role="admin" active="home" />
+    </SafeAreaView>
+  );
+}
+
+const createStyles = (COLORS: ThemeColors) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: COLORS.background },
+    appBar: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md },
+    appBarText: { flex: 1 },
+    filterCard: {
+      backgroundColor: COLORS.surface,
+      marginHorizontal: SPACING.md,
+      borderRadius: RADIUS.md,
+      padding: SPACING.md,
+      gap: SPACING.sm,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: COLORS.borderSubtle,
+    },
+    input: {
+      backgroundColor: COLORS.background,
+      borderRadius: RADIUS.sm,
+      paddingHorizontal: SPACING.sm,
+      minHeight: 44,
+      color: COLORS.textPrimary,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: COLORS.borderSubtle,
+    },
+    dateRow: { flexDirection: 'row', gap: SPACING.sm },
+    dateInput: { flex: 1 },
+    clearBtn: { minHeight: 44, justifyContent: 'center', alignItems: 'center' },
+    list: { padding: SPACING.md, gap: SPACING.sm, paddingBottom: SPACING.xl },
+    row: { gap: 4 },
+    rowTop: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+    detail: {
+      marginTop: SPACING.sm,
+      paddingTop: SPACING.sm,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: COLORS.borderSubtle,
+      gap: 2,
+    },
+    errorBanner: {
+      backgroundColor: COLORS.errorLight,
+      borderRadius: RADIUS.md,
+      padding: SPACING.md,
+      marginBottom: SPACING.sm,
+    },
+    pager: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: SPACING.md,
+      gap: SPACING.sm,
+    },
+    pagerBtn: {
+      backgroundColor: COLORS.primary,
+      borderRadius: RADIUS.md,
+      minHeight: 44,
+      paddingHorizontal: SPACING.md,
+      justifyContent: 'center',
+    },
+    pagerBtnDisabled: { opacity: 0.4 },
+  });
