@@ -1,3 +1,9 @@
+// Hermes ships Intl with only Collator, DateTimeFormat and NumberFormat — it has
+// no Intl.PluralRules (verified against the shipped hermes.framework binary).
+// i18next's compatibilityJSON:'v4' plural resolution depends on it, so without
+// this polyfill Arabic's six CLDR categories collapse and "1 طلبات" comes back.
+// Must stay the first import: i18next.init() runs at module scope below.
+import 'intl-pluralrules';
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
