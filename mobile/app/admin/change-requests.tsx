@@ -51,6 +51,7 @@ export default function ApprovalsScreen() {
   const [links, setLinks] = useState<ParentLink[]>([]);
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [loadingRest, setLoadingRest] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterKey>('ALL');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [adminNote, setAdminNote] = useState('');
@@ -61,18 +62,27 @@ export default function ApprovalsScreen() {
 
   const loadRest = useCallback(async () => {
     setLoadingRest(true);
+    setLoadError(null);
     try {
       // listLinks returns every link for an admin — the service applies no
       // status filter — so PENDING is selected here.
-      const [allLinks, usersRes] = await Promise.all([parentsApi.listLinks(), apiClient.get('/admin/users')]);
+      // /admin/users defaults to 20 per page and has no status filter, so the
+      // default would silently hide pending students past the first 20 users.
+      // 100 is the server's ceiling (paginate(20, 100)); beyond that this needs
+      // real paging or a server-side status filter.
+      const [allLinks, usersRes] = await Promise.all([parentsApi.listLinks(), apiClient.get('/admin/users?limit=100')]);
       setLinks(allLinks.filter((l) => l.status === 'PENDING'));
       // Envelope is { data, meta }; res.data IS that envelope.
       const rows: PendingUser[] = usersRes.data?.data ?? [];
       setPendingUsers(rows.filter((u) => u.status === 'PENDING' && u.role === 'STUDENT'));
+    } catch {
+      // Without this the screen renders an empty approvals list on a failed
+      // load, which reads as "nothing to approve" — the opposite of the truth.
+      setLoadError(t('approvalsDecideFailed'));
     } finally {
       setLoadingRest(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchRequests();
@@ -205,6 +215,14 @@ export default function ApprovalsScreen() {
         contentContainerStyle={s.list}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refreshAll} tintColor={COLORS.primary} />}
       >
+        {loadError && !isLoading ? (
+          <TouchableOpacity onPress={refreshAll} accessibilityRole="button" style={s.errorBanner}>
+            <AppText variant="bodyMedium" style={{ color: COLORS.error, textAlign: 'center' }}>
+              {loadError}
+            </AppText>
+          </TouchableOpacity>
+        ) : null}
+
         {isLoading ? (
           <>
             <SkeletonCard lines={3} />
@@ -348,7 +366,12 @@ export default function ApprovalsScreen() {
               <AppText variant="titleMedium" style={{ flex: 1, color: COLORS.textPrimary }}>
                 {t('approvalsAssignTeacher')}
               </AppText>
-              <TouchableOpacity onPress={() => setShowTeacherModal(false)} accessibilityRole="button">
+              <TouchableOpacity
+                onPress={() => setShowTeacherModal(false)}
+                accessibilityRole="button"
+                accessibilityLabel={t('close')}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
                 <Ionicons name="close" size={22} color={COLORS.textSecondary} />
               </TouchableOpacity>
             </View>
@@ -393,6 +416,13 @@ const createStyles = (COLORS: ThemeColors) =>
     },
     chipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
     list: { padding: SPACING.md, gap: SPACING.sm, paddingBottom: SPACING.xl },
+    errorBanner: {
+      backgroundColor: COLORS.errorLight,
+      borderRadius: RADIUS.md,
+      padding: SPACING.md,
+      minHeight: 44,
+      justifyContent: 'center',
+    },
     card: { gap: SPACING.sm },
     cardTop: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
     expanded: {
