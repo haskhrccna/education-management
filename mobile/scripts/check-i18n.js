@@ -6,11 +6,21 @@ const root = path.join(__dirname, '..');
 const src = fs.readFileSync(path.join(root, 'src/i18n/index.ts'), 'utf8');
 const arBlock = src.slice(src.indexOf('arTranslations'), src.indexOf('enTranslations'));
 const enBlock = src.slice(src.indexOf('enTranslations'), src.indexOf('i18next.use'));
+const PLURAL_SUFFIXES = ['zero', 'one', 'two', 'few', 'many', 'other'];
 const grab = (block) => {
   const keys = new Set();
   const re = /^\s\s([A-Za-z][A-Za-z0-9_]*):\s/gm;
   let m;
-  while ((m = re.exec(block))) keys.add(m[1]);
+  while ((m = re.exec(block))) {
+    const key = m[1];
+    keys.add(key);
+    // i18next v4 plural keys are `base_one`, `base_other`, … but callers write
+    // t('base', { count }). Register the base so the used-key check resolves.
+    const underscore = key.lastIndexOf('_');
+    if (underscore > 0 && PLURAL_SUFFIXES.includes(key.slice(underscore + 1))) {
+      keys.add(key.slice(0, underscore));
+    }
+  }
   return keys;
 };
 const ar = grab(arBlock);
