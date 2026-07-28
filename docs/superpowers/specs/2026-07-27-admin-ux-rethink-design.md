@@ -14,7 +14,7 @@ Restructure the admin section from "one-pager with a flat button row + a teacher
 
 | Screen | Status | Notes |
 |---|---|---|
-| `admin/home.tsx` | Exists (340 lines) | Hero + filter chips + `MetricTile` row + flat action-button row (Broadcast/Milestones/Academy Profile/Academy Health) + approval-queue list (student approvals only) |
+| `admin/home.tsx` | Exists (340 lines) | Hero + filter chips + `MetricTile` row + flat action-button row (Broadcast/Milestones/Academy Profile/Academy Health) + approval-queue list (student approvals only). **Note:** this screen unwrapped the users response one level too deep (`res.data?.data?.data`), so it always rendered 0/0/0 with an empty queue; fixed 2026-07-28 to `res.data?.data`. The rewrite must keep the single-level unwrap — `GET /api/v1/admin/users` returns `{ data: User[], meta }` and no axios interceptor unwraps it. |
 | `admin/change-requests.tsx` | Exists | Teacher-change requests only — confirmed via grep, no `parent-links` import |
 | `admin/broadcast.tsx` | Exists | Visual polish only, no IA change |
 | `admin/milestones.tsx` | Exists | Visual polish only, no IA change |
@@ -55,9 +55,21 @@ Same file, expanded scope (not a new route — this screen already owns "things 
 - **Mobile:** new `mobile/src/api/auditLogs.ts` client (`getAuditLogs({ page, limit, userId, action, resourceType, dateFrom, dateTo })`) and `mobile/src/hooks/useAuditLogs.ts`, following the project's one-file-per-resource convention.
 - **Screen:** filter row (actor search-by-name-or-email, action dropdown/chips, resource-type dropdown, date-range picker), paginated list (reuse the existing pagination UI pattern from other paginated admin screens), each row showing actor, action, resource type + id, timestamp, and a tap-to-expand for `details`/`ipAddress`/`userAgent`. AC5.2 requires this to "work on 10k+ rows without a hitch" — this is satisfied by the existing server-side pagination (already `paginate(20, 100)`-bounded); no client-side full-list loading.
 
+### Admin bottom-nav tab is mislabelled in Arabic (added 2026-07-28, reproduced on device)
+
+`BottomNav.tsx` `ADMIN_TABS` defines the broadcast entry with `labelAr: 'إشعارات'` ("Notifications") but `labelEn: 'Broadcast'` — the two languages name the same destination differently, and the Arabic one names the wrong thing. Reproduced live: tapping the tab labelled "إشعارات" opens the broadcast composer (إرسال إشعار عام), not the notification centre.
+
+This matters more than a typo because the app is Arabic-first: an Arabic admin has no bottom-nav route to the notification centre at all (it is only reachable via the bell icon in the home hero), while the tab that *claims* to be notifications is a send-only composer.
+
+Fix as part of the home restructure: `labelAr` becomes the Arabic for "Broadcast" (e.g. `'إشعار عام'`, matching the wording already used on the home action button and the composer's own title). Since the Academy nav-card grid described above already carries a Broadcast entry, the plan should also decide whether this tab keeps its slot or is replaced by a notifications entry — the current admin bar carries seven tabs, above the ~5 iOS convention, so this is a natural place to reclaim one.
+
 ## Visual pass (applies to all 7 screens)
 
 Audit against `mobile/DESIGN.md` rather than introducing new patterns: Rationed Gold (the combined-approvals count and audit-log entries are operational, never gold — gold stays reserved for milestones/streaks elsewhere in the app), Status-Is-Not-Only-Color on every status pill (PENDING/APPROVED/DENIED, REQUESTED/ACCEPTED), hairline-border cards + `sm` shadow only, `AppText` scale honored (no raw `<Text>` font sizes), ≥44pt tap targets on all nav-cards and filter chips.
+
+**Confirmed Rationed-Gold violations to fix (observed on device 2026-07-28):** on `admin/home.tsx` the *pending* and *teachers* metric tiles render on cream/gold fills and the teacher-change banner is gold throughout — all three are plain operational counts, not earned achievement. (The *students* tile is already correctly neutral, so the inconsistency is visible side-by-side.) The notification unread dot is correctly primary-green and should stay that way.
+
+**Confirmed bidi defect in `academy-health.tsx` (observed on device 2026-07-28):** the teacher-load rows render as `0Sarah Khalil` / `4Ahmad Al-Rashid` — count and name with no separation. The markup is structurally correct (name `AppText` has `flex: 1`, count second, row is `flexDirection: 'row'`), but a Latin-script name inside an RTL row resolves its own text direction to LTR and hugs the left edge of its flex box, landing flush against the count. Teacher names are frequently Latin in this data set, so this is the normal case, not an edge case. The fix must work in both directions (Arabic UI with Latin names *and* English UI) — align the name to the row's writing-direction start rather than letting it inherit the content's direction; do not hard-code `textAlign: 'right'`.
 
 ## Files Changed
 
@@ -70,7 +82,8 @@ Audit against `mobile/DESIGN.md` rather than introducing new patterns: Rationed 
 | `mobile/app/admin/audit-logs.tsx` | **New** |
 | `mobile/src/api/auditLogs.ts` | **New** |
 | `mobile/src/hooks/useAuditLogs.ts` | **New** |
-| `mobile/app/admin/broadcast.tsx`, `milestones.tsx`, `academy-health.tsx`, `academy-profile.tsx` | Visual polish only per DESIGN.md audit — no structural change |
+| `mobile/app/admin/broadcast.tsx`, `milestones.tsx`, `academy-health.tsx`, `academy-profile.tsx` | Visual polish only per DESIGN.md audit — no structural change. Includes the academy-health teacher-load row fix below. |
+| `mobile/src/components/BottomNav.tsx` | Correct `ADMIN_TABS` broadcast `labelAr`; decide tab-count reduction (see above) |
 | `mobile/src/i18n/index.ts` | New keys for Approvals filter chips, audit-log screen (both `ar` and `en`) |
 
 ## Out of Scope
