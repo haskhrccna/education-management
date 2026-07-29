@@ -185,6 +185,36 @@ describe('parents', () => {
     expect(deny.body.error).toBe('Cannot deny an approved link — admin must revoke separately');
   });
 
+  it('APPROVE decision writes a DECIDE_PARENT_LINK audit entry', async () => {
+    const parent = await createUser({ role: Role.PARENT });
+    const student = await createUser({ role: Role.STUDENT });
+    const admin = await createUser({ role: Role.ADMIN });
+    const created = await agent
+      .post('/api/v1/parents/links')
+      .set('Authorization', `Bearer ${parent.token}`)
+      .send({ studentId: student.id });
+    const linkId = created.body.data.id;
+
+    const approve = await agent
+      .patch(`/api/v1/parents/links/${linkId}/decision`)
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({ action: 'APPROVE' });
+    expect(approve.status).toBe(200);
+
+    const logs = await agent
+      .get('/api/v1/admin/audit-logs?action=DECIDE_PARENT_LINK')
+      .set('Authorization', `Bearer ${admin.token}`);
+    expect(logs.status).toBe(200);
+    expect(logs.body.meta.total).toBe(1);
+    expect(logs.body.data[0]).toMatchObject({
+      action: 'DECIDE_PARENT_LINK',
+      resourceType: 'PARENT_LINK',
+      resourceId: linkId,
+      userId: admin.id,
+    });
+    expect(logs.body.data[0].details).toMatchObject({ action: 'APPROVE', studentId: student.id, parentId: parent.id });
+  });
+
   it('dashboard without approved link → 403; GET /links role scoping; student-search 200/404', async () => {
     const parent = await createUser({ role: Role.PARENT });
     const otherParent = await createUser({ role: Role.PARENT });
