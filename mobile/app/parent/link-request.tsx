@@ -163,7 +163,9 @@ const styles = StyleSheet.create({
   submit: {
     marginTop: SPACING.lg,
     padding: SPACING.md,
+    minHeight: 44,
     borderRadius: RADIUS.md,
     alignItems: 'center',
+    justifyContent: 'center',
   },
 });
