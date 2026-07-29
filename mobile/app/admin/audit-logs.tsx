@@ -64,6 +64,24 @@ export default function AuditLogsScreen() {
     setFilters({ ...filters, userId: undefined });
   };
 
+  // Date filters live in the queryKey (useAuditLogs), so every setFilters call
+  // fires a request. Committing every keystroke sent invalid partial dates to
+  // the server (400 flash) or, worse, well-formed-but-wrong dates like
+  // "2026-07-" -> 2026-06-30 that silently queried the wrong window. Raw text
+  // is kept locally so typing never feels blocked; filters only receive a
+  // value once it's empty (clearing) or a complete YYYY-MM-DD date.
+  const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+  const [dateFromText, setDateFromText] = useState('');
+  const [dateToText, setDateToText] = useState('');
+  const onDateFromChange = (v: string) => {
+    setDateFromText(v);
+    if (v === '' || DATE_RE.test(v)) setFilters({ ...filters, dateFrom: v || undefined });
+  };
+  const onDateToChange = (v: string) => {
+    setDateToText(v);
+    if (v === '' || DATE_RE.test(v)) setFilters({ ...filters, dateTo: v || undefined });
+  };
+
   const hasFilters = Object.values(filters).some((v) => v !== undefined && v !== '');
 
   const actorName = (row: (typeof rows)[number]) =>
@@ -159,16 +177,16 @@ export default function AuditLogsScreen() {
         <View style={s.dateRow}>
           <TextInput
             style={[s.input, s.dateInput]}
-            value={filters.dateFrom ?? ''}
-            onChangeText={(v) => setFilters({ ...filters, dateFrom: v || undefined })}
+            value={dateFromText}
+            onChangeText={onDateFromChange}
             placeholder={`${t('auditLogFilterFrom')} (YYYY-MM-DD)`}
             placeholderTextColor={COLORS.textSecondary}
             autoCapitalize="none"
           />
           <TextInput
             style={[s.input, s.dateInput]}
-            value={filters.dateTo ?? ''}
-            onChangeText={(v) => setFilters({ ...filters, dateTo: v || undefined })}
+            value={dateToText}
+            onChangeText={onDateToChange}
             placeholder={`${t('auditLogFilterTo')} (YYYY-MM-DD)`}
             placeholderTextColor={COLORS.textSecondary}
             autoCapitalize="none"
@@ -178,6 +196,8 @@ export default function AuditLogsScreen() {
           <TouchableOpacity
             onPress={() => {
               setSelectedActor(null);
+              setDateFromText('');
+              setDateToText('');
               setFilters({});
             }}
             accessibilityRole="button"
