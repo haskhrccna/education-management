@@ -47,7 +47,14 @@ export default function ApprovalsScreen() {
   const { colors: COLORS } = useTheme();
   const s = createStyles(COLORS);
 
-  const { requests, isLoading: loadingChanges, fetchRequests, decideRequest, fetchTeachers } = useTeacherChange();
+  const {
+    requests,
+    isLoading: loadingChanges,
+    error: changeError,
+    fetchRequests,
+    decideRequest,
+    fetchTeachers,
+  } = useTeacherChange();
   const [links, setLinks] = useState<ParentLink[]>([]);
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [loadingRest, setLoadingRest] = useState(true);
@@ -90,6 +97,10 @@ export default function ApprovalsScreen() {
   }, [loadRest]);
 
   const isLoading = loadingChanges || loadingRest;
+  // Surfaces a teacher-change load failure through the same banner used for
+  // the parent-link/user load failures — otherwise those rows just vanish
+  // with no indication anything went wrong.
+  const combinedError = loadError ?? (changeError ? t('approvalsDecideFailed') : null);
 
   const rows: ApprovalRow[] = useMemo(() => {
     const changeRows: ApprovalRow[] = requests
@@ -215,10 +226,10 @@ export default function ApprovalsScreen() {
         contentContainerStyle={s.list}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refreshAll} tintColor={COLORS.primary} />}
       >
-        {loadError && !isLoading ? (
+        {combinedError && !isLoading ? (
           <TouchableOpacity onPress={refreshAll} accessibilityRole="button" style={s.errorBanner}>
             <AppText variant="bodyMedium" style={{ color: COLORS.error, textAlign: 'center' }}>
-              {loadError}
+              {combinedError}
             </AppText>
           </TouchableOpacity>
         ) : null}

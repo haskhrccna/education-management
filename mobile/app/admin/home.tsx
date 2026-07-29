@@ -56,7 +56,11 @@ export default function AdminHomeScreen() {
     setFetchError(null);
     setIsLoading(true);
     try {
-      const res = await apiClient.get('/admin/users');
+      // /admin/users defaults to 20 per page and has no status filter, so the
+      // default would silently hide pending/students/teachers past the first
+      // 20 users. 100 is the server's ceiling (paginate(20, 100)); beyond that
+      // this needs real paging or a server-side status filter.
+      const res = await apiClient.get('/admin/users?limit=100');
       // paginatedResponse shape is { data: User[], meta } — res.data IS that
       // envelope, so the rows are res.data.data (one level, not two).
       setAllUsers(res.data?.data ?? []);
@@ -68,24 +72,32 @@ export default function AdminHomeScreen() {
     }
   }, [t]);
 
+  const [pendingLinkCount, setPendingLinkCount] = useState(0);
+  const [pendingLinkFailed, setPendingLinkFailed] = useState(false);
+  const loadPendingLinks = useCallback(async () => {
+    // listLinks has no server-side status filter, so PENDING is counted here.
+    try {
+      const all = await parentsApi.listLinks();
+      setPendingLinkFailed(false);
+      setPendingLinkCount(all.filter((l) => l.status === 'PENDING').length);
+    } catch {
+      // A failed fetch is indistinguishable from "genuinely zero pending
+      // links" unless tracked explicitly — surface it via the fetchError
+      // banner instead of silently reporting 0 and deflating totalPending.
+      setPendingLinkFailed(true);
+    }
+  }, []);
+
   const refreshAll = useCallback(() => {
     loadUsers();
     fetchMessages();
     fetchRequests();
-  }, [loadUsers, fetchMessages, fetchRequests]);
+    loadPendingLinks();
+  }, [loadUsers, fetchMessages, fetchRequests, loadPendingLinks]);
 
   useEffect(() => {
     refreshAll();
   }, [refreshAll]);
-
-  const [pendingLinkCount, setPendingLinkCount] = useState(0);
-  useEffect(() => {
-    // listLinks has no server-side status filter, so PENDING is counted here.
-    parentsApi
-      .listLinks()
-      .then((all) => setPendingLinkCount(all.filter((l) => l.status === 'PENDING').length))
-      .catch(() => setPendingLinkCount(0));
-  }, []);
 
   const totalPending = stats.pending + pendingChangeCount + pendingLinkCount;
 
@@ -206,9 +218,9 @@ export default function AdminHomeScreen() {
           ))}
         </View>
 
-        {fetchError && !isLoading ? (
+        {(fetchError || pendingLinkFailed) && !isLoading ? (
           <TouchableOpacity activeOpacity={0.85} onPress={refreshAll} style={styles.errorBanner}>
-            <Text style={styles.errorText}>{fetchError}</Text>
+            <Text style={styles.errorText}>{fetchError ?? t('loadFailed')}</Text>
           </TouchableOpacity>
         ) : null}
       </ScrollView>
