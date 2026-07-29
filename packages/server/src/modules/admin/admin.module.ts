@@ -147,9 +147,18 @@ const bulkDeactivate = defineRoute(adminContracts.bulkDeactivate, async ({ body,
   return { status: 200 as const, body: results };
 });
 
+const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 const parseFilterDate = (raw: unknown, field: 'dateFrom' | 'dateTo'): Date | undefined => {
   if (raw === undefined || raw === '') return undefined;
-  const parsed = new Date(String(raw));
+  let str = String(raw);
+  // A date-only dateTo (e.g. "2026-07-29") parses as midnight UTC, which as an
+  // `lte` bound excludes the entire day it names. dateFrom needs no such
+  // adjustment — midnight UTC is already the correct start-of-day lower bound.
+  if (field === 'dateTo' && DATE_ONLY_RE.test(str)) {
+    str = `${str}T23:59:59.999Z`;
+  }
+  const parsed = new Date(str);
   if (Number.isNaN(parsed.getTime())) {
     throw new AppError(400, `${field} must be an ISO-8601 date string`);
   }

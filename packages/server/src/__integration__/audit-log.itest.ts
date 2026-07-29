@@ -142,6 +142,22 @@ describe('GET /api/v1/admin/audit-logs', () => {
     expect(res.body.data[0].resourceId).toBe(s1.id);
   });
 
+  it('date-only dateTo includes the whole day (end-of-day, not midnight UTC)', async () => {
+    const admin = await createUser({ role: Role.ADMIN });
+    const s = await createUser({ role: Role.STUDENT, status: UserStatus.PENDING });
+    await request(app).put(`/api/v1/admin/users/${s.id}/approve`).set('Authorization', `Bearer ${admin.token}`);
+
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD, no time component
+    const res = await request(app)
+      .get(`/api/v1/admin/audit-logs?dateTo=${today}`)
+      .set('Authorization', `Bearer ${admin.token}`);
+    expect(res.status).toBe(200);
+    // Before the fix, dateTo=<today> parsed as <today>T00:00:00.000Z and, as an
+    // `lte` bound, excluded everything logged today — this row included.
+    expect(res.body.meta.total).toBe(1);
+    expect(res.body.data[0].resourceId).toBe(s.id);
+  });
+
   it('400s on an unparseable date rather than 500ing through Prisma', async () => {
     const admin = await createUser({ role: Role.ADMIN });
     const res = await request(app)
