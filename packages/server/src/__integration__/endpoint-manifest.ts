@@ -150,6 +150,8 @@ const v1: EndpointSpec[] = [
   { method: 'GET', path: '/api/v1/parents/children', access: ['PARENT'] },
   { method: 'GET', path: '/api/v1/parents/student-search', access: ['PARENT'] },
   { method: 'GET', path: '/api/v1/parents/children/:studentId/dashboard', access: ['PARENT'] },
+  { method: 'GET', path: '/api/v1/parents/children/:studentId/reports', access: ['PARENT'] },
+  { method: 'GET', path: '/api/v1/parents/children/:studentId/recordings', access: ['PARENT'] },
   { method: 'PATCH', path: '/api/v1/parents/links/:id/decision', access: ['ADMIN'] },
   // gamification
   { method: 'GET', path: '/api/v1/gamification/me', access: 'authenticated' },

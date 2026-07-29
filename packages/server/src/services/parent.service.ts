@@ -216,6 +216,16 @@ export const getChildDashboard = async (parentId: string, studentId: string) => 
   };
 };
 
+export const getChildReports = async (parentId: string, studentId: string) => {
+  await assertParentHasApprovedLink(parentId, studentId);
+  return prisma.report.findMany({ where: { studentId }, orderBy: { generatedAt: 'desc' } });
+};
+
+export const getChildRecordings = async (parentId: string, studentId: string) => {
+  await assertParentHasApprovedLink(parentId, studentId);
+  return prisma.recording.findMany({ where: { studentId }, orderBy: { createdAt: 'desc' } });
+};
+
 // ─── Guard ───────────────────────────────────────────────────────────────────
 
 /**

@@ -186,7 +186,7 @@ describe('files (?token= auth pinned)', () => {
     expect(res.headers['content-disposition']).toMatch(/^attachment; filename=/);
   });
 
-  it('GET /files/recordings/:id → 403 Permission denied for parent; 403 relationship guard for unlinked teacher', async () => {
+  it('GET /files/recordings/:id → 403 unapproved-link for parent; 403 relationship guard for unlinked teacher', async () => {
     const student = await createUser({ role: Role.STUDENT });
     const parent = await createUser({ role: Role.PARENT });
     const unlinkedTeacher = await createUser({ role: Role.TEACHER });
@@ -196,7 +196,7 @@ describe('files (?token= auth pinned)', () => {
       .get(`/api/v1/files/recordings/${rec.id}`)
       .set('Authorization', `Bearer ${parent.token}`);
     expect(parentRes.status).toBe(403);
-    expect(parentRes.body).toMatchObject({ success: false, error: 'Permission denied' });
+    expect(parentRes.body).toMatchObject({ success: false, error: 'No approved link to this student' });
 
     const teacherRes = await agent
       .get(`/api/v1/files/recordings/${rec.id}`)

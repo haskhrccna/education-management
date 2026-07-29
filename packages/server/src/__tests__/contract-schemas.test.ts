@@ -8,8 +8,8 @@ import {
 } from '@quran-review/shared';
 
 describe('contract schemas pin current response shapes', () => {
-  it('registry has 117 contracts with unique method+path', () => {
-    expect(contractRegistry).toHaveLength(117);
+  it('registry has 119 contracts with unique method+path', () => {
+    expect(contractRegistry).toHaveLength(119);
     const keys = contractRegistry.map((c) => `${c.method} ${c.path}`);
     expect(new Set(keys).size).toBe(keys.length);
   });

@@ -1,6 +1,7 @@
 import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
 import { uploadStorage, reportStorage, certificateStorage } from '../lib/storage';
+import { assertParentHasApprovedLink } from './parent.service';
 
 export interface ResolvedDownload {
   filePath: string;
@@ -27,7 +28,12 @@ export const resolveRecordingDownload = async (
   const isOwner = recording.studentId === userId;
   const isAdmin = userRole === 'ADMIN';
   const isTeacher = userRole === 'TEACHER';
-  if (!isOwner && !isAdmin && !isTeacher) throw new AppError(403, 'Permission denied');
+  const isParent = userRole === 'PARENT';
+  if (isParent) {
+    await assertParentHasApprovedLink(userId, recording.studentId); // throws 403 if not linked
+  } else if (!isOwner && !isAdmin && !isTeacher) {
+    throw new AppError(403, 'Permission denied');
+  }
   if (isTeacher) await assertTeacherStudentRelationship(userId, recording.studentId);
 
   const fileName = recording.url.split('/').pop() || '';
@@ -48,7 +54,12 @@ export const resolveReportDownload = async (
   const isOwner = report.studentId === userId;
   const isAdmin = userRole === 'ADMIN';
   const isTeacher = userRole === 'TEACHER';
-  if (!isOwner && !isAdmin && !isTeacher) throw new AppError(403, 'Permission denied');
+  const isParent = userRole === 'PARENT';
+  if (isParent) {
+    await assertParentHasApprovedLink(userId, report.studentId); // throws 403 if not linked
+  } else if (!isOwner && !isAdmin && !isTeacher) {
+    throw new AppError(403, 'Permission denied');
+  }
   if (isTeacher) await assertTeacherStudentRelationship(userId, report.studentId);
 
   const fileName = report.pdfUrl.split('/').pop() || '';

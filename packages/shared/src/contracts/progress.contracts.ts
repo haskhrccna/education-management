@@ -25,6 +25,27 @@ const MiniStudentWithTeacher = MiniStudent.extend({
   assignedTeacher: z.looseObject({ id: z.string(), firstName: z.string(), lastName: z.string() }).nullable(),
 });
 
+const ParentChildReportRow = z.looseObject({
+  id: z.string(),
+  teacherId: z.string(),
+  studentId: z.string(),
+  pdfUrl: z.string(),
+  summary: z.string(),
+  generatedAt: DateOut,
+});
+
+const ParentChildRecordingRow = z.looseObject({
+  id: z.string(),
+  studentId: z.string(),
+  url: z.string(),
+  fileName: z.string(),
+  fileSizeBytes: z.number(),
+  contentType: z.string(),
+  approvedAt: DateOut.nullable(),
+  rejectedAt: DateOut.nullable(),
+  createdAt: DateOut,
+});
+
 export const progressContracts = {
   gamificationMe: defineContract({
     method: 'GET',
@@ -119,6 +140,28 @@ export const progressContracts = {
       401: ErrorEnvelope,
       403: ErrorEnvelope,
       404: ErrorEnvelope,
+    },
+  }),
+  parentChildReports: defineContract({
+    method: 'GET',
+    path: '/api/v1/parents/children/:studentId/reports',
+    summary: "A child's reports, newest first. Requires an APPROVED ParentLink (403 otherwise).",
+    access: [UserRole.PARENT],
+    responses: {
+      200: Ok(z.array(ParentChildReportRow)),
+      401: ErrorEnvelope,
+      403: ErrorEnvelope,
+    },
+  }),
+  parentChildRecordings: defineContract({
+    method: 'GET',
+    path: '/api/v1/parents/children/:studentId/recordings',
+    summary: "A child's recordings, newest first. Requires an APPROVED ParentLink (403 otherwise).",
+    access: [UserRole.PARENT],
+    responses: {
+      200: Ok(z.array(ParentChildRecordingRow)),
+      401: ErrorEnvelope,
+      403: ErrorEnvelope,
     },
   }),
   decideParentLink: defineContract({
