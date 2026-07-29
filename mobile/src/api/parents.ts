@@ -42,7 +42,15 @@ export interface ChildSummary {
 }
 
 export interface ChildDashboard {
-  student: { id: string; firstName: string; lastName: string; email: string; status: string; createdAt: string };
+  student: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    status: string;
+    createdAt: string;
+    assignedTeacher: { id: string; firstName: string; lastName: string } | null;
+  };
   memorization: Array<{
     id: string;
     surah: { number: number; nameAr: string; nameEn: string };
@@ -69,6 +77,28 @@ export interface ChildDashboard {
     status: string;
     surah?: { nameAr: string; nameEn: string };
   }>;
+  streak: { currentStreak: number; longestStreak: number };
+}
+
+export interface ParentChildReport {
+  id: string;
+  teacherId: string;
+  studentId: string;
+  pdfUrl: string;
+  summary: string;
+  generatedAt: string;
+}
+
+export interface ParentChildRecording {
+  id: string;
+  studentId: string;
+  url: string;
+  fileName: string;
+  fileSizeBytes: number;
+  contentType: string;
+  approvedAt: string | null;
+  rejectedAt: string | null;
+  createdAt: string;
 }
 
 export interface StudentSearchResult {
@@ -146,5 +176,19 @@ export const parentsApi = {
       200
     );
     return (res.body as unknown as { data: ChildDashboard }).data;
+  },
+  getChildReports: async (studentId: string): Promise<ParentChildReport[]> => {
+    const res = expectStatus(
+      await contractClient.call(progressContracts.parentChildReports, { params: { studentId } }),
+      200
+    );
+    return (res.body as unknown as { data: ParentChildReport[] }).data;
+  },
+  getChildRecordings: async (studentId: string): Promise<ParentChildRecording[]> => {
+    const res = expectStatus(
+      await contractClient.call(progressContracts.parentChildRecordings, { params: { studentId } }),
+      200
+    );
+    return (res.body as unknown as { data: ParentChildRecording[] }).data;
   },
 };
