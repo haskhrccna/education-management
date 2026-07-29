@@ -249,4 +249,75 @@ describe('parents', () => {
     expect(missing.status).toBe(404);
     expect(missing.body.error).toBe('Student not found');
   });
+
+  describe('GET /api/v1/parents/children/:studentId/dashboard — assignedTeacher and streak', () => {
+    it('includes the assigned teacher when one is set', async () => {
+      const teacher = await createUser({ role: Role.TEACHER });
+      const student = await createUser({ role: Role.STUDENT, assignedTeacherId: teacher.id });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+      await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+
+      const res = await request(app)
+        .get(`/api/v1/parents/children/${student.id}/dashboard`)
+        .set('Authorization', `Bearer ${parent.token}`);
+      expect(res.status).toBe(200);
+      expect(res.body.data.student.assignedTeacher).toMatchObject({ id: teacher.id });
+    });
+
+    it('returns assignedTeacher: null when the student has no assigned teacher', async () => {
+      const student = await createUser({ role: Role.STUDENT });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+      await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+
+      const res = await request(app)
+        .get(`/api/v1/parents/children/${student.id}/dashboard`)
+        .set('Authorization', `Bearer ${parent.token}`);
+      expect(res.body.data.student.assignedTeacher).toBeNull();
+    });
+
+    it('returns a zero-defaulted streak when the student has never had one recorded', async () => {
+      const student = await createUser({ role: Role.STUDENT });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+      await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+
+      const res = await request(app)
+        .get(`/api/v1/parents/children/${student.id}/dashboard`)
+        .set('Authorization', `Bearer ${parent.token}`);
+      expect(res.body.data.streak).toMatchObject({ currentStreak: 0, longestStreak: 0 });
+    });
+
+    it('returns the real streak when one exists', async () => {
+      const student = await createUser({ role: Role.STUDENT });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      await prisma.streak.create({
+        data: { userId: student.id, currentStreak: 5, longestStreak: 12, lastActiveDate: new Date() },
+      });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+      await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+
+      const res = await request(app)
+        .get(`/api/v1/parents/children/${student.id}/dashboard`)
+        .set('Authorization', `Bearer ${parent.token}`);
+      expect(res.body.data.streak).toMatchObject({ currentStreak: 5, longestStreak: 12 });
+    });
+  });
 });

@@ -21,6 +21,10 @@ const ParentLinkRow = z.looseObject({
 
 const MiniStudent = z.looseObject({ id: z.string(), firstName: z.string(), lastName: z.string(), email: z.string() });
 
+const MiniStudentWithTeacher = MiniStudent.extend({
+  assignedTeacher: z.looseObject({ id: z.string(), firstName: z.string(), lastName: z.string() }).nullable(),
+});
+
 export const progressContracts = {
   gamificationMe: defineContract({
     method: 'GET',
@@ -103,12 +107,13 @@ export const progressContracts = {
     responses: {
       200: Ok(
         z.looseObject({
-          student: MiniStudent,
+          student: MiniStudentWithTeacher,
           memorization: z.array(z.unknown()),
           grades: z.array(z.unknown()),
           attendance: z.array(z.unknown()),
           upcomingAppointments: z.array(z.unknown()),
           pendingRevisions: z.array(z.unknown()),
+          streak: z.unknown(),
         })
       ),
       401: ErrorEnvelope,

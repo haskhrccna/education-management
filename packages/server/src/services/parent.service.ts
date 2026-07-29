@@ -151,44 +151,57 @@ export const getChildren = async (parentId: string) => {
 export const getChildDashboard = async (parentId: string, studentId: string) => {
   await assertParentHasApprovedLink(parentId, studentId);
 
-  const [student, memorization, grades, attendance, upcomingAppointments, pendingRevisions] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: studentId },
-      select: { id: true, firstName: true, lastName: true, email: true, status: true, createdAt: true },
-    }),
-    prisma.memorizationProgress.findMany({
-      where: { userId: studentId },
-      orderBy: { updatedAt: 'desc' },
-      take: 5,
-      include: { surah: { select: { number: true, nameAr: true, nameEn: true, juz: true } } },
-    }),
-    prisma.grade.findMany({
-      where: { studentId },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-      include: { teacher: { select: { firstName: true, lastName: true } } },
-    }),
-    prisma.sessionRecord.findMany({
-      where: { studentId },
-      orderBy: { recordedAt: 'desc' },
-      take: 5,
-      include: {
-        appointment: { select: { requestedDate: true, requestedTime: true } },
-      },
-    }),
-    prisma.appointment.findMany({
-      where: { studentId, status: { in: ['REQUESTED', 'ACCEPTED'] } },
-      orderBy: { requestedDate: 'asc' },
-      take: 5,
-      include: { teacher: { select: { firstName: true, lastName: true } } },
-    }),
-    prisma.revisionSchedule.findMany({
-      where: { userId: studentId, status: 'PENDING' },
-      orderBy: { scheduledFor: 'asc' },
-      take: 5,
-      include: { surah: { select: { number: true, nameAr: true, nameEn: true } } },
-    }),
-  ]);
+  const [student, memorization, grades, attendance, upcomingAppointments, pendingRevisions, streak] = await Promise.all(
+    [
+      prisma.user.findUnique({
+        where: { id: studentId },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          status: true,
+          createdAt: true,
+          assignedTeacher: { select: { id: true, firstName: true, lastName: true } },
+        },
+      }),
+      prisma.memorizationProgress.findMany({
+        where: { userId: studentId },
+        orderBy: { updatedAt: 'desc' },
+        take: 5,
+        include: { surah: { select: { number: true, nameAr: true, nameEn: true, juz: true } } },
+      }),
+      prisma.grade.findMany({
+        where: { studentId },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        include: { teacher: { select: { firstName: true, lastName: true } } },
+      }),
+      prisma.sessionRecord.findMany({
+        where: { studentId },
+        orderBy: { recordedAt: 'desc' },
+        take: 5,
+        include: {
+          appointment: { select: { requestedDate: true, requestedTime: true } },
+        },
+      }),
+      prisma.appointment.findMany({
+        where: { studentId, status: { in: ['REQUESTED', 'ACCEPTED'] } },
+        orderBy: { requestedDate: 'asc' },
+        take: 5,
+        include: { teacher: { select: { firstName: true, lastName: true } } },
+      }),
+      prisma.revisionSchedule.findMany({
+        where: { userId: studentId, status: 'PENDING' },
+        orderBy: { scheduledFor: 'asc' },
+        take: 5,
+        include: { surah: { select: { number: true, nameAr: true, nameEn: true } } },
+      }),
+      // Zero-defaulted, matching gamification.service.ts's own convention — a
+      // student who has never logged activity has no Streak row at all.
+      prisma.streak.findUnique({ where: { userId: studentId } }),
+    ]
+  );
 
   if (!student) throw new AppError(404, 'Student not found');
 
@@ -199,6 +212,7 @@ export const getChildDashboard = async (parentId: string, studentId: string) => 
     attendance,
     upcomingAppointments,
     pendingRevisions,
+    streak: streak ?? { userId: studentId, currentStreak: 0, longestStreak: 0, lastActiveDate: null },
   };
 };
 
@@ -209,7 +223,7 @@ export const getChildDashboard = async (parentId: string, studentId: string) => 
  * there is an APPROVED `ParentLink` row between them. Reuses no other guard
  * — this is independent of the teacher/student accepted-appointment chain.
  */
-async function assertParentHasApprovedLink(parentId: string, studentId: string) {
+export async function assertParentHasApprovedLink(parentId: string, studentId: string) {
   const link = await prisma.parentLink.findUnique({
     where: { parentId_studentId: { parentId, studentId } },
   });
