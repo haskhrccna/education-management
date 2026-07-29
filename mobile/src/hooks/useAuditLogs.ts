@@ -12,6 +12,11 @@ export function useAuditLogs() {
   const q = useQuery<AuditLogPage>({
     queryKey: ['auditLogs', filters, page],
     queryFn: () => auditLogsApi.list({ ...filters, page, limit: PAGE_SIZE }),
+    // Audit-log rows carry actor PII, IP addresses, user-agents, and raw
+    // details JSON — don't keep them in memory beyond this screen's lifetime.
+    // (The persisted on-device cache is separately excluded in queryClient's
+    // dehydrateOptions.)
+    gcTime: 0,
   });
 
   // Changing a filter must reset to page 1 — otherwise a narrower filter can
