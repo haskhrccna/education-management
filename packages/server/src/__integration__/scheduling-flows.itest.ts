@@ -324,6 +324,38 @@ describe('teacher-change lifecycle', () => {
     expect(synthetic!.approvedAt).not.toBeNull();
   });
 
+  it('APPROVE decision writes a DECIDE_TEACHER_CHANGE audit entry with the new teacher id', async () => {
+    const student = await createUser({ role: Role.STUDENT });
+    const oldTeacher = await createUser({ role: Role.TEACHER, email: 'audit-old-t@example.com' });
+    const newTeacher = await createUser({ role: Role.TEACHER, email: 'audit-new-t@example.com' });
+    const admin = await createUser({ role: Role.ADMIN });
+    await bookAccepted(student, oldTeacher);
+
+    const reqRes = await request(app)
+      .post('/api/v1/teacher-changes')
+      .set('Authorization', `Bearer ${student.token}`)
+      .send({ reason: 'Need a different schedule fit' });
+
+    const decided = await request(app)
+      .patch(`/api/v1/teacher-changes/${reqRes.body.id}`)
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({ action: 'APPROVE', newTeacherId: newTeacher.id });
+    expect(decided.status).toBe(200);
+
+    const logs = await request(app)
+      .get('/api/v1/admin/audit-logs?action=DECIDE_TEACHER_CHANGE')
+      .set('Authorization', `Bearer ${admin.token}`);
+    expect(logs.status).toBe(200);
+    expect(logs.body.meta.total).toBe(1);
+    expect(logs.body.data[0]).toMatchObject({
+      action: 'DECIDE_TEACHER_CHANGE',
+      resourceType: 'TEACHER_CHANGE_REQUEST',
+      resourceId: reqRes.body.id,
+      userId: admin.id,
+    });
+    expect(logs.body.data[0].details).toMatchObject({ action: 'APPROVE', newTeacherId: newTeacher.id });
+  });
+
   it('DENY has no side effects; deciding twice → 409', async () => {
     const student = await createUser({ role: Role.STUDENT });
     const teacher = await createUser({ role: Role.TEACHER });

@@ -81,7 +81,21 @@ jobs:
           // through the Expo/React Native toolchain (postcss is a CSS build-time
           // tool used by @expo/metro-config) — reviewed 2026-07-26. Re-review this
           // list whenever Expo SDK is upgraded past the versions on record here.
-          const MOBILE_TOOLCHAIN_EXCEPTIONS = new Set(['postcss']);
+          //
+          // brace-expansion (reviewed 2026-07-27): pinned to ^2.1.2 in the root
+          // package.json "overrides" (patched for the classic ReDoS CVE) instead
+          // of the newer 5.x line, because 5.x dropped the callable-function
+          // export every 'minimatch' in this tree (including RN's own iOS codegen
+          // toolchain) is written against — 5.x broke native iOS builds outright.
+          // This reopens GHSA-mh99-v99m-4gvg (DoS via unbounded brace expansion,
+          // fixed only at 5.0.8+, no backport to 1.x-4.x) on paper, but every
+          // brace-expansion call site in this repo is local dev/build tooling
+          // (jest, eslint, RN codegen, Expo CLI) processing developer-authored
+          // glob patterns — never a server request path or the shipped app
+          // bundle processing untrusted input. Re-review if brace-expansion ships
+          // a 2.x/3.x/4.x patch, or if RN's codegen drops its old minimatch/glob
+          // dependency and can take 5.x directly.
+          const MOBILE_TOOLCHAIN_EXCEPTIONS = new Set(['postcss', 'brace-expansion']);
           const bad = Object.values(audit.vulnerabilities || {}).filter(
             (v) => (v.severity === 'high' || v.severity === 'critical') && !MOBILE_TOOLCHAIN_EXCEPTIONS.has(v.name)
           );

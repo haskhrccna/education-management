@@ -14,6 +14,12 @@ android/app/build/
 # Server runtime output (user uploads + generated PDFs — never source)
 packages/server/uploads/
 packages/server/reports/
+
+# The server package is Node/Express and has no iOS target. A stray
+# `expo prebuild`/`pod install` run from the wrong cwd once generated
+# ~920MB of Pods/, build/ and an .xcodeproj here. The real iOS project
+# lives in mobile/ios/ — anything under packages/server/ios/ is junk.
+packages/server/ios/
 packages/server/certificates/
 
 # Mushaf page images (~51MB) — generated from a source PDF by

@@ -24,3 +24,5 @@ export { weakAyahsApi } from './weakAyahs';
 export type { WeakAyahFlag } from './weakAyahs';
 export { curriculumPlansApi } from './curriculumPlans';
 export type { CurriculumPlan, PlanItem } from './curriculumPlans';
+export { auditLogsApi } from './auditLogs';
+export type { AuditLogRow, AuditLogFilters, AuditLogPage } from './auditLogs';

@@ -2,6 +2,7 @@ import { progressContracts } from '@quran-review/shared';
 import * as parentService from '../../services/parent.service';
 import { AppError } from '../../middleware/error.middleware';
 import { defineRoute, buildContractRouter } from '../../lib/contract-router';
+import { auditLog } from '../../lib/audit';
 
 const roleOf = (userRole?: string): 'PARENT' | 'ADMIN' => (userRole === 'ADMIN' ? 'ADMIN' : 'PARENT');
 
@@ -46,6 +47,15 @@ const decideLink = defineRoute(progressContracts.decideParentLink, async ({ user
     action === 'APPROVE'
       ? await parentService.approveLink(id, userId!)
       : await parentService.denyLink(id, userId!, typeof note === 'string' ? note : undefined);
+  await auditLog({
+    userId: userId!,
+    action: 'DECIDE_PARENT_LINK',
+    resourceType: 'PARENT_LINK',
+    resourceId: id,
+    details: { action, studentId: updated.studentId, parentId: updated.parentId },
+    ipAddress: req.ip,
+    userAgent: req.get('user-agent'),
+  });
   return { status: 200 as const, body: { success: true as const, data: updated } };
 });
 

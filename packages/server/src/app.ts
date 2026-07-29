@@ -51,6 +51,11 @@ import { getMushafPagesDir } from './lib/mushaf-assets';
 
 const app: Application = express();
 
+// Adjust the hop count to match the actual number of reverse proxies in front
+// of this server. Never set this to `true` — that trusts X-Forwarded-For
+// unconditionally and lets any client forge req.ip.
+app.set('trust proxy', 1);
+
 // Request ID + Timeout
 app.use(requestId);
 app.use(timeout());

@@ -1,6 +1,7 @@
 import { schedulingContracts } from '@quran-review/shared';
 import * as teacherChangeService from '../../services/teacherChange.service';
 import { defineRoute, buildContractRouter } from '../../lib/contract-router';
+import { auditLog } from '../../lib/audit';
 
 const submitTeacherChange = defineRoute(schedulingContracts.submitTeacherChange, async ({ body, userId }) => {
   const result = await teacherChangeService.submitTeacherChangeRequest(userId!, body.reason);
@@ -15,7 +16,7 @@ const listTeacherChanges = defineRoute(schedulingContracts.listTeacherChanges, a
 
 const decideTeacherChange = defineRoute(
   schedulingContracts.decideTeacherChange,
-  async ({ params, body, userId, userRole }) => {
+  async ({ params, body, userId, userRole, req }) => {
     const result = await teacherChangeService.decideTeacherChangeRequest(
       String(params.id),
       body.action,
@@ -24,6 +25,15 @@ const decideTeacherChange = defineRoute(
       body.adminNote,
       body.newTeacherId
     );
+    await auditLog({
+      userId: userId!,
+      action: 'DECIDE_TEACHER_CHANGE',
+      resourceType: 'TEACHER_CHANGE_REQUEST',
+      resourceId: result.id,
+      details: { action: body.action, ...(body.newTeacherId ? { newTeacherId: body.newTeacherId } : {}) },
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent'),
+    });
     return { status: 200 as const, body: result };
   }
 );

@@ -8,6 +8,7 @@ import { auditLog } from '../../lib/audit';
 import { paginate, paginatedResponse, PaginatedRequest } from '../../middleware/pagination.middleware';
 import { broadcastLimiter } from '../../middleware/rate-limit.middleware';
 import { defineRoute, buildContractRouter } from '../../lib/contract-router';
+import { AppError } from '../../middleware/error.middleware';
 
 const listUsers = defineRoute(
   adminContracts.listUsers,
@@ -146,13 +147,35 @@ const bulkDeactivate = defineRoute(adminContracts.bulkDeactivate, async ({ body,
   return { status: 200 as const, body: results };
 });
 
+const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+const parseFilterDate = (raw: unknown, field: 'dateFrom' | 'dateTo'): Date | undefined => {
+  if (raw === undefined || raw === '') return undefined;
+  let str = String(raw);
+  // A date-only dateTo (e.g. "2026-07-29") parses as midnight UTC, which as an
+  // `lte` bound excludes the entire day it names. dateFrom needs no such
+  // adjustment — midnight UTC is already the correct start-of-day lower bound.
+  if (field === 'dateTo' && DATE_ONLY_RE.test(str)) {
+    str = `${str}T23:59:59.999Z`;
+  }
+  const parsed = new Date(str);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new AppError(400, `${field} must be an ISO-8601 date string`);
+  }
+  return parsed;
+};
+
 const auditLogs = defineRoute(
   adminContracts.auditLogs,
   async ({ query, req }) => {
     const { page = 1, limit = 20, skip = 0 } = (req as PaginatedRequest).pagination || {};
+    const gte = parseFilterDate(query.dateFrom, 'dateFrom');
+    const lte = parseFilterDate(query.dateTo, 'dateTo');
     const where = {
       ...(query.userId ? { userId: String(query.userId) } : {}),
       ...(query.action ? { action: String(query.action) } : {}),
+      ...(query.resourceType ? { resourceType: String(query.resourceType) } : {}),
+      ...(gte || lte ? { createdAt: { ...(gte ? { gte } : {}), ...(lte ? { lte } : {}) } } : {}),
     };
     const [rows, total] = await Promise.all([
       prisma.auditLog.findMany({

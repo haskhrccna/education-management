@@ -1,40 +1,65 @@
-import React, { useEffect, useState } from 'react';
-import {
-  FlatList,
-  TouchableOpacity,
-  Text,
-  View,
-  TextInput,
-  StyleSheet,
-  ActivityIndicator,
-  Alert,
-  Modal,
-  ScrollView,
-} from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert, Modal, RefreshControl, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { SPACING, RADIUS } from '@/constants/theme';
+import { RADIUS, SPACING } from '@/constants/theme';
+import { apiClient } from '@/src/api';
+import { parentsApi, type ParentLink } from '@/src/api/parents';
 import { useTeacherChange } from '@/src/hooks/useTeacherChange';
+import { AppText } from '@/src/components/AppText';
+import { AppCard, Avatar, EmptyState, StatusPill } from '@/src/components/design';
+import { SkeletonCard } from '@/src/components/SkeletonCard';
 import { BottomNav } from '@/src/components/BottomNav';
-import { useTheme } from '@/src/hooks/useTheme';
+import { useIsRTL } from '@/src/i18n/useIsRTL';
+import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
 
-type StatusFilter = 'ALL' | 'PENDING' | 'APPROVED' | 'DENIED';
+type ApprovalKind = 'TEACHER_CHANGE' | 'PARENT_LINK' | 'STUDENT_ACCOUNT';
+type FilterKey = 'ALL' | ApprovalKind;
 
-const AVATAR_PALETTE = ['#4CAF50', '#2196F3', '#9C27B0', '#FF9800', '#E91E63', '#00BCD4'];
-function avatarColor(name: string) {
-  let n = 0;
-  for (let i = 0; i < name.length; i++) n += name.charCodeAt(i);
-  return AVATAR_PALETTE[n % AVATAR_PALETTE.length];
+interface PendingUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  status: string;
 }
-function initials(first?: string, last?: string) {
-  return `${(first?.[0] ?? '').toUpperCase()}${(last?.[0] ?? '').toUpperCase()}`;
+
+interface ApprovalRow {
+  id: string;
+  kind: ApprovalKind;
+  title: string;
+  subtitle: string;
+  /** Teacher-change and parent-link only — the free-text reason given. */
+  reason?: string;
 }
 
-export default function ChangeRequestsScreen() {
+export default function ApprovalsScreen() {
+  const { t } = useTranslation();
+  // Non-string decisions only (icon direction) — matches the house
+  // convention in audit-logs.tsx. Deliberately not a local isAr ternary
+  // variable: scripts/check-i18n.js ratchets those, and this value never
+  // feeds a displayed string, so it would only add false-positive debt to
+  // that gate.
+  const isRTL = useIsRTL();
   const { colors: COLORS } = useTheme();
-  const { requests, isLoading, fetchRequests, decideRequest, fetchTeachers } = useTeacherChange();
-  const [filter, setFilter] = useState<StatusFilter>('PENDING');
+  const s = createStyles(COLORS);
+
+  const {
+    requests,
+    isLoading: loadingChanges,
+    error: changeError,
+    fetchRequests,
+    decideRequest,
+    fetchTeachers,
+  } = useTeacherChange();
+  const [links, setLinks] = useState<ParentLink[]>([]);
+  const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
+  const [loadingRest, setLoadingRest] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<FilterKey>('ALL');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [adminNote, setAdminNote] = useState('');
   const [deciding, setDeciding] = useState(false);
@@ -42,21 +67,109 @@ export default function ChangeRequestsScreen() {
   const [teachers, setTeachers] = useState<{ id: string; firstName: string; lastName: string }[]>([]);
   const [targetRequestId, setTargetRequestId] = useState<string | null>(null);
 
+  const loadRest = useCallback(async () => {
+    setLoadingRest(true);
+    setLoadError(null);
+    try {
+      // listLinks returns every link for an admin — the service applies no
+      // status filter — so PENDING is selected here.
+      // /admin/users defaults to 20 per page and has no status filter, so the
+      // default would silently hide pending students past the first 20 users.
+      // 100 is the server's ceiling (paginate(20, 100)); beyond that this needs
+      // real paging or a server-side status filter.
+      const [allLinks, usersRes] = await Promise.all([parentsApi.listLinks(), apiClient.get('/admin/users?limit=100')]);
+      setLinks(allLinks.filter((l) => l.status === 'PENDING'));
+      // Envelope is { data, meta }; res.data IS that envelope.
+      const rows: PendingUser[] = usersRes.data?.data ?? [];
+      setPendingUsers(rows.filter((u) => u.status === 'PENDING' && u.role === 'STUDENT'));
+    } catch {
+      // Without this the screen renders an empty approvals list on a failed
+      // load, which reads as "nothing to approve" — the opposite of the truth.
+      setLoadError(t('approvalsDecideFailed'));
+    } finally {
+      setLoadingRest(false);
+    }
+  }, [t]);
+
   useEffect(() => {
     fetchRequests();
-  }, []);
+    loadRest();
+  }, [loadRest]);
 
-  const pendingCount = requests.filter((r: any) => r.status === 'PENDING').length;
-  const filtered = filter === 'ALL' ? requests : requests.filter((r: any) => r.status === filter);
+  const isLoading = loadingChanges || loadingRest;
+  // Surfaces a teacher-change load failure through the same banner used for
+  // the parent-link/user load failures — otherwise those rows just vanish
+  // with no indication anything went wrong.
+  const combinedError = loadError ?? (changeError ? t('approvalsDecideFailed') : null);
 
-  const handleDecide = async (id: string, action: 'APPROVE' | 'DENY', newTeacherId?: string) => {
+  const rows: ApprovalRow[] = useMemo(() => {
+    const changeRows: ApprovalRow[] = requests
+      .filter((r: any) => r.status === 'PENDING')
+      .map((r: any) => ({
+        id: r.id,
+        kind: 'TEACHER_CHANGE' as const,
+        title: `${r.student?.firstName ?? ''} ${r.student?.lastName ?? ''}`.trim(),
+        subtitle: `${r.currentTeacher?.firstName ?? ''} ${r.currentTeacher?.lastName ?? ''}`.trim(),
+        reason: r.reason ?? undefined,
+      }));
+    const linkRows: ApprovalRow[] = links.map((l) => ({
+      id: l.id,
+      kind: 'PARENT_LINK' as const,
+      title: `${l.parent?.firstName ?? ''} ${l.parent?.lastName ?? ''}`.trim() || l.parentId,
+      subtitle: `${t('approvalsParentLinkSub')} ${`${l.student?.firstName ?? ''} ${l.student?.lastName ?? ''}`.trim()}`,
+      reason: l.reason ?? undefined,
+    }));
+    const userRows: ApprovalRow[] = pendingUsers.map((u) => ({
+      id: u.id,
+      kind: 'STUDENT_ACCOUNT' as const,
+      title: `${u.firstName} ${u.lastName}`.trim(),
+      subtitle: t('approvalsStudentAccountSub'),
+    }));
+    const all = [...changeRows, ...linkRows, ...userRows];
+    return filter === 'ALL' ? all : all.filter((r) => r.kind === filter);
+  }, [requests, links, pendingUsers, filter, t]);
+
+  const refreshAll = useCallback(async () => {
+    await Promise.all([fetchRequests(), loadRest()]);
+  }, [fetchRequests, loadRest]);
+
+  const finish = async () => {
+    setExpandedId(null);
+    setAdminNote('');
+    await refreshAll();
+  };
+
+  const decideTeacherChange = async (id: string, action: 'APPROVE' | 'DENY', newTeacherId?: string) => {
     setDeciding(true);
     try {
       await decideRequest(id, action, adminNote.trim() || undefined, newTeacherId);
-      setExpandedId(null);
-      setAdminNote('');
+      await finish();
     } catch {
-      Alert.alert('خطأ', 'فشل معالجة الطلب');
+      Alert.alert(t('error'), t('approvalsDecideFailed'));
+    } finally {
+      setDeciding(false);
+    }
+  };
+
+  const decideParentLink = async (id: string, action: 'APPROVE' | 'DENY') => {
+    setDeciding(true);
+    try {
+      await parentsApi.decideLink(id, action, adminNote.trim() || undefined);
+      await finish();
+    } catch {
+      Alert.alert(t('error'), t('approvalsDecideFailed'));
+    } finally {
+      setDeciding(false);
+    }
+  };
+
+  const approveStudentAccount = async (id: string) => {
+    setDeciding(true);
+    try {
+      await apiClient.put(`/admin/users/${id}/approve`);
+      await finish();
+    } catch {
+      Alert.alert(t('error'), t('approvalsDecideFailed'));
     } finally {
       setDeciding(false);
     }
@@ -64,135 +177,287 @@ export default function ChangeRequestsScreen() {
 
   const openTeacherPicker = async (requestId: string) => {
     setTargetRequestId(requestId);
-    if (teachers.length === 0) {
-      const list = await fetchTeachers();
-      setTeachers(list);
-    }
+    if (teachers.length === 0) setTeachers(await fetchTeachers());
     setShowTeacherModal(true);
   };
 
-  const assignTeacher = (teacher: { id: string; firstName: string; lastName: string }) => {
-    setShowTeacherModal(false);
-    if (targetRequestId) {
-      handleDecide(targetRequestId, 'APPROVE', teacher.id);
-    }
-  };
-
-  const statusColor = (status: string) => {
-    if (status === 'PENDING') return '#f59e0b';
-    if (status === 'APPROVED') return COLORS.primary;
-    return '#ef4444';
-  };
-
-  const statusLabel = (status: string) => {
-    if (status === 'PENDING') return 'معلق';
-    if (status === 'APPROVED') return 'موافق';
-    return 'مرفوض';
-  };
-
-  const filters: { key: StatusFilter; label: string }[] = [
-    { key: 'PENDING', label: `معلق (${pendingCount})` },
-    { key: 'APPROVED', label: 'موافق' },
-    { key: 'DENIED', label: 'مرفوض' },
-    { key: 'ALL', label: 'الكل' },
+  const filters: { key: FilterKey; labelKey: string }[] = [
+    { key: 'ALL', labelKey: 'approvalsFilterAll' },
+    { key: 'TEACHER_CHANGE', labelKey: 'approvalsFilterTeacherChange' },
+    { key: 'PARENT_LINK', labelKey: 'approvalsFilterParentLink' },
+    { key: 'STUDENT_ACCOUNT', labelKey: 'approvalsFilterStudentAccount' },
   ];
 
-  const s = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.background },
-    appBar: {
-      backgroundColor: COLORS.primary,
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: SPACING.md,
-      paddingTop: SPACING.sm,
-      paddingBottom: SPACING.sm,
-      gap: SPACING.sm,
-    },
-    appBarTitle: { flex: 1, fontSize: 18, fontWeight: '700', color: '#fff', textAlign: 'center' },
-    badge: {
-      backgroundColor: '#f59e0b',
-      borderRadius: 99,
-      minWidth: 22,
-      height: 22,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingHorizontal: 6,
-    },
-    badgeText: { color: '#fff', fontSize: 12, fontWeight: '700' },
-    chips: { flexDirection: 'row', gap: SPACING.xs, padding: SPACING.sm, flexWrap: 'wrap' },
+  return (
+    <SafeAreaView style={s.screen} edges={['top']}>
+      <View style={s.appBar}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel={t('back')}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={COLORS.textPrimary} />
+        </TouchableOpacity>
+        <AppText variant="titleLarge" style={{ color: COLORS.textPrimary, flex: 1 }}>
+          {t('approvalsTitle')}
+        </AppText>
+      </View>
+
+      <View style={s.chips}>
+        {filters.map((f) => (
+          <TouchableOpacity
+            key={f.key}
+            onPress={() => setFilter(f.key)}
+            accessibilityRole="button"
+            style={[s.chip, filter === f.key && s.chipActive]}
+          >
+            <AppText
+              variant="labelLarge"
+              style={{ color: filter === f.key ? COLORS.textOnPrimary : COLORS.textPrimary }}
+            >
+              {t(f.labelKey)}
+            </AppText>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <ScrollView
+        contentContainerStyle={s.list}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refreshAll} tintColor={COLORS.primary} />}
+      >
+        {combinedError && !isLoading ? (
+          <TouchableOpacity onPress={refreshAll} accessibilityRole="button" style={s.errorBanner}>
+            <AppText variant="bodyMedium" style={{ color: COLORS.error, textAlign: 'center' }}>
+              {combinedError}
+            </AppText>
+          </TouchableOpacity>
+        ) : null}
+
+        {isLoading ? (
+          <>
+            <SkeletonCard lines={3} />
+            <SkeletonCard lines={3} />
+          </>
+        ) : rows.length === 0 ? (
+          <EmptyState colors={COLORS} icon="checkmark-circle-outline" title={t('approvalsEmpty')} />
+        ) : (
+          rows.map((row) => {
+            const expanded = expandedId === `${row.kind}:${row.id}`;
+            return (
+              <TouchableOpacity
+                key={`${row.kind}:${row.id}`}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                onPress={() => {
+                  setExpandedId(expanded ? null : `${row.kind}:${row.id}`);
+                  setAdminNote('');
+                }}
+              >
+                <AppCard colors={COLORS} style={s.card}>
+                  <View style={s.cardTop}>
+                    <Avatar colors={COLORS} label={row.title} />
+                    <View style={{ flex: 1 }}>
+                      <AppText variant="titleMedium" style={{ color: COLORS.textPrimary }}>
+                        {row.title}
+                      </AppText>
+                      <AppText variant="bodySmall" style={{ color: COLORS.textSecondary }} numberOfLines={2}>
+                        {row.subtitle}
+                      </AppText>
+                    </View>
+                    <StatusPill
+                      colors={COLORS}
+                      label={t(
+                        row.kind === 'TEACHER_CHANGE'
+                          ? 'approvalsFilterTeacherChange'
+                          : row.kind === 'PARENT_LINK'
+                            ? 'approvalsFilterParentLink'
+                            : 'approvalsFilterStudentAccount'
+                      )}
+                      status={row.kind === 'TEACHER_CHANGE' ? 'warning' : 'info'}
+                    />
+                  </View>
+
+                  {expanded ? (
+                    <View style={s.expanded}>
+                      {row.reason ? (
+                        <AppText variant="bodySmall" style={{ color: COLORS.textSecondary }}>
+                          {row.reason}
+                        </AppText>
+                      ) : null}
+                      {row.kind !== 'STUDENT_ACCOUNT' ? (
+                        <>
+                          <AppText variant="labelLarge" style={{ color: COLORS.textSecondary }}>
+                            {t('approvalsNoteLabel')}
+                          </AppText>
+                          <TextInput
+                            style={s.noteInput}
+                            value={adminNote}
+                            onChangeText={setAdminNote}
+                            placeholder={t('approvalsNotePlaceholder')}
+                            placeholderTextColor={COLORS.textSecondary}
+                            multiline
+                          />
+                        </>
+                      ) : null}
+
+                      {row.kind === 'TEACHER_CHANGE' ? (
+                        // Approving a teacher change REQUIRES choosing the new
+                        // teacher — it reassigns appointments. Never a bare Approve.
+                        <View style={s.btnRow}>
+                          <TouchableOpacity
+                            style={[s.btn, s.primaryBtn, { flex: 2 }, deciding && s.btnDisabled]}
+                            disabled={deciding}
+                            accessibilityRole="button"
+                            onPress={() => openTeacherPicker(row.id)}
+                          >
+                            <AppText variant="labelLarge" style={{ color: COLORS.textOnPrimary }}>
+                              {t('approvalsAssignTeacher')}
+                            </AppText>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[s.btn, s.denyBtn, deciding && s.btnDisabled]}
+                            disabled={deciding}
+                            accessibilityRole="button"
+                            onPress={() => decideTeacherChange(row.id, 'DENY')}
+                          >
+                            <AppText variant="labelLarge" style={{ color: COLORS.textOnPrimary }}>
+                              {t('approvalsDeny')}
+                            </AppText>
+                          </TouchableOpacity>
+                        </View>
+                      ) : (
+                        <View style={s.btnRow}>
+                          <TouchableOpacity
+                            style={[s.btn, s.approveBtn, deciding && s.btnDisabled]}
+                            disabled={deciding}
+                            accessibilityRole="button"
+                            onPress={() =>
+                              row.kind === 'PARENT_LINK'
+                                ? decideParentLink(row.id, 'APPROVE')
+                                : approveStudentAccount(row.id)
+                            }
+                          >
+                            <AppText variant="labelLarge" style={{ color: COLORS.textOnPrimary }}>
+                              {t('approvalsApprove')}
+                            </AppText>
+                          </TouchableOpacity>
+                          {row.kind === 'PARENT_LINK' ? (
+                            <TouchableOpacity
+                              style={[s.btn, s.denyBtn, deciding && s.btnDisabled]}
+                              disabled={deciding}
+                              accessibilityRole="button"
+                              onPress={() => decideParentLink(row.id, 'DENY')}
+                            >
+                              <AppText variant="labelLarge" style={{ color: COLORS.textOnPrimary }}>
+                                {t('approvalsDeny')}
+                              </AppText>
+                            </TouchableOpacity>
+                          ) : null}
+                        </View>
+                      )}
+                    </View>
+                  ) : null}
+                </AppCard>
+              </TouchableOpacity>
+            );
+          })
+        )}
+      </ScrollView>
+
+      <Modal
+        visible={showTeacherModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowTeacherModal(false)}
+      >
+        <View style={s.modalOverlay}>
+          <View style={s.modalSheet}>
+            <View style={s.modalHeader}>
+              <AppText variant="titleMedium" style={{ flex: 1, color: COLORS.textPrimary }}>
+                {t('approvalsAssignTeacher')}
+              </AppText>
+              <TouchableOpacity
+                onPress={() => setShowTeacherModal(false)}
+                accessibilityRole="button"
+                accessibilityLabel={t('close')}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
+                <Ionicons name="close" size={22} color={COLORS.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView>
+              {teachers.map((tc) => (
+                <TouchableOpacity
+                  key={tc.id}
+                  style={s.teacherRow}
+                  accessibilityRole="button"
+                  onPress={() => {
+                    setShowTeacherModal(false);
+                    if (targetRequestId) decideTeacherChange(targetRequestId, 'APPROVE', tc.id);
+                  }}
+                >
+                  <Avatar colors={COLORS} label={`${tc.firstName} ${tc.lastName}`} size={38} />
+                  <AppText variant="bodyMedium" style={{ color: COLORS.textPrimary }}>
+                    {`${tc.firstName} ${tc.lastName}`}
+                  </AppText>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+      <BottomNav role="admin" active="requests" />
+    </SafeAreaView>
+  );
+}
+
+const createStyles = (COLORS: ThemeColors) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: COLORS.background },
+    appBar: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md },
+    chips: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.xs, paddingHorizontal: SPACING.md },
     chip: {
-      paddingHorizontal: SPACING.sm,
-      paddingVertical: 5,
+      minHeight: 44,
+      justifyContent: 'center',
+      paddingHorizontal: SPACING.md,
       borderRadius: 99,
-      borderWidth: 1.5,
-      borderColor: COLORS.border ?? '#e5e7eb',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: COLORS.borderSubtle,
     },
     chipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-    chipText: { fontSize: 12, color: COLORS.textPrimary },
-    chipTextActive: { color: '#fff', fontWeight: '600' },
-    list: { paddingBottom: SPACING.xl },
-    card: {
-      backgroundColor: COLORS.surface,
-      marginHorizontal: SPACING.md,
-      marginBottom: SPACING.sm,
+    list: { padding: SPACING.md, gap: SPACING.sm, paddingBottom: SPACING.xl },
+    errorBanner: {
+      backgroundColor: COLORS.errorLight,
       borderRadius: RADIUS.md,
-      overflow: 'hidden',
-      elevation: 2,
-      shadowColor: '#000',
-      shadowOpacity: 0.06,
-      shadowRadius: 4,
-      shadowOffset: { width: 0, height: 2 },
-    },
-    cardHeader: { flexDirection: 'row', alignItems: 'flex-start', padding: SPACING.md, gap: SPACING.sm },
-    avatar: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      alignItems: 'center',
+      padding: SPACING.md,
+      minHeight: 44,
       justifyContent: 'center',
     },
-    avatarText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-    cardInfo: { flex: 1 },
-    cardName: { fontSize: 15, fontWeight: '700', color: COLORS.textPrimary },
-    cardSub: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2 },
-    cardReason: { fontSize: 12, color: COLORS.textSecondary, marginTop: 4 },
-    statusBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 99 },
-    statusText: { fontSize: 11, fontWeight: '700', color: '#fff' },
+    card: { gap: SPACING.sm },
+    cardTop: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
     expanded: {
-      padding: SPACING.md,
-      borderTopWidth: 1,
+      borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: COLORS.borderSubtle,
+      paddingTop: SPACING.sm,
       gap: SPACING.sm,
     },
-    noteLabel: { fontSize: 13, color: COLORS.textSecondary, marginBottom: 4 },
     noteInput: {
       backgroundColor: COLORS.background,
       borderRadius: RADIUS.sm,
       padding: SPACING.sm,
-      color: COLORS.textPrimary,
-      fontSize: 14,
       minHeight: 64,
       textAlignVertical: 'top',
-      borderWidth: 1,
-      borderColor: COLORS.border ?? '#e5e7eb',
+      color: COLORS.textPrimary,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: COLORS.borderSubtle,
     },
     btnRow: { flexDirection: 'row', gap: SPACING.sm },
-    btn: { flex: 1, borderRadius: RADIUS.md, padding: SPACING.sm, alignItems: 'center' },
-    btnText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-    assignBtn: {
-      flex: 1,
-      borderRadius: RADIUS.md,
-      padding: SPACING.sm,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: COLORS.primary,
-    },
-    approveBtn: { backgroundColor: '#10b981' },
+    btn: { flex: 1, minHeight: 44, borderRadius: RADIUS.md, alignItems: 'center', justifyContent: 'center' },
+    btnDisabled: { opacity: 0.5 },
+    primaryBtn: { backgroundColor: COLORS.primary },
+    approveBtn: { backgroundColor: COLORS.success },
     denyBtn: { backgroundColor: COLORS.error },
-    empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: SPACING.xl },
-    emptyText: { fontSize: 15, color: COLORS.textSecondary },
-    // Teacher picker modal
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
     modalSheet: {
       backgroundColor: COLORS.surface,
@@ -204,171 +469,16 @@ export default function ChangeRequestsScreen() {
       flexDirection: 'row',
       alignItems: 'center',
       padding: SPACING.md,
-      borderBottomWidth: 1,
+      borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: COLORS.borderSubtle,
     },
-    modalTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: COLORS.textPrimary, textAlign: 'center' },
     teacherRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: SPACING.md,
       gap: SPACING.sm,
-      borderBottomWidth: 1,
-      borderBottomColor: COLORS.border ?? '#f0f0f0',
+      padding: SPACING.md,
+      minHeight: 44,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: COLORS.borderSubtle,
     },
-    teacherName: { fontSize: 15, color: COLORS.textPrimary, fontWeight: '600' },
   });
-
-  return (
-    <SafeAreaView style={s.container} edges={['top']}>
-      {/* App bar */}
-      <View style={s.appBar}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={s.appBarTitle}>طلبات تغيير المعلم</Text>
-        {pendingCount > 0 && (
-          <View style={s.badge}>
-            <Text style={s.badgeText}>{pendingCount}</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Filter chips */}
-      <View style={s.chips}>
-        {filters.map((f) => (
-          <TouchableOpacity
-            key={f.key}
-            style={[s.chip, filter === f.key && s.chipActive]}
-            onPress={() => setFilter(f.key)}
-          >
-            <Text style={[s.chipText, filter === f.key && s.chipTextActive]}>{f.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {isLoading ? (
-        <ActivityIndicator style={{ marginTop: 48 }} color={COLORS.primary} size="large" />
-      ) : filtered.length === 0 ? (
-        <View style={s.empty}>
-          <Ionicons name="checkmark-circle-outline" size={48} color={COLORS.textSecondary} />
-          <Text style={s.emptyText}>لا توجد طلبات</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={s.list}
-          renderItem={({ item }) => {
-            const isExpanded = expandedId === item.id;
-            const name = `${item.student?.firstName ?? ''} ${item.student?.lastName ?? ''}`.trim();
-            const teacherName = `${item.currentTeacher?.firstName ?? ''} ${item.currentTeacher?.lastName ?? ''}`.trim();
-            return (
-              <TouchableOpacity
-                style={s.card}
-                onPress={() => {
-                  setExpandedId(isExpanded ? null : item.id);
-                  setAdminNote('');
-                }}
-                activeOpacity={0.85}
-              >
-                <View style={s.cardHeader}>
-                  <View style={[s.avatar, { backgroundColor: avatarColor(name) }]}>
-                    <Text style={s.avatarText}>{initials(item.student?.firstName, item.student?.lastName)}</Text>
-                  </View>
-                  <View style={s.cardInfo}>
-                    <Text style={s.cardName}>{name}</Text>
-                    <Text style={s.cardSub}>المعلم الحالي: {teacherName}</Text>
-                    <Text style={s.cardReason} numberOfLines={isExpanded ? undefined : 2}>
-                      {item.reason}
-                    </Text>
-                  </View>
-                  <View style={[s.statusBadge, { backgroundColor: statusColor(item.status) }]}>
-                    <Text style={s.statusText}>{statusLabel(item.status)}</Text>
-                  </View>
-                </View>
-
-                {isExpanded && item.status === 'PENDING' && (
-                  <View style={s.expanded}>
-                    <Text style={s.noteLabel}>ملاحظة الإدارة (اختياري)</Text>
-                    <TextInput
-                      style={s.noteInput}
-                      value={adminNote}
-                      onChangeText={setAdminNote}
-                      placeholder="اكتب ملاحظة..."
-                      placeholderTextColor={COLORS.textSecondary}
-                      multiline
-                      textAlign="right"
-                    />
-                    <View style={s.btnRow}>
-                      <TouchableOpacity
-                        style={[s.assignBtn, { flex: 2, opacity: deciding ? 0.5 : 1 }]}
-                        onPress={() => openTeacherPicker(item.id)}
-                        disabled={deciding}
-                      >
-                        <Ionicons name="person-add-outline" size={16} color="#fff" />
-                        <Text style={[s.btnText, { marginStart: 4 }]}>تعيين معلم</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[s.btn, s.denyBtn, { opacity: deciding ? 0.5 : 1 }]}
-                        onPress={() => handleDecide(item.id, 'DENY')}
-                        disabled={deciding}
-                      >
-                        <Text style={s.btnText}>رفض</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                )}
-
-                {isExpanded && item.status !== 'PENDING' && item.adminNote && (
-                  <View style={s.expanded}>
-                    <Text style={s.noteLabel}>ملاحظة الإدارة:</Text>
-                    <Text style={{ color: COLORS.textPrimary }}>{item.adminNote}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            );
-          }}
-        />
-      )}
-
-      {/* Teacher picker bottom sheet */}
-      <Modal
-        visible={showTeacherModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowTeacherModal(false)}
-      >
-        <View style={s.modalOverlay}>
-          <View style={s.modalSheet}>
-            <View style={s.modalHeader}>
-              <Text style={s.modalTitle}>اختر المعلم</Text>
-              <TouchableOpacity onPress={() => setShowTeacherModal(false)}>
-                <Ionicons name="close" size={22} color={COLORS.textSecondary} />
-              </TouchableOpacity>
-            </View>
-            <ScrollView>
-              {teachers.map((t) => {
-                const tName = `${t.firstName} ${t.lastName}`;
-                return (
-                  <TouchableOpacity key={t.id} style={s.teacherRow} onPress={() => assignTeacher(t)}>
-                    <View
-                      style={[
-                        s.avatar,
-                        { width: 38, height: 38, borderRadius: 19, backgroundColor: avatarColor(tName) },
-                      ]}
-                    >
-                      <Text style={s.avatarText}>{initials(t.firstName, t.lastName)}</Text>
-                    </View>
-                    <Text style={s.teacherName}>{tName}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-      <BottomNav role="admin" active="requests" />
-    </SafeAreaView>
-  );
-}

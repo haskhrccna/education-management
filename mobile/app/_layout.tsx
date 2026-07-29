@@ -11,6 +11,7 @@ import { useSettingsStore } from '@/src/settings/store';
 import { useAuthStore } from '@/src/auth/store';
 import { SettingsProvider } from '@/src/components/SettingsContext';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { defaultShouldDehydrateQuery } from '@tanstack/react-query';
 import { queryClient, queryPersister } from '@/src/lib/queryClient';
 import { setupOnlineManager } from '@/src/lib/onlineManager';
 import { OfflineBanner } from '@/src/components/OfflineBanner';
@@ -92,7 +93,15 @@ export default function RootLayout() {
       client={queryClient}
       persistOptions={{
         persister: queryPersister,
-        dehydrateOptions: { shouldDehydrateMutation: () => true },
+        dehydrateOptions: {
+          shouldDehydrateMutation: () => true,
+          // Audit-log rows (actor PII, IP addresses, user-agents, raw details
+          // JSON) must not land in the unencrypted on-device MMKV cache. This
+          // must compose with the library default (status === 'success') —
+          // replacing it outright persists failed/in-flight queries too, which
+          // hydrate back as stale errors on cold start.
+          shouldDehydrateQuery: (query) => query.queryKey[0] !== 'auditLogs' && defaultShouldDehydrateQuery(query),
+        },
       }}
       onSuccess={() => {
         // A mutation the user made while offline (e.g. submitting a grade) is

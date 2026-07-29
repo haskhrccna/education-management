@@ -3,6 +3,13 @@ import { contractClient, expectStatus } from './contract';
 
 export type ParentLinkStatus = 'PENDING' | 'APPROVED' | 'DENIED';
 
+export interface ParentLinkPerson {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
 export interface ParentLink {
   id: string;
   parentId: string;
@@ -12,6 +19,10 @@ export interface ParentLink {
   requestedAt: string;
   decidedAt: string | null;
   decidedBy: string | null;
+  /** Present on the admin listing only (service includes parent+student for ADMIN). */
+  parent?: ParentLinkPerson;
+  /** Present on both listings. */
+  student?: ParentLinkPerson;
 }
 
 export type GuardianConsentStatus = 'PENDING' | 'GRANTED' | 'DECLINED' | null;
@@ -71,6 +82,20 @@ export const parentsApi = {
   listLinks: async (): Promise<ParentLink[]> => {
     const res = expectStatus(await contractClient.call(progressContracts.listParentLinks), 200);
     return (res.body as unknown as { data: ParentLink[] }).data;
+  },
+  /**
+   * ADMIN-only. The server validates `action` manually (not via zod), so an
+   * invalid action returns 400 with a pinned message.
+   */
+  decideLink: async (linkId: string, action: 'APPROVE' | 'DENY', note?: string): Promise<ParentLink> => {
+    const res = expectStatus(
+      await contractClient.call(progressContracts.decideParentLink, {
+        params: { id: linkId },
+        body: { action, note } as never,
+      }),
+      200
+    );
+    return (res.body as unknown as { data: ParentLink }).data;
   },
   requestLink: async (studentId: string, reason?: string): Promise<ParentLink> => {
     const res = expectStatus(

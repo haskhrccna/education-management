@@ -20,6 +20,11 @@ export const queryClient = new QueryClient({
   },
 });
 
+/** Storage key the persister below writes the whole cache under — exported so
+ * callers (e.g. auth/store.ts's logout) can remove it directly as defense in
+ * depth, without hardcoding the string a second time. */
+export const QUERY_PERSISTER_KEY = 'rq-cache';
+
 /**
  * Persists the query cache to MMKV (synchronous) so data is available on cold
  * start — replacing the hand-rolled per-hook MMKV caches.
@@ -30,5 +35,5 @@ export const queryPersister = createSyncStoragePersister({
     setItem: (key, value) => mmkvStorage.setItem(key, value),
     removeItem: (key) => mmkvStorage.removeItem(key),
   },
-  key: 'rq-cache',
+  key: QUERY_PERSISTER_KEY,
 });

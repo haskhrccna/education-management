@@ -3,6 +3,8 @@ import { apiClient } from '../api/client';
 import { authApi } from '../api/auth';
 import { installAuthRefreshInterceptor } from '../api/interceptors';
 import { secureStorage } from '../storage/secureStorage';
+import { mmkvStorage } from '../storage/mmkvStorage';
+import { queryClient, QUERY_PERSISTER_KEY } from '../lib/queryClient';
 import type { AuthUser } from '../api/auth';
 export type { AuthUser } from '../api/auth';
 
@@ -68,6 +70,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     await secureStorage.deleteItem('auth_token');
     await secureStorage.deleteItem('refresh_token');
     delete apiClient.defaults.headers.common.Authorization;
+    // Defense in depth: sensitive query results (e.g. audit-log rows) should
+    // already be excluded from persistence via dehydrateOptions, but clear
+    // the in-memory cache and the persisted MMKV blob directly too, so
+    // nothing from this session survives past logout.
+    queryClient.clear();
+    mmkvStorage.removeItem(QUERY_PERSISTER_KEY);
     set({ user: null, token: null });
   },
 
