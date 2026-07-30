@@ -7,6 +7,7 @@ export function useParent() {
   const [links, setLinks] = useState<ParentLink[]>([]);
   const [children, setChildren] = useState<ChildSummary[]>([]);
   const [dashboards, setDashboards] = useState<Record<string, ChildDashboard>>({});
+  const [dashboardsFailed, setDashboardsFailed] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [dashboardsLoading, setDashboardsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,16 +27,20 @@ export function useParent() {
   const fetchDashboards = useCallback(async (childList: ChildSummary[]) => {
     if (childList.length === 0) {
       setDashboards({});
+      setDashboardsFailed(new Set());
       return;
     }
     setDashboardsLoading(true);
     try {
       const results = await Promise.allSettled(childList.map((c) => parentsApi.getChildDashboard(c.student.id)));
       const next: Record<string, ChildDashboard> = {};
+      const failed = new Set<string>();
       results.forEach((r, i) => {
         if (r.status === 'fulfilled') next[childList[i].student.id] = r.value;
+        else failed.add(childList[i].student.id);
       });
       setDashboards(next);
+      setDashboardsFailed(failed);
     } finally {
       setDashboardsLoading(false);
     }
@@ -96,6 +101,7 @@ export function useParent() {
     links,
     children,
     dashboards,
+    dashboardsFailed,
     dashboardsLoading,
     isLoading,
     error,

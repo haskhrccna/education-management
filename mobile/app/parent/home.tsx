@@ -35,13 +35,23 @@ function todaysAppointment(dashboard: ChildDashboard) {
 interface ChildCardProps {
   child: ChildSummary;
   dashboard: ChildDashboard | undefined;
+  /** This child's dashboard fetch rejected — say so rather than rendering empty facts. */
+  failed: boolean;
   expanded: boolean;
   onToggleExpanded: () => void;
   onToggleDigest: (linkId: string, digestOptOut: boolean) => void;
   onDecideConsent: (linkId: string, granted: boolean) => void;
 }
 
-function ChildCard({ child, dashboard, expanded, onToggleExpanded, onToggleDigest, onDecideConsent }: ChildCardProps) {
+function ChildCard({
+  child,
+  dashboard,
+  failed,
+  expanded,
+  onToggleExpanded,
+  onToggleDigest,
+  onDecideConsent,
+}: ChildCardProps) {
   const { t, i18n } = useTranslation();
   const isRTL = useIsRTL();
   const lang = i18n.language;
@@ -67,33 +77,44 @@ function ChildCard({ child, dashboard, expanded, onToggleExpanded, onToggleDiges
         </View>
       </View>
 
-      <View style={s.factRow}>
-        <Ionicons name="calendar-outline" size={16} color={COLORS.textSecondary} />
-        <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginStart: SPACING.xs }}>
-          {todaySession
-            ? `${new Date(todaySession.requestedDate).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')} ${todaySession.requestedTime}`
-            : t('parentNoSessionToday')}
-        </AppText>
-      </View>
-
-      {lastGrade ? (
+      {failed && !dashboard ? (
         <View style={s.factRow}>
-          <Ionicons name="ribbon-outline" size={16} color={COLORS.textSecondary} />
-          <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginStart: SPACING.xs, flex: 1 }}>
-            {t('parentLastGrade')}: {lastGrade.type} — {lastGrade.grade}
+          <Ionicons name="alert-circle-outline" size={16} color={COLORS.error} />
+          <AppText variant="bodyMedium" color={COLORS.error} style={{ marginStart: SPACING.xs, flex: 1 }}>
+            {t('parentDashboardLoadFailed')}
           </AppText>
         </View>
-      ) : null}
+      ) : (
+        <>
+          <View style={s.factRow}>
+            <Ionicons name="calendar-outline" size={16} color={COLORS.textSecondary} />
+            <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginStart: SPACING.xs }}>
+              {todaySession
+                ? `${new Date(todaySession.requestedDate).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')} ${todaySession.requestedTime}`
+                : t('parentNoSessionToday')}
+            </AppText>
+          </View>
 
-      {streak ? (
-        <MetricTile
-          colors={COLORS}
-          value={streak.currentStreak}
-          label={`${t('parentCurrentStreak')} (${t('parentStreakDays')})`}
-          tone="gold"
-          style={{ marginTop: SPACING.sm, alignSelf: 'flex-start' }}
-        />
-      ) : null}
+          {lastGrade ? (
+            <View style={s.factRow}>
+              <Ionicons name="ribbon-outline" size={16} color={COLORS.textSecondary} />
+              <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginStart: SPACING.xs, flex: 1 }}>
+                {t('parentLastGrade')}: {lastGrade.type} — {lastGrade.grade}
+              </AppText>
+            </View>
+          ) : null}
+
+          {streak ? (
+            <MetricTile
+              colors={COLORS}
+              value={streak.currentStreak}
+              label={`${t('parentCurrentStreak')} (${t('parentStreakDays')})`}
+              tone="gold"
+              style={{ marginTop: SPACING.sm, alignSelf: 'flex-start' }}
+            />
+          ) : null}
+        </>
+      )}
 
       <View style={[s.digestRow, { borderTopColor: COLORS.borderSubtle }]}>
         <View style={{ flex: 1 }}>
@@ -294,8 +315,17 @@ export default function ParentHomeScreen() {
   const { t } = useTranslation();
   const { colors: COLORS } = useTheme();
   const s = createStyles(COLORS);
-  const { children, dashboards, isLoading, dashboardsLoading, error, fetchChildren, toggleDigest, decideConsent } =
-    useParent();
+  const {
+    children,
+    dashboards,
+    dashboardsFailed,
+    isLoading,
+    dashboardsLoading,
+    error,
+    fetchChildren,
+    toggleDigest,
+    decideConsent,
+  } = useParent();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   return (
@@ -365,6 +395,7 @@ export default function ParentHomeScreen() {
               key={child.linkId}
               child={child}
               dashboard={dashboards[child.student.id]}
+              failed={dashboardsFailed.has(child.student.id)}
               expanded={expandedId === child.student.id}
               onToggleExpanded={() => setExpandedId((cur) => (cur === child.student.id ? null : child.student.id))}
               onToggleDigest={toggleDigest}
