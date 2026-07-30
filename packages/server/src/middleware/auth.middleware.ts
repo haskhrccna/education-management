@@ -9,7 +9,6 @@ async function resolveAndValidateToken(token: string, req: Request, next: NextFu
   try {
     const payload = jwt.verify(token, config.jwtSecret) as JwtPayload;
     req.userId = payload.sub || payload.userId;
-    req.userRole = payload.role;
 
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
@@ -31,6 +30,9 @@ async function resolveAndValidateToken(token: string, req: Request, next: NextFu
       next(new AppError(401, 'Token invalidated by password change'));
       return false;
     }
+    // Sourced from the DB row, never the token's role claim: a demoted account
+    // must lose its old authority on the next request, not at token expiry.
+    req.userRole = user.role;
     return true;
   } catch (err) {
     next(err instanceof JsonWebTokenError ? new AppError(401, 'Invalid or expired token') : err);
