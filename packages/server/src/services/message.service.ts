@@ -12,17 +12,37 @@ async function assertCanCommunicate(sender: MessageUser, receiver: MessageUser) 
     (sender.role === 'TEACHER' && receiver.role === 'STUDENT') ||
     (sender.role === 'STUDENT' && receiver.role === 'TEACHER');
 
-  if (!isTeacherStudentPair) {
-    throw new AppError(403, 'Messaging is limited to assigned teacher-student relationships');
+  if (isTeacherStudentPair) {
+    const teacherId = sender.role === 'TEACHER' ? sender.id : receiver.id;
+    const studentId = sender.role === 'STUDENT' ? sender.id : receiver.id;
+    const appointment = await prisma.appointment.findFirst({
+      where: { teacherId, studentId, status: 'ACCEPTED' },
+      select: { id: true },
+    });
+    if (!appointment) throw new AppError(403, 'No accepted appointment with this user');
+    return;
   }
 
-  const teacherId = sender.role === 'TEACHER' ? sender.id : receiver.id;
-  const studentId = sender.role === 'STUDENT' ? sender.id : receiver.id;
-  const appointment = await prisma.appointment.findFirst({
-    where: { teacherId, studentId, status: 'ACCEPTED' },
-    select: { id: true },
-  });
-  if (!appointment) throw new AppError(403, 'No accepted appointment with this user');
+  const isParentTeacherPair =
+    (sender.role === 'PARENT' && receiver.role === 'TEACHER') ||
+    (sender.role === 'TEACHER' && receiver.role === 'PARENT');
+
+  if (isParentTeacherPair) {
+    const parentId = sender.role === 'PARENT' ? sender.id : receiver.id;
+    const teacherId = sender.role === 'TEACHER' ? sender.id : receiver.id;
+    // A parent may message a teacher only when the parent has an APPROVED
+    // link to a student whose assignedTeacher is exactly this teacher.
+    const linkedStudent = await prisma.parentLink.findFirst({
+      where: { parentId, status: 'APPROVED', student: { assignedTeacherId: teacherId } },
+      select: { studentId: true },
+    });
+    if (!linkedStudent) {
+      throw new AppError(403, "Messaging is limited to your child's assigned teacher");
+    }
+    return;
+  }
+
+  throw new AppError(403, 'Messaging is limited to assigned teacher-student relationships');
 }
 
 export const getConversations = async (userId: string) => {
