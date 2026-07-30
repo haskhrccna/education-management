@@ -12,6 +12,7 @@ import { AppCard, AppText, Avatar, EmptyState, MetricTile, SectionHeader, Status
 import { SkeletonCard } from '@/src/components/SkeletonCard';
 import { BottomNav } from '@/src/components/BottomNav';
 import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
+import { isTodayDate } from '@/src/utils/date';
 
 function fullName(p?: { firstName?: string; lastName?: string }): string {
   return `${p?.firstName ?? ''} ${p?.lastName ?? ''}`.trim() || '?';
@@ -26,8 +27,9 @@ function statusTone(status: string): 'success' | 'warning' | 'error' | 'neutral'
 }
 
 function todaysAppointment(dashboard: ChildDashboard) {
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  return dashboard.upcomingAppointments.find((a) => a.requestedDate === today);
+  // requestedDate is a full ISO instant over the wire, not a bare YYYY-MM-DD —
+  // compare local calendar fields, never string equality.
+  return dashboard.upcomingAppointments.find((a) => isTodayDate(a.requestedDate));
 }
 
 interface ChildCardProps {
@@ -69,9 +71,7 @@ function ChildCard({ child, dashboard, expanded, onToggleExpanded, onToggleDiges
         <Ionicons name="calendar-outline" size={16} color={COLORS.textSecondary} />
         <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginStart: SPACING.xs }}>
           {todaySession
-            ? new Date(`${todaySession.requestedDate}T${todaySession.requestedTime}`).toLocaleString(
-                lang === 'ar' ? 'ar-SA' : 'en-US'
-              )
+            ? `${new Date(todaySession.requestedDate).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')} ${todaySession.requestedTime}`
             : t('parentNoSessionToday')}
         </AppText>
       </View>
@@ -263,10 +263,8 @@ function ChildCard({ child, dashboard, expanded, onToggleExpanded, onToggleDiges
               {dashboard.upcomingAppointments.map((appt) => (
                 <View key={appt.id} style={s.factRow}>
                   <AppText variant="bodySmall" color={COLORS.textPrimary}>
-                    {new Date(`${appt.requestedDate}T${appt.requestedTime}`).toLocaleString(
-                      lang === 'ar' ? 'ar-SA' : 'en-US'
-                    )}{' '}
-                    — {fullName(appt.teacher)}
+                    {new Date(appt.requestedDate).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}{' '}
+                    {appt.requestedTime} — {fullName(appt.teacher)}
                   </AppText>
                 </View>
               ))}

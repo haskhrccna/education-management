@@ -151,6 +151,12 @@ export const getChildren = async (parentId: string) => {
 export const getChildDashboard = async (parentId: string, studentId: string) => {
   await assertParentHasApprovedLink(parentId, studentId);
 
+  // Lower bound for "upcoming": UTC midnight today. Deliberately conservative —
+  // for timezones behind UTC it can include a couple of hours of "yesterday,
+  // local time"; that imprecision is acceptable for a take:5 lookahead list.
+  const startOfToday = new Date();
+  startOfToday.setUTCHours(0, 0, 0, 0);
+
   const [student, memorization, grades, attendance, upcomingAppointments, pendingRevisions, streak] = await Promise.all(
     [
       prisma.user.findUnique({
@@ -186,7 +192,7 @@ export const getChildDashboard = async (parentId: string, studentId: string) => 
         },
       }),
       prisma.appointment.findMany({
-        where: { studentId, status: { in: ['REQUESTED', 'ACCEPTED'] } },
+        where: { studentId, status: { in: ['REQUESTED', 'ACCEPTED'] }, requestedDate: { gte: startOfToday } },
         orderBy: { requestedDate: 'asc' },
         take: 5,
         include: { teacher: { select: { firstName: true, lastName: true } } },

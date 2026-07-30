@@ -320,4 +320,65 @@ describe('parents', () => {
       expect(res.body.data.streak).toMatchObject({ currentStreak: 5, longestStreak: 12 });
     });
   });
+
+  describe('GET /api/v1/parents/children/:studentId/dashboard — upcomingAppointments date bound', () => {
+    it('excludes a stale never-completed appointment from a prior date', async () => {
+      const teacher = await createUser({ role: Role.TEACHER });
+      const student = await createUser({ role: Role.STUDENT });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+      await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+
+      const staleDate = new Date();
+      staleDate.setUTCDate(staleDate.getUTCDate() - 30);
+      await prisma.appointment.create({
+        data: {
+          studentId: student.id,
+          teacherId: teacher.id,
+          requestedDate: staleDate,
+          requestedTime: '10:00',
+          status: 'ACCEPTED',
+        },
+      });
+
+      const res = await request(app)
+        .get(`/api/v1/parents/children/${student.id}/dashboard`)
+        .set('Authorization', `Bearer ${parent.token}`);
+      expect(res.body.data.upcomingAppointments).toHaveLength(0);
+    });
+
+    it('includes an appointment scheduled for today', async () => {
+      const teacher = await createUser({ role: Role.TEACHER });
+      const student = await createUser({ role: Role.STUDENT });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+      await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+
+      const today = new Date();
+      today.setUTCHours(1, 0, 0, 0);
+      await prisma.appointment.create({
+        data: {
+          studentId: student.id,
+          teacherId: teacher.id,
+          requestedDate: today,
+          requestedTime: '14:00',
+          status: 'ACCEPTED',
+        },
+      });
+
+      const res = await request(app)
+        .get(`/api/v1/parents/children/${student.id}/dashboard`)
+        .set('Authorization', `Bearer ${parent.token}`);
+      expect(res.body.data.upcomingAppointments).toHaveLength(1);
+      expect(res.body.data.upcomingAppointments[0].requestedTime).toBe('14:00');
+    });
+  });
 });
