@@ -15,7 +15,7 @@ const ParentLinkRow = z.looseObject({
   id: z.string(),
   parentId: z.string(),
   studentId: z.string(),
-  status: z.enum(['PENDING', 'APPROVED', 'DENIED']),
+  status: z.enum(['PENDING', 'APPROVED', 'DENIED', 'REVOKED']),
   reason: z.string().nullable(),
 });
 

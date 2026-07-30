@@ -78,7 +78,7 @@ export const denyLink = async (linkId: string, adminId: string, note?: string) =
   if (!link) throw new AppError(404, 'Link request not found');
   if (link.status === 'DENIED') return link; // idempotent
   if (link.status === 'APPROVED') {
-    throw new AppError(409, 'Cannot deny an approved link — admin must revoke separately');
+    throw new AppError(409, 'Cannot deny an approved link — use revoke instead');
   }
 
   const updated = await prisma.parentLink.update({
@@ -93,6 +93,33 @@ export const denyLink = async (linkId: string, adminId: string, note?: string) =
     push: {
       title: 'Link request denied',
       body: note ? `Reason: ${note}` : 'Your link request was not approved.',
+    },
+  });
+
+  return updated;
+};
+
+/** Admin revokes a previously-approved link. The parent immediately loses all read access
+ *  (assertParentHasApprovedLink checks status live on every call, no caching). */
+export const revokeLink = async (linkId: string, adminId: string, note?: string) => {
+  const link = await prisma.parentLink.findUnique({ where: { id: linkId } });
+  if (!link) throw new AppError(404, 'Link request not found');
+  if (link.status !== 'APPROVED') {
+    throw new AppError(409, 'Only an approved link can be revoked');
+  }
+
+  const updated = await prisma.parentLink.update({
+    where: { id: linkId },
+    data: { status: 'REVOKED', decidedAt: new Date(), decidedBy: adminId },
+  });
+
+  await notifyUser({
+    userId: link.parentId,
+    event: 'parent_link_revoked',
+    data: { linkId: link.id, studentId: link.studentId, note: note ?? null },
+    push: {
+      title: 'Access revoked',
+      body: note ? `Reason: ${note}` : "Your access to this child's records has been revoked.",
     },
   });
 

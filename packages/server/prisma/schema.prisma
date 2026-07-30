@@ -25,6 +25,7 @@ enum ParentLinkStatus {
   PENDING
   APPROVED
   DENIED
+  REVOKED
 }
 
 /**

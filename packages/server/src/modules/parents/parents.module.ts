@@ -51,12 +51,17 @@ const childRecordings = defineRoute(progressContracts.parentChildRecordings, asy
 
 const decideLink = defineRoute(progressContracts.decideParentLink, async ({ userId, params, req }) => {
   const { action, note } = (req.body ?? {}) as { action?: unknown; note?: unknown };
-  if (action !== 'APPROVE' && action !== 'DENY') throw new AppError(400, 'action must be APPROVE or DENY');
+  if (action !== 'APPROVE' && action !== 'DENY' && action !== 'REVOKE') {
+    throw new AppError(400, 'action must be APPROVE, DENY, or REVOKE');
+  }
   const id = String(params.id);
+  const noteVal = typeof note === 'string' ? note : undefined;
   const updated =
     action === 'APPROVE'
       ? await parentService.approveLink(id, userId!)
-      : await parentService.denyLink(id, userId!, typeof note === 'string' ? note : undefined);
+      : action === 'DENY'
+        ? await parentService.denyLink(id, userId!, noteVal)
+        : await parentService.revokeLink(id, userId!, noteVal);
   await auditLog({
     userId: userId!,
     action: 'DECIDE_PARENT_LINK',
