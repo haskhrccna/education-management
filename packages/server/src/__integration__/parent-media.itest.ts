@@ -50,6 +50,27 @@ describe('GET /api/v1/parents/children/:studentId/reports', () => {
     const res = await request(app).get(`/api/v1/parents/children/${student.id}/reports`);
     expect(res.status).toBe(401);
   });
+
+  it('caps the list at 100 rows', async () => {
+    const teacher = await createUser({ role: Role.TEACHER });
+    const student = await createUser({ role: Role.STUDENT });
+    const parent = await createUser({ role: Role.PARENT });
+    const admin = await createUser({ role: Role.ADMIN });
+    await approvedLink(parent.id, student.id, admin.token);
+    await Promise.all(
+      Array.from({ length: 101 }, (_, i) =>
+        prisma.report.create({
+          data: { teacherId: teacher.id, studentId: student.id, pdfUrl: `reports/${i}.pdf`, summary: `r${i}` },
+        })
+      )
+    );
+
+    const res = await request(app)
+      .get(`/api/v1/parents/children/${student.id}/reports`)
+      .set('Authorization', `Bearer ${parent.token}`);
+    expect(res.status).toBe(200);
+    expect(res.body.data).toHaveLength(100);
+  });
 });
 
 describe('GET /api/v1/parents/children/:studentId/recordings', () => {
@@ -84,6 +105,32 @@ describe('GET /api/v1/parents/children/:studentId/recordings', () => {
       .get(`/api/v1/parents/children/${student.id}/recordings`)
       .set('Authorization', `Bearer ${parent.token}`);
     expect(res.status).toBe(403);
+  });
+
+  it('caps the list at 100 rows', async () => {
+    const student = await createUser({ role: Role.STUDENT });
+    const parent = await createUser({ role: Role.PARENT });
+    const admin = await createUser({ role: Role.ADMIN });
+    await approvedLink(parent.id, student.id, admin.token);
+    await Promise.all(
+      Array.from({ length: 101 }, (_, i) =>
+        prisma.recording.create({
+          data: {
+            studentId: student.id,
+            url: `uploads/${i}.m4a`,
+            fileName: `${i}.m4a`,
+            fileSizeBytes: 1,
+            contentType: 'audio/m4a',
+          },
+        })
+      )
+    );
+
+    const res = await request(app)
+      .get(`/api/v1/parents/children/${student.id}/recordings`)
+      .set('Authorization', `Bearer ${parent.token}`);
+    expect(res.status).toBe(200);
+    expect(res.body.data).toHaveLength(100);
   });
 });
 

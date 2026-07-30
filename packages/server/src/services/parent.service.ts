@@ -224,12 +224,14 @@ export const getChildDashboard = async (parentId: string, studentId: string) => 
 
 export const getChildReports = async (parentId: string, studentId: string) => {
   await assertParentHasApprovedLink(parentId, studentId);
-  return prisma.report.findMany({ where: { studentId }, orderBy: { generatedAt: 'desc' } });
+  // Capped, not paginated -- a parent-facing list this size doesn't yet
+  // warrant full pagination plumbing; revisit if reports-per-student grows.
+  return prisma.report.findMany({ where: { studentId }, orderBy: { generatedAt: 'desc' }, take: 100 });
 };
 
 export const getChildRecordings = async (parentId: string, studentId: string) => {
   await assertParentHasApprovedLink(parentId, studentId);
-  return prisma.recording.findMany({ where: { studentId }, orderBy: { createdAt: 'desc' } });
+  return prisma.recording.findMany({ where: { studentId }, orderBy: { createdAt: 'desc' }, take: 100 });
 };
 
 // ─── Guard ───────────────────────────────────────────────────────────────────
