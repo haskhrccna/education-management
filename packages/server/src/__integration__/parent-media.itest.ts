@@ -185,3 +185,88 @@ describe('file downloads — parent authorization', () => {
     expect(res.body.error).not.toMatch(/permission/i);
   });
 });
+
+describe('file downloads — parent audit trail (SEC-M4)', () => {
+  it('audit-logs a successful parent recording download', async () => {
+    const student = await createUser({ role: Role.STUDENT });
+    const parent = await createUser({ role: Role.PARENT });
+    const admin = await createUser({ role: Role.ADMIN });
+    // Real multipart upload so the file genuinely exists on disk and the
+    // download resolves 200 rather than 404 (media-flows.itest.ts convention).
+    // Uploaded BEFORE the link is approved: approving a link initializes
+    // guardian consent to PENDING, which legitimately blocks new uploads
+    // (isRecordingBlockedByConsent) — the recording simply predates the link.
+    const upload = await request(app)
+      .post('/api/v1/recordings')
+      .set('Authorization', `Bearer ${student.token}`)
+      .field('fileName', 'test.mp3')
+      .field('fileSizeBytes', '4')
+      .field('contentType', 'audio/mpeg')
+      .attach('file', Buffer.from('abcd'), { filename: 'test.mp3', contentType: 'audio/mpeg' });
+    expect(upload.status).toBe(201);
+    await approvedLink(parent.id, student.id, admin.token);
+
+    const res = await request(app).get(`/api/v1/files/recordings/${upload.body.id}?token=${parent.token}`);
+    expect(res.status).toBe(200);
+
+    const entries = await prisma.auditLog.findMany({
+      where: { resourceId: upload.body.id, action: 'PARENT_DOWNLOAD_RECORDING' },
+    });
+    expect(entries).toHaveLength(1);
+    expect(entries[0].userId).toBe(parent.id);
+  });
+
+  it('audit-logs a successful parent report download', async () => {
+    const teacher = await createUser({ role: Role.TEACHER });
+    const student = await createUser({ role: Role.STUDENT });
+    const parent = await createUser({ role: Role.PARENT });
+    const admin = await createUser({ role: Role.ADMIN });
+    await approvedLink(parent.id, student.id, admin.token);
+    await prisma.appointment.create({
+      data: {
+        studentId: student.id,
+        teacherId: teacher.id,
+        requestedDate: new Date(),
+        requestedTime: '10:00',
+        status: 'ACCEPTED',
+      },
+    });
+    // Generating through the real endpoint writes an actual PDF to reports/.
+    const created = await request(app)
+      .post('/api/v1/reports')
+      .set('Authorization', `Bearer ${teacher.token}`)
+      .send({ studentId: student.id, summary: 'term summary' });
+    expect(created.status).toBe(201);
+
+    const res = await request(app).get(`/api/v1/files/reports/${created.body.id}?token=${parent.token}`);
+    expect(res.status).toBe(200);
+
+    const entries = await prisma.auditLog.findMany({
+      where: { resourceId: created.body.id, action: 'PARENT_DOWNLOAD_REPORT' },
+    });
+    expect(entries).toHaveLength(1);
+  });
+
+  it('does not audit-log a parent download that never resolved to a real file', async () => {
+    const student = await createUser({ role: Role.STUDENT });
+    const parent = await createUser({ role: Role.PARENT });
+    const admin = await createUser({ role: Role.ADMIN });
+    await approvedLink(parent.id, student.id, admin.token);
+    const recording = await prisma.recording.create({
+      data: {
+        studentId: student.id,
+        url: 'uploads/does-not-exist.m4a',
+        fileName: 'x.m4a',
+        fileSizeBytes: 1,
+        contentType: 'audio/m4a',
+      },
+    });
+
+    const res = await request(app).get(`/api/v1/files/recordings/${recording.id}?token=${parent.token}`);
+    expect(res.status).toBe(404);
+    const entries = await prisma.auditLog.findMany({
+      where: { resourceId: recording.id, action: 'PARENT_DOWNLOAD_RECORDING' },
+    });
+    expect(entries).toHaveLength(0);
+  });
+});
