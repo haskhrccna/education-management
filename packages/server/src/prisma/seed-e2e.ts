@@ -30,7 +30,7 @@ async function mainE2E() {
 
   const parent1 = await mkParent('parent@quran-review.com', 'Yusuf'); // APPROVED link
   const parent2 = await mkParent('parent2@quran-review.com', 'Layla'); // PENDING link
-  const parent3 = await mkParent('parent3@quran-review.com', 'Zaid'); // DENIED link
+  const parent3 = await mkParent('parent3@quran-review.com', 'Zaid'); // REVOKED link
 
   await prisma.parentLink.upsert({
     where: { parentId_studentId: { parentId: parent1.id, studentId: ali.id } },
@@ -44,8 +44,8 @@ async function mainE2E() {
   });
   await prisma.parentLink.upsert({
     where: { parentId_studentId: { parentId: parent3.id, studentId: ali.id } },
-    update: { status: 'DENIED', decidedAt: new Date(), decidedBy: admin.id },
-    create: { parentId: parent3.id, studentId: ali.id, status: 'DENIED', decidedAt: new Date(), decidedBy: admin.id },
+    update: { status: 'REVOKED', decidedAt: new Date(), decidedBy: admin.id },
+    create: { parentId: parent3.id, studentId: ali.id, status: 'REVOKED', decidedAt: new Date(), decidedBy: admin.id },
   });
 
   // Content for Ali so student/parent/teacher detail screens render data.
@@ -89,7 +89,7 @@ async function mainE2E() {
   console.log('\n🧪 E2E seed complete. Extra users:');
   console.log(`  parent@quran-review.com  | PARENT | APPROVED link → Ali | ${PARENT_PASSWORD}`);
   console.log(`  parent2@quran-review.com | PARENT | PENDING link → Ali`);
-  console.log(`  parent3@quran-review.com | PARENT | DENIED link → Ali`);
+  console.log(`  parent3@quran-review.com | PARENT | REVOKED link → Ali`);
 }
 
 mainE2E()
