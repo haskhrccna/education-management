@@ -150,7 +150,7 @@ describe('parents', () => {
       .set('Authorization', `Bearer ${admin.token}`)
       .send({ action: 'MAYBE' });
     expect(bad.status).toBe(400);
-    expect(bad.body.error).toBe('action must be APPROVE or DENY');
+    expect(bad.body.error).toBe('action must be APPROVE, DENY, or REVOKE');
 
     const approve = await agent
       .patch(`/api/v1/parents/links/${linkId}/decision`)
@@ -182,7 +182,7 @@ describe('parents', () => {
       .set('Authorization', `Bearer ${admin.token}`)
       .send({ action: 'DENY' });
     expect(deny.status).toBe(409);
-    expect(deny.body.error).toBe('Cannot deny an approved link — admin must revoke separately');
+    expect(deny.body.error).toBe('Cannot deny an approved link — use revoke instead');
   });
 
   it('APPROVE decision writes a DECIDE_PARENT_LINK audit entry', async () => {
@@ -248,5 +248,254 @@ describe('parents', () => {
       .set('Authorization', `Bearer ${parent.token}`);
     expect(missing.status).toBe(404);
     expect(missing.body.error).toBe('Student not found');
+  });
+
+  describe('GET /api/v1/parents/children/:studentId/dashboard — assignedTeacher and streak', () => {
+    it('includes the assigned teacher when one is set', async () => {
+      const teacher = await createUser({ role: Role.TEACHER });
+      const student = await createUser({ role: Role.STUDENT, assignedTeacherId: teacher.id });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+      await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+
+      const res = await request(app)
+        .get(`/api/v1/parents/children/${student.id}/dashboard`)
+        .set('Authorization', `Bearer ${parent.token}`);
+      expect(res.status).toBe(200);
+      expect(res.body.data.student.assignedTeacher).toMatchObject({ id: teacher.id });
+    });
+
+    it('returns assignedTeacher: null when the student has no assigned teacher', async () => {
+      const student = await createUser({ role: Role.STUDENT });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+      await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+
+      const res = await request(app)
+        .get(`/api/v1/parents/children/${student.id}/dashboard`)
+        .set('Authorization', `Bearer ${parent.token}`);
+      expect(res.body.data.student.assignedTeacher).toBeNull();
+    });
+
+    it('returns a zero-defaulted streak when the student has never had one recorded', async () => {
+      const student = await createUser({ role: Role.STUDENT });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+      await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+
+      const res = await request(app)
+        .get(`/api/v1/parents/children/${student.id}/dashboard`)
+        .set('Authorization', `Bearer ${parent.token}`);
+      expect(res.body.data.streak).toMatchObject({ currentStreak: 0, longestStreak: 0 });
+    });
+
+    it('returns the real streak when one exists', async () => {
+      const student = await createUser({ role: Role.STUDENT });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      await prisma.streak.create({
+        data: { userId: student.id, currentStreak: 5, longestStreak: 12, lastActiveDate: new Date() },
+      });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+      await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+
+      const res = await request(app)
+        .get(`/api/v1/parents/children/${student.id}/dashboard`)
+        .set('Authorization', `Bearer ${parent.token}`);
+      expect(res.body.data.streak).toMatchObject({ currentStreak: 5, longestStreak: 12 });
+    });
+  });
+
+  describe('GET /api/v1/parents/children/:studentId/dashboard — upcomingAppointments date bound', () => {
+    it('excludes a stale never-completed appointment from a prior date', async () => {
+      const teacher = await createUser({ role: Role.TEACHER });
+      const student = await createUser({ role: Role.STUDENT });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+      await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+
+      const staleDate = new Date();
+      staleDate.setUTCDate(staleDate.getUTCDate() - 30);
+      await prisma.appointment.create({
+        data: {
+          studentId: student.id,
+          teacherId: teacher.id,
+          requestedDate: staleDate,
+          requestedTime: '10:00',
+          status: 'ACCEPTED',
+        },
+      });
+
+      const res = await request(app)
+        .get(`/api/v1/parents/children/${student.id}/dashboard`)
+        .set('Authorization', `Bearer ${parent.token}`);
+      expect(res.body.data.upcomingAppointments).toHaveLength(0);
+    });
+
+    it('includes an appointment scheduled for today', async () => {
+      const teacher = await createUser({ role: Role.TEACHER });
+      const student = await createUser({ role: Role.STUDENT });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+      await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+
+      const today = new Date();
+      today.setUTCHours(1, 0, 0, 0);
+      await prisma.appointment.create({
+        data: {
+          studentId: student.id,
+          teacherId: teacher.id,
+          requestedDate: today,
+          requestedTime: '14:00',
+          status: 'ACCEPTED',
+        },
+      });
+
+      const res = await request(app)
+        .get(`/api/v1/parents/children/${student.id}/dashboard`)
+        .set('Authorization', `Bearer ${parent.token}`);
+      expect(res.body.data.upcomingAppointments).toHaveLength(1);
+      expect(res.body.data.upcomingAppointments[0].requestedTime).toBe('14:00');
+    });
+
+    // Regression test for the fix-pass-2 Critical: the two tests above insert
+    // requestedDate directly via prisma.appointment.create with setUTCHours,
+    // which bypasses appointment.service.ts's toDateOnly() entirely and can
+    // never catch a UTC-vs-local-midnight mismatch. This one books through the
+    // real write path (POST /api/v1/appointments -> createAppointment ->
+    // toDateOnly, which stores server-local midnight) so the bound in
+    // getChildDashboard is checked against what the product actually writes.
+    // Run this file under TZ=Asia/Riyadh (UTC+3) to prove the bound survives a
+    // positive UTC offset, not just TZ=UTC.
+    it('includes an appointment booked for today through the real POST /api/v1/appointments path', async () => {
+      const teacher = await createUser({ role: Role.TEACHER });
+      const student = await createUser({ role: Role.STUDENT, assignedTeacherId: teacher.id });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+      await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+
+      // "Today" as the server's local calendar date — this is what a real
+      // client sends (CreateAppointmentSchema expects a YYYY-MM-DD string).
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+        now.getDate()
+      ).padStart(2, '0')}`;
+
+      const booked = await request(app)
+        .post('/api/v1/appointments')
+        .set('Authorization', `Bearer ${student.token}`)
+        .send({ teacherId: teacher.id, requestedDate: todayStr, requestedTime: '14:00' });
+      expect(booked.status).toBe(201);
+
+      const res = await request(app)
+        .get(`/api/v1/parents/children/${student.id}/dashboard`)
+        .set('Authorization', `Bearer ${parent.token}`);
+      expect(res.body.data.upcomingAppointments).toHaveLength(1);
+      expect(res.body.data.upcomingAppointments[0].requestedTime).toBe('14:00');
+    });
+  });
+
+  describe('PATCH /api/v1/parents/links/:id/decision — REVOKE', () => {
+    it('revokes an approved link and the parent immediately loses access', async () => {
+      const student = await createUser({ role: Role.STUDENT });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+      await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+
+      // sanity: access works before revoke
+      const before = await request(app)
+        .get(`/api/v1/parents/children/${student.id}/dashboard`)
+        .set('Authorization', `Bearer ${parent.token}`);
+      expect(before.status).toBe(200);
+
+      const revokeRes = await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'REVOKE' });
+      expect(revokeRes.status).toBe(200);
+      expect(revokeRes.body.data.status).toBe('REVOKED');
+
+      const after = await request(app)
+        .get(`/api/v1/parents/children/${student.id}/dashboard`)
+        .set('Authorization', `Bearer ${parent.token}`);
+      expect(after.status).toBe(403);
+    });
+
+    it('409s revoking a link that is not currently approved', async () => {
+      const student = await createUser({ role: Role.STUDENT });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } }); // PENDING
+
+      const res = await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'REVOKE' });
+      expect(res.status).toBe(409);
+    });
+
+    it('409s re-approving a REVOKED link instead of silently resurrecting it', async () => {
+      const student = await createUser({ role: Role.STUDENT });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+      await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+      const revoked = await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'REVOKE' });
+      expect(revoked.body.data.status).toBe('REVOKED');
+
+      const reapprove = await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+      expect(reapprove.status).toBe(409);
+      expect(reapprove.body.error).toBe('This link was revoked — ask the parent to submit a new request');
+
+      // no regression: a fresh PENDING link still approves normally
+      const fresh = await createUser({ role: Role.STUDENT });
+      const freshLink = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: fresh.id } });
+      const freshApprove = await request(app)
+        .patch(`/api/v1/parents/links/${freshLink.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+      expect(freshApprove.status).toBe(200);
+      expect(freshApprove.body.data.status).toBe('APPROVED');
+    });
   });
 });

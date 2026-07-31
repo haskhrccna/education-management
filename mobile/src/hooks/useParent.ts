@@ -6,8 +6,10 @@ export type { GuardianConsentStatus } from '../api/parents';
 export function useParent() {
   const [links, setLinks] = useState<ParentLink[]>([]);
   const [children, setChildren] = useState<ChildSummary[]>([]);
-  const [dashboard, setDashboard] = useState<ChildDashboard | null>(null);
+  const [dashboards, setDashboards] = useState<Record<string, ChildDashboard>>({});
+  const [dashboardsFailed, setDashboardsFailed] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
+  const [dashboardsLoading, setDashboardsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchLinks = useCallback(async () => {
@@ -19,22 +21,44 @@ export function useParent() {
     }
   }, []);
 
+  // Every card needs its own header data (today's session, last grade,
+  // streak) visible without a tap, so every linked child's dashboard is
+  // fetched in parallel up front — not lazily per-selection as before.
+  const fetchDashboards = useCallback(async (childList: ChildSummary[]) => {
+    if (childList.length === 0) {
+      setDashboards({});
+      setDashboardsFailed(new Set());
+      return;
+    }
+    setDashboardsLoading(true);
+    try {
+      const results = await Promise.allSettled(childList.map((c) => parentsApi.getChildDashboard(c.student.id)));
+      const next: Record<string, ChildDashboard> = {};
+      const failed = new Set<string>();
+      results.forEach((r, i) => {
+        if (r.status === 'fulfilled') next[childList[i].student.id] = r.value;
+        else failed.add(childList[i].student.id);
+      });
+      setDashboards(next);
+      setDashboardsFailed(failed);
+    } finally {
+      setDashboardsLoading(false);
+    }
+  }, []);
+
   const fetchChildren = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const data = await parentsApi.listChildren();
       setChildren(data);
-      if (data.length === 1) {
-        const dash = await parentsApi.getChildDashboard(data[0].student.id);
-        setDashboard(dash);
-      }
+      await fetchDashboards(data);
     } catch (err: any) {
       setError(err?.message ?? 'Failed to load children');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [fetchDashboards]);
 
   const requestLink = useCallback(async (studentId: string, reason?: string) => {
     const link = await parentsApi.requestLink(studentId, reason);
@@ -69,18 +93,6 @@ export function useParent() {
     return result;
   }, []);
 
-  const selectChild = useCallback(async (studentId: string) => {
-    setIsLoading(true);
-    try {
-      const dash = await parentsApi.getChildDashboard(studentId);
-      setDashboard(dash);
-    } catch (err: any) {
-      setError(err?.message ?? 'Failed to load dashboard');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
     fetchChildren();
   }, [fetchChildren]);
@@ -88,14 +100,15 @@ export function useParent() {
   return {
     links,
     children,
-    dashboard,
+    dashboards,
+    dashboardsFailed,
+    dashboardsLoading,
     isLoading,
     error,
     fetchLinks,
     fetchChildren,
     requestLink,
     searchStudent,
-    selectChild,
     toggleDigest,
     decideConsent,
   };

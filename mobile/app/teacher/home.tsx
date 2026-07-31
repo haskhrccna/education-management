@@ -30,6 +30,7 @@ import {
 import { BottomNav } from '@/src/components/BottomNav';
 import type { Appointment } from '@/src/api';
 import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
+import { isTodayDate } from '@/src/utils/date';
 
 type ProgressSummary = {
   label: string;
@@ -38,13 +39,6 @@ type ProgressSummary = {
   pagesMemorized?: number;
   dueToday?: number;
 };
-
-function isTodayDate(d?: string): boolean {
-  if (!d) return false;
-  const x = new Date(d);
-  const n = new Date();
-  return x.getFullYear() === n.getFullYear() && x.getMonth() === n.getMonth() && x.getDate() === n.getDate();
-}
 
 function summarizeProgress(entries: MemorizationEntry[], isAr: boolean): ProgressSummary {
   const active =

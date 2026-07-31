@@ -1,6 +1,8 @@
+import * as WebBrowser from 'expo-web-browser';
 import { mediaContracts } from '@quran-review/shared';
 import apiClient from './client';
-import { contractClient, expectStatus } from './contract';
+import { contractClient, expectStatus, API_ORIGIN } from './contract';
+import { secureStorage } from '../storage/secureStorage';
 
 export type RecordingStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
@@ -103,5 +105,14 @@ export const recordingsApi = {
   deleteRecording: async (id: string): Promise<{ message: string }> => {
     const res = expectStatus(await contractClient.call(mediaContracts.deleteRecording, { params: { id } }), 200);
     return res.body as unknown as { message: string };
+  },
+
+  // HOLDOUT: browser download — the audio file opens in the system browser
+  // with the pinned ?token= auth; no JSON transport involved. Mirrors
+  // reportsApi.downloadReport exactly.
+  downloadRecording: async (id: string): Promise<void> => {
+    const token = (await secureStorage.getItem('auth_token')) ?? '';
+    const url = `${API_ORIGIN}/api/v1/files/recordings/${id}?token=${encodeURIComponent(token)}`;
+    await WebBrowser.openBrowserAsync(url);
   },
 };

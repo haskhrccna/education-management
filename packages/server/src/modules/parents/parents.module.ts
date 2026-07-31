@@ -39,14 +39,29 @@ const childDashboard = defineRoute(progressContracts.childDashboard, async ({ us
   return { status: 200 as const, body: { success: true as const, data: dashboard } };
 });
 
+const childReports = defineRoute(progressContracts.parentChildReports, async ({ userId, params }) => {
+  const reports = await parentService.getChildReports(userId!, String(params.studentId));
+  return { status: 200 as const, body: { success: true as const, data: reports } };
+});
+
+const childRecordings = defineRoute(progressContracts.parentChildRecordings, async ({ userId, params }) => {
+  const recordings = await parentService.getChildRecordings(userId!, String(params.studentId));
+  return { status: 200 as const, body: { success: true as const, data: recordings } };
+});
+
 const decideLink = defineRoute(progressContracts.decideParentLink, async ({ userId, params, req }) => {
   const { action, note } = (req.body ?? {}) as { action?: unknown; note?: unknown };
-  if (action !== 'APPROVE' && action !== 'DENY') throw new AppError(400, 'action must be APPROVE or DENY');
+  if (action !== 'APPROVE' && action !== 'DENY' && action !== 'REVOKE') {
+    throw new AppError(400, 'action must be APPROVE, DENY, or REVOKE');
+  }
   const id = String(params.id);
+  const noteVal = typeof note === 'string' ? note : undefined;
   const updated =
     action === 'APPROVE'
       ? await parentService.approveLink(id, userId!)
-      : await parentService.denyLink(id, userId!, typeof note === 'string' ? note : undefined);
+      : action === 'DENY'
+        ? await parentService.denyLink(id, userId!, noteVal)
+        : await parentService.revokeLink(id, userId!, noteVal);
   await auditLog({
     userId: userId!,
     action: 'DECIDE_PARENT_LINK',
@@ -60,6 +75,6 @@ const decideLink = defineRoute(progressContracts.decideParentLink, async ({ user
 });
 
 export const parentsRouter = buildContractRouter(
-  [requestLink, listLinks, children, studentSearch, childDashboard, decideLink],
+  [requestLink, listLinks, children, studentSearch, childDashboard, childReports, childRecordings, decideLink],
   { mountPrefix: '/api/v1/parents' }
 );

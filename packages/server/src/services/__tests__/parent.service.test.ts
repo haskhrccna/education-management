@@ -91,6 +91,12 @@ describe('parent.service', () => {
       await expect(approveLink('link-1', 'admin-1')).rejects.toThrow('Cannot approve a denied link');
     });
 
+    it('rejects re-approving a REVOKED link (409, does not silently resurrect it)', async () => {
+      m.parentLink.findUnique.mockResolvedValue({ id: 'link-1', status: 'REVOKED' } as any);
+      await expect(approveLink('link-1', 'admin-1')).rejects.toThrow('This link was revoked');
+      expect(m.parentLink.update).not.toHaveBeenCalled();
+    });
+
     it('flips PENDING to APPROVED and fires a notification', async () => {
       m.parentLink.findUnique.mockResolvedValue({ id: 'link-1', parentId: 'parent-1', status: 'PENDING' } as any);
       m.parentLink.update.mockResolvedValue({ id: 'link-1', status: 'APPROVED' } as any);

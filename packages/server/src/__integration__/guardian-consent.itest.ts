@@ -35,6 +35,102 @@ describe('guardian consent opens on link approval', () => {
   });
 });
 
+describe('revoking a link and guardian consent (fix-pass-2 Important 2)', () => {
+  it('resets guardianConsentStatus to null when the only approved link is revoked while consent is still PENDING', async () => {
+    const parent = await createUser({ role: Role.PARENT });
+    const student = await createUser({ role: Role.STUDENT });
+    const admin = await createUser({ role: Role.ADMIN });
+    const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+
+    await request(app)
+      .patch(`/api/v1/parents/links/${link.id}/decision`)
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({ action: 'APPROVE' });
+
+    const afterApproval = await prisma.user.findUnique({
+      where: { id: student.id },
+      select: { guardianConsentStatus: true },
+    });
+    expect(afterApproval?.guardianConsentStatus).toBe('PENDING');
+
+    const revoke = await request(app)
+      .patch(`/api/v1/parents/links/${link.id}/decision`)
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({ action: 'REVOKE' });
+    expect(revoke.status).toBe(200);
+
+    const afterRevoke = await prisma.user.findUnique({
+      where: { id: student.id },
+      select: { guardianConsentStatus: true },
+    });
+    expect(afterRevoke?.guardianConsentStatus).toBeNull();
+  });
+
+  it('does not touch guardianConsentStatus when another APPROVED link still exists for the same student', async () => {
+    const parentA = await createUser({ role: Role.PARENT });
+    const parentB = await createUser({ role: Role.PARENT });
+    const student = await createUser({ role: Role.STUDENT });
+    const admin = await createUser({ role: Role.ADMIN });
+    const linkA = await prisma.parentLink.create({ data: { parentId: parentA.id, studentId: student.id } });
+    const linkB = await prisma.parentLink.create({ data: { parentId: parentB.id, studentId: student.id } });
+
+    await request(app)
+      .patch(`/api/v1/parents/links/${linkA.id}/decision`)
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({ action: 'APPROVE' });
+    await request(app)
+      .patch(`/api/v1/parents/links/${linkB.id}/decision`)
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({ action: 'APPROVE' });
+
+    const afterApprovals = await prisma.user.findUnique({
+      where: { id: student.id },
+      select: { guardianConsentStatus: true },
+    });
+    expect(afterApprovals?.guardianConsentStatus).toBe('PENDING');
+
+    const revokeA = await request(app)
+      .patch(`/api/v1/parents/links/${linkA.id}/decision`)
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({ action: 'REVOKE' });
+    expect(revokeA.status).toBe(200);
+
+    // linkB is still APPROVED, so consent must stay PENDING — not reset to
+    // null, which would strand a still-active guardian's consent request.
+    const afterRevokeA = await prisma.user.findUnique({
+      where: { id: student.id },
+      select: { guardianConsentStatus: true },
+    });
+    expect(afterRevokeA?.guardianConsentStatus).toBe('PENDING');
+  });
+
+  it('does not touch guardianConsentStatus when it is already GRANTED', async () => {
+    const parent = await createUser({ role: Role.PARENT });
+    const student = await createUser({ role: Role.STUDENT });
+    const admin = await createUser({ role: Role.ADMIN });
+    const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+    await request(app)
+      .patch(`/api/v1/parents/links/${link.id}/decision`)
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({ action: 'APPROVE' });
+    await request(app)
+      .patch(`/api/v1/parent-links/${link.id}/consent`)
+      .set('Authorization', `Bearer ${parent.token}`)
+      .send({ granted: true });
+
+    await request(app)
+      .patch(`/api/v1/parents/links/${link.id}/decision`)
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({ action: 'REVOKE' });
+
+    const afterRevoke = await prisma.user.findUnique({
+      where: { id: student.id },
+      select: { guardianConsentStatus: true },
+    });
+    expect(afterRevoke?.guardianConsentStatus).toBe('GRANTED');
+  });
+});
+
 describe('PATCH /api/v1/parent-links/:id/consent', () => {
   it('lets the linked parent grant consent', async () => {
     const parent = await createUser({ role: Role.PARENT });

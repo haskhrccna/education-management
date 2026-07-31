@@ -158,6 +158,56 @@ describe('messages — POST + mark read', () => {
   });
 });
 
+describe('messaging — parent and assigned teacher', () => {
+  it("allows a parent to message their child's assigned teacher", async () => {
+    const teacher = await createUser({ role: Role.TEACHER });
+    const student = await createUser({ role: Role.STUDENT, assignedTeacherId: teacher.id });
+    const parent = await createUser({ role: Role.PARENT });
+    const admin = await createUser({ role: Role.ADMIN });
+    const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+    await request(app)
+      .patch(`/api/v1/parents/links/${link.id}/decision`)
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({ action: 'APPROVE' });
+
+    const res = await request(app)
+      .post('/api/v1/messages')
+      .set('Authorization', `Bearer ${parent.token}`)
+      .send({ receiverId: teacher.id, type: 'TEXT', content: 'Hello' });
+    expect(res.status).toBe(201);
+  });
+
+  it("403s a parent messaging a teacher who is not their child's assigned teacher", async () => {
+    const teacher = await createUser({ role: Role.TEACHER });
+    const otherTeacher = await createUser({ role: Role.TEACHER });
+    const student = await createUser({ role: Role.STUDENT, assignedTeacherId: teacher.id });
+    const parent = await createUser({ role: Role.PARENT });
+    const admin = await createUser({ role: Role.ADMIN });
+    const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+    await request(app)
+      .patch(`/api/v1/parents/links/${link.id}/decision`)
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({ action: 'APPROVE' });
+
+    const res = await request(app)
+      .post('/api/v1/messages')
+      .set('Authorization', `Bearer ${parent.token}`)
+      .send({ receiverId: otherTeacher.id, type: 'TEXT', content: 'Hello' });
+    expect(res.status).toBe(403);
+  });
+
+  it('403s a parent with no approved link from messaging any teacher', async () => {
+    const teacher = await createUser({ role: Role.TEACHER });
+    const parent = await createUser({ role: Role.PARENT });
+
+    const res = await request(app)
+      .post('/api/v1/messages')
+      .set('Authorization', `Bearer ${parent.token}`)
+      .send({ receiverId: teacher.id, type: 'TEXT', content: 'Hello' });
+    expect(res.status).toBe(403);
+  });
+});
+
 describe('notifications', () => {
   it('GET / returns paginatedResponse shape (data+meta, NO success field)', async () => {
     const student = await createUser({ role: Role.STUDENT });

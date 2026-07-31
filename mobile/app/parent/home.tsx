@@ -1,27 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React, { useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useParent } from '@/src/hooks/useParent';
-import { mushafPagesApi, type PageMemorizationRow } from '@/src/api/mushafPages';
-import { derivePageProgress } from '@/src/hooks/useMushafPages';
-import { revisionQueueApi, type RevisionQueueResult } from '@/src/api/revisionQueue';
+import type { ChildSummary, ChildDashboard } from '@/src/api/parents';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
-import { useAuthStore } from '@/src/auth/store';
-import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
-import { AppCard, AppText, EmptyState, MetricTile, ProgressBar, SectionHeader } from '@/src/components/design';
+import { RADIUS, SPACING } from '@/constants/theme';
+import { AppCard, AppText, Avatar, EmptyState, MetricTile, SectionHeader, StatusPill } from '@/src/components/design';
+import { SkeletonCard } from '@/src/components/SkeletonCard';
 import { BottomNav } from '@/src/components/BottomNav';
-import { useTheme } from '@/src/hooks/useTheme';
+import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
+import { isTodayDate } from '@/src/utils/date';
 
 function fullName(p?: { firstName?: string; lastName?: string }): string {
   return `${p?.firstName ?? ''} ${p?.lastName ?? ''}`.trim() || '?';
@@ -35,90 +26,311 @@ function statusTone(status: string): 'success' | 'warning' | 'error' | 'neutral'
   return 'neutral';
 }
 
-export default function ParentHomeScreen() {
-  const router = useRouter();
+function todaysAppointment(dashboard: ChildDashboard) {
+  // requestedDate is a full ISO instant over the wire, not a bare YYYY-MM-DD —
+  // compare local calendar fields, never string equality.
+  return dashboard.upcomingAppointments.find((a) => isTodayDate(a.requestedDate));
+}
+
+interface ChildCardProps {
+  child: ChildSummary;
+  dashboard: ChildDashboard | undefined;
+  /** This child's dashboard fetch rejected — say so rather than rendering empty facts. */
+  failed: boolean;
+  expanded: boolean;
+  onToggleExpanded: () => void;
+  onToggleDigest: (linkId: string, digestOptOut: boolean) => void;
+  onDecideConsent: (linkId: string, granted: boolean) => void;
+}
+
+function ChildCard({
+  child,
+  dashboard,
+  failed,
+  expanded,
+  onToggleExpanded,
+  onToggleDigest,
+  onDecideConsent,
+}: ChildCardProps) {
   const { t, i18n } = useTranslation();
   const isRTL = useIsRTL();
   const lang = i18n.language;
-  const isAr = lang === 'ar';
   const { colors: COLORS } = useTheme();
-  const user = useAuthStore((s) => s.user);
-  const { children, dashboard, isLoading, error, fetchChildren, selectChild, toggleDigest, decideConsent } =
-    useParent();
+  const router = useRouter();
+  const s = createStyles(COLORS);
 
-  const selectedStudentId = dashboard?.student.id;
-  const selectedChild = children.find((c) => c.student.id === selectedStudentId);
+  const student = dashboard?.student ?? child.student;
+  const todaySession = dashboard ? todaysAppointment(dashboard) : undefined;
+  const lastGrade = dashboard?.grades[0];
+  const streak = dashboard?.streak;
+  const teacher = dashboard?.student.assignedTeacher;
 
-  // Page-level hifz progress for the selected child (F1) — 403-tolerant
-  // (a pending link simply hides the line).
-  const [childPages, setChildPages] = useState<PageMemorizationRow[]>([]);
-  const [childQueue, setChildQueue] = useState<RevisionQueueResult | null>(null);
-  const childId = dashboard?.student.id;
-  useEffect(() => {
-    let active = true;
-    if (!childId) {
-      setChildPages([]);
-      setChildQueue(null);
-      return;
-    }
-    mushafPagesApi
-      .getMyPages(childId)
-      .then((rows) => {
-        if (active) setChildPages(rows);
-      })
-      .catch(() => {
-        if (active) setChildPages([]);
-      });
-    revisionQueueApi
-      .getQueue(childId)
-      .then((q) => {
-        if (active) setChildQueue(q);
-      })
-      .catch(() => {
-        if (active) setChildQueue(null);
-      });
-    return () => {
-      active = false;
-    };
-  }, [childId]);
-  const childProgress = derivePageProgress(childPages);
+  return (
+    <AppCard colors={COLORS} style={s.card}>
+      <View style={s.headerRow}>
+        <Avatar colors={COLORS} label={fullName(student)} />
+        <View style={{ flex: 1 }}>
+          <AppText variant="titleMedium" color={COLORS.textPrimary}>
+            {fullName(student)}
+          </AppText>
+          <StatusPill colors={COLORS} label={student.status} status={statusTone(student.status)} />
+        </View>
+      </View>
 
-  const renderChildSelector = () => {
-    if (children.length <= 1) return null;
-    return (
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.selector}
-        style={{ marginBottom: SPACING.md }}
-      >
-        {children.map((child) => {
-          const isSelected = child.student.id === selectedStudentId;
-          return (
-            <TouchableOpacity
-              key={child.student.id}
-              onPress={() => selectChild(child.student.id)}
-              style={[
-                styles.childChip,
-                {
-                  backgroundColor: isSelected ? COLORS.primary : COLORS.surface,
-                  borderColor: COLORS.borderSubtle,
-                },
-              ]}
-            >
-              <AppText variant="bodyMedium" color={isSelected ? '#FFFFFF' : COLORS.textPrimary}>
-                {fullName(child.student)}
+      {failed && !dashboard ? (
+        <View style={s.factRow}>
+          <Ionicons name="alert-circle-outline" size={16} color={COLORS.error} />
+          <AppText variant="bodyMedium" color={COLORS.error} style={{ marginStart: SPACING.xs, flex: 1 }}>
+            {t('parentDashboardLoadFailed')}
+          </AppText>
+        </View>
+      ) : (
+        <>
+          <View style={s.factRow}>
+            <Ionicons name="calendar-outline" size={16} color={COLORS.textSecondary} />
+            <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginStart: SPACING.xs }}>
+              {todaySession
+                ? `${new Date(todaySession.requestedDate).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')} ${todaySession.requestedTime}`
+                : t('parentNoSessionToday')}
+            </AppText>
+          </View>
+
+          {lastGrade ? (
+            <View style={s.factRow}>
+              <Ionicons name="ribbon-outline" size={16} color={COLORS.textSecondary} />
+              <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginStart: SPACING.xs, flex: 1 }}>
+                {t('parentLastGrade')}: {lastGrade.type} — {lastGrade.grade}
+              </AppText>
+            </View>
+          ) : null}
+
+          {streak ? (
+            <MetricTile
+              colors={COLORS}
+              value={streak.currentStreak}
+              label={`${t('parentCurrentStreak')} (${t('parentStreakDays')})`}
+              tone="gold"
+              style={{ marginTop: SPACING.sm, alignSelf: 'flex-start' }}
+            />
+          ) : null}
+        </>
+      )}
+
+      <View style={[s.digestRow, { borderTopColor: COLORS.borderSubtle }]}>
+        <View style={{ flex: 1 }}>
+          <AppText variant="bodyMedium" color={COLORS.textPrimary}>
+            {t('weeklyDigest')}
+          </AppText>
+        </View>
+        <Switch
+          value={!child.digestOptOut}
+          onValueChange={(on) => onToggleDigest(child.linkId, !on)}
+          trackColor={{ false: '#e7e5e4', true: COLORS.primary }}
+          thumbColor="#fff"
+        />
+      </View>
+
+      {child.guardianConsentStatus ? (
+        <View
+          style={[
+            s.consentBox,
+            { borderColor: child.guardianConsentStatus === 'GRANTED' ? COLORS.success : COLORS.warning },
+          ]}
+        >
+          <View style={s.factRow}>
+            <Ionicons
+              name="mic-outline"
+              size={18}
+              color={child.guardianConsentStatus === 'GRANTED' ? COLORS.success : COLORS.warning}
+            />
+            <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginStart: SPACING.xs }}>
+              {t('recordingConsent')}
+            </AppText>
+          </View>
+          {child.guardianConsentStatus === 'GRANTED' ? (
+            <TouchableOpacity onPress={() => onDecideConsent(child.linkId, false)} style={{ marginTop: SPACING.xs }}>
+              <AppText variant="bodySmall" color={COLORS.error}>
+                {t('withdrawConsent')}
               </AppText>
             </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-    );
-  };
+          ) : (
+            <View style={{ flexDirection: 'row', gap: SPACING.sm, marginTop: SPACING.xs }}>
+              <TouchableOpacity
+                onPress={() => onDecideConsent(child.linkId, true)}
+                style={[s.consentBtn, { backgroundColor: COLORS.success }]}
+              >
+                <AppText variant="bodySmall" color="#FFFFFF">
+                  {t('grantConsent')}
+                </AppText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => onDecideConsent(child.linkId, false)}
+                style={[s.consentBtn, { backgroundColor: COLORS.error }]}
+              >
+                <AppText variant="bodySmall" color="#FFFFFF">
+                  {t('declineConsent')}
+                </AppText>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      ) : null}
+
+      <View style={s.chipRow}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          style={s.chip}
+          onPress={() =>
+            router.push({
+              pathname: '/parent/child-reports',
+              params: { studentId: student.id, studentName: fullName(student) },
+            })
+          }
+        >
+          <Ionicons name="document-text-outline" size={16} color={COLORS.primary} />
+          <AppText variant="labelLarge" color={COLORS.primary} style={{ marginStart: 4 }}>
+            {t('parentViewReport')}
+          </AppText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityRole="button"
+          style={s.chip}
+          onPress={() =>
+            router.push({
+              pathname: '/parent/child-recordings',
+              params: { studentId: student.id, studentName: fullName(student) },
+            })
+          }
+        >
+          <Ionicons name="mic-outline" size={16} color={COLORS.primary} />
+          <AppText variant="labelLarge" color={COLORS.primary} style={{ marginStart: 4 }}>
+            {t('parentViewRecordings')}
+          </AppText>
+        </TouchableOpacity>
+        {teacher ? (
+          <TouchableOpacity
+            accessibilityRole="button"
+            style={s.chip}
+            onPress={() =>
+              router.push({
+                pathname: '/messages/conversation',
+                params: { partnerId: teacher.id, partnerName: fullName(teacher) },
+              })
+            }
+          >
+            <Ionicons name="chatbubble-outline" size={16} color={COLORS.primary} />
+            <AppText variant="labelLarge" color={COLORS.primary} style={{ marginStart: 4 }}>
+              {t('parentSendMessage')}
+            </AppText>
+          </TouchableOpacity>
+        ) : (
+          <AppText variant="labelLarge" color={COLORS.textMuted} style={s.chip}>
+            {t('parentNoTeacherYet')}
+          </AppText>
+        )}
+      </View>
+
+      <TouchableOpacity accessibilityRole="button" onPress={onToggleExpanded} style={s.expandToggle}>
+        <AppText variant="labelLarge" color={COLORS.primary}>
+          {expanded ? t('parentLessDetails') : t('parentMoreDetails')}
+        </AppText>
+        <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={16} color={COLORS.primary} />
+      </TouchableOpacity>
+
+      {expanded && dashboard ? (
+        <View style={s.expandedSection}>
+          <SectionHeader colors={COLORS} title={t('childProgress')} />
+          <View style={s.metrics}>
+            <MetricTile
+              colors={COLORS}
+              value={dashboard.memorization.length}
+              label={t('surahsInProgress')}
+              tone="primary"
+            />
+            <MetricTile
+              colors={COLORS}
+              value={dashboard.attendance.filter((a) => a.status.toUpperCase() === 'PRESENT').length}
+              label={t('present')}
+              tone="success"
+            />
+            <MetricTile
+              colors={COLORS}
+              value={dashboard.attendance.filter((a) => a.status.toUpperCase() === 'ABSENT').length}
+              label={t('absent')}
+              tone="warning"
+            />
+          </View>
+
+          {dashboard.grades.length > 0 ? (
+            <>
+              <SectionHeader colors={COLORS} title={t('childGrades')} />
+              {dashboard.grades.slice(0, 3).map((grade) => (
+                <View key={grade.id} style={s.factRow}>
+                  <AppText variant="bodySmall" color={COLORS.textPrimary} style={{ flex: 1 }}>
+                    {grade.type} —{' '}
+                    {grade.surah ? (isRTL ? grade.surah.nameAr : grade.surah.nameEn) : t('overallRecital')}
+                  </AppText>
+                  <AppText variant="labelLarge" color={COLORS.primary}>
+                    {grade.grade}
+                  </AppText>
+                </View>
+              ))}
+            </>
+          ) : null}
+
+          {dashboard.upcomingAppointments.length > 0 ? (
+            <>
+              <SectionHeader colors={COLORS} title={t('childAppointments')} />
+              {dashboard.upcomingAppointments.map((appt) => (
+                <View key={appt.id} style={s.factRow}>
+                  <AppText variant="bodySmall" color={COLORS.textPrimary}>
+                    {new Date(appt.requestedDate).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}{' '}
+                    {appt.requestedTime} — {fullName(appt.teacher)}
+                  </AppText>
+                </View>
+              ))}
+            </>
+          ) : null}
+
+          {dashboard.pendingRevisions.length > 0 ? (
+            <>
+              <SectionHeader colors={COLORS} title={t('childRevisions')} />
+              {dashboard.pendingRevisions.map((rev) => (
+                <View key={rev.id} style={s.factRow}>
+                  <AppText variant="bodySmall" color={COLORS.textPrimary}>
+                    {rev.surah ? (isRTL ? rev.surah.nameAr : rev.surah.nameEn) : t('revision')}
+                  </AppText>
+                </View>
+              ))}
+            </>
+          ) : null}
+        </View>
+      ) : null}
+    </AppCard>
+  );
+}
+
+export default function ParentHomeScreen() {
+  const router = useRouter();
+  const { t } = useTranslation();
+  const { colors: COLORS } = useTheme();
+  const s = createStyles(COLORS);
+  const {
+    children,
+    dashboards,
+    dashboardsFailed,
+    isLoading,
+    dashboardsLoading,
+    error,
+    fetchChildren,
+    toggleDigest,
+    decideConsent,
+  } = useParent();
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
-      <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
+      <View style={[s.header, { backgroundColor: COLORS.primary }]}>
         <AppText variant="headlineSmall" color="#FFFFFF">
           {t('parentDashboard')}
         </AppText>
@@ -141,11 +353,11 @@ export default function ParentHomeScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.body}
+        contentContainerStyle={s.body}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchChildren} />}
       >
         {error ? (
-          <View style={styles.center}>
+          <View style={s.center}>
             <AppText variant="bodyMedium" color={COLORS.textSecondary}>
               {error}
             </AppText>
@@ -155,16 +367,16 @@ export default function ParentHomeScreen() {
               </AppText>
             </TouchableOpacity>
           </View>
-        ) : children.length === 0 ? (
-          <View style={styles.empty}>
+        ) : children.length === 0 && !isLoading ? (
+          <View style={s.empty}>
             <EmptyState
               colors={COLORS}
               icon="people-outline"
-              title={t('noChildrenYet')}
+              title={t('parentNoChildrenYet')}
               description={t('noChildrenYetDesc')}
             />
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: COLORS.primary }]}
+              style={[s.actionBtn, { backgroundColor: COLORS.primary }]}
               onPress={() => router.push('/parent/link-request')}
             >
               <AppText variant="bodyMedium" color="#FFFFFF">
@@ -172,236 +384,31 @@ export default function ParentHomeScreen() {
               </AppText>
             </TouchableOpacity>
           </View>
-        ) : (
+        ) : isLoading || dashboardsLoading ? (
           <>
-            {renderChildSelector()}
-            {dashboard ? (
-              <>
-                <AppCard colors={COLORS}>
-                  <View style={styles.row}>
-                    <View style={[styles.avatar, { backgroundColor: COLORS.primaryMuted }]}>
-                      <AppText variant="headlineMedium" color={COLORS.primary}>
-                        {fullName(dashboard.student).charAt(0)}
-                      </AppText>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <AppText variant="titleMedium" color={COLORS.textPrimary}>
-                        {fullName(dashboard.student)}
-                      </AppText>
-                      <AppText variant="bodySmall" color={COLORS.textSecondary}>
-                        {dashboard.student.email}
-                      </AppText>
-                      <AppText variant="bodySmall" color={COLORS.textSecondary}>
-                        {t('pagesMemorized')}: {childProgress.memorized} / 604 ({childProgress.pct}%)
-                      </AppText>
-                      {childQueue ? (
-                        <AppText variant="bodySmall" color={COLORS.textSecondary}>
-                          {t('revisionAdherence')}: {childQueue.reviewedThisWeek} {t('reviewedThisWeek')} ·{' '}
-                          {childQueue.items.length} {t('dueToday')}
-                        </AppText>
-                      ) : null}
-                      <View
-                        style={[
-                          styles.statusBadge,
-                          {
-                            backgroundColor:
-                              statusTone(dashboard.student.status) === 'success'
-                                ? COLORS.successLight
-                                : COLORS.warningLight,
-                          },
-                        ]}
-                      >
-                        <AppText
-                          variant="bodySmall"
-                          color={statusTone(dashboard.student.status) === 'success' ? COLORS.success : COLORS.warning}
-                        >
-                          {dashboard.student.status}
-                        </AppText>
-                      </View>
-                    </View>
-                  </View>
-                  {selectedChild ? (
-                    <View style={[styles.digestRow, { borderTopColor: COLORS.borderSubtle }]}>
-                      <View style={{ flex: 1 }}>
-                        <AppText variant="bodyMedium" color={COLORS.textPrimary}>
-                          {isAr ? 'ملخص أسبوعي بالبريد' : 'Weekly email digest'}
-                        </AppText>
-                        <AppText variant="bodySmall" color={COLORS.textSecondary}>
-                          {isAr
-                            ? 'ملخص أسبوعي عن حضور وتقدم هذا الطالب'
-                            : "A weekly summary of this child's attendance and progress"}
-                        </AppText>
-                      </View>
-                      <Switch
-                        value={!selectedChild.digestOptOut}
-                        onValueChange={(on) => toggleDigest(selectedChild.linkId, !on)}
-                        trackColor={{ false: '#e7e5e4', true: COLORS.primary }}
-                        thumbColor="#fff"
-                      />
-                    </View>
-                  ) : null}
-                </AppCard>
-
-                {selectedChild?.guardianConsentStatus ? (
-                  <AppCard
-                    colors={COLORS}
-                    style={{
-                      marginTop: SPACING.sm,
-                      borderWidth: 1,
-                      borderColor: selectedChild.guardianConsentStatus === 'GRANTED' ? COLORS.success : COLORS.warning,
-                    }}
-                  >
-                    <View style={styles.row}>
-                      <Ionicons
-                        name="mic-outline"
-                        size={20}
-                        color={selectedChild.guardianConsentStatus === 'GRANTED' ? COLORS.success : COLORS.warning}
-                      />
-                      <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ marginStart: SPACING.sm }}>
-                        {isAr ? 'الموافقة على تسجيل التلاوة' : 'Consent to record recitations'}
-                      </AppText>
-                    </View>
-                    <AppText variant="bodySmall" color={COLORS.textSecondary} style={{ marginTop: SPACING.xs }}>
-                      {isAr
-                        ? 'يستخدم التطبيق تسجيلات صوتية لمراجعة التلاوة. اختياركم مطلوب قبل رفع أي تسجيل لهذا الطالب.'
-                        : 'The app collects voice recordings to review recitation. Your choice is required before any recording can be uploaded for this child.'}
-                    </AppText>
-                    {selectedChild.guardianConsentStatus === 'GRANTED' ? (
-                      <TouchableOpacity
-                        style={{ marginTop: SPACING.sm }}
-                        onPress={() => decideConsent(selectedChild.linkId, false)}
-                      >
-                        <AppText variant="bodySmall" color={COLORS.error}>
-                          {isAr ? 'سحب الموافقة' : 'Withdraw consent'}
-                        </AppText>
-                      </TouchableOpacity>
-                    ) : (
-                      <View style={[styles.actions, { marginTop: SPACING.sm }]}>
-                        <TouchableOpacity
-                          style={[styles.action, { backgroundColor: COLORS.success, flex: 1 }]}
-                          onPress={() => decideConsent(selectedChild.linkId, true)}
-                        >
-                          <AppText variant="bodySmall" color="#FFFFFF">
-                            {isAr ? 'موافق' : 'Grant consent'}
-                          </AppText>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={[styles.action, { backgroundColor: COLORS.error, flex: 1 }]}
-                          onPress={() => decideConsent(selectedChild.linkId, false)}
-                        >
-                          <AppText variant="bodySmall" color="#FFFFFF">
-                            {isAr ? 'رفض' : 'Decline'}
-                          </AppText>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                  </AppCard>
-                ) : null}
-
-                <SectionHeader colors={COLORS} title={t('childProgress')} />
-                <View style={styles.metrics}>
-                  <MetricTile
-                    colors={COLORS}
-                    value={dashboard.memorization.length.toString()}
-                    label={t('surahsInProgress')}
-                    tone="primary"
-                  />
-                  <MetricTile
-                    colors={COLORS}
-                    value={dashboard.grades.length.toString()}
-                    label={t('recentGrades')}
-                    tone="gold"
-                  />
-                </View>
-
-                <SectionHeader colors={COLORS} title={t('childGrades')} />
-                {dashboard.grades.length === 0 ? (
-                  <AppText variant="bodyMedium" color={COLORS.textSecondary}>
-                    {t('noGradesYet')}
-                  </AppText>
-                ) : (
-                  dashboard.grades.slice(0, 3).map((grade) => (
-                    <AppCard key={grade.id} colors={COLORS} style={{ marginBottom: SPACING.sm }}>
-                      <View style={styles.row}>
-                        <AppText variant="bodyMedium" color={COLORS.textPrimary} style={{ flex: 1 }}>
-                          {grade.type} —{' '}
-                          {grade.surah ? (isRTL ? grade.surah.nameAr : grade.surah.nameEn) : t('overallRecital')}
-                        </AppText>
-                        <AppText variant="titleMedium" color={COLORS.primary}>
-                          {grade.grade}
-                        </AppText>
-                      </View>
-                    </AppCard>
-                  ))
-                )}
-
-                <SectionHeader colors={COLORS} title={t('childAttendance')} />
-                <View style={styles.metrics}>
-                  <MetricTile
-                    colors={COLORS}
-                    value={dashboard.attendance.filter((a) => a.status.toUpperCase() === 'PRESENT').length.toString()}
-                    label={t('present')}
-                    tone="success"
-                  />
-                  <MetricTile
-                    colors={COLORS}
-                    value={dashboard.attendance.filter((a) => a.status.toUpperCase() === 'ABSENT').length.toString()}
-                    label={t('absent')}
-                    tone="warning"
-                  />
-                </View>
-
-                {dashboard.upcomingAppointments.length > 0 && (
-                  <>
-                    <SectionHeader colors={COLORS} title={t('childAppointments')} />
-                    {dashboard.upcomingAppointments.map((appt) => (
-                      <AppCard key={appt.id} colors={COLORS} style={{ marginBottom: SPACING.sm }}>
-                        <AppText variant="bodyMedium" color={COLORS.textPrimary}>
-                          {new Date(`${appt.requestedDate}T${appt.requestedTime}`).toLocaleString(
-                            lang === 'ar' ? 'ar-SA' : 'en-US'
-                          )}
-                        </AppText>
-                        <AppText variant="bodySmall" color={COLORS.textSecondary}>
-                          {t('teacher')}: {fullName(appt.teacher)}
-                        </AppText>
-                      </AppCard>
-                    ))}
-                  </>
-                )}
-
-                {dashboard.pendingRevisions.length > 0 && (
-                  <>
-                    <SectionHeader colors={COLORS} title={t('childRevisions')} />
-                    {dashboard.pendingRevisions.map((rev) => (
-                      <AppCard key={rev.id} colors={COLORS} style={{ marginBottom: SPACING.sm }}>
-                        <AppText variant="bodyMedium" color={COLORS.textPrimary}>
-                          {rev.surah ? (isRTL ? rev.surah.nameAr : rev.surah.nameEn) : t('revision')}
-                        </AppText>
-                        <AppText variant="bodySmall" color={COLORS.textSecondary}>
-                          {new Date(rev.scheduledFor).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}
-                        </AppText>
-                      </AppCard>
-                    ))}
-                  </>
-                )}
-
-                <View style={[styles.readOnlyBanner, { backgroundColor: COLORS.primaryMuted }]}>
-                  <AppText variant="bodySmall" color={COLORS.primary}>
-                    {t('readOnlyNote')}
-                  </AppText>
-                </View>
-              </>
-            ) : isLoading ? (
-              <ActivityIndicator color={COLORS.primary} />
-            ) : null}
+            <SkeletonCard lines={4} />
+            <SkeletonCard lines={4} />
           </>
+        ) : (
+          children.map((child) => (
+            <ChildCard
+              key={child.linkId}
+              child={child}
+              dashboard={dashboards[child.student.id]}
+              failed={dashboardsFailed.has(child.student.id)}
+              expanded={expandedId === child.student.id}
+              onToggleExpanded={() => setExpandedId((cur) => (cur === child.student.id ? null : child.student.id))}
+              onToggleDigest={toggleDigest}
+              onDecideConsent={decideConsent}
+            />
+          ))
         )}
       </ScrollView>
 
       <SectionHeader colors={COLORS} title={t('achievements')} />
-      <View style={{ flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.md }}>
+      <View style={{ flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.md, paddingHorizontal: SPACING.md }}>
         <TouchableOpacity
-          style={[styles.childChip, { backgroundColor: COLORS.surface, flex: 1, alignItems: 'center' }]}
+          style={[s.shortcutTile, { backgroundColor: COLORS.surface }]}
           onPress={() => router.push('/student/gamification')}
         >
           <Ionicons name="trophy-outline" size={28} color={COLORS.primary} />
@@ -410,7 +417,7 @@ export default function ParentHomeScreen() {
           </AppText>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.childChip, { backgroundColor: COLORS.surface, flex: 1, alignItems: 'center' }]}
+          style={[s.shortcutTile, { backgroundColor: COLORS.surface }]}
           onPress={() => router.push('/student/certificates')}
         >
           <Ionicons name="document-text-outline" size={28} color={COLORS.success} />
@@ -424,64 +431,74 @@ export default function ParentHomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.md,
-    paddingTop: SPACING.md,
-    paddingBottom: SPACING.lg,
-    borderBottomLeftRadius: RADIUS.lg,
-    borderBottomRightRadius: RADIUS.lg,
-  },
-  body: { padding: SPACING.md, paddingBottom: SPACING['2xl'] },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.lg },
-  empty: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.lg },
-  actionBtn: {
-    marginTop: SPACING.lg,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    borderRadius: RADIUS.md,
-  },
-  selector: { paddingVertical: SPACING.sm, gap: SPACING.sm },
-  childChip: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: RADIUS.full,
-    borderWidth: 1,
-    marginEnd: SPACING.sm,
-  },
-  row: { flexDirection: 'row', alignItems: 'center' },
-  actions: { flexDirection: 'row', gap: SPACING.sm },
-  action: { paddingVertical: SPACING.sm, borderRadius: RADIUS.md, alignItems: 'center' },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginEnd: SPACING.md,
-  },
-  statusBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 2,
-    borderRadius: RADIUS.md,
-    marginTop: SPACING.xs,
-  },
-  metrics: { flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.md },
-  digestRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.md,
-    marginTop: SPACING.md,
-    paddingTop: SPACING.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  readOnlyBanner: {
-    padding: SPACING.md,
-    borderRadius: RADIUS.md,
-    marginTop: SPACING.md,
-  },
-});
+const createStyles = (COLORS: ThemeColors) =>
+  StyleSheet.create({
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: SPACING.md,
+      paddingTop: SPACING.md,
+      paddingBottom: SPACING.lg,
+      borderBottomLeftRadius: RADIUS.lg,
+      borderBottomRightRadius: RADIUS.lg,
+    },
+    body: { padding: SPACING.md, paddingBottom: SPACING['2xl'], gap: SPACING.md },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.lg },
+    empty: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.lg },
+    actionBtn: {
+      marginTop: SPACING.lg,
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.md,
+      borderRadius: RADIUS.md,
+      minHeight: 44,
+      justifyContent: 'center',
+    },
+    card: { gap: SPACING.xs },
+    headerRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+    factRow: { flexDirection: 'row', alignItems: 'center', marginTop: SPACING.xs },
+    digestRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACING.md,
+      marginTop: SPACING.sm,
+      paddingTop: SPACING.sm,
+      borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    consentBox: {
+      borderWidth: 1,
+      borderRadius: RADIUS.md,
+      padding: SPACING.sm,
+      marginTop: SPACING.sm,
+    },
+    consentBtn: { flex: 1, paddingVertical: SPACING.sm, borderRadius: RADIUS.md, alignItems: 'center', minHeight: 44 },
+    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm, marginTop: SPACING.sm },
+    chip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      minHeight: 44,
+      paddingHorizontal: SPACING.sm,
+    },
+    expandToggle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+      minHeight: 44,
+      marginTop: SPACING.xs,
+    },
+    expandedSection: {
+      marginTop: SPACING.xs,
+      paddingTop: SPACING.sm,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: COLORS.borderSubtle,
+      gap: SPACING.xs,
+    },
+    metrics: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.sm },
+    shortcutTile: {
+      flex: 1,
+      alignItems: 'center',
+      paddingVertical: SPACING.md,
+      borderRadius: RADIUS.md,
+    },
+  });
