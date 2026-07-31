@@ -35,7 +35,7 @@ export default function LoginPage() {
     try {
       const user = await login(email.trim(), password);
       const role = user.role?.toLowerCase();
-      const allowedRoles = ['admin', 'teacher', 'student'];
+      const allowedRoles = ['admin', 'teacher', 'student', 'parent'];
       if (!allowedRoles.includes(role)) {
         Alert.alert(t('error'), t('unsupportedRole') ?? 'Unsupported role. Contact admin.');
         return;
@@ -47,7 +47,7 @@ export default function LoginPage() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top']} testID="login.screen">
       <StatusBar style="dark" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
         <ScrollView
@@ -75,7 +75,7 @@ export default function LoginPage() {
           {/* Form */}
           <Animated.View entering={FadeInUp.duration(600).delay(250)} style={styles.form}>
             {error && (
-              <Animated.View entering={FadeIn.duration(300)} style={styles.errorBox}>
+              <Animated.View entering={FadeIn.duration(300)} style={styles.errorBox} testID="login.error">
                 <Text style={styles.errorText}>{error}</Text>
               </Animated.View>
             )}
@@ -94,6 +94,7 @@ export default function LoginPage() {
                   keyboardType="email-address"
                   returnKeyType="next"
                   textAlign={i18n.language === 'ar' ? 'right' : 'left'}
+                  testID="login.email"
                 />
               </View>
             </View>
@@ -112,6 +113,7 @@ export default function LoginPage() {
                   returnKeyType="send"
                   onSubmitEditing={handleLogin}
                   textAlign={i18n.language === 'ar' ? 'right' : 'left'}
+                  testID="login.password"
                 />
               </View>
             </View>
@@ -121,6 +123,7 @@ export default function LoginPage() {
               onPress={handleLogin}
               disabled={isLoading}
               activeOpacity={0.8}
+              testID="login.submit"
             >
               <View style={styles.buttonInner}>
                 <Text style={styles.buttonText}>{isLoading ? t('loading') : t('login')}</Text>
@@ -130,6 +133,7 @@ export default function LoginPage() {
             <TouchableOpacity
               style={{ marginTop: SPACING.sm, alignItems: 'center' }}
               onPress={() => router.push('/forgot-password')}
+              testID="login.forgot-link"
             >
               <Text style={{ fontSize: 13, color: COLORS.primary }}>{t('forgotPassword')}</Text>
             </TouchableOpacity>
@@ -138,7 +142,7 @@ export default function LoginPage() {
           {/* Footer */}
           <Animated.View entering={FadeInUp.duration(600).delay(400)} style={styles.footer}>
             <Text style={styles.footerText}>{t('noAccount')} </Text>
-            <TouchableOpacity onPress={() => router.push('/register')} activeOpacity={0.7}>
+            <TouchableOpacity onPress={() => router.push('/register')} activeOpacity={0.7} testID="login.register-link">
               <Text style={styles.linkText}>{t('signUp')}</Text>
             </TouchableOpacity>
           </Animated.View>

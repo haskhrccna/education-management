@@ -31,6 +31,7 @@ interface IconButtonProps {
   size?: number;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
 export function IconButton({
@@ -42,6 +43,7 @@ export function IconButton({
   size = 44,
   disabled,
   style,
+  testID,
 }: IconButtonProps) {
   const background =
     tone === 'primary'
@@ -71,6 +73,7 @@ export function IconButton({
       activeOpacity={0.82}
       disabled={disabled}
       onPress={onPress}
+      testID={testID}
       style={[
         uiStyles(colors, 1).iconButton,
         {

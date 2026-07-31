@@ -45,7 +45,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top']} testID="register.screen">
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -64,7 +64,7 @@ export default function RegisterPage() {
           {/* Form */}
           <Animated.View entering={FadeInUp.duration(500).delay(150)} style={styles.form}>
             {error && (
-              <View style={styles.errorBox}>
+              <View style={styles.errorBox} testID="register.error">
                 <Text style={styles.errorText}>{error}</Text>
               </View>
             )}
@@ -79,6 +79,7 @@ export default function RegisterPage() {
                   value={firstName}
                   onChangeText={setFirstName}
                   textAlign="right"
+                  testID="register.first-name"
                 />
               </View>
               <View style={[styles.inputContainer, { flex: 1 }]}>
@@ -90,6 +91,7 @@ export default function RegisterPage() {
                   value={lastName}
                   onChangeText={setLastName}
                   textAlign="right"
+                  testID="register.last-name"
                 />
               </View>
             </View>
@@ -105,6 +107,7 @@ export default function RegisterPage() {
                 autoCapitalize="none"
                 keyboardType="email-address"
                 textAlign="right"
+                testID="register.email"
               />
             </View>
 
@@ -118,6 +121,7 @@ export default function RegisterPage() {
                 onChangeText={setPassword}
                 secureTextEntry
                 textAlign="right"
+                testID="register.password"
               />
             </View>
 
@@ -126,6 +130,7 @@ export default function RegisterPage() {
               onPress={handleRegister}
               disabled={isLoading}
               activeOpacity={0.8}
+              testID="register.submit"
             >
               <Text style={styles.buttonText}>{isLoading ? t('loading') : t('register')}</Text>
             </TouchableOpacity>
@@ -134,7 +139,7 @@ export default function RegisterPage() {
           {/* Footer */}
           <Animated.View entering={FadeInUp.duration(500).delay(300)} style={styles.footer}>
             <Text style={styles.footerText}>{t('haveAccount')} </Text>
-            <TouchableOpacity onPress={() => router.push('/')} activeOpacity={0.7}>
+            <TouchableOpacity onPress={() => router.push('/')} activeOpacity={0.7} testID="register.back-link">
               <Text style={styles.linkText}>{t('signIn')}</Text>
             </TouchableOpacity>
           </Animated.View>
