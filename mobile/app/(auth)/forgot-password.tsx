@@ -80,7 +80,7 @@ export default function ForgotPasswordScreen() {
       </View>
       <ScrollView contentContainerStyle={styles.body}>
         {submitted ? (
-          <View style={styles.successCard}>
+          <View style={styles.successCard} testID="forgot-password.success">
             <View style={styles.successRow}>
               <Ionicons name="checkmark-circle-outline" size={22} color={COLORS.success} />
               <Text style={styles.successTitle}>{t('resetLinkSent')}</Text>

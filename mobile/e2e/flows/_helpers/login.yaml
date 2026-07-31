@@ -1,22 +1,8 @@
 appId: com.quranreview.app
 ---
-# Expo dev-client pitfall: after `launchApp: clearState: true`, the dev-launcher
-# forgets the last-connected Metro server and shows its own picker UI instead of
-# the app. Re-point it at Metro before waiting for any app-level testID.
-- openLink: "com.quranreview.app://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
-# First reconnect after clearState also surfaces Expo's one-time "developer
-# menu" explainer overlay, then the dev menu itself (Reload / Go home / Tools)
-# on top of the app; dismiss both if present so the app underneath is usable.
-- tapOn:
-    text: "Continue"
-    optional: true
-- tapOn:
-    text: "Close"
-    optional: true
-- extendedWaitUntil:
-    visible:
-      id: "login.email"
-    timeout: 30000
+# Metro-reconnect/dev-launcher boilerplate factored out to boot.yaml (shared
+# with 02-register-smoke.yaml and 03-forgot-password-smoke.yaml).
+- runFlow: boot.yaml
 - tapOn:
     id: "login.email"
 - inputText: ${EMAIL}

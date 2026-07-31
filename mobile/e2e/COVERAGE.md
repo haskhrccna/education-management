@@ -48,3 +48,11 @@ One row per control (testID) on the 5 auth screens covered by `flows/auth/`, cro
 ## Not applicable to this coverage table
 
 - `bottom-nav.*` (shared `BottomNav` component) and the `IconButton` `testID` prop are Task 3 infrastructure, not controls that live *on* any of the 5 auth screens — no auth screen renders either. Excluded per the brief's scope ("every control testID on the 5 auth screens").
+
+## Sanctioned text-selector exceptions
+
+Every assertable app-rendered element on the 5 auth screens now has a testID and is asserted by id (see review fix-pass, `.superpowers/sdd/task-4-report.md`). The following text-selector assertions remain — none can carry a testID because none is an app-rendered React element:
+
+- **Native `Alert.alert` content/buttons** (`05-first-login-smoke.yaml`, mismatch-error title `"كلمتا المرور غير متطابقتين"` and its `"OK"` button) — iOS renders `Alert.alert` as a system UIAlertController, not a React Native view; there is no `testID` prop to attach.
+- **iOS AutoFill sheet** (`02-register-smoke.yaml`, `04-pending-approval-smoke.yaml` — the `point: "91%, 61%"` tap inside the `register.password` retry block) — this is an OS-level "Use Strong Password?" system sheet, not app UI; it has no testID surface. A `tapOn: text: "Close", optional: true` replacement was tried and verified to fail: Maestro reports the step as `WARNED` (element not found — the sheet's "X" close control isn't exposed under matchable text/label), the sheet's "Automatic Strong Password cover view" is left stuck over the field, and the subsequent registration fails (screenshots + full repro in BUGLOG.md). Reverted to the `point:` tap per the brief's fallback instruction.
+- **Expo dev-launcher chrome** (`_helpers/boot.yaml` — `"Continue"`/`"Close"` on the dev-launcher's one-time explainer and dev menu) — this is Expo tooling chrome layered outside the app bundle, not app code we control or can add testIDs to.

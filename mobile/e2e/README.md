@@ -49,3 +49,8 @@ Found a bug? Log it to `mobile/e2e/BUGLOG.md`:
 ## No Sleep Rule
 
 Never `sleep` in flow YAML. Use Maestro waits: `waitForAnimationToFinish`, `tapOn`, `back`. Waits are deterministic; sleeps are brittle.
+
+## Fixture accounts
+
+`flows/auth` self-registers two throwaway users: `e2e-reg-smoke@quran-review.com` (02) and `e2e-pending-smoke@quran-review.com` (04). Delete both between runs:
+`DELETE FROM users WHERE email IN ('e2e-reg-smoke@quran-review.com','e2e-pending-smoke@quran-review.com');`

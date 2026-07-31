@@ -34,7 +34,11 @@ export default function StudentOnboardingScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: COLORS.background }]} edges={['top', 'bottom']}>
+    <SafeAreaView
+      style={[styles.screen, { backgroundColor: COLORS.background }]}
+      edges={['top', 'bottom']}
+      testID="onboarding-student.screen"
+    >
       <View style={styles.body}>
         {step === 0 && (
           <>

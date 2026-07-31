@@ -4,19 +4,10 @@ tags: [auth, smoke]
 - clearKeychain
 - launchApp:
     clearState: true
-# Expo dev-client pitfall (see _helpers/login.yaml for the full explanation):
-# reconnect to Metro and dismiss the dev-launcher's one-time explainer/menu.
-- openLink: "com.quranreview.app://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
-- tapOn:
-    text: "Continue"
-    optional: true
-- tapOn:
-    text: "Close"
-    optional: true
-- extendedWaitUntil:
-    visible:
-      id: "login.email"
-    timeout: 30000
+# Metro-reconnect/dev-launcher boilerplate factored out to _helpers/boot.yaml
+# (shared with _helpers/login.yaml and 03-forgot-password-smoke.yaml).
+- runFlow:
+    file: ../_helpers/boot.yaml
 # open register from login
 - tapOn:
     id: "login.register-link"

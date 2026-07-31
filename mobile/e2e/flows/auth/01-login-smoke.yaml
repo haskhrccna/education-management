@@ -45,9 +45,10 @@ tags: [auth, smoke]
 # app/_layout.tsx's auth gate (F5) redirects a first-time ACTIVE student to
 # /onboarding/student instead of /student/home — bottom-nav.student-home is
 # never rendered for this user. This is correct, intended app behavior (not a
-# bug), documented in BUGLOG.md. Assert on the onboarding welcome text instead,
-# which still proves the credentials were accepted and the app navigated past
-# the login screen.
+# bug), documented in BUGLOG.md. Assert on the onboarding screen's root
+# testID (added in review fix-pass) instead of its welcome text, which still
+# proves the credentials were accepted and the app navigated past the login
+# screen.
 - runFlow:
     file: ../_helpers/login.yaml
     env:
@@ -59,5 +60,5 @@ tags: [auth, smoke]
     timeout: 20000
 - extendedWaitUntil:
     visible:
-      text: "أهلاً بك في رحلة الحفظ"
+      id: "onboarding-student.screen"
     timeout: 20000
