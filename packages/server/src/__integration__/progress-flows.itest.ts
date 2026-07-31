@@ -380,6 +380,46 @@ describe('parents', () => {
       expect(res.body.data.upcomingAppointments).toHaveLength(1);
       expect(res.body.data.upcomingAppointments[0].requestedTime).toBe('14:00');
     });
+
+    // Regression test for the fix-pass-2 Critical: the two tests above insert
+    // requestedDate directly via prisma.appointment.create with setUTCHours,
+    // which bypasses appointment.service.ts's toDateOnly() entirely and can
+    // never catch a UTC-vs-local-midnight mismatch. This one books through the
+    // real write path (POST /api/v1/appointments -> createAppointment ->
+    // toDateOnly, which stores server-local midnight) so the bound in
+    // getChildDashboard is checked against what the product actually writes.
+    // Run this file under TZ=Asia/Riyadh (UTC+3) to prove the bound survives a
+    // positive UTC offset, not just TZ=UTC.
+    it('includes an appointment booked for today through the real POST /api/v1/appointments path', async () => {
+      const teacher = await createUser({ role: Role.TEACHER });
+      const student = await createUser({ role: Role.STUDENT, assignedTeacherId: teacher.id });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+      await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+
+      // "Today" as the server's local calendar date — this is what a real
+      // client sends (CreateAppointmentSchema expects a YYYY-MM-DD string).
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+        now.getDate()
+      ).padStart(2, '0')}`;
+
+      const booked = await request(app)
+        .post('/api/v1/appointments')
+        .set('Authorization', `Bearer ${student.token}`)
+        .send({ teacherId: teacher.id, requestedDate: todayStr, requestedTime: '14:00' });
+      expect(booked.status).toBe(201);
+
+      const res = await request(app)
+        .get(`/api/v1/parents/children/${student.id}/dashboard`)
+        .set('Authorization', `Bearer ${parent.token}`);
+      expect(res.body.data.upcomingAppointments).toHaveLength(1);
+      expect(res.body.data.upcomingAppointments[0].requestedTime).toBe('14:00');
+    });
   });
 
   describe('PATCH /api/v1/parents/links/:id/decision — REVOKE', () => {

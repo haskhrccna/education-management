@@ -178,11 +178,13 @@ export const getChildren = async (parentId: string) => {
 export const getChildDashboard = async (parentId: string, studentId: string) => {
   await assertParentHasApprovedLink(parentId, studentId);
 
-  // Lower bound for "upcoming": UTC midnight today. Deliberately conservative —
-  // for timezones behind UTC it can include a couple of hours of "yesterday,
-  // local time"; that imprecision is acceptable for a take:5 lookahead list.
+  // Lower bound for "upcoming": server-local midnight today. Must match
+  // appointment.service.ts's toDateOnly(), which stores requestedDate at
+  // server-local midnight — comparing against UTC midnight here would filter
+  // out today's session all day on any server with a positive UTC offset
+  // (e.g. Asia/Riyadh, UTC+3, this product's primary market).
   const startOfToday = new Date();
-  startOfToday.setUTCHours(0, 0, 0, 0);
+  startOfToday.setHours(0, 0, 0, 0);
 
   const [student, memorization, grades, attendance, upcomingAppointments, pendingRevisions, streak] = await Promise.all(
     [
