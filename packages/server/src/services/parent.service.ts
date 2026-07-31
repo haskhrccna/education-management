@@ -111,9 +111,33 @@ export const revokeLink = async (linkId: string, adminId: string, note?: string)
     throw new AppError(409, 'Only an approved link can be revoked');
   }
 
-  const updated = await prisma.parentLink.update({
-    where: { id: linkId },
-    data: { status: 'REVOKED', decidedAt: new Date(), decidedBy: adminId },
+  const updated = await prisma.$transaction(async (tx) => {
+    const revoked = await tx.parentLink.update({
+      where: { id: linkId },
+      data: { status: 'REVOKED', decidedAt: new Date(), decidedBy: adminId },
+    });
+
+    // If this student's guardian consent is still PENDING (initializeConsentIfNeeded
+    // set it on approval, and the parent never decided it) and no other APPROVED
+    // link remains for them, reset it to null. Otherwise the student is stranded:
+    // decideConsent requires an APPROVED link (409 without one), and requestLink
+    // 409s on any existing link for the pair regardless of status — there would be
+    // no in-app path back to GRANTED. A student with another still-approved
+    // guardian keeps their PENDING/GRANTED/DECLINED status untouched.
+    const student = await tx.user.findUnique({
+      where: { id: link.studentId },
+      select: { guardianConsentStatus: true },
+    });
+    if (student?.guardianConsentStatus === 'PENDING') {
+      const otherApproved = await tx.parentLink.findFirst({
+        where: { studentId: link.studentId, status: 'APPROVED', id: { not: linkId } },
+      });
+      if (!otherApproved) {
+        await tx.user.update({ where: { id: link.studentId }, data: { guardianConsentStatus: null } });
+      }
+    }
+
+    return revoked;
   });
 
   await notifyUser({
