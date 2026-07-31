@@ -464,5 +464,38 @@ describe('parents', () => {
         .send({ action: 'REVOKE' });
       expect(res.status).toBe(409);
     });
+
+    it('409s re-approving a REVOKED link instead of silently resurrecting it', async () => {
+      const student = await createUser({ role: Role.STUDENT });
+      const parent = await createUser({ role: Role.PARENT });
+      const admin = await createUser({ role: Role.ADMIN });
+      const link = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: student.id } });
+      await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+      const revoked = await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'REVOKE' });
+      expect(revoked.body.data.status).toBe('REVOKED');
+
+      const reapprove = await request(app)
+        .patch(`/api/v1/parents/links/${link.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+      expect(reapprove.status).toBe(409);
+      expect(reapprove.body.error).toBe('This link was revoked — ask the parent to submit a new request');
+
+      // no regression: a fresh PENDING link still approves normally
+      const fresh = await createUser({ role: Role.STUDENT });
+      const freshLink = await prisma.parentLink.create({ data: { parentId: parent.id, studentId: fresh.id } });
+      const freshApprove = await request(app)
+        .patch(`/api/v1/parents/links/${freshLink.id}/decision`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ action: 'APPROVE' });
+      expect(freshApprove.status).toBe(200);
+      expect(freshApprove.body.data.status).toBe('APPROVED');
+    });
   });
 });

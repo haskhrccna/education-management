@@ -47,6 +47,9 @@ export const approveLink = async (linkId: string, adminId: string) => {
   if (link.status === 'DENIED') {
     throw new AppError(409, 'Cannot approve a denied link — ask the parent to re-request');
   }
+  if (link.status === 'REVOKED') {
+    throw new AppError(409, 'This link was revoked — ask the parent to submit a new request');
+  }
 
   const updated = await prisma.parentLink.update({
     where: { id: linkId },
