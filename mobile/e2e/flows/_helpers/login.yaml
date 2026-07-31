@@ -1,0 +1,32 @@
+appId: com.quranreview.app
+---
+# Expo dev-client pitfall: after `launchApp: clearState: true`, the dev-launcher
+# forgets the last-connected Metro server and shows its own picker UI instead of
+# the app. Re-point it at Metro before waiting for any app-level testID.
+- openLink: "com.quranreview.app://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
+# First reconnect after clearState also surfaces Expo's one-time "developer
+# menu" explainer overlay, then the dev menu itself (Reload / Go home / Tools)
+# on top of the app; dismiss both if present so the app underneath is usable.
+- tapOn:
+    text: "Continue"
+    optional: true
+- tapOn:
+    text: "Close"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "login.email"
+    timeout: 30000
+- tapOn:
+    id: "login.email"
+- inputText: ${EMAIL}
+- tapOn:
+    id: "login.password"
+- inputText: ${PASSWORD}
+- tapOn:
+    id: "login.submit"
+# iOS may offer to save the just-submitted credentials in Keychain; dismiss
+# it so it doesn't block the next assertion/tap.
+- tapOn:
+    text: "Not Now"
+    optional: true

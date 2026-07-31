@@ -1,0 +1,63 @@
+appId: com.quranreview.app
+tags: [auth, smoke]
+---
+- clearKeychain
+- launchApp:
+    clearState: true
+# wrong password → error box
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: WrongPass1!
+- extendedWaitUntil:
+    visible:
+      id: "login.error"
+    timeout: 10000
+# the password field still holds focus after the failed submit; the keyboard
+# covers the below-the-fold forgot/register links so tapOn resolves to the
+# keyboard instead of the link underneath it unless it's dismissed first.
+- hideKeyboard
+# links work
+- tapOn:
+    id: "login.forgot-link"
+# iOS's "Save Password?" Keychain prompt can surface after the screen
+# transition settles rather than immediately on submit; catch it here too.
+- tapOn:
+    text: "Not Now"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "forgot-password.screen"
+    timeout: 10000
+- tapOn:
+    id: "forgot-password.back-link"
+- tapOn:
+    id: "login.register-link"
+- extendedWaitUntil:
+    visible:
+      id: "register.screen"
+    timeout: 10000
+- tapOn:
+    id: "register.back-link"
+# Correct login succeeds and leaves the login screen. NOTE (deviation from the
+# brief): ali@quran-review.com is seeded with onboardingCompletedAt = null, so
+# app/_layout.tsx's auth gate (F5) redirects a first-time ACTIVE student to
+# /onboarding/student instead of /student/home — bottom-nav.student-home is
+# never rendered for this user. This is correct, intended app behavior (not a
+# bug), documented in BUGLOG.md. Assert on the onboarding welcome text instead,
+# which still proves the credentials were accepted and the app navigated past
+# the login screen.
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    notVisible:
+      id: "login.screen"
+    timeout: 20000
+- extendedWaitUntil:
+    visible:
+      text: "أهلاً بك في رحلة الحفظ"
+    timeout: 20000

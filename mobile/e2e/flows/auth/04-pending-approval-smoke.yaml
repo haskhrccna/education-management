@@ -1,0 +1,91 @@
+appId: com.quranreview.app
+tags: [auth, smoke]
+---
+- clearKeychain
+- launchApp:
+    clearState: true
+# NOTE (deviation from the brief): the brief says "login as
+# fatima@quran-review.com/Student1234! (PENDING), assert pending-approval.screen".
+# In reality this is unreachable — the server rejects login for any non-ACTIVE
+# account with 403 before the app ever has a user object (see BUGLOG.md's
+# "PENDING user login is rejected by the server..." entry). login() throws,
+# the screen stays on login.screen showing login.error, and _layout.tsx's
+# `user.status === 'pending'` redirect never fires because `user` stays null.
+# The ONLY reachable path to pending-approval.screen is via a fresh
+# self-registration (register.tsx's handleRegister calls
+# router.replace('/pending-approval') on success — see 02-register-smoke.yaml).
+# This flow documents both: fatima's real (rejected) login behavior, then
+# reaches pending-approval.screen the only way the app currently allows.
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: fatima@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "login.error"
+    timeout: 10000
+- tapOn:
+    text: "Not Now"
+    optional: true
+# The keyboard is still up here (network round-trip for the 403 leaves focus
+# on login.password); it overlaps login.register-link's position. Tapping the
+# static error box dismisses the keyboard without depending on hideKeyboard,
+# which errors (rather than no-op) if the keyboard happens to already be gone.
+- tapOn:
+    id: "login.error"
+- tapOn:
+    id: "login.register-link"
+# iOS's "Save Password?" Keychain prompt (for fatima's failed login attempt)
+# can surface late, after this screen transition, rather than immediately.
+- tapOn:
+    text: "Not Now"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "register.screen"
+    timeout: 10000
+- tapOn:
+    id: "register.first-name"
+- inputText: "E2E"
+- tapOn:
+    id: "register.last-name"
+- inputText: "PendingSmoke"
+- tapOn:
+    id: "register.email"
+- inputText: "e2e-pending-smoke@quran-review.com"
+# See BUGLOG.md "iOS Password AutoFill gets wedged..." — same retry safety
+# net as 02-register-smoke.yaml for the password field.
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          id: "register.password"
+      - tapOn:
+          point: "91%, 61%"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 1000
+      - tapOn:
+          id: "register.password"
+      - waitForAnimationToEnd:
+          timeout: 1000
+      - eraseText
+      - inputText: "PendingSmoke1234!"
+      - tapOn:
+          id: "register.submit"
+      - tapOn:
+          text: "Not Now"
+          optional: true
+      - extendedWaitUntil:
+          visible:
+            id: "pending-approval.screen"
+          timeout: 8000
+- assertVisible:
+    id: "pending-approval.header"
+- tapOn:
+    id: "pending-approval.logout"
+- extendedWaitUntil:
+    visible:
+      id: "login.screen"
+    timeout: 10000
