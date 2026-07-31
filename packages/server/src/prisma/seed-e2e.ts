@@ -49,6 +49,18 @@ async function mainE2E() {
   });
 
   // Content for Ali so student/parent/teacher detail screens render data.
+  // Delete existing content to ensure idempotency (no unique constraints on these tables).
+  await prisma.grade.deleteMany({ where: { studentId: ali.id } });
+  await prisma.message.deleteMany({
+    where: {
+      OR: [
+        { senderId: teacher.id, receiverId: ali.id },
+        { senderId: ali.id, receiverId: teacher.id },
+      ],
+    },
+  });
+  await prisma.notification.deleteMany({ where: { userId: ali.id } });
+
   const fatiha = await prisma.surah.findFirst({ where: { number: 1 } });
   await prisma.grade.createMany({
     data: [
@@ -69,21 +81,18 @@ async function mainE2E() {
         notes: 'Minor hesitation',
       },
     ],
-    skipDuplicates: true,
   });
   await prisma.message.createMany({
     data: [
       { senderId: teacher.id, receiverId: ali.id, content: 'أحسنت في حفظ سورة الفاتحة', type: 'TEXT' },
       { senderId: ali.id, receiverId: teacher.id, content: 'جزاك الله خيراً يا أستاذ', type: 'TEXT' },
     ],
-    skipDuplicates: true,
   });
   await prisma.notification.createMany({
     data: [
-      { userId: ali.id, type: 'GRADE', title: 'درجة جديدة', body: 'حصلت على درجة جديدة في سورة الفاتحة' },
-      { userId: ali.id, type: 'GENERAL', title: 'تذكير', body: 'موعد المراجعة غداً' },
+      { userId: ali.id, type: 'new_grade', title: 'درجة جديدة', body: 'حصلت على درجة جديدة في سورة الفاتحة' },
+      { userId: ali.id, type: 'new_message', title: 'تذكير', body: 'موعد المراجعة غداً' },
     ],
-    skipDuplicates: true,
   });
 
   console.log('\n🧪 E2E seed complete. Extra users:');
