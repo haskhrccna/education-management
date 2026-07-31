@@ -196,7 +196,7 @@ const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || 'Admin1234!';
 const TEACHER_PASSWORD = process.env.SEED_TEACHER_PASSWORD || 'Teacher1234!';
 const STUDENT_PASSWORD = process.env.SEED_STUDENT_PASSWORD || 'Student1234!';
 
-async function main() {
+export async function runSeed() {
   if (process.env.NODE_ENV === 'production') {
     const usingDefault =
       !process.env.SEED_ADMIN_PASSWORD || !process.env.SEED_TEACHER_PASSWORD || !process.env.SEED_STUDENT_PASSWORD;
@@ -440,9 +440,11 @@ async function main() {
   }
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => await prisma.$disconnect());
+if (require.main === module) {
+  runSeed()
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(async () => await prisma.$disconnect());
+}

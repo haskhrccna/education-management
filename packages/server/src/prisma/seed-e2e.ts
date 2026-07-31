@@ -1,0 +1,100 @@
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+import { runSeed } from './seed';
+
+const prisma = new PrismaClient();
+const PARENT_PASSWORD = process.env.SEED_PARENT_PASSWORD || 'Parent1234!';
+
+async function mainE2E() {
+  await runSeed();
+
+  const parentPass = await bcrypt.hash(PARENT_PASSWORD, 10);
+  const ali = await prisma.user.findUniqueOrThrow({ where: { email: 'ali@quran-review.com' } });
+  const teacher = await prisma.user.findUniqueOrThrow({ where: { email: 'teacher@quran-review.com' } });
+  const admin = await prisma.user.findUniqueOrThrow({ where: { email: 'admin@quran-review.com' } });
+
+  const mkParent = (email: string, firstName: string) =>
+    prisma.user.upsert({
+      where: { email },
+      update: {},
+      create: {
+        email,
+        passwordHash: parentPass,
+        role: 'PARENT',
+        firstName,
+        lastName: 'Guardian',
+        status: 'ACTIVE',
+        emailVerifiedAt: new Date(),
+      },
+    });
+
+  const parent1 = await mkParent('parent@quran-review.com', 'Yusuf'); // APPROVED link
+  const parent2 = await mkParent('parent2@quran-review.com', 'Layla'); // PENDING link
+  const parent3 = await mkParent('parent3@quran-review.com', 'Zaid'); // DENIED link
+
+  await prisma.parentLink.upsert({
+    where: { parentId_studentId: { parentId: parent1.id, studentId: ali.id } },
+    update: { status: 'APPROVED', decidedAt: new Date(), decidedBy: admin.id },
+    create: { parentId: parent1.id, studentId: ali.id, status: 'APPROVED', decidedAt: new Date(), decidedBy: admin.id },
+  });
+  await prisma.parentLink.upsert({
+    where: { parentId_studentId: { parentId: parent2.id, studentId: ali.id } },
+    update: { status: 'PENDING' },
+    create: { parentId: parent2.id, studentId: ali.id, status: 'PENDING', reason: "I am Ali's mother" },
+  });
+  await prisma.parentLink.upsert({
+    where: { parentId_studentId: { parentId: parent3.id, studentId: ali.id } },
+    update: { status: 'DENIED', decidedAt: new Date(), decidedBy: admin.id },
+    create: { parentId: parent3.id, studentId: ali.id, status: 'DENIED', decidedAt: new Date(), decidedBy: admin.id },
+  });
+
+  // Content for Ali so student/parent/teacher detail screens render data.
+  const fatiha = await prisma.surah.findFirst({ where: { number: 1 } });
+  await prisma.grade.createMany({
+    data: [
+      {
+        studentId: ali.id,
+        teacherId: teacher.id,
+        surahId: fatiha?.id ?? null,
+        grade: 'A',
+        type: 'QUIZ',
+        notes: 'Excellent tajweed',
+      },
+      {
+        studentId: ali.id,
+        teacherId: teacher.id,
+        surahId: fatiha?.id ?? null,
+        grade: 'B+',
+        type: 'ASSIGNMENT',
+        notes: 'Minor hesitation',
+      },
+    ],
+    skipDuplicates: true,
+  });
+  await prisma.message.createMany({
+    data: [
+      { senderId: teacher.id, receiverId: ali.id, content: 'أحسنت في حفظ سورة الفاتحة', type: 'TEXT' },
+      { senderId: ali.id, receiverId: teacher.id, content: 'جزاك الله خيراً يا أستاذ', type: 'TEXT' },
+    ],
+    skipDuplicates: true,
+  });
+  await prisma.notification.createMany({
+    data: [
+      { userId: ali.id, type: 'GRADE', title: 'درجة جديدة', body: 'حصلت على درجة جديدة في سورة الفاتحة' },
+      { userId: ali.id, type: 'GENERAL', title: 'تذكير', body: 'موعد المراجعة غداً' },
+    ],
+    skipDuplicates: true,
+  });
+
+  console.log('\n🧪 E2E seed complete. Extra users:');
+  console.log(`  parent@quran-review.com  | PARENT | APPROVED link → Ali | ${PARENT_PASSWORD}`);
+  console.log(`  parent2@quran-review.com | PARENT | PENDING link → Ali`);
+  console.log(`  parent3@quran-review.com | PARENT | DENIED link → Ali`);
+}
+
+mainE2E()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => await prisma.$disconnect());
