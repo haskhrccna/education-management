@@ -3,5 +3,8 @@
   "app/(auth)/register.tsx",
   "app/(auth)/forgot-password.tsx",
   "app/(auth)/first-login.tsx",
-  "app/(auth)/pending-approval.tsx"
+  "app/(auth)/pending-approval.tsx",
+  "app/student/home.tsx",
+  "app/student/appointments.tsx",
+  "app/student/grades.tsx"
 ]

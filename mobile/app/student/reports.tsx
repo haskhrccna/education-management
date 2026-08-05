@@ -73,7 +73,7 @@ export default function StudentReportsScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.back()} testID="reports.back">
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
             size={22}

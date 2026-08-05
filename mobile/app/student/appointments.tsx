@@ -194,10 +194,15 @@ export default function StudentAppointmentsScreen() {
     return status !== 'PENDING' && status !== 'REQUESTED';
   });
 
-  const renderAppointment = (item: Appointment) => {
+  const renderAppointment = (item: Appointment, index: number) => {
     const teacherName = fullName(item.teacher);
     return (
-      <AppCard key={item.id} colors={COLORS} style={styles.appointmentCard}>
+      <AppCard
+        key={item.id}
+        colors={COLORS}
+        style={styles.appointmentCard}
+        testID={`student-appointments.row.${index}`}
+      >
         <Avatar colors={COLORS} label={teacherName} size={42} />
         <View style={styles.appointmentInfo}>
           <Text style={styles.rowTitle}>{teacherName}</Text>
@@ -212,7 +217,7 @@ export default function StudentAppointmentsScreen() {
   };
 
   return (
-    <View style={styles.screen}>
+    <View style={styles.screen} testID="student-appointments.screen">
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACING.lg }]}
@@ -224,6 +229,7 @@ export default function StudentAppointmentsScreen() {
             icon={isAr ? 'arrow-forward-outline' : 'arrow-back-outline'}
             accessibilityLabel={isAr ? 'رجوع' : 'Back'}
             onPress={() => router.back()}
+            testID="student-appointments.back"
           />
           <View style={styles.headerText}>
             <Text style={styles.eyebrow}>{isAr ? 'جلسات المراجعة' : 'Review sessions'}</Text>
@@ -249,6 +255,7 @@ export default function StudentAppointmentsScreen() {
           activeOpacity={0.85}
           style={[styles.primaryButton, showForm && styles.secondaryButton]}
           onPress={() => setShowForm((current) => !current)}
+          testID="student-appointments.book"
         >
           <Ionicons
             name={showForm ? 'close-outline' : 'add-outline'}
@@ -261,7 +268,7 @@ export default function StudentAppointmentsScreen() {
         </TouchableOpacity>
 
         {showForm ? (
-          <AppCard colors={COLORS} style={styles.formCard}>
+          <AppCard colors={COLORS} style={styles.formCard} testID="student-appointments.book-form">
             <SectionHeader title={isAr ? 'تفاصيل الجلسة' : 'Session details'} colors={COLORS} />
 
             <Text style={styles.label}>{isAr ? 'معلمك' : 'Your teacher'}</Text>
@@ -275,6 +282,7 @@ export default function StudentAppointmentsScreen() {
                   activeOpacity={0.85}
                   onPress={() => router.push('/student/teacher-change')}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  testID="student-appointments.change-teacher"
                 >
                   <Text style={styles.changeTeacherLink}>{isAr ? 'طلب تغيير' : 'Request change'}</Text>
                 </TouchableOpacity>
@@ -284,6 +292,7 @@ export default function StudentAppointmentsScreen() {
                 activeOpacity={0.85}
                 style={styles.requestTeacherBox}
                 onPress={() => router.push('/student/teacher-change')}
+                testID="student-appointments.request-teacher"
               >
                 <Ionicons name="person-add-outline" size={20} color={COLORS.primary} />
                 <Text style={styles.requestTeacherText}>
@@ -304,6 +313,7 @@ export default function StudentAppointmentsScreen() {
                   onPress={() => setShowDatePicker(true)}
                   accessibilityRole="button"
                   accessibilityLabel={t('date')}
+                  testID="student-appointments.date-select"
                 >
                   <Text style={[styles.selectText, !dateStr && styles.selectPlaceholder]} numberOfLines={1}>
                     {dateStr ? formatDate(dateStr, i18n.language) : isAr ? 'اختر التاريخ' : 'Select date'}
@@ -319,6 +329,7 @@ export default function StudentAppointmentsScreen() {
                   onPress={() => setShowTimePicker(true)}
                   accessibilityRole="button"
                   accessibilityLabel={t('time')}
+                  testID="student-appointments.time-select"
                 >
                   <Text style={[styles.selectText, !timeStr && styles.selectPlaceholder]} numberOfLines={1}>
                     {timeStr ? timeStr : isAr ? 'اختر الوقت' : 'Select time'}
@@ -330,7 +341,7 @@ export default function StudentAppointmentsScreen() {
 
             <Text style={styles.label}>{t('durationMinutes')}</Text>
             <View style={styles.durationRow}>
-              {['30', '45', '60'].map((value) => {
+              {['30', '45', '60'].map((value, index) => {
                 const selected = duration === value;
                 return (
                   <TouchableOpacity
@@ -338,6 +349,7 @@ export default function StudentAppointmentsScreen() {
                     activeOpacity={0.85}
                     onPress={() => setDuration(value)}
                     style={[styles.durationChip, selected && styles.durationChipActive]}
+                    testID={`student-appointments.duration-chip.${index}`}
                   >
                     <Text style={[styles.durationText, selected && styles.durationTextActive]}>
                       {value} {t('minutes')}
@@ -351,6 +363,7 @@ export default function StudentAppointmentsScreen() {
               activeOpacity={0.85}
               style={styles.recurringToggle}
               onPress={() => setMakeRecurring((current) => !current)}
+              testID="student-appointments.recurring-toggle"
             >
               <Ionicons
                 name={makeRecurring ? 'checkbox' : 'square-outline'}
@@ -374,6 +387,7 @@ export default function StudentAppointmentsScreen() {
               style={[styles.submitButton, (submitting || !assignedTeacher) && styles.disabled]}
               onPress={handleSubmit}
               disabled={submitting || !assignedTeacher}
+              testID="student-appointments.submit"
             >
               {submitting ? (
                 <ActivityIndicator color="#FFFFFF" />
@@ -388,8 +402,13 @@ export default function StudentAppointmentsScreen() {
           <>
             <SectionHeader title={isAr ? 'المواعيد الأسبوعية الثابتة' : 'Standing weekly slots'} colors={COLORS} />
             <View style={styles.listStack}>
-              {recurringSlots.map((slot) => (
-                <AppCard key={slot.id} colors={COLORS} style={styles.appointmentCard}>
+              {recurringSlots.map((slot, index) => (
+                <AppCard
+                  key={slot.id}
+                  colors={COLORS}
+                  style={styles.appointmentCard}
+                  testID={`student-appointments.recurring-slot.${index}`}
+                >
                   <View style={styles.appointmentInfo}>
                     <Text style={styles.rowTitle}>{dayName(slot.dayOfWeek, isAr)}</Text>
                     <Text style={styles.rowMeta}>
@@ -409,6 +428,7 @@ export default function StudentAppointmentsScreen() {
                         ]
                       )
                     }
+                    testID={`student-appointments.recurring-slot-cancel.${index}`}
                   >
                     <Ionicons name="close-circle-outline" size={22} color={COLORS.error} />
                   </TouchableOpacity>
@@ -449,8 +469,12 @@ export default function StudentAppointmentsScreen() {
       </ScrollView>
 
       <Modal visible={showDatePicker} transparent animationType="slide" onRequestClose={() => setShowDatePicker(false)}>
-        <Pressable style={styles.modalBackdrop} onPress={() => setShowDatePicker(false)}>
-          <Pressable style={styles.modalSheet} onPress={() => {}}>
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setShowDatePicker(false)}
+          testID="student-appointments.date-modal-backdrop"
+        >
+          <Pressable style={styles.modalSheet} onPress={() => {}} testID="student-appointments.date-modal-sheet">
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{isAr ? 'اختر التاريخ' : 'Select date'}</Text>
               <TouchableOpacity
@@ -458,6 +482,7 @@ export default function StudentAppointmentsScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={t('close')}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                testID="student-appointments.date-modal-close"
               >
                 <Ionicons name="close" size={22} color={COLORS.textSecondary} />
               </TouchableOpacity>
@@ -467,7 +492,7 @@ export default function StudentAppointmentsScreen() {
               keyExtractor={(value) => value}
               style={styles.dateList}
               initialNumToRender={14}
-              renderItem={({ item }) => {
+              renderItem={({ item, index }) => {
                 const selected = item === dateStr;
                 return (
                   <TouchableOpacity
@@ -481,6 +506,7 @@ export default function StudentAppointmentsScreen() {
                       { flexDirection: isAr ? 'row-reverse' : 'row' },
                       selected && styles.dateRowActive,
                     ]}
+                    testID={`student-appointments.date-option.${index}`}
                   >
                     <Text style={[styles.dateRowText, selected && styles.dateRowTextActive]}>
                       {formatDate(item, i18n.language)}
@@ -495,8 +521,12 @@ export default function StudentAppointmentsScreen() {
       </Modal>
 
       <Modal visible={showTimePicker} transparent animationType="slide" onRequestClose={() => setShowTimePicker(false)}>
-        <Pressable style={styles.modalBackdrop} onPress={() => setShowTimePicker(false)}>
-          <Pressable style={styles.modalSheet} onPress={() => {}}>
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setShowTimePicker(false)}
+          testID="student-appointments.time-modal-backdrop"
+        >
+          <Pressable style={styles.modalSheet} onPress={() => {}} testID="student-appointments.time-modal-sheet">
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{isAr ? 'اختر الوقت' : 'Select time'}</Text>
               <TouchableOpacity
@@ -504,6 +534,7 @@ export default function StudentAppointmentsScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={t('close')}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                testID="student-appointments.time-modal-close"
               >
                 <Ionicons name="close" size={22} color={COLORS.textSecondary} />
               </TouchableOpacity>
@@ -513,7 +544,7 @@ export default function StudentAppointmentsScreen() {
               keyExtractor={(value) => value}
               style={styles.dateList}
               initialNumToRender={16}
-              renderItem={({ item }) => {
+              renderItem={({ item, index }) => {
                 const selected = item === timeStr;
                 return (
                   <TouchableOpacity
@@ -527,6 +558,7 @@ export default function StudentAppointmentsScreen() {
                       { flexDirection: isAr ? 'row-reverse' : 'row' },
                       selected && styles.dateRowActive,
                     ]}
+                    testID={`student-appointments.time-option.${index}`}
                   >
                     <Text style={[styles.dateRowText, selected && styles.dateRowTextActive]}>{item}</Text>
                     {selected ? <Ionicons name="checkmark" size={18} color={COLORS.primary} /> : null}

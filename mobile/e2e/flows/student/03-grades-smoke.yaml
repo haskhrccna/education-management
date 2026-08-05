@@ -1,0 +1,40 @@
+appId: com.quranreview.app
+tags: [student, smoke]
+---
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+- tapOn:
+    id: "bottom-nav.student-grades"
+- extendedWaitUntil:
+    visible:
+      id: "student-grades.screen"
+    timeout: 10000
+
+# Ali is seeded with two grades (seed-e2e.ts); the most recent renders at
+# row index 0.
+- extendedWaitUntil:
+    visible:
+      id: "student-grades.row.0"
+    timeout: 10000
+
+# NOTE (deviation, documented in BUGLOG.md/COVERAGE.md): grades.tsx has no
+# filter/segment control of any kind - only the header back button and a
+# retry button that only renders on a fetch error. There is nothing to
+# exercise here beyond the row assertion above.
+
+- tapOn:
+    id: "student-grades.back"
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 10000

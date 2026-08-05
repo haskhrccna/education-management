@@ -15,11 +15,16 @@ interface CardProps {
   children: React.ReactNode;
   colors: Colors;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-export function AppCard({ children, colors, style }: CardProps) {
+export function AppCard({ children, colors, style, testID }: CardProps) {
   const { spacingScale } = useSettingsScales();
-  return <View style={[uiStyles(colors, spacingScale).card, style]}>{children}</View>;
+  return (
+    <View style={[uiStyles(colors, spacingScale).card, style]} testID={testID}>
+      {children}
+    </View>
+  );
 }
 
 interface IconButtonProps {
@@ -160,9 +165,10 @@ interface SectionHeaderProps {
   onActionPress?: () => void;
   colors: Colors;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-export function SectionHeader({ title, actionLabel, onActionPress, colors, style }: SectionHeaderProps) {
+export function SectionHeader({ title, actionLabel, onActionPress, colors, style, testID }: SectionHeaderProps) {
   return (
     <View style={[uiStyles(colors, 1).sectionHeader, style]}>
       <AppText variant="titleLarge" style={uiStyles(colors, 1).sectionTitle}>
@@ -175,6 +181,7 @@ export function SectionHeader({ title, actionLabel, onActionPress, colors, style
           accessibilityRole="button"
           accessibilityLabel={actionLabel}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          testID={testID}
         >
           <AppText variant="labelLarge" style={uiStyles(colors, 1).sectionAction}>
             {actionLabel}

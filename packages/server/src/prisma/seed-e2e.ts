@@ -95,6 +95,29 @@ async function mainE2E() {
     ],
   });
 
+  // Task 5 (coordinator resolution #1): app/_layout.tsx redirects any active
+  // student/teacher/parent with onboardingCompletedAt == null to the
+  // onboarding wizard before it ever reaches home/appointments/grades. Stamp
+  // the seeded accounts used by E2E flows as already onboarded so their
+  // login lands directly on the role home screen. fatima@ (PENDING) and any
+  // freshly-registered journey user are deliberately left unstamped.
+  await prisma.user.updateMany({
+    where: {
+      email: {
+        in: [
+          'ali@quran-review.com',
+          'student@quran-review.com',
+          'teacher@quran-review.com',
+          'sarah@quran-review.com',
+          'parent@quran-review.com',
+          'parent2@quran-review.com',
+          'parent3@quran-review.com',
+        ],
+      },
+    },
+    data: { onboardingCompletedAt: new Date() },
+  });
+
   console.log('\n🧪 E2E seed complete. Extra users:');
   console.log(`  parent@quran-review.com  | PARENT | APPROVED link → Ali | ${PARENT_PASSWORD}`);
   console.log(`  parent2@quran-review.com | PARENT | PENDING link → Ali`);

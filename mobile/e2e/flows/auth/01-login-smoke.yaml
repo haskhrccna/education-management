@@ -40,15 +40,11 @@ tags: [auth, smoke]
     timeout: 10000
 - tapOn:
     id: "register.back-link"
-# Correct login succeeds and leaves the login screen. NOTE (deviation from the
-# brief): ali@quran-review.com is seeded with onboardingCompletedAt = null, so
-# app/_layout.tsx's auth gate (F5) redirects a first-time ACTIVE student to
-# /onboarding/student instead of /student/home — bottom-nav.student-home is
-# never rendered for this user. This is correct, intended app behavior (not a
-# bug), documented in BUGLOG.md. Assert on the onboarding screen's root
-# testID (added in review fix-pass) instead of its welcome text, which still
-# proves the credentials were accepted and the app navigated past the login
-# screen.
+# Correct login succeeds and leaves the login screen. Task 5 (coordinator
+# resolution #1): ali@quran-review.com is now seeded with
+# onboardingCompletedAt stamped (packages/server/src/prisma/seed-e2e.ts), so
+# app/_layout.tsx's auth gate (F5) no longer redirects her to
+# /onboarding/student — login lands directly on student home.
 - runFlow:
     file: ../_helpers/login.yaml
     env:
@@ -60,5 +56,5 @@ tags: [auth, smoke]
     timeout: 20000
 - extendedWaitUntil:
     visible:
-      id: "onboarding-student.screen"
+      id: "student-home.screen"
     timeout: 20000

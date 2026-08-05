@@ -231,6 +231,7 @@ export default function MushafScreen() {
           accessibilityRole="button"
           onPress={() => (router.canGoBack() ? router.back() : router.replace('/student/home'))}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          testID="mushaf.back"
         >
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
