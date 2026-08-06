@@ -59,15 +59,23 @@ tags: [student, smoke]
 # "X" close icon (no "Cancel" text label) at its top-right; dismiss via a
 # raw point tap (same sanctioned-exception pattern as the AutoFill sheet in
 # BUGLOG.md/COVERAGE.md). The sheet's mount animation needs a brief settle
-# before the tap registers reliably - retry once if the first tap lands
-# during that animation.
+# before the tap registers reliably - a single retry attempt was not enough
+# in a live run (the point tap landed while the presentation animation was
+# still in flight and silently missed); explicit waitForAnimationToEnd
+# settles before *and* after the tap, plus a third retry attempt, following
+# the same pattern already established for the AutoFill-sheet dismiss in
+# auth/02-register-smoke.yaml.
 - tapOn:
     id: "student-recordings.pick-audio"
+- waitForAnimationToEnd:
+    timeout: 1500
 - retry:
-    maxRetries: 2
+    maxRetries: 3
     commands:
       - tapOn:
           point: "78%, 12%"
+      - waitForAnimationToEnd:
+          timeout: 1000
       - extendedWaitUntil:
           visible:
             id: "student-recordings.screen"
