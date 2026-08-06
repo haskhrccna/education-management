@@ -206,16 +206,20 @@ export default function StudentRecordingsScreen() {
     }
   };
 
-  const renderItem = ({ item }: { item: Recording }) => (
-    <RecordingCard recording={item} COLORS={COLORS} isRTL={isRTL} />
+  const renderItem = ({ item, index }: { item: Recording; index: number }) => (
+    <RecordingCard recording={item} index={index} COLORS={COLORS} isRTL={isRTL} />
   );
 
   const isRecording = recording !== null;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: COLORS.background }}
+      edges={['top']}
+      testID="student-recordings.screen"
+    >
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
-        <TouchableOpacity onPress={() => router.back()} accessibilityRole="button">
+        <TouchableOpacity onPress={() => router.back()} accessibilityRole="button" testID="student-recordings.back">
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
             size={22}
@@ -232,7 +236,10 @@ export default function StudentRecordingsScreen() {
       {/* Action area */}
       <View style={styles.actionWrap}>
         {isRecording ? (
-          <View style={[styles.recordingBanner, { backgroundColor: COLORS.errorLight, borderColor: COLORS.error }]}>
+          <View
+            style={[styles.recordingBanner, { backgroundColor: COLORS.errorLight, borderColor: COLORS.error }]}
+            testID="student-recordings.recording-banner"
+          >
             <View style={[styles.pulseDot, { backgroundColor: COLORS.error }]} />
             <View style={{ flex: 1, marginHorizontal: SPACING.md }}>
               <Text style={[styles.recordingLabel, { color: COLORS.error }]}>{t('recordingInProgress')}</Text>
@@ -244,6 +251,7 @@ export default function StudentRecordingsScreen() {
               onPress={cancelRecording}
               style={[styles.smallBtn, { backgroundColor: COLORS.surface, borderColor: COLORS.error }]}
               accessibilityLabel={t('cancel')}
+              testID="student-recordings.cancel-recording"
             >
               <Ionicons name="close-outline" size={22} color={COLORS.error} />
             </TouchableOpacity>
@@ -254,6 +262,7 @@ export default function StudentRecordingsScreen() {
                 { backgroundColor: COLORS.error, marginStart: SPACING.sm, borderColor: COLORS.error },
               ]}
               accessibilityLabel={t('stopRecording')}
+              testID="student-recordings.stop-recording"
             >
               <Ionicons name="stop-outline" size={22} color="#FFFFFF" />
             </TouchableOpacity>
@@ -265,6 +274,7 @@ export default function StudentRecordingsScreen() {
               disabled={uploading}
               activeOpacity={0.85}
               style={[styles.actionBtn, { backgroundColor: COLORS.primary, opacity: uploading ? 0.5 : 1 }]}
+              testID="student-recordings.record"
             >
               <Ionicons name="radio-button-on-outline" size={24} color="#FFFFFF" style={styles.actionIcon} />
               <Text style={styles.actionLabel}>{t('recordAudio')}</Text>
@@ -278,6 +288,7 @@ export default function StudentRecordingsScreen() {
                 styles.actionBtnAlt,
                 { backgroundColor: COLORS.surface, borderColor: COLORS.primary, opacity: uploading ? 0.5 : 1 },
               ]}
+              testID="student-recordings.pick-audio"
             >
               <Ionicons name="musical-note-outline" size={24} color={COLORS.primary} style={styles.actionIcon} />
               <Text style={[styles.actionLabel, { color: COLORS.primary }]}>{t('pickAudioFile')}</Text>
@@ -296,7 +307,7 @@ export default function StudentRecordingsScreen() {
       {error ? (
         <View style={styles.center}>
           <Text style={{ color: COLORS.error, marginBottom: SPACING.md, textAlign: 'center' }}>{error}</Text>
-          <TouchableOpacity onPress={refresh}>
+          <TouchableOpacity onPress={refresh} testID="student-recordings.retry">
             <Text style={{ color: COLORS.primary, fontWeight: '700' }}>{t('retry')}</Text>
           </TouchableOpacity>
         </View>
@@ -311,7 +322,7 @@ export default function StudentRecordingsScreen() {
             loading ? (
               <ActivityIndicator style={{ marginTop: 40 }} color={COLORS.primary} />
             ) : (
-              <View style={styles.center}>
+              <View style={styles.center} testID="student-recordings.empty">
                 <Ionicons
                   name="mic-outline"
                   size={48}
@@ -334,7 +345,17 @@ export default function StudentRecordingsScreen() {
 
 // ─── Recording Card ────────────────────────────────────────────────────────────
 
-function RecordingCard({ recording, COLORS, isRTL }: { recording: Recording; COLORS: AnyColors; isRTL: boolean }) {
+function RecordingCard({
+  recording,
+  index,
+  COLORS,
+  isRTL,
+}: {
+  recording: Recording;
+  index: number;
+  COLORS: AnyColors;
+  isRTL: boolean;
+}) {
   const { t, i18n } = useTranslation();
   const cardRouter = useRouter();
   const status = getRecordingStatus(recording);
@@ -361,6 +382,7 @@ function RecordingCard({ recording, COLORS, isRTL }: { recording: Recording; COL
           borderRightWidth: isRTL ? 4 : 0,
         },
       ]}
+      testID={`student-recordings.row.${index}`}
     >
       <View style={[cardStyles.statusBadge, { backgroundColor: statusBg }]}>
         <Text style={[cardStyles.statusBadgeText, { color: statusColor }]}>{statusLabel}</Text>
@@ -377,6 +399,7 @@ function RecordingCard({ recording, COLORS, isRTL }: { recording: Recording; COL
           accessibilityLabel={`${t('pageNumber')} ${recording.page}`}
           onPress={() => cardRouter.push({ pathname: '/student/mushaf', params: { page: String(recording.page) } })}
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          testID={`student-recordings.row-page-link.${index}`}
         >
           <Text style={[cardStyles.meta, { color: COLORS.primary, textAlign: isRTL ? 'right' : 'left' }]}>
             {t('pageNumber')} {recording.page} ↗

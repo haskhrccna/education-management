@@ -6,5 +6,9 @@
   "app/(auth)/pending-approval.tsx",
   "app/student/home.tsx",
   "app/student/appointments.tsx",
-  "app/student/grades.tsx"
+  "app/student/grades.tsx",
+  "app/student/recordings.tsx",
+  "app/student/reports.tsx",
+  "app/student/revisions.tsx",
+  "app/student/teacher-change.tsx"
 ]

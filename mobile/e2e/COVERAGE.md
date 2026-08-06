@@ -124,6 +124,42 @@ Per the brief and coordinator resolution #3/#4: root container testID only, plus
 | reports | `reports.back` | *(none — testID present, not tapped)* | Added as a planned return path for `quick-action.3`, but never used: that tile's destination is nondeterministic (see Findings #3 / BUGLOG.md), so the flow cannot safely assume landing on `reports.tsx`. Presence verified by `check-testids.js` only. |
 | mushaf | `mushaf.back` | `01-home-smoke.yaml` | tapped, returns to `student-home.screen` (after `student-home.mushaf-cta`) |
 
+## E2E Coverage — Student Recordings / Reports / Revisions / Teacher-Change (Task 6)
+
+One row per control (testID) on the 4 student screens covered by `04-recordings-smoke.yaml`, `05-reports-smoke.yaml`, `06-revisions-smoke.yaml`, `07-teacher-change-smoke.yaml`. No interactive element on `student/recordings.tsx`, `student/reports.tsx`, `student/revisions.tsx`, or `student/teacher-change.tsx` is missing a testID (`check-testids.js` enforces this).
+
+| screen | control (testID) | flow file | step |
+|---|---|---|---|
+| student-recordings | `student-recordings.screen` | `04-recordings-smoke.yaml` | asserted visible |
+| student-recordings | `student-recordings.back` | `04-recordings-smoke.yaml` | tapped, returns to `student-home.screen` |
+| student-recordings | `student-recordings.empty` | `04-recordings-smoke.yaml` | asserted visible — ali has no seeded recordings |
+| student-recordings | `student-recordings.record` | `04-recordings-smoke.yaml` | tapped — see BUGLOG.md: mic permission was already granted on this simulator (persists across `clearState`), so this starts a real `AVAudioSession` recording rather than showing a permission prompt |
+| student-recordings | `student-recordings.recording-banner` | `04-recordings-smoke.yaml` | asserted visible immediately after `record`, asserted not-visible after `cancel-recording` |
+| student-recordings | `student-recordings.cancel-recording` | `04-recordings-smoke.yaml` | tapped immediately after the recording banner appears — discards the in-progress recording without uploading (per coordinator resolution #3: no real audio artifact left behind) |
+| student-recordings | `student-recordings.stop-recording` | *(none — testID present, not tapped)* | Would stop-and-upload the recording; not exercised since resolution #3 requires canceling instead. Presence verified by `check-testids.js` only. |
+| student-recordings | `student-recordings.pick-audio` | `04-recordings-smoke.yaml` | tapped -> opens iOS's native `UIDocumentPickerViewController` ("Recents" browser, no testID surface — OS chrome); dismissed via a raw point tap wrapped in a 2-attempt retry (see BUGLOG.md) |
+| student-recordings | `student-recordings.retry` | *(none — testID present, not tapped)* | Only rendered on a fetch error; the happy-path smoke flow never hits it. Presence verified by `check-testids.js` only. |
+| student-recordings | `student-recordings.row.N` / `student-recordings.row-page-link.N` | *(none — testID present, not tapped)* | Ali has no seeded recordings in any run observed (empty state renders instead); no row existed to tap. Presence verified by `check-testids.js` only. |
+| student-reports | `student-reports.screen` | `05-reports-smoke.yaml` | asserted visible — reached via the `quran-review://student/reports` deep link (see below), not `quick-action.3` directly |
+| student-reports | `reports.back` | `05-reports-smoke.yaml` | tapped — this is Task 5's pre-existing testID (screen-id prefix `reports`, not `student-reports`, kept as-is per the brief's explicit "reuse it... check before adding a duplicate" instruction rather than renamed for convention consistency); return-to-home afterward goes through `bottom-nav.student-home`, not a direct assert on `reports.back`'s destination — see BUGLOG.md Task 6 addendum for why |
+| student-reports | `student-reports.empty` | `05-reports-smoke.yaml` | asserted visible — ali has no seeded reports |
+| student-reports | `student-reports.retry` | *(none — testID present, not tapped)* | Only rendered on a fetch error. Presence verified by `check-testids.js` only. |
+| student-reports | `student-reports.row.N` / `student-reports.download.N` | *(none — testID present, not tapped)* | Ali has no seeded `Report` rows in any run observed (empty state renders instead). Presence verified by `check-testids.js` only. |
+| student-home | `student-home.quick-action.3` (reports) | `05-reports-smoke.yaml` | tapped with only `assertNotVisible: student-home.screen` (loose assertion, per coordinator resolution #1 — this tile is one of the two confirmed-nondeterministic-destination tiles, BUGLOG.md Finding #3). Reproduced landing on `student-grades.screen` in this task's run (a third distinct wrong-destination reproduction — see the Task 6 BUGLOG addendum). `student-reports.screen` itself is reached separately and reliably via `openLink: "quran-review://student/reports"`, called directly after the quick-action tap without an intervening `launchApp` (a relaunch was tried first and found to drop the session back to `login.screen` — documented in the flow file's inline comment). |
+| student-revisions | `student-revisions.screen` | `06-revisions-smoke.yaml` | asserted visible, reached via `student-home.quick-action.4` — reliable (not one of the two flagged-nondeterministic tiles) |
+| student-revisions | `student-revisions.back` | `06-revisions-smoke.yaml` | tapped, returns to `student-home.screen` |
+| student-revisions | `student-revisions.row.0` | `06-revisions-smoke.yaml` | asserted visible — one of ali's 3 seeded PENDING `RevisionSchedule` rows (`packages/server/src/prisma/seed.ts`) |
+| student-revisions | `student-revisions.row.1` / `student-revisions.row.2` | *(none — testID present, not individually asserted)* | Ali has 3 seeded rows total; only row 0 is individually asserted/exercised, matching the "assert a representative row" depth used elsewhere in this suite (e.g. `student-grades.row.0`, `student-appointments.row.0`). Presence verified by `check-testids.js` only. |
+| student-revisions | `student-revisions.mark-completed.0` | `06-revisions-smoke.yaml` | tapped -> native confirm `Alert` appears -> **canceled** (not confirmed), so the seeded PENDING row is never mutated (no DB reset runs between flow iterations in this task's environment — see the hard restriction on `prisma migrate reset`) |
+| student-revisions | `student-revisions.mark-missed.0` | `06-revisions-smoke.yaml` | tapped -> native confirm `Alert` appears -> **canceled**, same non-mutation rationale as above |
+| student-revisions | `student-revisions.retry` | *(none — testID present, not tapped)* | Only rendered on a fetch error. Presence verified by `check-testids.js` only. |
+| student-revisions | `student-revisions.empty` | *(none — testID present, not tapped)* | Ali has 3 seeded rows, so the empty state never renders in this flow. Presence verified by `check-testids.js` only. |
+| student-teacher-change | `student-teacher-change.screen` | `07-teacher-change-smoke.yaml` | asserted visible, reached via `student-appointments.change-teacher` (reliable — a direct link on `student-appointments.screen`'s booking form, not a home quick-action) |
+| student-teacher-change | `student-teacher-change.back` | `07-teacher-change-smoke.yaml` | tapped **instead of** `submit` — returns to `student-appointments.screen` |
+| student-teacher-change | `student-teacher-change.reason` | `07-teacher-change-smoke.yaml` | filled with a >=10-character reason string |
+| student-teacher-change | `student-teacher-change.submit` | *(none — testID present, deliberately NOT tapped)* | Hard requirement (coordinator resolution #5): submitting would create a real `TeacherChangeRequest` row, mutating state Plan 2's admin flows and Journey 7 depend on. Verified via direct DB query after this task's flow runs: `SELECT count(*) FROM teacher_change_requests` returns `0`. Presence verified by `check-testids.js` only. |
+| student-appointments | `student-appointments.change-teacher` | `07-teacher-change-smoke.yaml` | tapped -> `student-teacher-change.screen` (Task 5 had left this testID present-but-untapped; this task exercises it for the first time) |
+
 ## Sanctioned text-selector exceptions
 
 Every assertable app-rendered element on the 5 auth screens now has a testID and is asserted by id (see review fix-pass, `.superpowers/sdd/task-4-report.md`). The following text-selector assertions remain — none can carry a testID because none is an app-rendered React element:

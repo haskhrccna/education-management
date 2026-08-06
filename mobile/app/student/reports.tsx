@@ -71,7 +71,11 @@ export default function StudentReportsScreen() {
   const dateLocale = i18n.language === 'ar' ? 'ar-SA' : 'en-US';
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: COLORS.background }}
+      edges={['top']}
+      testID="student-reports.screen"
+    >
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
         <TouchableOpacity onPress={() => router.back()} testID="reports.back">
           <Ionicons
@@ -96,18 +100,18 @@ export default function StudentReportsScreen() {
         ) : error ? (
           <View style={styles.center}>
             <Text style={{ color: COLORS.error, marginBottom: SPACING.md }}>{error}</Text>
-            <TouchableOpacity onPress={onRefresh}>
+            <TouchableOpacity onPress={onRefresh} testID="student-reports.retry">
               <Text style={{ color: COLORS.primary, fontWeight: '700' }}>{t('retry')}</Text>
             </TouchableOpacity>
           </View>
         ) : reports.length === 0 ? (
-          <View style={styles.center}>
+          <View style={styles.center} testID="student-reports.empty">
             <Text style={{ fontSize: 40, marginBottom: SPACING.md }}>📑</Text>
             <Text style={[styles.emptyTitle, { color: COLORS.textPrimary }]}>{t('noReports')}</Text>
             <Text style={[styles.emptyDesc, { color: COLORS.textSecondary }]}>{t('noReportsDesc')}</Text>
           </View>
         ) : (
-          reports.map((r) => {
+          reports.map((r, index) => {
             const { period, notes } = parsePeriod(r.summary);
             const dateStr = new Date(r.generatedAt).toLocaleDateString(dateLocale, {
               year: 'numeric',
@@ -115,7 +119,11 @@ export default function StudentReportsScreen() {
               day: 'numeric',
             });
             return (
-              <View key={r.id} style={[styles.card, { backgroundColor: COLORS.surface }]}>
+              <View
+                key={r.id}
+                style={[styles.card, { backgroundColor: COLORS.surface }]}
+                testID={`student-reports.row.${index}`}
+              >
                 <View style={styles.cardHeader}>
                   <View style={{ flex: 1 }}>
                     {period ? (
@@ -152,6 +160,7 @@ export default function StudentReportsScreen() {
                   onPress={() => handleDownload(r.id)}
                   disabled={downloadingId === r.id}
                   activeOpacity={0.85}
+                  testID={`student-reports.download.${index}`}
                 >
                   {downloadingId === r.id ? (
                     <ActivityIndicator color="#fff" />

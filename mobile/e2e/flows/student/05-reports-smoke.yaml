@@ -1,0 +1,67 @@
+appId: com.quranreview.app
+tags: [student, smoke]
+---
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+
+# quick-action.3 (reports) is one of the two tiles BUGLOG.md/Task 5 found
+# navigate to a WRONG destination nondeterministically (Findings #3). Exercise
+# the control (proves it's real and tappable) with only a loose assertion -
+# do NOT assume it lands on student-reports.screen.
+- scrollUntilVisible:
+    element:
+      id: "student-home.quick-action.3"
+    direction: DOWN
+- tapOn:
+    id: "student-home.quick-action.3"
+- assertNotVisible:
+    id: "student-home.screen"
+
+# Reliable entry into student-reports.screen: deep link via the app's
+# registered scheme (bypasses quick-action.3's unreliable click-navigation
+# entirely, same pattern as 05-first-login-smoke.yaml's openLink usage).
+# NOTE: do NOT relaunch the app first - a relaunch (even with clearState:
+# false) drops back to login.screen (the session does not appear to
+# rehydrate before the deep link's route change fires); openLink while the
+# app is still running (same as 05-first-login-smoke.yaml, called right
+# after login with no launchApp in between) works reliably.
+- openLink: "quran-review://student/reports"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "student-reports.screen"
+    timeout: 10000
+
+# Ali has no seeded reports -> empty state.
+- extendedWaitUntil:
+    visible:
+      id: "student-reports.empty"
+    timeout: 10000
+
+- tapOn:
+    id: "reports.back"
+# NOTE (app bug, see BUGLOG.md Findings #3): reports.back's router.back() pops
+# to whatever screen was actually beneath it in the navigation stack, which -
+# because it was reached via a deep link stacked on top of quick-action.3's
+# unpredictable landing spot - is NOT reliably student-home.screen (observed
+# landing on student-grades.screen in one run). Every one of ali's reachable
+# student screens renders BottomNav, so return to home via the tab bar
+# instead of asserting a specific "back" destination.
+- tapOn:
+    id: "bottom-nav.student-home"
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 10000
