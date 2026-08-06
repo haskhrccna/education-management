@@ -64,8 +64,8 @@ One row per control (testID) on the 3 student screens covered by `flows/student/
 | student-home | `student-home.revision-mark.N` | *(none — testID present, not tapped)* | Same reason as `revision-item.N` above. |
 | student-home | `student-home.quick-action.0` (session) | `01-home-smoke.yaml` | tapped -> `student-appointments.screen`, back via `bottom-nav.student-home` |
 | student-home | `student-home.quick-action.1` (record) | `01-home-smoke.yaml` | tapped -> `/student/recordings` (no `.screen` testID yet; asserted `student-home.screen` not visible), back via `bottom-nav.student-home` |
-| student-home | `student-home.quick-action.2` (grades) | `01-home-smoke.yaml` | tapped -> `student-grades.screen`, back via `bottom-nav.student-home` |
-| student-home | `student-home.quick-action.3` (reports) | `01-home-smoke.yaml` | tapped -> `/student/reports` (no `BottomNav`; asserted not-visible), back via `reports.back` |
+| student-home | `student-home.quick-action.2` (grades) | `01-home-smoke.yaml` | tapped, in its own isolated fresh-login segment; only `assertNotVisible: student-home.screen` is checked — **destination NOT asserted and no return tap performed**. This tile's actual landing screen is confirmed nondeterministic (BUGLOG.md: reproduced landing on `student-appointments.screen` in isolation) — see Findings #3. The segment ends after the tap; no `back`/`bottom-nav` control is exercised for it. |
+| student-home | `student-home.quick-action.3` (reports) | `01-home-smoke.yaml` | tapped, in its own isolated fresh-login segment; only `assertNotVisible: student-home.screen` is checked — **destination NOT asserted and no return tap performed**. This tile's actual landing screen is confirmed nondeterministic (BUGLOG.md: reproduced landing on `student-grades.screen` when chained after other navigation) — see Findings #3. `reports.back` is **not referenced by this or any flow file** (confirmed by grep); the `reports.tsx` back button remains untapped by any smoke flow. |
 | student-home | `student-home.quick-action.4` (revisions) | `01-home-smoke.yaml` | tapped -> `/student/revisions`, back via `bottom-nav.student-home` |
 | student-home | `student-home.quick-action.5` (plans) | `01-home-smoke.yaml` | tapped -> `/student/plans`, back via `bottom-nav.student-home` |
 | student-home | `student-home.quick-action.6` (ijazahs) | `01-home-smoke.yaml` | tapped (after `scrollUntilVisible` — sits alone in the grid's last row) -> `/student/ijazahs`, back via `bottom-nav.student-home` |
@@ -117,11 +117,11 @@ Per the brief and coordinator resolution #3/#4: root container testID only, plus
 
 ## Additional back-button testIDs (out of the brief's file list, added as navigation fallbacks)
 
-`reports.tsx` and `mushaf.tsx` are not in the brief's "Files" list for this task, but both are reachable from `student-home.screen` quick actions and neither renders `BottomNav`, so there was no other reliable way for `01-home-smoke.yaml` to navigate back to home (per coordinator resolution #4's explicit fallback: "if a destination lacks one, add `<screen>.back` testID to it"). Only the back button on each was tagged — no root `.screen` testID, no `covered-screens.json` registration, no other controls on either screen touched.
+`reports.tsx` and `mushaf.tsx` are not in the brief's "Files" list for this task, but both are reachable from `student-home.screen` quick actions and neither renders `BottomNav`, so there was no other reliable way for `01-home-smoke.yaml` to navigate back to home (per coordinator resolution #4's explicit fallback: "if a destination lacks one, add `<screen>.back` testID to it"). Only the back button on each was tagged — no root `.screen` testID, no `covered-screens.json` registration, no other controls on either screen touched. **`reports.back` ended up unused**: `quick-action.3`'s destination turned out to be nondeterministic (Findings #3), so the flow could not reliably assume it lands on `reports.tsx` to tap its back button — the segment ends right after the tap with only `assertNotVisible: student-home.screen`. The `reports.back` testID remains present in source (verified by `check-testids.js`) but is not exercised by any flow.
 
 | screen | control (testID) | flow file | step |
 |---|---|---|---|
-| reports | `reports.back` | `01-home-smoke.yaml` | tapped, returns to `student-home.screen` (after `student-home.quick-action.3`) |
+| reports | `reports.back` | *(none — testID present, not tapped)* | Added as a planned return path for `quick-action.3`, but never used: that tile's destination is nondeterministic (see Findings #3 / BUGLOG.md), so the flow cannot safely assume landing on `reports.tsx`. Presence verified by `check-testids.js` only. |
 | mushaf | `mushaf.back` | `01-home-smoke.yaml` | tapped, returns to `student-home.screen` (after `student-home.mushaf-cta`) |
 
 ## Sanctioned text-selector exceptions
