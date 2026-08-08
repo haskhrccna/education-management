@@ -215,6 +215,34 @@ One row per control (testID) on the 4 student screens covered by `04-recordings-
 | student-teacher-change | `student-teacher-change.submit` | *(none — testID present, deliberately NOT tapped)* | Hard requirement (coordinator resolution #5): submitting would create a real `TeacherChangeRequest` row, mutating state Plan 2's admin flows and Journey 7 depend on. Verified via direct DB query after this task's flow runs: `SELECT count(*) FROM teacher_change_requests` returns `0`. Presence verified by `check-testids.js` only. |
 | student-appointments | `student-appointments.change-teacher` | `07-teacher-change-smoke.yaml` | tapped -> `student-teacher-change.screen` (Task 5 had left this testID present-but-untapped; this task exercises it for the first time) |
 
+## E2E Coverage — Journey 1: registration -> admin approval -> login (Task 8)
+
+`journeys/01-registration-approval.yaml` — the suite's first cross-role journey and first task touching admin screens. Per coordinator resolution #1 for this task, admin testIDs added here are **minimal, journey-scoped only** — `mobile/app/admin/home.tsx` and `mobile/app/admin/change-requests.tsx` are deliberately **not** added to `covered-screens.json` (no full-admin-screen `check-testids.js` enforcement; that is out of scope, reserved for a future admin-smoke task).
+
+**Deviations from the brief's draft flow (all verified empirically against the real source, per coordinator resolution #4/#3):**
+
+1. **No dedicated "users list" screen exists.** `admin/home.tsx` has no separate users-list route — its `approvalsSummary` button (now `admin-home.approvals`) navigates straight to `admin/change-requests.tsx`, a single combined **Approvals** screen listing pending student accounts, teacher-change requests, and parent-link requests together (filterable by chips, no search input). The brief's placeholder names (`admin-home.users`, `admin-users.*`, `admin-user-detail.approve`) were adjusted to match: `admin-home.approvals` (link), `admin-approvals.screen` (the combined list), `admin-approvals.filter.STUDENT_ACCOUNT` (the chip that isolates pending student accounts), `admin-approvals.row.${index}` (row container, added for convention/future reuse though this flow doesn't tap it by index), `admin-approvals.approve` (the approve button — safe as a single non-indexed testID since only one row can be expanded, hence only one approve button rendered, at a time).
+2. **No search input, so `scrollUntilVisible` + text match locates the row**, per coordinator resolution #3 — `scrollUntilVisible: { element: { text: "Journey One" } }` then `tapOn: { text: "Journey One" }`, rather than an index-based `admin-approvals.row.N`. The STUDENT_ACCOUNT-filtered list also contains the seeded PENDING fixture `fatima@quran-review.com`, so the new user's position in the list is not a fixed index this flow could rely on.
+3. **Part 2 ("pending login is blocked") asserts `login.error`, not `pending-approval.screen`** — the brief's draft assumed the latter, but this is already-documented, already-verified app behavior from Task 4 (`auth/04-pending-approval-smoke.yaml`, BUGLOG.md): the server rejects login for any non-`ACTIVE` account with a 403 before the app ever receives a user object, so the auth-gate redirect in `_layout.tsx` (`user.status === 'pending' -> router.replace('/pending-approval')`) never fires — `user` stays `null` and the app remains on `login.screen` showing `login.error`. Not a new finding, not re-derived from scratch — this task simply applies the already-established fact to a new flow. No new BUGLOG.md entry was needed.
+4. **Registration destination re-verified, unchanged**: `register.tsx`'s `handleRegister` still calls `router.replace('/pending-approval')` on success and `register()` in `mobile/src/auth/store.ts` still only calls the API (never sets `user`/`token`) — so `pending-approval.screen` is reached by a raw, unauthenticated navigation, exactly as in Task 4. `pending-approval.logout`'s `router.push('/')` therefore lands cleanly on a real `login.screen` with no auth-gate bounce-back (there is no authenticated `user` object to trigger one).
+
+### testID inventory (admin, journey-scoped — for Task 9's consumption)
+
+| screen | testID | control |
+|---|---|---|
+| `admin-home.screen` (`mobile/app/admin/home.tsx`) | `admin-home.screen` | root `View` |
+| | `admin-home.approvals` | the "Approvals" summary card/button — navigates to `admin/change-requests` |
+| `admin-approvals.screen` (`mobile/app/admin/change-requests.tsx`) | `admin-approvals.screen` | root `SafeAreaView` |
+| | `admin-approvals.filter.ALL` / `.TEACHER_CHANGE` / `.PARENT_LINK` / `.STUDENT_ACCOUNT` | the 4 filter chips (all 4 given testIDs — trivial to do while already touching this `.map()`, not a scope expansion; this flow only taps `.STUDENT_ACCOUNT`) |
+| | `admin-approvals.row.${index}` | each approval-row `TouchableOpacity` (index into the currently-filtered list) — present for Task 9/future reuse, not tapped by this flow (which taps by text instead, see deviation #2) |
+| | `admin-approvals.approve` | the Approve button inside an expanded row's action row (STUDENT_ACCOUNT/PARENT_LINK branch only — TEACHER_CHANGE's branch uses a different "Assign Teacher" flow, out of this journey's scope, no testID added there) |
+
+**Note for Task 9**: `admin/home.tsx` and `admin/change-requests.tsx` still have plenty of untouched interactive elements (header icons, academy-grid cards, teacher-change "Assign Teacher"/"Deny" buttons, parent-link "Deny" button, the teacher-picker modal, edit/delete on `user-detail.tsx`, etc.) — none of those have testIDs yet. If Task 9 needs a full admin-screen pass, it starts from a source file that is only partially annotated.
+
+### Determinism proof
+
+`journeys/01-registration-approval.yaml` mutates real DB state (creates `e2e-journey1@quran-review.com`, then flips it PENDING -> ACTIVE). A second run of the same flow **without** a DB reset must fail specifically at the Part 1 registration step, with a 409 (duplicate email) surfaced as `register.error`, proving the fixture user genuinely persisted rather than the flow being accidentally idempotent. See the verification results below for the actual run output.
+
 ## Sanctioned text-selector exceptions
 
 Every assertable app-rendered element on the 5 auth screens now has a testID and is asserted by id (see review fix-pass, `.superpowers/sdd/task-4-report.md`). The following text-selector assertions remain — none can carry a testID because none is an app-rendered React element:

@@ -1,0 +1,150 @@
+appId: com.quranreview.app
+tags: [journey]
+---
+# Journey 1: student self-registration -> admin approval -> student can log in.
+#
+# Part 1: student registers. Reuses boot.yaml (Metro reconnect + dev-launcher
+# dance) rather than duplicating it, per this task's coordinator resolution.
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/boot.yaml
+- tapOn:
+    id: "login.register-link"
+- tapOn:
+    text: "Not Now"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "register.screen"
+    timeout: 10000
+- tapOn:
+    id: "register.first-name"
+- inputText: "Journey"
+- tapOn:
+    id: "register.last-name"
+- inputText: "One"
+- tapOn:
+    id: "register.email"
+- inputText: "e2e-journey1@quran-review.com"
+# See BUGLOG.md "iOS Password AutoFill gets wedged..." - same retry safety net
+# already established in auth/02-register-smoke.yaml and
+# auth/04-pending-approval-smoke.yaml for the password field + submit.
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          id: "register.password"
+      - tapOn:
+          point: "91%, 61%"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 1000
+      - tapOn:
+          id: "register.password"
+      - waitForAnimationToEnd:
+          timeout: 1000
+      - eraseText
+      - inputText: "Journey1234!"
+      - tapOn:
+          id: "register.submit"
+      - tapOn:
+          text: "Not Now"
+          optional: true
+      - extendedWaitUntil:
+          visible:
+            id: "pending-approval.screen"
+          timeout: 8000
+
+# Part 2: pending login is blocked. register() does not authenticate the app
+# (mobile/src/auth/store.ts's register() only calls the API, never sets
+# user/token) - pending-approval.screen is reached by a raw router.replace,
+# not the auth gate. So pending-approval.logout's router.push('/') lands
+# cleanly on a real, unauthenticated login.screen (no bounce-back), unlike a
+# genuinely-authenticated pending session.
+#
+# Per BUGLOG.md / auth/04-pending-approval-smoke.yaml's already-documented,
+# already-verified behavior: the server rejects login for any non-ACTIVE
+# account with 403 before the app ever gets a user object, so the app never
+# reaches pending-approval.screen via a login attempt - it stays on
+# login.screen showing login.error. This flow asserts that established
+# behavior rather than a (currently unreachable) pending-approval.screen
+# landing.
+- tapOn:
+    id: "pending-approval.logout"
+- extendedWaitUntil:
+    visible:
+      id: "login.screen"
+    timeout: 10000
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: "e2e-journey1@quran-review.com"
+      PASSWORD: "Journey1234!"
+- extendedWaitUntil:
+    visible:
+      id: "login.error"
+    timeout: 10000
+
+# Part 3: admin approves. The real admin UI has no dedicated "users list"
+# screen reachable from admin/home.tsx - admin-home.approvals navigates to
+# the combined approvals screen (admin/change-requests.tsx), which lists
+# pending student accounts, teacher-change requests, and parent-link requests
+# together, filterable by chips (no search input exists). Per this task's
+# coordinator resolution #3, scrollUntilVisible + a text match locates the
+# specific new user's row instead (the STUDENT_ACCOUNT-filtered list also
+# contains the seeded PENDING fixture fatima@quran-review.com, so the row's
+# position in the list is not a fixed index this flow can rely on - matching
+# by "Journey One" text is unambiguous and simpler than guessing the index).
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: "admin@quran-review.com"
+      PASSWORD: "Admin1234!"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 20000
+- tapOn:
+    id: "admin-home.approvals"
+- extendedWaitUntil:
+    visible:
+      id: "admin-approvals.screen"
+    timeout: 10000
+- tapOn:
+    id: "admin-approvals.filter.STUDENT_ACCOUNT"
+- scrollUntilVisible:
+    element:
+      text: "Journey One"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    text: "Journey One"
+- extendedWaitUntil:
+    visible:
+      id: "admin-approvals.approve"
+    timeout: 5000
+- tapOn:
+    id: "admin-approvals.approve"
+# approveStudentAccount()'s finish() resets expandedId to null and refreshes
+# the list on success - the approve button (only rendered while its row is
+# expanded) disappearing is a reliable signal the PUT completed.
+- extendedWaitUntil:
+    notVisible:
+      id: "admin-approvals.approve"
+    timeout: 10000
+
+# Part 4: student can now log in (status is now ACTIVE).
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: "e2e-journey1@quran-review.com"
+      PASSWORD: "Journey1234!"
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
