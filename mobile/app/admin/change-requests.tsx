@@ -250,6 +250,7 @@ export default function ApprovalsScreen() {
                 key={`${row.kind}:${row.id}`}
                 activeOpacity={0.85}
                 accessibilityRole="button"
+                accessible={false}
                 onPress={() => {
                   setExpandedId(expanded ? null : `${row.kind}:${row.id}`);
                   setAdminNote('');
