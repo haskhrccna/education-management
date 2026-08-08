@@ -49,14 +49,59 @@ tags: [journey]
 - tapOn:
     id: "grade-form.student-select.0"
 
+# The surah picker renders 114+ chips (all Surahs plus "Overall recital") right
+# above the score input, pushing it far below the initial viewport - a live run
+# confirmed `tapOn: id: grade-form.grade-input` fails with "Element not found"
+# without an explicit scroll first (same class of issue already established for
+# deep form controls in 02-appointments-smoke.yaml: tapOn's own auto-scroll does
+# not reliably reach controls this far down a scrollable form).
+- scrollUntilVisible:
+    element:
+      id: "grade-form.grade-input"
+    direction: DOWN
 - tapOn:
     id: "grade-form.grade-input"
 - inputText: "A-"
+# A live run showed the on-screen numeric keyboard (keyboardType="numeric")
+# staying open after typing and absorbing the NEXT taps as its own keypad
+# presses instead of reaching the real `type-chip.0`/`submit` controls beneath
+# it - Maestro computes tap coordinates from the RN view hierarchy's layout,
+# which does not account for the native iOS keyboard overlay sitting on top of
+# (and intercepting touches within) that same screen region. Confirmed by the
+# failure screenshot: the score field read "A-0" (an extra "0" leaked in from
+# the keypad) and no grade row was created server-side.
+#
+# `hideKeyboard` itself then failed ("app doesn't expose a standard dismiss
+# action") - `keyboardType="numeric"` on iOS has no Done/return key to press.
+# A second attempt (scroll up to `student-select.0`, tap a raw "50%, 5%" point)
+# also failed identically - `scrollUntilVisible` stops as soon as its target
+# meets the visibility threshold, which can leave that target itself sitting
+# near the very top of the viewport, so the point tap likely landed back on
+# the (touchable) student chip rather than the header - and per
+# `keyboardShouldPersistTaps="handled"` (grade-form.tsx), a tap a child DOES
+# handle does not dismiss the keyboard. Fixed at the source (this task added
+# `testID="grade-form.header"` to the header's own, definitely non-touchable,
+# `View` - grade-form.tsx) so this flow can target it deterministically instead
+# of guessing a coordinate.
+- scrollUntilVisible:
+    element:
+      id: "grade-form.header"
+    direction: UP
+- tapOn:
+    id: "grade-form.header"
 
 # "pick the first real GradeType" (brief step 2) - GRADE_TYPES[0] is QUIZ.
+- scrollUntilVisible:
+    element:
+      id: "grade-form.type-chip.0"
+    direction: DOWN
 - tapOn:
     id: "grade-form.type-chip.0"
 
+- scrollUntilVisible:
+    element:
+      id: "grade-form.submit"
+    direction: DOWN
 - tapOn:
     id: "grade-form.submit"
 

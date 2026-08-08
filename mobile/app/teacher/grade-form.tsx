@@ -105,7 +105,7 @@ export default function GradeFormScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']} testID="grade-form.screen">
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         {/* Header */}
-        <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
+        <View style={[styles.header, { backgroundColor: COLORS.primary }]} testID="grade-form.header">
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons
               name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
