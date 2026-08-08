@@ -197,9 +197,10 @@ interface StatusPillProps {
   label: string;
   status?: 'success' | 'warning' | 'error' | 'info' | 'neutral';
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-export function StatusPill({ colors, label, status = 'neutral', style }: StatusPillProps) {
+export function StatusPill({ colors, label, status = 'neutral', style, testID }: StatusPillProps) {
   const bg =
     status === 'success'
       ? colors.successLight
@@ -221,7 +222,7 @@ export function StatusPill({ colors, label, status = 'neutral', style }: StatusP
             ? colors.info
             : colors.primary;
   return (
-    <View style={[uiStyles(colors, 1).statusPill, { backgroundColor: bg }, style]}>
+    <View style={[uiStyles(colors, 1).statusPill, { backgroundColor: bg }, style]} testID={testID}>
       <AppText variant="labelLarge" style={uiStyles(colors, 1).statusText}>
         {label}
       </AppText>

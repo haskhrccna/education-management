@@ -185,13 +185,22 @@ export default function StudentAppointmentsScreen() {
     }
   };
 
-  const pending = appointments.filter((appointment) => {
+  // Indexed against the single `appointments` array (not each filtered list's own
+  // local position) so `student-appointments.row.${index}` / `.status.${index}`
+  // stay unique across the whole screen. Two independent `.filter()` calls (the
+  // prior implementation) each restart their own index at 0 - harmless while a
+  // student only ever had a decided appointment, but a real testID collision
+  // once a student has both a pending AND a decided appointment on screen at the
+  // same time (e.g. mid-Journey-2, after booking but before the teacher accepts).
+  const pending: Array<{ item: Appointment; index: number }> = [];
+  const decided: Array<{ item: Appointment; index: number }> = [];
+  appointments.forEach((appointment, index) => {
     const status = appointment.status?.toUpperCase();
-    return status === 'PENDING' || status === 'REQUESTED';
-  });
-  const decided = appointments.filter((appointment) => {
-    const status = appointment.status?.toUpperCase();
-    return status !== 'PENDING' && status !== 'REQUESTED';
+    if (status === 'PENDING' || status === 'REQUESTED') {
+      pending.push({ item: appointment, index });
+    } else {
+      decided.push({ item: appointment, index });
+    }
   });
 
   const renderAppointment = (item: Appointment, index: number) => {
@@ -211,7 +220,12 @@ export default function StudentAppointmentsScreen() {
             {t('minutes')}
           </Text>
         </View>
-        <StatusPill colors={COLORS} label={statusLabel(item.status, isAr)} status={statusTone(item.status)} />
+        <StatusPill
+          colors={COLORS}
+          label={statusLabel(item.status, isAr)}
+          status={statusTone(item.status)}
+          testID={`student-appointments.status.${index}`}
+        />
       </AppCard>
     );
   };
@@ -444,7 +458,7 @@ export default function StudentAppointmentsScreen() {
           <>
             <SectionHeader title={t('pendingAppointments')} colors={COLORS} />
             {pending.length > 0 ? (
-              <View style={styles.listStack}>{pending.map(renderAppointment)}</View>
+              <View style={styles.listStack}>{pending.map(({ item, index }) => renderAppointment(item, index))}</View>
             ) : (
               <AppCard colors={COLORS}>
                 <EmptyState
@@ -458,7 +472,7 @@ export default function StudentAppointmentsScreen() {
 
             <SectionHeader title={t('history')} colors={COLORS} />
             {decided.length > 0 ? (
-              <View style={styles.listStack}>{decided.map(renderAppointment)}</View>
+              <View style={styles.listStack}>{decided.map(({ item, index }) => renderAppointment(item, index))}</View>
             ) : (
               <AppCard colors={COLORS}>
                 <Text style={styles.emptyLine}>{t('noAppointments')}</Text>

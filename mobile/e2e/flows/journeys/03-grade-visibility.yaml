@@ -1,0 +1,115 @@
+appId: com.quranreview.app
+tags: [journey]
+---
+# Journey 3: teacher submits a grade for a student -> the student sees it.
+# Uses teacher@/ali@ (the seeded ACCEPTED pair) - grade creation requires an
+# ACCEPTED appointment between teacher and student (assertTeacherCanAccessStudent,
+# per CLAUDE.md), already satisfied by the seed data regardless of whether
+# 02-appointment-booking.yaml has run first in the same suite pass.
+#
+# Determinism: Ali is seeded with exactly two grades ('A'/QUIZ, 'B+'/ASSIGNMENT -
+# seed-e2e.ts:65-84), neither of which is 'A-'. Grades are `orderBy: createdAt
+# desc` (grade.service.ts:61), so the grade this flow submits is always the
+# newest and therefore always row/grade index 0 on the student's grades screen.
+#
+# Every `launchApp: clearState: true` here is preceded by `clearKeychain`, per
+# Task 8's hard requirement (BUGLOG.md "Task 8 addendum 2").
+
+# Part 1: teacher submits a new grade.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/boot.yaml
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: teacher@quran-review.com
+      PASSWORD: Teacher1234!
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 20000
+- tapOn:
+    id: "teacher-home.nav-grade-form"
+- extendedWaitUntil:
+    visible:
+      id: "grade-form.screen"
+    timeout: 10000
+
+# Student chips load async (appointmentsApi.getMine() -> unique ACCEPTED
+# students). Ali is teacher@'s only ACCEPTED student in the seed data, so she is
+# deterministically student-select.0 - already auto-selected by the screen's own
+# default-select-first-student effect, but tapped explicitly per the brief
+# ("select Ali as student").
+- extendedWaitUntil:
+    visible:
+      id: "grade-form.student-select.0"
+    timeout: 10000
+- tapOn:
+    id: "grade-form.student-select.0"
+
+- tapOn:
+    id: "grade-form.grade-input"
+- inputText: "A-"
+
+# "pick the first real GradeType" (brief step 2) - GRADE_TYPES[0] is QUIZ.
+- tapOn:
+    id: "grade-form.type-chip.0"
+
+- tapOn:
+    id: "grade-form.submit"
+
+# handleSubmit() shows a native Alert.alert on success (gradeSubmittedTitle/Msg,
+# translated) with a single hardcoded "OK" button whose onPress calls
+# router.back() - dismissing it is the success signal, and it returns to
+# teacher-home.screen (the screen that pushed grade-form).
+- extendedWaitUntil:
+    visible:
+      text: "OK"
+    timeout: 10000
+- tapOn:
+    text: "OK"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000
+
+# Part 2: student sees the new grade.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/boot.yaml
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+- tapOn:
+    id: "bottom-nav.student-grades"
+- extendedWaitUntil:
+    visible:
+      id: "student-grades.screen"
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: "student-grades.row.0"
+    timeout: 10000
+# The new grade ('A-') is always the newest (createdAt desc), so it is
+# deterministically row-grade.0 - assert both the testID AND its exact text, to
+# positively distinguish it from the two seeded grades ('A', 'B+').
+- assertVisible:
+    id: "student-grades.row-grade.0"
+    text: "A-"
+
+- tapOn:
+    id: "student-grades.back"
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 10000

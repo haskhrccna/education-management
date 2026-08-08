@@ -102,7 +102,7 @@ export default function GradeFormScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']} testID="grade-form.screen">
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         {/* Header */}
         <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
@@ -128,7 +128,7 @@ export default function GradeFormScreen() {
             <Text style={{ color: COLORS.textSecondary, fontSize: 14 }}>{t('noAcceptedStudents')}</Text>
           ) : (
             <View style={styles.chipRow}>
-              {students.map((s) => (
+              {students.map((s, index) => (
                 <TouchableOpacity
                   key={s.id}
                   style={[
@@ -137,6 +137,7 @@ export default function GradeFormScreen() {
                     selectedStudentId === s.id && { backgroundColor: COLORS.primary },
                   ]}
                   onPress={() => setSelectedStudentId(s.id)}
+                  testID={`grade-form.student-select.${index}`}
                 >
                   <Text style={[styles.chipText, { color: selectedStudentId === s.id ? '#fff' : COLORS.textPrimary }]}>
                     {s.firstName} {s.lastName}
@@ -191,12 +192,13 @@ export default function GradeFormScreen() {
             value={score}
             onChangeText={setScore}
             keyboardType="numeric"
+            testID="grade-form.grade-input"
           />
 
           {/* Type */}
           <Text style={[styles.label, { color: COLORS.textSecondary }]}>{t('typeLabel')}</Text>
           <View style={styles.chipRow}>
-            {GRADE_TYPES.map((gradeType) => (
+            {GRADE_TYPES.map((gradeType, index) => (
               <TouchableOpacity
                 key={gradeType}
                 style={[
@@ -205,6 +207,7 @@ export default function GradeFormScreen() {
                   type === gradeType && { backgroundColor: COLORS.primary },
                 ]}
                 onPress={() => setType(gradeType)}
+                testID={`grade-form.type-chip.${index}`}
               >
                 <Text style={[styles.chipText, { color: type === gradeType ? '#fff' : COLORS.textPrimary }]}>
                   {TYPE_LABELS[gradeType] ?? gradeType}
@@ -245,6 +248,7 @@ export default function GradeFormScreen() {
             onPress={handleSubmit}
             disabled={!canSubmit}
             activeOpacity={0.8}
+            testID="grade-form.submit"
           >
             {isSubmitting ? (
               <ActivityIndicator color="#fff" />

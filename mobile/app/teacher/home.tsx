@@ -204,6 +204,7 @@ export default function TeacherHomeScreen() {
       icon: 'calendar-outline' as const,
       route: '/teacher/appointments',
       tone: 'primary',
+      testID: 'teacher-home.nav-appointments',
     },
     {
       id: 'grade',
@@ -212,6 +213,7 @@ export default function TeacherHomeScreen() {
       icon: 'create-outline' as const,
       route: '/teacher/grade-form',
       tone: 'gold',
+      testID: 'teacher-home.nav-grade-form',
     },
     {
       id: 'reviews',
@@ -256,7 +258,7 @@ export default function TeacherHomeScreen() {
   ];
 
   return (
-    <View style={[styles.screen, { backgroundColor: COLORS.background }]}>
+    <View style={[styles.screen, { backgroundColor: COLORS.background }]} testID="teacher-home.screen">
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACING.lg }]}
@@ -390,6 +392,7 @@ export default function TeacherHomeScreen() {
               activeOpacity={0.85}
               style={styles.actionTile}
               onPress={() => router.push(action.route as any)}
+              testID={action.testID}
             >
               <View
                 style={[

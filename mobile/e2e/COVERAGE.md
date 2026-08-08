@@ -243,6 +243,45 @@ One row per control (testID) on the 4 student screens covered by `04-recordings-
 
 `journeys/01-registration-approval.yaml` mutates real DB state (creates `e2e-journey1@quran-review.com`, then flips it PENDING -> ACTIVE). A second run of the same flow **without** a DB reset must fail specifically at the Part 1 registration step, with a 409 (duplicate email) surfaced as `register.error`, proving the fixture user genuinely persisted rather than the flow being accidentally idempotent. See the verification results below for the actual run output.
 
+## E2E Coverage — Journeys 2+3: appointment booking -> accept, grade -> student sees it (Task 9)
+
+`journeys/02-appointment-booking.yaml` and `journeys/03-grade-visibility.yaml` — the suite's first flows to touch `mobile/app/teacher/*.tsx`. Per coordinator resolution #1 for this task, teacher testIDs added here are **minimal, journey-scoped only** — `teacher/home.tsx`, `teacher/appointments.tsx`, and `teacher/grade-form.tsx` are deliberately **not** added to `covered-screens.json` (same pattern as the admin screens in Task 8).
+
+### App-level fixes made while building these flows
+
+1. **Latent testID-collision bug fixed in `student/appointments.tsx`.** `pending`/`decided` were each derived via an independent `.filter()`, so `renderAppointment`'s `index` argument (used for `student-appointments.row.${index}` / the new `.status.${index}`) restarted at 0 in *each* list. Harmless while a student only ever had a decided appointment (the only case any flow through Task 8 exercised), but a real duplicate-testID collision the moment a student has one pending AND one decided appointment on screen simultaneously — exactly what `02-appointment-booking.yaml` creates (a new REQUESTED booking alongside the seeded ACCEPTED one). Fixed by indexing both lists against the single global `appointments` array (`GET /appointments` is `orderBy: requestedDate desc` — appointment.service.ts:133/139) instead of each filtered list's own local position, so every row's index is unique across the whole screen. `02-appointments-smoke.yaml` (Task 5) is unaffected — Ali only ever has one decided appointment in that flow's baseline, so its `student-appointments.row.0` assertion resolves to the same element before and after this fix.
+2. **`StatusPill` (`mobile/src/components/design.tsx`) gained an optional `testID` prop**, threaded through to its root `View`. It previously accepted no `testID` at all, so there was no way to assert a specific row's status independent of the row's other content — needed for `student-appointments.status.${index}` (this task) and reusable by any future flow needing to assert a specific status pill.
+
+### testID inventory (teacher, journey-scoped — for Plan 2's consumption)
+
+| screen | testID | control |
+|---|---|---|
+| `teacher-home.screen` (`mobile/app/teacher/home.tsx`) | `teacher-home.screen` | root `View` |
+| | `teacher-home.nav-appointments` | the "Requests" action tile — navigates to `/teacher/appointments` |
+| | `teacher-home.nav-grade-form` | the "Give grade" action tile — navigates to `/teacher/grade-form` |
+| `teacher-appointments.screen` (`mobile/app/teacher/appointments.tsx`) | `teacher-appointments.screen` | root `SafeAreaView` |
+| | `teacher-appointments.row.${index}` | each **pending** appointment card (index local to the pending list only — this screen's `decided` rows are not given testIDs, out of this task's minimal scope) |
+| | `teacher-appointments.accept.${index}` | the Accept button on a pending row |
+| | `teacher-appointments.status.${index}` | the status badge on a pending row (added alongside `.row`/`.accept` for symmetry; not required by the brief's explicit produces-list but low-cost and directly useful for asserting the accept action's effect) |
+| `grade-form.screen` (`mobile/app/teacher/grade-form.tsx`) | `grade-form.screen` | root `SafeAreaView` |
+| | `grade-form.student-select.${index}` | each accepted-student chip (brief names this `grade-form.student-select` singular; implemented as an indexed list per coordinator resolution #5's list-row convention, since the underlying control is a `.map()` of chips, not a single dropdown) |
+| | `grade-form.grade-input` | the score `TextInput` |
+| | `grade-form.type-chip.${index}` | each `GradeType` chip (not in the brief's explicit produces-list, but needed to deterministically exercise "pick the first real GradeType" per Step 2) |
+| | `grade-form.submit` | the submit button |
+| `student-appointments.status.${index}` (`mobile/app/student/appointments.tsx`) | *(new this task)* | threaded through the newly-added `StatusPill` `testID` prop; global-index-safe per the fix above |
+| `student-grades.row-grade.${index}` (`mobile/app/student/grades.tsx`) | *(new this task)* | the grade-value `Text` inside each row — distinguishes a specific grade's value from row-presence alone |
+
+### Determinism
+
+Both flows depend on `GET /appointments` and `GET /grades` being `orderBy` `requestedDate desc` / `createdAt desc` respectively (both confirmed in the relevant `*.service.ts`), combined with the seed data's fixed dates being far in the past relative to any real run:
+
+- **Journey 2**: the new booking (dated "today" via the date-picker's first row — see the flow file's coordinate-tap note) always sorts before the seeded pair's `2026-05-01` appointment, so it is always global index 0 both before AND after acceptance.
+- **Journey 3**: the new grade (`'A-'`) is always newer than Ali's two seeded grades (`'A'`, `'B+'`), so it is always index 0 on the student's grades screen. The flow asserts both the testID and the exact text (`assertVisible: {id, text}`) to positively distinguish it from the seeded rows, not just its row position.
+
+### Coordinate-tap workaround (date/time pickers)
+
+Reuses the already-documented, already-verified BUGLOG.md finding ("Date/time picker modal rows... not individually reachable by accessibility identifier") — `02-appointments-smoke.yaml` (Task 5) only opened/closed the pickers without selecting a row; this task's Journey 2 is the first flow that needs an actual date+time selected to submit a real booking, so it taps the FIRST row in each picker's `FlatList` (`date-option.0` = today, `time-option.0` = 00:00) via a raw `point:` coordinate tap, on the reasoning that the row closest to the sheet's header carries the least layout-estimate error. See the live verification results below for whether the initial coordinate estimate held.
+
 ## Sanctioned text-selector exceptions
 
 Every assertable app-rendered element on the 5 auth screens now has a testID and is asserted by id (see review fix-pass, `.superpowers/sdd/task-4-report.md`). The following text-selector assertions remain — none can carry a testID because none is an app-rendered React element:

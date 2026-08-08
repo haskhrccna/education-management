@@ -55,7 +55,9 @@ export default function StudentGradesScreen() {
             {GRADE_TYPE_LABELS[item.type] ?? item.type}
           </Text>
         </View>
-        <Text style={[styles.score, { color: gradeTypeColor(item.type) }]}>{item.grade}</Text>
+        <Text style={[styles.score, { color: gradeTypeColor(item.type) }]} testID={`student-grades.row-grade.${index}`}>
+          {item.grade}
+        </Text>
       </View>
 
       <Text
