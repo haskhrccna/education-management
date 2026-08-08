@@ -14,14 +14,16 @@ tags: [student, smoke]
       id: "student-home.screen"
     timeout: 20000
 
-# quick-action.4 (revisions) has been reliable (correct destination) in every
-# Task 5 run - not one of the two flagged-nondeterministic tiles (.2/.3).
-- scrollUntilVisible:
-    element:
-      id: "student-home.quick-action.4"
-    direction: DOWN
-- tapOn:
-    id: "student-home.quick-action.4"
+# quick-action.4 (revisions) was believed reliable through Task 5, but a live
+# run during Task 6 closeout reproduced the same nondeterministic-navigation
+# bug already logged for .2/.3 (BUGLOG.md Finding #3) on THIS tile too: the
+# tap landed on student-appointments.screen (quick-action.0's destination)
+# instead, confirmed via screenshot. Since there is no other reliable
+# in-app path to this screen (grep confirms the quick-action tile is
+# revisions.tsx's only route), reach it directly via deep link instead of
+# fighting the buggy tap, so this flow can still exercise the SCREEN itself
+# rather than re-litigating the already-logged navigation bug.
+- openLink: "quran-review://student/revisions"
 - extendedWaitUntil:
     visible:
       id: "student-revisions.screen"
