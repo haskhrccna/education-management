@@ -24,6 +24,9 @@ tags: [student, smoke]
 # fighting the buggy tap, so this flow can still exercise the SCREEN itself
 # rather than re-litigating the already-logged navigation bug.
 - openLink: "quran-review://student/revisions"
+- tapOn:
+    text: "Open"
+    optional: true
 - extendedWaitUntil:
     visible:
       id: "student-revisions.screen"
