@@ -287,11 +287,12 @@ interface SegmentedControlProps {
   value: string;
   onChange: (value: string) => void;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-export function SegmentedControl({ colors, options, value, onChange, style }: SegmentedControlProps) {
+export function SegmentedControl({ colors, options, value, onChange, style, testID }: SegmentedControlProps) {
   return (
-    <View style={[uiStyles(colors, 1).segmentRow, style]}>
+    <View style={[uiStyles(colors, 1).segmentRow, style]} testID={testID}>
       {options.map((opt) => {
         const selected = opt.value === value;
         return (
@@ -305,6 +306,7 @@ export function SegmentedControl({ colors, options, value, onChange, style }: Se
               uiStyles(colors, 1).segmentChip,
               { backgroundColor: selected ? colors.primary : colors.surface, borderColor: colors.borderSubtle },
             ]}
+            testID={testID ? `${testID}.${opt.value}` : undefined}
           >
             <AppText variant="labelLarge" color={selected ? colors.textOnPrimary : colors.textPrimary}>
               {opt.label}

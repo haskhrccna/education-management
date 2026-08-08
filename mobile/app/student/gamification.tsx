@@ -50,13 +50,18 @@ export default function GamificationScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: COLORS.background }}
+      edges={['top']}
+      testID="student-gamification.screen"
+    >
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel={t('back')}
           onPress={() => router.back()}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          testID="student-gamification.back"
         >
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
@@ -84,6 +89,7 @@ export default function GamificationScreen() {
               accessibilityLabel={t('retry')}
               onPress={fetchGamification}
               style={{ marginTop: SPACING.md }}
+              testID="student-gamification.retry"
             >
               <AppText variant="bodyMedium" color={COLORS.primary}>
                 {t('retry')}
@@ -95,7 +101,7 @@ export default function GamificationScreen() {
         ) : (
           <>
             <SectionHeader colors={COLORS} title={t('streak')} />
-            <View style={styles.metrics}>
+            <View style={styles.metrics} testID="student-gamification.streak">
               <MetricTile
                 colors={COLORS}
                 value={String(gamification.streak.currentStreak)}
@@ -112,16 +118,23 @@ export default function GamificationScreen() {
 
             <SectionHeader colors={COLORS} title={t('badgeWall')} />
             {gamification.badges.length === 0 ? (
-              <EmptyState
-                colors={COLORS}
-                icon="trophy-outline"
-                title={t('noBadgesYet')}
-                description={t('noBadgesYetDesc')}
-              />
+              <View testID="student-gamification.badges-empty">
+                <EmptyState
+                  colors={COLORS}
+                  icon="trophy-outline"
+                  title={t('noBadgesYet')}
+                  description={t('noBadgesYetDesc')}
+                />
+              </View>
             ) : (
-              <View style={styles.badgeGrid}>
-                {gamification.badges.map((badge) => (
-                  <AppCard key={badge.code} colors={COLORS} style={styles.badgeCard}>
+              <View style={styles.badgeGrid} testID="student-gamification.badges">
+                {gamification.badges.map((badge, index) => (
+                  <AppCard
+                    key={badge.code}
+                    colors={COLORS}
+                    style={styles.badgeCard}
+                    testID={`student-gamification.badge.${index}`}
+                  >
                     <Ionicons name={ICON_MAP[badge.iconKey] || 'star-outline'} size={28} color={COLORS.primary} />
                     <AppText
                       variant="bodySmall"
@@ -148,6 +161,7 @@ export default function GamificationScreen() {
                 { value: 'my-teacher', label: t('leaderboardMyTeacher') },
               ]}
               style={{ marginBottom: SPACING.md }}
+              testID="student-gamification.leaderboard-scope"
             />
 
             {leaderboardLoading ? (
@@ -166,6 +180,7 @@ export default function GamificationScreen() {
                   accessibilityLabel={t('retry')}
                   onPress={() => fetchLeaderboard(scope)}
                   style={{ marginTop: SPACING.md }}
+                  testID="student-gamification.leaderboard-retry"
                 >
                   <AppText variant="bodyMedium" color={COLORS.primary}>
                     {t('retry')}
@@ -173,10 +188,17 @@ export default function GamificationScreen() {
                 </TouchableOpacity>
               </View>
             ) : leaderboard.length === 0 ? (
-              <EmptyState colors={COLORS} icon="people-outline" title={t('leaderboardEmpty')} />
+              <View testID="student-gamification.leaderboard-empty">
+                <EmptyState colors={COLORS} icon="people-outline" title={t('leaderboardEmpty')} />
+              </View>
             ) : (
-              leaderboard.slice(0, 10).map((entry) => (
-                <AppCard key={entry.userId} colors={COLORS} style={{ marginBottom: SPACING.sm }}>
+              leaderboard.slice(0, 10).map((entry, index) => (
+                <AppCard
+                  key={entry.userId}
+                  colors={COLORS}
+                  style={{ marginBottom: SPACING.sm }}
+                  testID={`student-gamification.leaderboard-row.${index}`}
+                >
                   <View style={styles.row}>
                     <View
                       style={[

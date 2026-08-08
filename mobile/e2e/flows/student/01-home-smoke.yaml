@@ -263,7 +263,9 @@ tags: [student, smoke]
       id: "student-home.screen"
     timeout: 10000
 
-# --- mushaf CTA -> /student/mushaf (no BottomNav; tagged mushaf.back) ---
+# --- mushaf CTA -> /student/mushaf (no BottomNav; tagged student-mushaf.back
+# as of Task 7, renamed from the bare "mushaf.back" testID Task 5 left it
+# with, to match the <screen>.<purpose> convention every other screen uses) ---
 - scrollUntilVisible:
     element:
       id: "student-home.mushaf-cta"
@@ -273,7 +275,7 @@ tags: [student, smoke]
 - assertNotVisible:
     id: "student-home.screen"
 - tapOn:
-    id: "mushaf.back"
+    id: "student-mushaf.back"
 - extendedWaitUntil:
     visible:
       id: "student-home.screen"

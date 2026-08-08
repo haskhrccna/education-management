@@ -117,12 +117,67 @@ Per the brief and coordinator resolution #3/#4: root container testID only, plus
 
 ## Additional back-button testIDs (out of the brief's file list, added as navigation fallbacks)
 
-`reports.tsx` and `mushaf.tsx` are not in the brief's "Files" list for this task, but both are reachable from `student-home.screen` quick actions and neither renders `BottomNav`, so there was no other reliable way for `01-home-smoke.yaml` to navigate back to home (per coordinator resolution #4's explicit fallback: "if a destination lacks one, add `<screen>.back` testID to it"). Only the back button on each was tagged — no root `.screen` testID, no `covered-screens.json` registration, no other controls on either screen touched. **`reports.back` ended up unused**: `quick-action.3`'s destination turned out to be nondeterministic (Findings #3), so the flow could not reliably assume it lands on `reports.tsx` to tap its back button — the segment ends right after the tap with only `assertNotVisible: student-home.screen`. The `reports.back` testID remains present in source (verified by `check-testids.js`) but is not exercised by any flow.
+`reports.tsx` is not in the brief's "Files" list for this task, but is reachable from `student-home.screen` quick actions and doesn't render `BottomNav`, so there was no other reliable way for `01-home-smoke.yaml` to navigate back to home (per coordinator resolution #4's explicit fallback: "if a destination lacks one, add `<screen>.back` testID to it"). Only the back button was tagged — no root `.screen` testID, no `covered-screens.json` registration, no other controls on the screen touched. **`reports.back` ended up unused**: `quick-action.3`'s destination turned out to be nondeterministic (Findings #3), so the flow could not reliably assume it lands on `reports.tsx` to tap its back button — the segment ends right after the tap with only `assertNotVisible: student-home.screen`. The `reports.back` testID remains present in source (verified by `check-testids.js`) but is not exercised by any flow.
+
+`mushaf.tsx` was originally in this section too (Task 5 added a bare `mushaf.back` testID as the same kind of fallback). Task 7 promotes `mushaf.tsx` to a fully-covered screen (added to `covered-screens.json`, every interactive element tagged, `mushaf.back` renamed to `student-mushaf.back` for convention consistency) — see the Task 7 section below for its full inventory; it no longer belongs in this fallback-only list.
 
 | screen | control (testID) | flow file | step |
 |---|---|---|---|
 | reports | `reports.back` | *(none — testID present, not tapped)* | Added as a planned return path for `quick-action.3`, but never used: that tile's destination is nondeterministic (see Findings #3 / BUGLOG.md), so the flow cannot safely assume landing on `reports.tsx`. Presence verified by `check-testids.js` only. |
-| mushaf | `mushaf.back` | `01-home-smoke.yaml` | tapped, returns to `student-home.screen` (after `student-home.mushaf-cta`) |
+
+## E2E Coverage — Student Plans / Mushaf / Gamification / Certificates / Ijazahs (Task 7)
+
+One row per control (testID) on the 5 student screens covered by `08-plans-smoke.yaml`, `09-mushaf-smoke.yaml`, `10-gamification-smoke.yaml`, `11-certificates-smoke.yaml`, `12-ijazahs-smoke.yaml`. No interactive element on `student/plans.tsx`, `student/mushaf.tsx`, `student/gamification.tsx`, `student/certificates.tsx`, or `student/ijazahs.tsx` is missing a testID (`check-testids.js` enforces this — `mobile/src/components/design.tsx`'s `SegmentedControl` was also given an optional `testID` prop, threaded to its options, so `student-gamification.leaderboard-scope.*` has real per-option identity; this addition is not itself enforced by the checker since `design.tsx` is a shared component file, not a covered screen).
+
+All 5 screens are reached via `openLink: "quran-review://student/<route>"` deep links, **not** their `student-home.quick-action.N` tiles, per the coordinator's binding resolution for this task: `quick-action.5` (plans) and `quick-action.6` (ijazahs) are UNVERIFIED against BUGLOG.md Finding #3 (the wrong-destination quick-action bug, confirmed on 3 of 7 tiles — `.2`/`.3`/`.4` — as of Task 6), and `mushaf`/`gamification`/`certificates` aren't reachable from a quick-action tile at all (`mushaf` has its own `student-home.mushaf-cta`; `gamification`/`certificates` are only linked from `parent/home.tsx`).
+
+| screen | control (testID) | flow file | step |
+|---|---|---|---|
+| student-plans | `student-plans.screen` | `08-plans-smoke.yaml` | asserted visible after the deep link |
+| student-plans | `student-plans.back` | `08-plans-smoke.yaml` | tapped, returns to `student-home.screen` |
+| student-plans | `student-plans.empty` | `08-plans-smoke.yaml` | asserted visible — ali has no seeded `CurriculumPlan` rows |
+| student-plans | `student-plans.retry` | *(none — testID present, not tapped)* | Only rendered on a fetch error. Presence verified by `check-testids.js` only. |
+| student-plans | `student-plans.row.N` | *(none — testID present, not tapped)* | No seeded plans render any rows in any run observed. Presence verified by `check-testids.js` only (not itself a `TouchableOpacity`/`Pressable`, so not enforced by the checker's regex either — added purely for row-identification convention, matching `student-grades.row.N` etc.). |
+| student-mushaf | `student-mushaf.screen` | `09-mushaf-smoke.yaml` | asserted visible after the deep link |
+| student-mushaf | `student-mushaf.back` | `09-mushaf-smoke.yaml` | tapped, returns to `student-home.screen`. Renamed from the bare `mushaf.back` Task 5 left it with — `01-home-smoke.yaml`'s reference was updated in this task to match. |
+| student-mushaf | `student-mushaf.page-image.N` | `09-mushaf-smoke.yaml` | `student-mushaf.page-image.1` tapped to open the zoom modal (page 1 is on-screen after the next/prev round trip below) |
+| student-mushaf | `student-mushaf.page-prev` | `09-mushaf-smoke.yaml` | tapped, after `page-next` |
+| student-mushaf | `student-mushaf.page-next` | `09-mushaf-smoke.yaml` | tapped first, ahead of `page-prev` |
+| student-mushaf | *(gesture-covered: FlatList swipe paging)* | `09-mushaf-smoke.yaml` | no dedicated testID possible for the bare swipe gesture itself (per coordinator resolution #3); exercised via Maestro `swipe` (start 90%,50% -> end 10%,50%, avoiding screen edges) as a loose smoke check — only confirms `student-mushaf.screen` survives the gesture, since the resulting page-number direction is RTL-dependent (app defaults to Arabic) and not pinned down. This gesture is **not** swipe-only navigation (the `page-next`/`page-prev` Touchables above cover the same page-turn function), so the brief's "swipe gesture only" carve-out doesn't strictly require even this loose check — included anyway for confidence. |
+| student-mushaf | `student-mushaf.status-chip` | `09-mushaf-smoke.yaml` | tapped, opens the page-status picker modal |
+| student-mushaf | `student-mushaf.status-modal-backdrop` | *(none — testID present, not tapped)* | Dismissing via backdrop tap not exercised; the flow instead dismisses by selecting a status option. Presence verified by `check-testids.js` only. |
+| student-mushaf | `student-mushaf.status-modal-sheet` | `09-mushaf-smoke.yaml` | asserted visible after opening |
+| student-mushaf | `student-mushaf.status-option.NOT_STARTED` | `09-mushaf-smoke.yaml` | tapped — a no-op re-selection (ali has no seeded `PageStatus` rows, so page 1's status is already `NOT_STARTED`), closes the modal without a real mutation |
+| student-mushaf | `student-mushaf.mark-memorized` | *(none — testID present, not tapped)* | This is the `MEMORIZED` status option (named per Task 6's interface note for Task 10's consumption, not `status-option.MEMORIZED`) — not tapped by this flow to avoid a real page-status mutation (ali's pages start `NOT_STARTED`; selecting this would persist a real `MEMORIZED` status change with no reset between runs). Presence verified by `check-testids.js` only. |
+| student-mushaf | `student-mushaf.status-option.LEARNING` / `.SOLID` | *(none — testID present, not tapped)* | Same non-mutation rationale as `mark-memorized`. Presence verified by `check-testids.js` only. |
+| student-mushaf | `student-mushaf.record-open` | `09-mushaf-smoke.yaml` | tapped, opens the recite-from-the-page recorder modal |
+| student-mushaf | `student-mushaf.record-modal-backdrop` | *(none — testID present, not tapped)* | Presence verified by `check-testids.js` only. |
+| student-mushaf | `student-mushaf.record-modal-sheet` | *(none — testID present, not tapped)* | Implicitly covered (its child `start-recording` is asserted visible, meaning the sheet itself is rendered), but not asserted by its own id. Presence verified by `check-testids.js` only. |
+| student-mushaf | `student-mushaf.start-recording` | `09-mushaf-smoke.yaml` | asserted visible (recorder modal's default state) — **not tapped**, to avoid triggering a real mic-permission system prompt and persisting an upload (same posture as `04-recordings-smoke.yaml`) |
+| student-mushaf | `student-mushaf.stop-recording` | *(none — testID present, not tapped)* | Only rendered once a recording is in progress, which this flow deliberately never starts. Presence verified by `check-testids.js` only. |
+| student-mushaf | `student-mushaf.cancel-recording` | `09-mushaf-smoke.yaml` | tapped to close the recorder modal without recording |
+| student-mushaf | `student-mushaf.zoom-close` | `09-mushaf-smoke.yaml` | asserted visible after tapping `page-image.1`, then tapped to close the zoom modal |
+| student-gamification | `student-gamification.screen` | `10-gamification-smoke.yaml` | asserted visible after the deep link |
+| student-gamification | `student-gamification.back` | `10-gamification-smoke.yaml` | tapped, returns to `student-home.screen` |
+| student-gamification | `student-gamification.streak` | `10-gamification-smoke.yaml` | asserted visible — the current/longest-streak `MetricTile` pair, unconditional once `gamification.tsx` loads (server returns a zeroed shape for a user with no `Streak` row rather than erroring) |
+| student-gamification | `student-gamification.retry` | *(none — testID present, not tapped)* | Only rendered on a fetch error. Presence verified by `check-testids.js` only. |
+| student-gamification | `student-gamification.badges-empty` | `10-gamification-smoke.yaml` | asserted visible — ali has no seeded `UserBadge` rows |
+| student-gamification | `student-gamification.badges` / `student-gamification.badge.N` | *(none — testID present, not tapped)* | No seeded badges render any rows in any run observed. Presence verified by `check-testids.js` only (`AppCard` is not itself matched by the checker's regex — added for row-identification convention). |
+| student-gamification | `student-gamification.leaderboard-scope` / `.all` / `.my-teacher` | `10-gamification-smoke.yaml` | both `.my-teacher` and `.all` tapped in sequence, exercising the `SegmentedControl` |
+| student-gamification | `student-gamification.leaderboard-retry` | *(none — testID present, not tapped)* | Only rendered on a leaderboard fetch error. Presence verified by `check-testids.js` only. |
+| student-gamification | `student-gamification.leaderboard-empty` | `10-gamification-smoke.yaml` | asserted visible under both leaderboard scopes — no `Streak` rows exist for **any** seeded user in either seed script, not just ali, so the leaderboard is empty regardless of scope |
+| student-gamification | `student-gamification.leaderboard-row.N` | *(none — testID present, not tapped)* | No seeded streaks render any leaderboard rows in any run observed. Presence verified by `check-testids.js` only. |
+| student-certificates | `student-certificates.screen` | `11-certificates-smoke.yaml` | asserted visible after the deep link |
+| student-certificates | `student-certificates.back` | `11-certificates-smoke.yaml` | tapped, returns to `student-home.screen` |
+| student-certificates | `student-certificates.empty` | `11-certificates-smoke.yaml` | asserted visible — ali has no seeded `Certificate` rows |
+| student-certificates | `student-certificates.retry` | *(none — testID present, not tapped)* | Only rendered on a fetch error. Presence verified by `check-testids.js` only. |
+| student-certificates | `student-certificates.row.N` / `.download.N` / `.share.N` / `.regenerate.N` | *(none — testID present, not tapped)* | No seeded certificates render any rows in any run observed. Presence verified by `check-testids.js` only. |
+| student-ijazahs | `student-ijazahs.screen` | `12-ijazahs-smoke.yaml` | asserted visible after the deep link |
+| student-ijazahs | `student-ijazahs.back` | `12-ijazahs-smoke.yaml` | tapped, returns to `student-home.screen` |
+| student-ijazahs | `student-ijazahs.empty` | `12-ijazahs-smoke.yaml` | asserted visible — ali has no seeded `Ijazah` rows |
+| student-ijazahs | `student-ijazahs.retry` | *(none — testID present, not tapped)* | Only rendered on a fetch error. Presence verified by `check-testids.js` only. |
+| student-ijazahs | `student-ijazahs.row.N` / `.share.N` / `.regenerate.N` | *(none — testID present, not tapped)* | No seeded ijazahs render any rows in any run observed. Presence verified by `check-testids.js` only. |
+| student-home | `student-home.quick-action.5` (plans) / `.6` (ijazahs) | *(none — not tapped by this task's flows)* | Deliberately not tapped as a way of reaching `student-plans.screen`/`student-ijazahs.screen` — both are UNVERIFIED against BUGLOG.md Finding #3 per this task's brief, so this task reaches those screens exclusively via deep link. (`01-home-smoke.yaml`'s own loose, destination-non-asserting taps on these two tiles — pre-existing from Task 5 — are unaffected and out of this task's scope to change.) |
 
 ## E2E Coverage — Student Recordings / Reports / Revisions / Teacher-Change (Task 6)
 

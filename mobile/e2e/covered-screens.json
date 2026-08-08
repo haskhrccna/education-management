@@ -10,5 +10,10 @@
   "app/student/recordings.tsx",
   "app/student/reports.tsx",
   "app/student/revisions.tsx",
-  "app/student/teacher-change.tsx"
+  "app/student/teacher-change.tsx",
+  "app/student/plans.tsx",
+  "app/student/mushaf.tsx",
+  "app/student/gamification.tsx",
+  "app/student/certificates.tsx",
+  "app/student/ijazahs.tsx"
 ]

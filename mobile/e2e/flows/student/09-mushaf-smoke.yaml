@@ -1,0 +1,112 @@
+appId: com.quranreview.app
+tags: [student, smoke]
+---
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+
+# Reach student-mushaf.screen via deep link, not the mushaf-cta tap on home
+# (student-home.mushaf-cta is a distinct control from the quick-action grid
+# and was not implicated in BUGLOG.md Finding #3 by Task 5/6, but Task 7's
+# coordinator resolution requires deep link as the PRIMARY path for all 5 of
+# this task's screens regardless, for consistency).
+- openLink: "quran-review://student/mushaf"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "student-mushaf.screen"
+    timeout: 10000
+
+# --- page-turn controls (Touchables - primary, reliable coverage) ---
+- tapOn:
+    id: "student-mushaf.page-next"
+- tapOn:
+    id: "student-mushaf.page-prev"
+
+# --- gesture-covered: the FlatList itself pages on swipe (pagingEnabled),
+# which is the natural reading gesture. This is redundant with the
+# page-next/page-prev Touchables above (not swipe-ONLY navigation, so the
+# brief's carve-out for "swipe gesture only" controls doesn't strictly
+# require this), but exercised once here as a loose smoke check: swipe
+# right-to-left within the page area (avoiding the screen edges, which can
+# trigger OS-level gestures) and confirm the reader screen survives the
+# gesture. Page-number direction after an RTL-aware swipe is NOT asserted -
+# the app's default language is Arabic (mobile/src/i18n/index.ts lng: 'ar'),
+# and this screen explicitly handles LTR/RTL scroll-index mirroring
+# (mushaf.tsx's onViewableItemsChanged comment), making the resulting page
+# number direction-dependent and not worth pinning down in a smoke test.
+- swipe:
+    start: "90%,50%"
+    end: "10%,50%"
+- extendedWaitUntil:
+    visible:
+      id: "student-mushaf.screen"
+    timeout: 10000
+
+# --- page-status picker (F1): open, then close by re-selecting whatever the
+# current status already is (NOT_STARTED - no PageStatus rows are seeded for
+# ali in either seed script), so this is a no-op re-confirmation rather than
+# a real mutation. ---
+- tapOn:
+    id: "student-mushaf.status-chip"
+- extendedWaitUntil:
+    visible:
+      id: "student-mushaf.status-modal-sheet"
+    timeout: 10000
+- tapOn:
+    id: "student-mushaf.status-option.NOT_STARTED"
+- extendedWaitUntil:
+    visible:
+      id: "student-mushaf.status-chip"
+    timeout: 10000
+
+# --- recite-from-the-page (F2): open the recorder sheet, assert it renders
+# with a start-recording control, then CANCEL rather than actually starting
+# a recording (would trigger a real mic-permission system prompt, and
+# persist an upload - out of scope for a smoke pass, same posture as
+# 04-recordings-smoke.yaml's record/cancel pattern). ---
+- tapOn:
+    id: "student-mushaf.record-open"
+- extendedWaitUntil:
+    visible:
+      id: "student-mushaf.start-recording"
+    timeout: 10000
+- tapOn:
+    id: "student-mushaf.cancel-recording"
+- extendedWaitUntil:
+    visible:
+      id: "student-mushaf.screen"
+    timeout: 10000
+
+# --- tap-to-zoom: page 1's image is on-screen after the prev/next round
+# trip above landed back on page 1. ---
+- tapOn:
+    id: "student-mushaf.page-image.1"
+- extendedWaitUntil:
+    visible:
+      id: "student-mushaf.zoom-close"
+    timeout: 10000
+- tapOn:
+    id: "student-mushaf.zoom-close"
+- extendedWaitUntil:
+    visible:
+      id: "student-mushaf.screen"
+    timeout: 10000
+
+- tapOn:
+    id: "student-mushaf.back"
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 10000
