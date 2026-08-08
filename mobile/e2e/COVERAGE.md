@@ -264,6 +264,7 @@ One row per control (testID) on the 4 student screens covered by `04-recordings-
 | | `teacher-appointments.accept.${index}` | the Accept button on a pending row |
 | | `teacher-appointments.status.${index}` | the status badge on a pending row (added alongside `.row`/`.accept` for symmetry; not required by the brief's explicit produces-list but low-cost and directly useful for asserting the accept action's effect) |
 | `grade-form.screen` (`mobile/app/teacher/grade-form.tsx`) | `grade-form.screen` | root `SafeAreaView` |
+| | `grade-form.header` | the header `View` (not touchable itself — added during live verification as a reliable, provably non-keyboard-covered dismiss target; see the keyboard-occlusion note below) |
 | | `grade-form.student-select.${index}` | each accepted-student chip (brief names this `grade-form.student-select` singular; implemented as an indexed list per coordinator resolution #5's list-row convention, since the underlying control is a `.map()` of chips, not a single dropdown) |
 | | `grade-form.grade-input` | the score `TextInput` |
 | | `grade-form.type-chip.${index}` | each `GradeType` chip (not in the brief's explicit produces-list, but needed to deterministically exercise "pick the first real GradeType" per Step 2) |
@@ -280,7 +281,20 @@ Both flows depend on `GET /appointments` and `GET /grades` being `orderBy` `requ
 
 ### Coordinate-tap workaround (date/time pickers)
 
-Reuses the already-documented, already-verified BUGLOG.md finding ("Date/time picker modal rows... not individually reachable by accessibility identifier") — `02-appointments-smoke.yaml` (Task 5) only opened/closed the pickers without selecting a row; this task's Journey 2 is the first flow that needs an actual date+time selected to submit a real booking, so it taps the FIRST row in each picker's `FlatList` (`date-option.0` = today, `time-option.0` = 00:00) via a raw `point:` coordinate tap, on the reasoning that the row closest to the sheet's header carries the least layout-estimate error. See the live verification results below for whether the initial coordinate estimate held.
+Reuses the already-documented, already-verified BUGLOG.md finding ("Date/time picker modal rows... not individually reachable by accessibility identifier") — `02-appointments-smoke.yaml` (Task 5) only opened/closed the pickers without selecting a row; this task's Journey 2 is the first flow that needs an actual date+time selected to submit a real booking, so it taps the FIRST row in each picker's `FlatList` (`date-option.0` = today, `time-option.0` = 00:00) via a raw `point:` coordinate tap ("50%, 36%"), on the reasoning that the row closest to the sheet's header carries the least layout-estimate error. **Verified live: this coordinate estimate held on the first attempt** — Journey 2 passed end to end with no adjustment needed.
+
+### Keyboard-occlusion finding (Journey 3, `grade-form.grade-input`)
+
+Live verification of Journey 3 surfaced a real testing gap (not an app bug — see BUGLOG.md for the full writeup and classification): `grade-form.grade-input`'s on-screen numeric keypad (`keyboardType="numeric"`, no Done/return key) stayed open after typing, and the next scrolled-to taps (`type-chip.0`, `submit`) landed on the keypad itself instead of the intended controls — confirmed by two consecutive failure screenshots showing the score field corrupted to `"A-0"` (a stray "0" from the keypad) and no grade row created server-side. `hideKeyboard` failed outright (no dismiss action to invoke). Fixed by adding `testID="grade-form.header"` to the header's non-touchable `View` (source fix, `grade-form.tsx`) and scrolling/tapping it before continuing — relies on the form's `keyboardShouldPersistTaps="handled"`, which only skips keyboard dismissal for taps a child touchable actually handles. Verified live after the fix: Journey 3 passes end to end.
+
+### Live verification results (this task)
+
+Both flows run individually via `JAVA_HOME=/opt/homebrew/opt/openjdk maestro test mobile/e2e/flows/journeys/0{2,3}-*.yaml` (not `run.sh`'s directory mode — its DB-reset step invokes `prisma migrate reset`, which is coordinator-only per this task's hard restrictions, and Prisma's own AI-safety guard independently blocks an agent from running it without explicit human consent):
+
+- **`02-appointment-booking.yaml`**: passed end to end on the very first live attempt (all three parts — booking, teacher acceptance, student confirmation — `COMPLETED`). A second bare re-run (no DB reset between runs) failed at the submit step with the booking form still visible — diagnosed as the app's own overlap-prevention guard correctly rejecting a second identical today/00:00 slot, not a flow defect (both runs pick the same first-row date/time by design, per the determinism note above) — not a real failure, just an artifact of testing without the reset `run.sh` normally provides between flow directory runs. The stray extra appointment row this created was removed via a targeted `DELETE` (documented above) to restore the clean seeded baseline, and a fresh single re-run confirmed a clean pass.
+- **`03-grade-visibility.yaml`**: failed twice during diagnosis (missing `scrollUntilVisible` before `grade-form.grade-input`, then the keyboard-occlusion issue above, two attempts before the source-level `grade-form.header` fix landed) — passed cleanly end to end after both fixes, including the final `assertVisible: {id: "student-grades.row-grade.0", text: "A-"}` check.
+- Both flows were confirmed against real Postgres state via `docker compose exec db-test psql` queries before and after each run (appointment/grade row counts and values), not just Maestro's own pass/fail reporting.
+- Journey 1 (`01-registration-approval.yaml`) was not re-run in this task — out of scope (already verified in Task 8); nothing in this task's changes touches `admin/*.tsx` or the registration/login flow.
 
 ## Sanctioned text-selector exceptions
 
