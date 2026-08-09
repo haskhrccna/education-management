@@ -2,7 +2,6 @@
   "app/(auth)/index.tsx",
   "app/(auth)/register.tsx",
   "app/(auth)/forgot-password.tsx",
-  "app/(auth)/first-login.tsx",
   "app/(auth)/pending-approval.tsx",
   "app/student/home.tsx",
   "app/student/appointments.tsx",

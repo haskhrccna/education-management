@@ -126,7 +126,6 @@ export default function RootLayout() {
             <Stack.Screen name="student/certificates" />
             <Stack.Screen name="student/gamification" />
             <Stack.Screen name="(auth)/register" />
-            <Stack.Screen name="(auth)/first-login" />
             <Stack.Screen name="(auth)/pending-approval" />
             <Stack.Screen name="(auth)/forgot-password" />
 
