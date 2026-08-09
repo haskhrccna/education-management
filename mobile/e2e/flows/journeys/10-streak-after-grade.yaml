@@ -10,18 +10,19 @@ tags: [journey]
 # write happening elsewhere in the app.
 #
 # What this does NOT (and per the coordinator's own resolution, cannot)
-# prove: that submitting a grade CHANGES the streak's numeric value. It does
-# not, and by design: streak.currentStreak/longestStreak come from the
-# Streak table (gamification.service.ts's getMyGamification), which is only
-# ever written by markStudentActiveToday() - and a repo-wide grep confirms
-# that function is called from NOWHERE in the server's routes/controllers/
-# services (only exercised directly by its own unit test,
-# gamification.test.ts). Grade submission never touches the Streak table at
-# all. So "streak still renders" is the correct and only true claim here -
-# a content-based "the number changed" assertion would not just be brittle,
-# it would be asserting something the app never does. Logged in BUGLOG.md as
-# a new finding (orphaned streak-write path, same class as the pre-existing
-# first-login.tsx finding).
+# prove: that submitting a GRADE changes the streak's numeric value. It does
+# not: streak.currentStreak/longestStreak come from the Streak table
+# (gamification.service.ts's getMyGamification), written by recordActivity()
+# - which DOES have real callers (mushaf/recording/revision/ijazah/
+# memorization/curriculum-plan services all call it - the streak genuinely
+# increments for those actions), but grade.service.ts is NOT one of them
+# (confirmed by direct grep, zero matches). So specifically for the grade-
+# submission path this journey tests, "streak still renders" is the correct
+# and only true claim - a content-based "the number changed" assertion here
+# would assert something grading specifically does not do. Logged in
+# BUGLOG.md (corrected post-review - the original write-up overclaimed a
+# systemic dead-code gap that doesn't exist; the real, narrower finding is
+# that grading alone doesn't count as streak-worthy activity).
 #
 # Ali has no seeded Streak row in either seed script (confirmed by Task 7),
 # so the server's getMyGamification zero-fills { currentStreak: 0,
