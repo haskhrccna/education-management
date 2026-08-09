@@ -69,7 +69,39 @@ tags: [student, smoke]
     timeout: 10000
 
 # --- quick actions grid: student-home.quick-action.0..6 ---
-# 0: session -> /student/appointments (has BottomNav; return via bottom-nav.student-home)
+#
+# Plan 1 findings fix-pass (Task 4) ROOT-CAUSED the "quick-action tiles
+# intermittently navigate to the WRONG destination" finding from Plan 1's
+# BUGLOG.md. It is NOT an app bug in student-home.tsx - re-tested against a
+# freshly restarted Metro (--clear) and a freshly erased iOS simulator using
+# Maestro's testID-based tapOn (not raw coordinate taps), and the wrong
+# destination reproduced 100% of the time (4/4) for any tile requiring an
+# actual scroll (quick-action.4/.5/.6), both as the first navigation of a
+# fresh session and chained after other navigations - deterministically
+# landing on quick-action.0's destination every time, never a random tile.
+#
+# Root cause isolated via elimination: a single manual coordinate tap at the
+# same on-screen position (via the simulator control tool, no Maestro
+# involved) succeeded correctly; Maestro's own `tapOn` succeeded correctly
+# when the preceding scroll was done manually outside Maestro; but Maestro's
+# own `scrollUntilVisible` immediately followed by `tapOn` failed 100% of
+# the time for any element requiring real scrolling - a `waitForAnimationToEnd`
+# inserted between the two did not help. This is a Maestro `scrollUntilVisible`
+# defect (this Maestro/XCUITest driver version's scroll-then-tap sequencing),
+# not a defect a real user would ever hit. `quick-action.2`/`.3` were never
+# actually affected either - they're above the fold and needed no scrolling,
+# which is why the original Plan 1 diagnosis found *them* (not .4/.5/.6)
+# unreliable: `scrollUntilVisible` no-ops when the target is already visible.
+#
+# Fix: replace `scrollUntilVisible` with a plain `swipe` gesture before
+# tapping any below-the-fold quick-action tile. Verified live: 100% correct
+# destinations (11/11) across every below-the-fold control on this screen
+# (quick-action.4/.5/.6, teacher-card, grades-view-all, mushaf-cta) using
+# this pattern, replacing the old isolated-session/loose-assertion
+# workaround entirely. All 7 tiles now get full tap->assert-destination->
+# return coverage, matching .0/.1's original treatment.
+
+# 0: session -> /student/appointments (has BottomNav)
 - tapOn:
     id: "student-home.quick-action.0"
 - extendedWaitUntil:
@@ -83,8 +115,8 @@ tags: [student, smoke]
       id: "student-home.screen"
     timeout: 10000
 
-# 1: record -> /student/recordings (has BottomNav; no dedicated .screen testID yet -
-# assert home is no longer visible, then return via the tab bar)
+# 1: record -> /student/recordings (has BottomNav; no dedicated .screen
+# testID yet - assert home is no longer visible, then return via the tab bar)
 - tapOn:
     id: "student-home.quick-action.1"
 - assertNotVisible:
@@ -96,99 +128,14 @@ tags: [student, smoke]
       id: "student-home.screen"
     timeout: 10000
 
-# --- NOTE (app bug, logged in BUGLOG.md): student-home.tsx's quick-action
-# tiles intermittently navigate to the WRONG destination when chained after
-# other navigations in one continuous session - confirmed for quick-action.2
-# (landed on appointments) and quick-action.3 (landed on grades) in separate
-# reproductions, not a fixed/predictable off-by-one. Ruled out as a
-# testID/scroll-timing/rate-limit/route issue via extensive isolated
-# diagnostics (see BUGLOG.md). quick-action.0 and .1 have been reliable
-# (correct destination) in every run, chained or isolated, so they keep full
-# tap->assert-destination->return coverage above.
-#
-# .2 and .3 (the two *confirmed* wrong-destination tiles) each get their own
-# isolated segment below (fresh launch + re-login) so a wrong destination
-# can't cascade into the next assertion, and so the flow never depends on
-# guessing which screen a broken tile actually landed on to find a way back
-# - only "does the control exist and navigate away from home" is asserted.
-# .4/.5/.6 and the remaining controls below were never observed landing on
-# the wrong screen across many prior runs (isolated or chained), so they
-# stay chained in one shared session as originally designed - full
-# isolation for every control was tried first but pushed this flow's login
-# count (and the ~4 API calls each fresh home-mount fires) past the
-# server's standardLimiter (100 req/15 min, confirmed via a direct curl
-# check showing RateLimit-Remaining: 0 after a full-isolation run - see the
-# rate-limiter BUGLOG entry above).
-
-# 2: grades -> /student/grades intended (see note above)
-- clearKeychain
-- launchApp:
-    clearState: true
-- runFlow:
-    file: ../_helpers/login.yaml
-    env:
-      EMAIL: ali@quran-review.com
-      PASSWORD: Student1234!
-- extendedWaitUntil:
-    visible:
-      id: "student-home.screen"
-    timeout: 20000
-- scrollUntilVisible:
-    element:
-      id: "student-home.quick-action.2"
-    direction: DOWN
+# 2: grades -> /student/grades (has BottomNav; already visible above the
+# fold, no scroll needed)
 - tapOn:
     id: "student-home.quick-action.2"
-- assertNotVisible:
-    id: "student-home.screen"
-
-# 3: reports -> /student/reports intended (see note above)
-- clearKeychain
-- launchApp:
-    clearState: true
-- runFlow:
-    file: ../_helpers/login.yaml
-    env:
-      EMAIL: ali@quran-review.com
-      PASSWORD: Student1234!
 - extendedWaitUntil:
     visible:
-      id: "student-home.screen"
-    timeout: 20000
-- scrollUntilVisible:
-    element:
-      id: "student-home.quick-action.3"
-    direction: DOWN
-- tapOn:
-    id: "student-home.quick-action.3"
-- assertNotVisible:
-    id: "student-home.screen"
-
-# --- 4/5/6 + teacher-card + grades-view-all + mushaf-cta: one shared,
-# freshly-logged-in session (never observed misbehaving) ---
-- clearKeychain
-- launchApp:
-    clearState: true
-- runFlow:
-    file: ../_helpers/login.yaml
-    env:
-      EMAIL: ali@quran-review.com
-      PASSWORD: Student1234!
-- extendedWaitUntil:
-    visible:
-      id: "student-home.screen"
-    timeout: 20000
-
-# 4: revisions -> /student/revisions (has BottomNav; no dedicated .screen
-# testID yet - assert home is no longer visible, then return via the tab bar)
-- scrollUntilVisible:
-    element:
-      id: "student-home.quick-action.4"
-    direction: DOWN
-- tapOn:
-    id: "student-home.quick-action.4"
-- assertNotVisible:
-    id: "student-home.screen"
+      id: "student-grades.screen"
+    timeout: 10000
 - tapOn:
     id: "bottom-nav.student-home"
 - extendedWaitUntil:
@@ -196,15 +143,49 @@ tags: [student, smoke]
       id: "student-home.screen"
     timeout: 10000
 
-# 5: plans -> /student/plans (has BottomNav)
-- scrollUntilVisible:
-    element:
-      id: "student-home.quick-action.5"
-    direction: DOWN
+# 3: reports -> /student/reports (no BottomNav on this screen - return via
+# its own back control; already visible above the fold, no scroll needed)
+- tapOn:
+    id: "student-home.quick-action.3"
+- extendedWaitUntil:
+    visible:
+      id: "student-reports.screen"
+    timeout: 10000
+- tapOn:
+    id: "reports.back"
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 10000
+
+# 4: revisions -> /student/revisions (has BottomNav; below the fold - swipe,
+# not scrollUntilVisible, per the root-cause note above)
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- tapOn:
+    id: "student-home.quick-action.4"
+- extendedWaitUntil:
+    visible:
+      id: "student-revisions.screen"
+    timeout: 10000
+- tapOn:
+    id: "bottom-nav.student-home"
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 10000
+
+# 5: plans -> /student/plans (has BottomNav; below the fold)
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
 - tapOn:
     id: "student-home.quick-action.5"
-- assertNotVisible:
-    id: "student-home.screen"
+- extendedWaitUntil:
+    visible:
+      id: "student-plans.screen"
+    timeout: 10000
 - tapOn:
     id: "bottom-nav.student-home"
 - extendedWaitUntil:
@@ -213,16 +194,19 @@ tags: [student, smoke]
     timeout: 10000
 
 # 6: ijazahs -> /student/ijazahs (has BottomNav). Sits alone in the grid's
-# last row (7 tiles, 2 columns) - scrollUntilVisible explicitly rather than
-# relying on tapOn's own auto-scroll, which didn't reach this far reliably.
-- scrollUntilVisible:
-    element:
-      id: "student-home.quick-action.6"
-    direction: DOWN
+# last row (7 tiles, 2 columns) - two swipes to reach it.
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
 - tapOn:
     id: "student-home.quick-action.6"
-- assertNotVisible:
-    id: "student-home.screen"
+- extendedWaitUntil:
+    visible:
+      id: "student-ijazahs.screen"
+    timeout: 10000
 - tapOn:
     id: "bottom-nav.student-home"
 - extendedWaitUntil:
@@ -231,10 +215,12 @@ tags: [student, smoke]
     timeout: 10000
 
 # --- teacher card (ali has an assigned teacher -> routes to /messages) ---
-- scrollUntilVisible:
-    element:
-      id: "student-home.teacher-card"
-    direction: DOWN
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
 - tapOn:
     id: "student-home.teacher-card"
 - extendedWaitUntil:
@@ -249,10 +235,12 @@ tags: [student, smoke]
     timeout: 10000
 
 # --- recent grades "View all" action -> /student/grades ---
-- scrollUntilVisible:
-    element:
-      id: "student-home.grades-view-all"
-    direction: DOWN
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
 - tapOn:
     id: "student-home.grades-view-all"
 - extendedWaitUntil:
@@ -269,10 +257,15 @@ tags: [student, smoke]
 # --- mushaf CTA -> /student/mushaf (no BottomNav; tagged student-mushaf.back
 # as of Task 7, renamed from the bare "mushaf.back" testID Task 5 left it
 # with, to match the <screen>.<purpose> convention every other screen uses) ---
-- scrollUntilVisible:
-    element:
-      id: "student-home.mushaf-cta"
-    direction: DOWN
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
 - tapOn:
     id: "student-home.mushaf-cta"
 - assertNotVisible:
