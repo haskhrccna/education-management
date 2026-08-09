@@ -303,7 +303,7 @@ export default function MushafScreen() {
           <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: SPACING.sm }}>
             <TouchableOpacity
               accessibilityRole="button"
-              accessibilityLabel={t('pageStatus')}
+              accessibilityLabel={`${t('pageStatus')}: ${statusMeta(currentStatus).label}`}
               onPress={() => setStatusPickerOpen(true)}
               style={[styles.statusChip, { borderColor: statusMeta(currentStatus).color }]}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
