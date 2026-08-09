@@ -84,10 +84,14 @@ export default function StudentIjazahsScreen() {
     );
   };
 
-  const renderItem = ({ item }: { item: Ijazah }) => {
+  const renderItem = ({ item, index }: { item: Ijazah; index: number }) => {
     const teacherName = item.teacher ? `${item.teacher.firstName} ${item.teacher.lastName}` : '';
     return (
-      <AppCard colors={COLORS} style={[styles.card, { borderColor: COLORS.gold }]}>
+      <AppCard
+        colors={COLORS}
+        style={[styles.card, { borderColor: COLORS.gold }]}
+        testID={`student-ijazahs.row.${index}`}
+      >
         <View style={styles.cardHeader}>
           <View style={[styles.medal, { backgroundColor: COLORS.goldMuted }]}>
             <Ionicons name="ribbon" size={22} color={COLORS.gold} />
@@ -118,6 +122,7 @@ export default function StudentIjazahsScreen() {
           <TouchableOpacity
             style={[styles.shareBtn, { backgroundColor: COLORS.primary }]}
             onPress={() => handleShare(item.verificationToken)}
+            testID={`student-ijazahs.share.${index}`}
           >
             <Ionicons name="share-outline" size={16} color="#fff" />
             <AppText variant="bodySmall" color="#FFFFFF" style={{ marginStart: 6 }}>
@@ -127,6 +132,7 @@ export default function StudentIjazahsScreen() {
           <TouchableOpacity
             style={[styles.iconBtn, { borderColor: COLORS.borderSubtle }]}
             onPress={() => handleRegenerateLink(item.id)}
+            testID={`student-ijazahs.regenerate.${index}`}
           >
             <Ionicons name="refresh-outline" size={18} color={COLORS.textSecondary} />
           </TouchableOpacity>
@@ -136,13 +142,14 @@ export default function StudentIjazahsScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: COLORS.background }]}>
+    <View style={[styles.screen, { backgroundColor: COLORS.background }]} testID="student-ijazahs.screen">
       <View style={[styles.header, { paddingTop: insets.top + SPACING.sm }]}>
         <IconButton
           colors={COLORS}
           icon={isAr ? 'chevron-forward' : 'chevron-back'}
           accessibilityLabel={isAr ? 'رجوع' : 'Back'}
           onPress={() => router.back()}
+          testID="student-ijazahs.back"
         />
         <AppText variant="titleLarge" color={COLORS.textPrimary}>
           {isAr ? 'الإجازات' : 'Ijazahs'}
@@ -153,7 +160,7 @@ export default function StudentIjazahsScreen() {
       {isLoading ? (
         <ActivityIndicator style={{ marginTop: SPACING.xl * 2 }} color={COLORS.primary} />
       ) : error ? (
-        <TouchableOpacity style={styles.errorBox} onPress={() => refetch()}>
+        <TouchableOpacity style={styles.errorBox} onPress={() => refetch()} testID="student-ijazahs.retry">
           <AppText variant="bodyMedium" color={COLORS.error}>
             {isAr ? 'فشل التحميل' : 'Failed to load'}
           </AppText>
@@ -172,16 +179,18 @@ export default function StudentIjazahsScreen() {
             <RefreshControl refreshing={isLoading} onRefresh={() => refetch()} tintColor={COLORS.primary} />
           }
           ListEmptyComponent={
-            <EmptyState
-              colors={COLORS}
-              icon="ribbon-outline"
-              title={isAr ? 'لا توجد إجازات بعد' : 'No ijazahs yet'}
-              description={
-                isAr
-                  ? 'ستظهر هنا عندما يجيزك معلمك على إتمام سورة أو جزء.'
-                  : "They'll appear here once your teacher formally endorses a completed portion."
-              }
-            />
+            <View testID="student-ijazahs.empty">
+              <EmptyState
+                colors={COLORS}
+                icon="ribbon-outline"
+                title={isAr ? 'لا توجد إجازات بعد' : 'No ijazahs yet'}
+                description={
+                  isAr
+                    ? 'ستظهر هنا عندما يجيزك معلمك على إتمام سورة أو جزء.'
+                    : "They'll appear here once your teacher formally endorses a completed portion."
+                }
+              />
+            </View>
           }
         />
       )}

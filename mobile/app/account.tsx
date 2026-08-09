@@ -69,13 +69,14 @@ export default function AccountPrivacyScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: COLORS.background }]}>
+    <View style={[styles.screen, { backgroundColor: COLORS.background }]} testID="account.screen">
       <View style={[styles.header, { paddingTop: insets.top + SPACING.sm }]}>
         <IconButton
           colors={COLORS}
           icon={isAr ? 'chevron-forward' : 'chevron-back'}
           accessibilityLabel={isAr ? 'رجوع' : 'Back'}
           onPress={() => router.back()}
+          testID="account.back"
         />
         <AppText variant="titleLarge" color={COLORS.textPrimary}>
           {isAr ? 'الحساب والخصوصية' : 'Account & Privacy'}

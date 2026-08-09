@@ -53,7 +53,7 @@ export default function FirstLoginPage() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top']} testID="first-login.screen">
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -79,6 +79,7 @@ export default function FirstLoginPage() {
                 onChangeText={setCurrentPassword}
                 secureTextEntry
                 textAlign="right"
+                testID="first-login.current-password"
               />
             </View>
 
@@ -92,6 +93,7 @@ export default function FirstLoginPage() {
                 onChangeText={setNewPassword}
                 secureTextEntry
                 textAlign="right"
+                testID="first-login.new-password"
               />
             </View>
 
@@ -107,6 +109,7 @@ export default function FirstLoginPage() {
                 returnKeyType="send"
                 onSubmitEditing={handleChange}
                 textAlign="right"
+                testID="first-login.confirm-password"
               />
             </View>
 
@@ -115,6 +118,7 @@ export default function FirstLoginPage() {
               onPress={handleChange}
               disabled={isLoading}
               activeOpacity={0.8}
+              testID="first-login.submit"
             >
               <Text style={styles.buttonText}>{isLoading ? t('loading') : t('updatePassword')}</Text>
             </TouchableOpacity>

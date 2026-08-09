@@ -131,13 +131,14 @@ export default function MessagesScreen() {
   );
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top + SPACING.lg }]}>
+    <View style={[styles.screen, { paddingTop: insets.top + SPACING.lg }]} testID="messages.screen">
       <View style={styles.header}>
         <IconButton
           colors={COLORS}
           icon={isAr ? 'arrow-forward-outline' : 'arrow-back-outline'}
           accessibilityLabel={isAr ? 'رجوع' : 'Back'}
           onPress={() => router.back()}
+          testID="messages.back"
         />
         <View style={styles.headerText}>
           <Text style={styles.eyebrow}>{isAr ? 'المحادثات' : 'Conversations'}</Text>

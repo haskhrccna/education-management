@@ -115,7 +115,7 @@ export default function AdminHomeScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: COLORS.background }]}>
+    <View style={[styles.screen, { backgroundColor: COLORS.background }]} testID="admin-home.screen">
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACING.lg }]}
@@ -177,6 +177,7 @@ export default function AdminHomeScreen() {
           accessibilityRole="button"
           style={styles.approvalsSummary}
           onPress={() => router.push('/admin/change-requests')}
+          testID="admin-home.approvals"
         >
           <View style={styles.approvalsIcon}>
             <Ionicons name="checkmark-done-outline" size={22} color={COLORS.primary} />

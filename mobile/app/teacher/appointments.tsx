@@ -91,7 +91,11 @@ export default function TeacherAppointmentsScreen() {
   const decided = appointments.filter((a) => !isPending(a.status));
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: COLORS.background }}
+      edges={['top']}
+      testID="teacher-appointments.screen"
+    >
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons
@@ -140,7 +144,7 @@ export default function TeacherAppointmentsScreen() {
                 {t('pendingAppointments')} · {pending.length}
               </Text>
             )}
-            {pending.map((a) => (
+            {pending.map((a, index) => (
               <AppointmentCard
                 key={a.id}
                 appt={a}
@@ -152,6 +156,9 @@ export default function TeacherAppointmentsScreen() {
                 onAccept={() => handleAction(a.id, 'ACCEPTED')}
                 onReject={() => handleAction(a.id, 'REJECTED')}
                 showActions
+                testIDPrefix={`teacher-appointments.row.${index}`}
+                acceptTestID={`teacher-appointments.accept.${index}`}
+                statusTestID={`teacher-appointments.status.${index}`}
               />
             ))}
 
@@ -192,6 +199,10 @@ interface CardProps {
   onAccept: () => void;
   onReject: () => void;
   showActions: boolean;
+  /** Task 9: minimal testIDs for the journeys/02-appointment-booking flow (pending rows only). */
+  testIDPrefix?: string;
+  acceptTestID?: string;
+  statusTestID?: string;
 }
 
 function AppointmentCard({
@@ -204,6 +215,9 @@ function AppointmentCard({
   onAccept,
   onReject,
   showActions,
+  testIDPrefix,
+  acceptTestID,
+  statusTestID,
 }: CardProps) {
   const colors = statusStyle(appt.status, COLORS);
   const dateStr = new Date(appt.requestedDate).toLocaleDateString(dateLocale, {
@@ -214,7 +228,7 @@ function AppointmentCard({
   });
   const studentName = appt.student ? `${appt.student.firstName} ${appt.student.lastName}`.trim() : '—';
   return (
-    <View style={[styles.card, { backgroundColor: COLORS.surface }]}>
+    <View style={[styles.card, { backgroundColor: COLORS.surface }]} testID={testIDPrefix}>
       <View style={styles.cardTop}>
         <View style={[styles.avatar, { backgroundColor: COLORS.primaryMuted }]}>
           <Text style={[styles.avatarText, { color: COLORS.primary }]}>
@@ -228,7 +242,7 @@ function AppointmentCard({
           </Text>
           <Text style={[styles.metaText, { color: COLORS.textSecondary }]}>{appt.durationMinutes} min</Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: colors.bg }]}>
+        <View style={[styles.statusBadge, { backgroundColor: colors.bg }]} testID={statusTestID}>
           <Text style={[styles.statusText, { color: colors.fg }]}>{statusLabel(appt.status, t)}</Text>
         </View>
       </View>
@@ -251,6 +265,7 @@ function AppointmentCard({
             onPress={onAccept}
             disabled={isActing}
             activeOpacity={0.85}
+            testID={acceptTestID}
           >
             {isActing ? (
               <ActivityIndicator color="#fff" />

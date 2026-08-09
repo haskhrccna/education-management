@@ -209,7 +209,7 @@ export default function StudentHomeScreen() {
   ];
 
   return (
-    <View style={[styles.screen, { backgroundColor: COLORS.background }]}>
+    <View style={[styles.screen, { backgroundColor: COLORS.background }]} testID="student-home.screen">
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACING.lg }]}
@@ -224,7 +224,11 @@ export default function StudentHomeScreen() {
           </View>
           <View style={styles.headerActions}>
             <View>
-              <TouchableOpacity onPress={() => router.push('/notifications')} style={{ marginEnd: SPACING.md }}>
+              <TouchableOpacity
+                onPress={() => router.push('/notifications')}
+                style={{ marginEnd: SPACING.md }}
+                testID="student-home.notifications"
+              >
                 <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
               </TouchableOpacity>
               <IconButton
@@ -232,6 +236,7 @@ export default function StudentHomeScreen() {
                 icon="chatbubble-outline"
                 accessibilityLabel={isAr ? 'الرسائل' : 'Messages'}
                 onPress={() => router.push('/messages')}
+                testID="student-home.messages"
               />
               {unreadCount > 0 ? (
                 <View style={styles.badge}>
@@ -246,6 +251,7 @@ export default function StudentHomeScreen() {
               accessibilityLabel={isAr ? 'الحساب والخصوصية' : 'Account & Privacy'}
               onPress={() => router.push('/account')}
               style={styles.logoutButton}
+              testID="student-home.account"
             />
             <IconButton
               colors={COLORS}
@@ -254,6 +260,7 @@ export default function StudentHomeScreen() {
               accessibilityLabel={isAr ? 'تسجيل الخروج' : 'Log out'}
               onPress={handleLogout}
               style={styles.logoutButton}
+              testID="student-home.logout"
             />
           </View>
         </View>
@@ -324,6 +331,7 @@ export default function StudentHomeScreen() {
                     item.page != null &&
                     router.push({ pathname: '/student/mushaf', params: { page: String(item.page) } })
                   }
+                  testID={`student-home.revision-item.${idx}`}
                 >
                   <Text style={styles.rowTitle}>
                     {item.page != null ? `${t('pageNumber')} ${item.page}` : `${t('surah')} ${item.surahId}`}
@@ -337,6 +345,7 @@ export default function StudentHomeScreen() {
                     accessibilityLabel={t('markReviewed')}
                     onPress={() => markReviewed(item.page!)}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    testID={`student-home.revision-mark.${idx}`}
                   >
                     <Ionicons name="checkmark-circle-outline" size={24} color={COLORS.primary} />
                   </TouchableOpacity>
@@ -362,12 +371,13 @@ export default function StudentHomeScreen() {
         </View>
 
         <View style={styles.quickGrid}>
-          {quickActions.map((action) => (
+          {quickActions.map((action, index) => (
             <TouchableOpacity
               key={action.id}
               activeOpacity={0.85}
               style={styles.actionTile}
               onPress={() => router.push(action.route as any)}
+              testID={`student-home.quick-action.${index}`}
             >
               <View
                 style={[
@@ -401,6 +411,7 @@ export default function StudentHomeScreen() {
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={() => router.push(teacherName ? '/messages' : '/student/teacher-change')}
+          testID="student-home.teacher-card"
         >
           <AppCard colors={COLORS} style={styles.teacherCard}>
             {teacherName ? <Avatar colors={COLORS} label={teacherName} /> : <View style={styles.emptyAvatar} />}
@@ -431,6 +442,7 @@ export default function StudentHomeScreen() {
               }
               onPress={() => router.push(teacherName ? '/messages' : '/student/teacher-change')}
               size={38}
+              testID="student-home.teacher-action"
             />
           </AppCard>
         </TouchableOpacity>
@@ -440,6 +452,7 @@ export default function StudentHomeScreen() {
           actionLabel={isAr ? 'عرض الكل' : 'View all'}
           onActionPress={() => router.push('/student/grades')}
           colors={COLORS}
+          testID="student-home.grades-view-all"
         />
         {recentGrades.length > 0 ? (
           <View style={styles.listStack}>
@@ -500,6 +513,7 @@ export default function StudentHomeScreen() {
         <TouchableOpacity
           style={[styles.quickCard, { backgroundColor: COLORS.surface, alignItems: 'center' }]}
           onPress={() => router.push('/student/mushaf')}
+          testID="student-home.mushaf-cta"
         >
           <Ionicons name="book-outline" size={28} color={COLORS.primary} />
           <Text style={[styles.rowTitle, { marginTop: SPACING.xs }]}>{isAr ? 'قارئ المصحف' : 'Mushaf reader'}</Text>

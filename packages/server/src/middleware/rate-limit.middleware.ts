@@ -3,7 +3,7 @@ import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 export const standardLimiter = rateLimit({
   skip: () => process.env.NODE_ENV === 'test',
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: process.env.NODE_ENV === 'development' ? 1000 : 100,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => req.userId || ipKeyGenerator(req.ip || 'unknown'),

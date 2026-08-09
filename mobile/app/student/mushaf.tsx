@@ -204,6 +204,7 @@ export default function MushafScreen() {
         accessibilityRole="imagebutton"
         accessibilityLabel={`${t('pageNumber')} ${item}`}
         style={{ width: W, height: bodyHeight, alignItems: 'center', justifyContent: 'center' }}
+        testID={`student-mushaf.page-image.${item}`}
       >
         <Image
           source={{ uri: pageUri(item) }}
@@ -225,12 +226,17 @@ export default function MushafScreen() {
   const initialIndex = useMemo(() => currentPage - 1, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: COLORS.background }}
+      edges={['top']}
+      testID="student-mushaf.screen"
+    >
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
         <TouchableOpacity
           accessibilityRole="button"
           onPress={() => (router.canGoBack() ? router.back() : router.replace('/student/home'))}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          testID="student-mushaf.back"
         >
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
@@ -280,6 +286,7 @@ export default function MushafScreen() {
           disabled={currentPage <= 1}
           style={{ opacity: currentPage <= 1 ? 0.35 : 1 }}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          testID="student-mushaf.page-prev"
         >
           <Ionicons name={prevChevron} size={28} color={COLORS.primary} />
         </TouchableOpacity>
@@ -296,10 +303,11 @@ export default function MushafScreen() {
           <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: SPACING.sm }}>
             <TouchableOpacity
               accessibilityRole="button"
-              accessibilityLabel={t('pageStatus')}
+              accessibilityLabel={`${t('pageStatus')}: ${statusMeta(currentStatus).label}`}
               onPress={() => setStatusPickerOpen(true)}
               style={[styles.statusChip, { borderColor: statusMeta(currentStatus).color }]}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              testID="student-mushaf.status-chip"
             >
               <View style={[styles.statusDot, { backgroundColor: statusMeta(currentStatus).color }]} />
               <AppText variant="labelLarge" color={statusMeta(currentStatus).color}>
@@ -312,6 +320,7 @@ export default function MushafScreen() {
               onPress={() => setRecOpen(true)}
               style={[styles.statusChip, { borderColor: COLORS.primary }]}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              testID="student-mushaf.record-open"
             >
               <Ionicons name="mic-outline" size={16} color={COLORS.primary} />
             </TouchableOpacity>
@@ -325,6 +334,7 @@ export default function MushafScreen() {
           disabled={currentPage >= TOTAL_PAGES}
           style={{ opacity: currentPage >= TOTAL_PAGES ? 0.35 : 1 }}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          testID="student-mushaf.page-next"
         >
           <Ionicons name={nextChevron} size={28} color={COLORS.primary} />
         </TouchableOpacity>
@@ -332,8 +342,16 @@ export default function MushafScreen() {
 
       {/* Recite-from-the-page (F2): record on the open page, upload carries the page tag. */}
       <Modal visible={recOpen} transparent animationType="fade" onRequestClose={cancelRec}>
-        <Pressable style={styles.statusBackdrop} onPress={recObj || uploading ? undefined : cancelRec}>
-          <Pressable style={[styles.statusSheet, { backgroundColor: COLORS.surface }]} onPress={() => {}}>
+        <Pressable
+          style={styles.statusBackdrop}
+          onPress={recObj || uploading ? undefined : cancelRec}
+          testID="student-mushaf.record-modal-backdrop"
+        >
+          <Pressable
+            style={[styles.statusSheet, { backgroundColor: COLORS.surface }]}
+            onPress={() => {}}
+            testID="student-mushaf.record-modal-sheet"
+          >
             <AppText variant="titleMedium" color={COLORS.textPrimary} style={{ textAlign: 'center' }}>
               {t('recordThisPage')} — {t('pageNumber')} {currentPage}
             </AppText>
@@ -349,6 +367,7 @@ export default function MushafScreen() {
                   accessibilityLabel={t('stopRecording')}
                   onPress={stopAndUploadRec}
                   style={[styles.recAction, { backgroundColor: COLORS.error }]}
+                  testID="student-mushaf.stop-recording"
                 >
                   <Ionicons name="stop" size={20} color="#FFFFFF" />
                   <AppText variant="bodyMedium" color="#FFFFFF">
@@ -362,6 +381,7 @@ export default function MushafScreen() {
                 accessibilityLabel={t('startRecording')}
                 onPress={startRec}
                 style={[styles.recAction, { backgroundColor: COLORS.primary }]}
+                testID="student-mushaf.start-recording"
               >
                 <Ionicons name="mic" size={20} color="#FFFFFF" />
                 <AppText variant="bodyMedium" color="#FFFFFF">
@@ -376,6 +396,7 @@ export default function MushafScreen() {
                 onPress={cancelRec}
                 style={{ alignItems: 'center', paddingVertical: SPACING.xs }}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                testID="student-mushaf.cancel-recording"
               >
                 <AppText variant="bodyMedium" color={COLORS.textSecondary}>
                   {t('cancel')}
@@ -393,8 +414,16 @@ export default function MushafScreen() {
         animationType="fade"
         onRequestClose={() => setStatusPickerOpen(false)}
       >
-        <Pressable style={styles.statusBackdrop} onPress={() => setStatusPickerOpen(false)}>
-          <Pressable style={[styles.statusSheet, { backgroundColor: COLORS.surface }]} onPress={() => {}}>
+        <Pressable
+          style={styles.statusBackdrop}
+          onPress={() => setStatusPickerOpen(false)}
+          testID="student-mushaf.status-modal-backdrop"
+        >
+          <Pressable
+            style={[styles.statusSheet, { backgroundColor: COLORS.surface }]}
+            onPress={() => {}}
+            testID="student-mushaf.status-modal-sheet"
+          >
             <AppText variant="titleMedium" color={COLORS.textPrimary} style={{ textAlign: 'center' }}>
               {t('pageStatus')} — {t('pageNumber')} {currentPage}
             </AppText>
@@ -416,6 +445,7 @@ export default function MushafScreen() {
                     selected && { backgroundColor: COLORS.primaryMuted },
                   ]}
                   hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  testID={s === 'MEMORIZED' ? 'student-mushaf.mark-memorized' : `student-mushaf.status-option.${s}`}
                 >
                   <View style={[styles.statusDot, { backgroundColor: meta.color }]} />
                   <AppText
@@ -461,6 +491,7 @@ export default function MushafScreen() {
             onPress={() => setZoomPage(null)}
             style={styles.zoomClose}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            testID="student-mushaf.zoom-close"
           >
             <Ionicons name="close" size={26} color="#FFFFFF" />
           </TouchableOpacity>

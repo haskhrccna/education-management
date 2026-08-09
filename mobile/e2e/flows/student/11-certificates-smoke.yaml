@@ -1,0 +1,42 @@
+appId: com.quranreview.app
+tags: [student, smoke]
+---
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+
+# Reach student-certificates.screen via deep link, not a quick-action tap -
+# certificates.tsx isn't reachable from a student-home quick-action tile
+# (only from parent/home.tsx), but Task 7's coordinator resolution requires
+# the deep-link path for all 5 of this task's screens for consistency.
+- openLink: "quran-review://student/certificates"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "student-certificates.screen"
+    timeout: 10000
+
+# Ali has no seeded certificates (no certificate/Certificate references in
+# either packages/server/src/prisma/seed.ts or seed-e2e.ts) -> empty state.
+- extendedWaitUntil:
+    visible:
+      id: "student-certificates.empty"
+    timeout: 10000
+
+- tapOn:
+    id: "student-certificates.back"
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 10000

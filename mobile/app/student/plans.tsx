@@ -44,10 +44,13 @@ export default function StudentPlansScreen() {
     AHEAD: COLORS.primary,
   };
 
-  const renderPlan = ({ item }: { item: CurriculumPlan }) => {
+  const renderPlan = ({ item, index }: { item: CurriculumPlan; index: number }) => {
     const paceColor = PACE_COLORS[item.pace];
     return (
-      <View style={[styles.card, { backgroundColor: COLORS.surface, borderLeftColor: paceColor }]}>
+      <View
+        style={[styles.card, { backgroundColor: COLORS.surface, borderLeftColor: paceColor }]}
+        testID={`student-plans.row.${index}`}
+      >
         <View style={styles.cardTop}>
           <Text style={[styles.planName, { color: COLORS.text }]}>{item.name}</Text>
           <View style={[styles.paceBadge, { backgroundColor: paceColor + '22' }]}>
@@ -80,9 +83,9 @@ export default function StudentPlansScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: COLORS.background }]}>
+    <View style={[styles.screen, { backgroundColor: COLORS.background }]} testID="student-plans.screen">
       <View style={[styles.header, { paddingTop: insets.top + SPACING.sm }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} testID="student-plans.back">
           <Ionicons name={isAr ? 'chevron-forward' : 'chevron-back'} size={24} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: COLORS.text }]}>{isAr ? 'خطط الحفظ' : 'Curriculum plans'}</Text>
@@ -92,7 +95,7 @@ export default function StudentPlansScreen() {
       {isLoading ? (
         <ActivityIndicator style={{ marginTop: SPACING.xl * 2 }} color={COLORS.primary} />
       ) : error ? (
-        <TouchableOpacity style={styles.errorBox} onPress={() => refetch()}>
+        <TouchableOpacity style={styles.errorBox} onPress={() => refetch()} testID="student-plans.retry">
           <Text style={[styles.errorText, { color: COLORS.error }]}>{t('loadFailed')}</Text>
         </TouchableOpacity>
       ) : (
@@ -109,7 +112,7 @@ export default function StudentPlansScreen() {
             <RefreshControl refreshing={isLoading} onRefresh={() => refetch()} tintColor={COLORS.primary} />
           }
           ListEmptyComponent={
-            <View style={styles.emptyWrap}>
+            <View style={styles.emptyWrap} testID="student-plans.empty">
               <Ionicons name="map-outline" size={48} color={COLORS.textSecondary} />
               <Text style={[styles.emptyTitle, { color: COLORS.text }]}>
                 {isAr ? 'لا توجد خطط بعد' : 'No plans yet'}

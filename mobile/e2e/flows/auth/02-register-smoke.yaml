@@ -1,0 +1,88 @@
+appId: com.quranreview.app
+tags: [auth, smoke]
+---
+- clearKeychain
+- launchApp:
+    clearState: true
+# Metro-reconnect/dev-launcher boilerplate factored out to _helpers/boot.yaml
+# (shared with _helpers/login.yaml and 03-forgot-password-smoke.yaml).
+- runFlow:
+    file: ../_helpers/boot.yaml
+# open register from login
+- tapOn:
+    id: "login.register-link"
+- extendedWaitUntil:
+    visible:
+      id: "register.screen"
+    timeout: 10000
+# submit empty first → inline validation error
+- tapOn:
+    id: "register.submit"
+- extendedWaitUntil:
+    visible:
+      id: "register.error"
+    timeout: 10000
+# Remount the register screen before filling real data: once the password
+# field has been focused/blurred on a given screen instance, iOS's Password
+# AutoFill state for that instance appears to stay wedged (repro'd 12/12 times
+# across this session), desyncing every later attempt to type into it from
+# React's controlled value. A fresh screen instance (navigate away, navigate
+# back) does not carry that wedged state.
+- tapOn:
+    id: "register.back-link"
+- extendedWaitUntil:
+    visible:
+      id: "login.screen"
+    timeout: 10000
+- tapOn:
+    id: "login.register-link"
+- extendedWaitUntil:
+    visible:
+      id: "register.screen"
+    timeout: 10000
+# fill every input (register.tsx has no role selector and no confirm-password
+# field — Task 3 report confirms handleRegister hardcodes role: 'student')
+- tapOn:
+    id: "register.first-name"
+- inputText: "E2E"
+- tapOn:
+    id: "register.last-name"
+- inputText: "RegSmoke"
+- tapOn:
+    id: "register.email"
+- inputText: "e2e-reg-smoke@quran-review.com"
+# iOS's "Use Strong Password?" AutoFill sheet can take over the field on
+# focus and desync from RN's controlled TextInput (visually shows a suggested
+# password but doesn't fire onChangeText, so React still sees ''). The
+# register-screen remount above (back-link then register-link again) clears
+# out the wedged AutoFill state from the earlier empty-submit interaction —
+# empirically this makes the very first attempt below succeed reliably.
+# retry stays as a safety net for any remaining on-device timing variance.
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          id: "register.password"
+      - tapOn:
+          point: "91%, 61%"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 1000
+      - tapOn:
+          id: "register.password"
+      - waitForAnimationToEnd:
+          timeout: 1000
+      - eraseText
+      - inputText: "RegSmoke1234!"
+      - tapOn:
+          id: "register.submit"
+      - tapOn:
+          text: "Not Now"
+          optional: true
+      # post-register destination, discovered via:
+      #   grep -n "router\." "mobile/app/(auth)/register.tsx"
+      # → handleRegister calls router.replace('/pending-approval') on success.
+      - extendedWaitUntil:
+          visible:
+            id: "pending-approval.screen"
+          timeout: 8000

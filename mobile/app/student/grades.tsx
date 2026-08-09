@@ -44,15 +44,20 @@ export default function StudentGradesScreen() {
     fetchGrades();
   }, [fetchGrades]);
 
-  const renderGrade = ({ item }: { item: Grade }) => (
-    <View style={[styles.card, { backgroundColor: COLORS.surface, borderStartColor: gradeTypeColor(item.type) }]}>
+  const renderGrade = ({ item, index }: { item: Grade; index: number }) => (
+    <View
+      style={[styles.card, { backgroundColor: COLORS.surface, borderStartColor: gradeTypeColor(item.type) }]}
+      testID={`student-grades.row.${index}`}
+    >
       <View style={styles.row}>
         <View style={[styles.badge, { backgroundColor: `${gradeTypeColor(item.type)}22` }]}>
           <Text style={[styles.badgeText, { color: gradeTypeColor(item.type) }]}>
             {GRADE_TYPE_LABELS[item.type] ?? item.type}
           </Text>
         </View>
-        <Text style={[styles.score, { color: gradeTypeColor(item.type) }]}>{item.grade}</Text>
+        <Text style={[styles.score, { color: gradeTypeColor(item.type) }]} testID={`student-grades.row-grade.${index}`}>
+          {item.grade}
+        </Text>
       </View>
 
       <Text
@@ -92,9 +97,17 @@ export default function StudentGradesScreen() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: COLORS.background }}
+      edges={['top']}
+      testID="student-grades.screen"
+    >
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          testID="student-grades.back"
+        >
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
             size={22}
@@ -119,7 +132,7 @@ export default function StudentGradesScreen() {
       {error ? (
         <View style={styles.center}>
           <Text style={{ color: COLORS.textSecondary }}>{error}</Text>
-          <TouchableOpacity onPress={fetchGrades} style={{ marginTop: SPACING.md }}>
+          <TouchableOpacity onPress={fetchGrades} style={{ marginTop: SPACING.md }} testID="student-grades.retry">
             <Text style={{ color: COLORS.primary, fontWeight: '600' }}>{t('retry')}</Text>
           </TouchableOpacity>
         </View>

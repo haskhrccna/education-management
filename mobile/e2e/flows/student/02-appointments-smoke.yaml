@@ -1,0 +1,123 @@
+appId: com.quranreview.app
+tags: [student, smoke]
+---
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+- tapOn:
+    id: "bottom-nav.student-appointments"
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.screen"
+    timeout: 10000
+
+# Ali is seeded with an ACCEPTED appointment with teacher@quran-review.com,
+# which lands in the "history" (decided) list, row index 0.
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.row.0"
+    timeout: 10000
+
+# Open the booking UI, assert the form renders, then cancel without
+# submitting (booking itself is Journey 2 / a later task).
+- tapOn:
+    id: "student-appointments.book"
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.book-form"
+    timeout: 10000
+
+# Exercise the date/time pickers (open + close) without actually submitting
+# a request. scrollUntilVisible before each tap rather than relying on
+# tapOn's own auto-scroll, which (per 01-home-smoke.yaml) doesn't reliably
+# reach controls deep in a scrollable form/grid.
+#
+# NOTE (app bug, logged in BUGLOG.md): `date-option.N` / `time-option.N` rows
+# are NOT individually reachable by id or text selector - iOS rolls the
+# entire FlatList's ~90 rendered rows up into a single accessibility node on
+# the `modalSheet` Pressable ancestor (its accessibilityText is all ~90
+# labels concatenated; the rows have no separate accessibility nodes in the
+# hierarchy dump). Confirmed functional via a raw coordinate tap in the
+# simulator (it does select a date and close the sheet) - this is an
+# accessibility-tree exposure bug, not a broken control, but it also means a
+# VoiceOver user could not navigate this list row-by-row. Dismissing via the
+# already-reachable close control instead, which round-trips the sheet
+# deterministically without depending on the broken row exposure.
+- scrollUntilVisible:
+    element:
+      id: "student-appointments.date-select"
+    direction: DOWN
+- tapOn:
+    id: "student-appointments.date-select"
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.date-modal-sheet"
+    timeout: 10000
+- tapOn:
+    id: "student-appointments.date-modal-close"
+- assertNotVisible:
+    id: "student-appointments.date-modal-sheet"
+
+- scrollUntilVisible:
+    element:
+      id: "student-appointments.time-select"
+    direction: DOWN
+- tapOn:
+    id: "student-appointments.time-select"
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.time-modal-sheet"
+    timeout: 10000
+- tapOn:
+    id: "student-appointments.time-modal-close"
+- assertNotVisible:
+    id: "student-appointments.time-modal-sheet"
+
+# Duration chips
+- scrollUntilVisible:
+    element:
+      id: "student-appointments.duration-chip.1"
+    direction: DOWN
+- tapOn:
+    id: "student-appointments.duration-chip.1"
+- tapOn:
+    id: "student-appointments.duration-chip.2"
+- tapOn:
+    id: "student-appointments.duration-chip.0"
+
+# Recurring toggle (on, then off, leaving the form in its default state)
+- scrollUntilVisible:
+    element:
+      id: "student-appointments.recurring-toggle"
+    direction: DOWN
+- tapOn:
+    id: "student-appointments.recurring-toggle"
+- tapOn:
+    id: "student-appointments.recurring-toggle"
+
+# Cancel the form (the same toggle control, now showing "Cancel") without
+# submitting.
+- scrollUntilVisible:
+    element:
+      id: "student-appointments.book"
+    direction: UP
+- tapOn:
+    id: "student-appointments.book"
+- assertNotVisible:
+    id: "student-appointments.book-form"
+
+- tapOn:
+    id: "student-appointments.back"
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 10000

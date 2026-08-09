@@ -83,7 +83,7 @@ export default function StudentRevisionsScreen() {
     MISSED: t('statusMissed'),
   };
 
-  const renderItem = ({ item }: { item: Revision }) => {
+  const renderItem = ({ item, index }: { item: Revision; index: number }) => {
     const tone = statusTone(item.status);
     const toneColor = TONE_COLORS[tone];
     const isDrill = item.ayahId != null;
@@ -99,6 +99,7 @@ export default function StudentRevisionsScreen() {
           { backgroundColor: COLORS.surface, borderLeftColor: toneColor },
           isDrill && { backgroundColor: drillColor + '11' },
         ]}
+        testID={`student-revisions.row.${index}`}
       >
         <View style={styles.cardTop}>
           <View style={{ flex: 1 }}>
@@ -133,6 +134,7 @@ export default function StudentRevisionsScreen() {
             <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: COLORS.success + '22', borderColor: COLORS.success }]}
               onPress={() => handleMark(item, 'COMPLETED')}
+              testID={`student-revisions.mark-completed.${index}`}
             >
               <Ionicons name="checkmark-circle-outline" size={16} color={COLORS.success} />
               <Text style={[styles.actionText, { color: COLORS.success }]}>{t('markCompleted')}</Text>
@@ -140,6 +142,7 @@ export default function StudentRevisionsScreen() {
             <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: COLORS.error + '22', borderColor: COLORS.error }]}
               onPress={() => handleMark(item, 'MISSED')}
+              testID={`student-revisions.mark-missed.${index}`}
             >
               <Ionicons name="close-circle-outline" size={16} color={COLORS.error} />
               <Text style={[styles.actionText, { color: COLORS.error }]}>{t('markMissed')}</Text>
@@ -151,9 +154,9 @@ export default function StudentRevisionsScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: COLORS.background }]}>
+    <View style={[styles.screen, { backgroundColor: COLORS.background }]} testID="student-revisions.screen">
       <View style={[styles.header, { paddingTop: insets.top + SPACING.sm }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} testID="student-revisions.back">
           <Ionicons name={isAr ? 'chevron-forward' : 'chevron-back'} size={24} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: COLORS.text }]}>{t('revisionScheduleTitle')}</Text>
@@ -163,7 +166,7 @@ export default function StudentRevisionsScreen() {
       {isLoading ? (
         <ActivityIndicator style={{ marginTop: SPACING.xl * 2 }} color={COLORS.primary} />
       ) : error ? (
-        <TouchableOpacity style={styles.errorBox} onPress={fetchRevisions}>
+        <TouchableOpacity style={styles.errorBox} onPress={fetchRevisions} testID="student-revisions.retry">
           <Text style={[styles.errorText, { color: COLORS.error }]}>{t('loadFailed')}</Text>
         </TouchableOpacity>
       ) : (
@@ -180,7 +183,7 @@ export default function StudentRevisionsScreen() {
             <RefreshControl refreshing={isLoading} onRefresh={fetchRevisions} tintColor={COLORS.primary} />
           }
           ListEmptyComponent={
-            <View style={styles.emptyWrap}>
+            <View style={styles.emptyWrap} testID="student-revisions.empty">
               <Ionicons name="book-outline" size={48} color={COLORS.textSecondary} />
               <Text style={[styles.emptyTitle, { color: COLORS.text }]}>{t('noRevisions')}</Text>
               <Text style={[styles.emptyDesc, { color: COLORS.textSecondary }]}>{t('noRevisionsDesc')}</Text>

@@ -1,0 +1,45 @@
+appId: com.quranreview.app
+tags: [student, smoke]
+---
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+
+# Reach student-plans.screen via deep link rather than tapping
+# student-home.quick-action.5. Per Task 7's coordinator resolution, ALL 5 of
+# this task's screens are reached this way as the PRIMARY path (not just as
+# a workaround for an already-confirmed-buggy tile): quick-action.5 is
+# UNVERIFIED against BUGLOG.md Finding #3 (the wrong-destination
+# quick-action bug that has hit 3 of 7 tiles so far - see Task 6's report),
+# so this flow does not risk depending on its tap landing correctly.
+- openLink: "quran-review://student/plans"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "student-plans.screen"
+    timeout: 10000
+
+# Ali has no seeded curriculum plans (no CurriculumPlan rows in either
+# packages/server/src/prisma/seed.ts or seed-e2e.ts) -> empty state.
+- extendedWaitUntil:
+    visible:
+      id: "student-plans.empty"
+    timeout: 10000
+
+- tapOn:
+    id: "student-plans.back"
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 10000

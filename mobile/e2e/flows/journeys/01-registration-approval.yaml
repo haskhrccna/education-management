@@ -1,0 +1,189 @@
+appId: com.quranreview.app
+tags: [journey]
+---
+# Journey 1: student self-registration -> admin approval -> student can log in.
+#
+# Every `launchApp: clearState: true` in this file is preceded by
+# `clearKeychain`. iOS Keychain items (where the auth token lives) live
+# outside the app sandbox and are NOT wiped by clearState alone - without
+# this, a live run showed each subsequent role transition (student ->
+# admin -> student again) landing on the PREVIOUS session's already-logged-in
+# screen instead of a fresh login.email prompt, since the prior run's token
+# silently survived. Confirmed by three consecutive reproductions before
+# finding the cause.
+#
+# Part 1: student registers. Reuses boot.yaml (Metro reconnect + dev-launcher
+# dance) rather than duplicating it, per this task's coordinator resolution.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/boot.yaml
+- tapOn:
+    id: "login.register-link"
+- tapOn:
+    text: "Not Now"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "register.screen"
+    timeout: 10000
+- tapOn:
+    id: "register.first-name"
+- inputText: "Journey"
+- tapOn:
+    id: "register.last-name"
+- inputText: "One"
+- tapOn:
+    id: "register.email"
+- inputText: "e2e-journey1@quran-review.com"
+# See BUGLOG.md "iOS Password AutoFill gets wedged..." - same retry safety net
+# already established in auth/02-register-smoke.yaml and
+# auth/04-pending-approval-smoke.yaml for the password field + submit.
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          id: "register.password"
+      - tapOn:
+          point: "91%, 61%"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 1000
+      - tapOn:
+          id: "register.password"
+      - waitForAnimationToEnd:
+          timeout: 1000
+      - eraseText
+      - inputText: "Journey1234!"
+      - tapOn:
+          id: "register.submit"
+      - tapOn:
+          text: "Not Now"
+          optional: true
+      - extendedWaitUntil:
+          visible:
+            id: "pending-approval.screen"
+          timeout: 8000
+
+# Part 2: pending login is blocked. register() does not authenticate the app
+# (mobile/src/auth/store.ts's register() only calls the API, never sets
+# user/token) - pending-approval.screen is reached by a raw router.replace,
+# not the auth gate. So pending-approval.logout's router.push('/') lands
+# cleanly on a real, unauthenticated login.screen (no bounce-back), unlike a
+# genuinely-authenticated pending session.
+#
+# Per BUGLOG.md / auth/04-pending-approval-smoke.yaml's already-documented,
+# already-verified behavior: the server rejects login for any non-ACTIVE
+# account with 403 before the app ever gets a user object, so the app never
+# reaches pending-approval.screen via a login attempt - it stays on
+# login.screen showing login.error. This flow asserts that established
+# behavior rather than a (currently unreachable) pending-approval.screen
+# landing.
+- tapOn:
+    id: "pending-approval.logout"
+- extendedWaitUntil:
+    visible:
+      id: "login.screen"
+    timeout: 10000
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: "e2e-journey1@quran-review.com"
+      PASSWORD: "Journey1234!"
+- extendedWaitUntil:
+    visible:
+      id: "login.error"
+    timeout: 10000
+
+# Part 3: admin approves. The real admin UI has no dedicated "users list"
+# screen reachable from admin/home.tsx - admin-home.approvals navigates to
+# the combined approvals screen (admin/change-requests.tsx), which lists
+# pending student accounts, teacher-change requests, and parent-link requests
+# together, filterable by chips (no search input exists). Per this task's
+# coordinator resolution #3, scrollUntilVisible locates the row.
+#
+# Row identification: NOT by text match on "Journey One" - a live run proved
+# this fails even though the text is plainly visible on screen (screenshot
+# confirmed). iOS merges the whole row's Avatar/title/subtitle/badge into ONE
+# accessibility node (accessibilityText: "JO, Journey One, ..."), same class
+# of accessibility-swallowing already documented in BUGLOG.md for the
+# date/time-picker FlatList - Maestro's text selector cannot reach the
+# sub-string inside that merged node. Using admin-approvals.row.0 instead:
+# GET /admin/users is ordered `createdAt desc` (confirmed in
+# admin.service.ts), and userRows preserves that order after filtering to
+# PENDING+STUDENT - so the just-registered fixture user (always the newest
+# such row in this controlled environment) is deterministically row 0 once
+# the STUDENT_ACCOUNT filter is applied, even with fatima@quran-review.com
+# (the seeded PENDING fixture, created long before this flow runs) also in
+# the filtered list.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: "admin@quran-review.com"
+      PASSWORD: "Admin1234!"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 20000
+- tapOn:
+    id: "admin-home.approvals"
+- extendedWaitUntil:
+    visible:
+      id: "admin-approvals.screen"
+    timeout: 10000
+- tapOn:
+    id: "admin-approvals.filter.STUDENT_ACCOUNT"
+- scrollUntilVisible:
+    element:
+      id: "admin-approvals.row.0"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: "admin-approvals.row.0"
+# Tapping a row toggles its expanded state (expandedId) with an animated
+# reveal of the approve button - a live run showed the button already
+# rendered in a screenshot taken at the exact moment the immediately-following
+# assertion failed, indicating a render-settle race rather than a real
+# absence. Widened timeout (was 5000ms, now matches this suite's normal
+# 10000ms) plus an explicit settle wait, same pattern already used for
+# animated reveals elsewhere in this suite (e.g. the recordings audio-picker
+# sheet fix in Task 6).
+- waitForAnimationToEnd:
+    timeout: 1500
+- extendedWaitUntil:
+    visible:
+      id: "admin-approvals.approve"
+    timeout: 10000
+- tapOn:
+    id: "admin-approvals.approve"
+# approveStudentAccount()'s finish() resets expandedId to null and refreshes
+# the list on success - the approve button (only rendered while its row is
+# expanded) disappearing is a reliable signal the PUT completed.
+- extendedWaitUntil:
+    notVisible:
+      id: "admin-approvals.approve"
+    timeout: 10000
+
+# Part 4: student can now log in (status is now ACTIVE).
+# Lands on the onboarding wizard, not student-home.screen: onboardingCompletedAt
+# is only pre-stamped for the seed-e2e.ts fixture accounts (see Task 5's
+# BUGLOG/report) - a freshly-registered-then-approved account was never
+# stamped, so the app's own onboarding gate (app/_layout.tsx) correctly routes
+# it to /onboarding/student. This is the accurate first-login destination for
+# a genuinely new user, not a workaround for a bug.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: "e2e-journey1@quran-review.com"
+      PASSWORD: "Journey1234!"
+- extendedWaitUntil:
+    visible:
+      id: "onboarding-student.screen"
+    timeout: 20000

@@ -189,7 +189,7 @@ export default function ApprovalsScreen() {
   ];
 
   return (
-    <SafeAreaView style={s.screen} edges={['top']}>
+    <SafeAreaView style={s.screen} edges={['top']} testID="admin-approvals.screen">
       <View style={s.appBar}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -211,6 +211,7 @@ export default function ApprovalsScreen() {
             onPress={() => setFilter(f.key)}
             accessibilityRole="button"
             style={[s.chip, filter === f.key && s.chipActive]}
+            testID={`admin-approvals.filter.${f.key}`}
           >
             <AppText
               variant="labelLarge"
@@ -242,17 +243,19 @@ export default function ApprovalsScreen() {
         ) : rows.length === 0 ? (
           <EmptyState colors={COLORS} icon="checkmark-circle-outline" title={t('approvalsEmpty')} />
         ) : (
-          rows.map((row) => {
+          rows.map((row, index) => {
             const expanded = expandedId === `${row.kind}:${row.id}`;
             return (
               <TouchableOpacity
                 key={`${row.kind}:${row.id}`}
                 activeOpacity={0.85}
                 accessibilityRole="button"
+                accessible={false}
                 onPress={() => {
                   setExpandedId(expanded ? null : `${row.kind}:${row.id}`);
                   setAdminNote('');
                 }}
+                testID={`admin-approvals.row.${index}`}
               >
                 <AppCard colors={COLORS} style={s.card}>
                   <View style={s.cardTop}>
@@ -337,6 +340,7 @@ export default function ApprovalsScreen() {
                                 ? decideParentLink(row.id, 'APPROVE')
                                 : approveStudentAccount(row.id)
                             }
+                            testID="admin-approvals.approve"
                           >
                             <AppText variant="labelLarge" style={{ color: COLORS.textOnPrimary }}>
                               {t('approvalsApprove')}

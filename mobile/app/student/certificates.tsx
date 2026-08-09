@@ -67,12 +67,17 @@ export default function CertificatesScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: COLORS.background }}
+      edges={['top']}
+      testID="student-certificates.screen"
+    >
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
         <TouchableOpacity
           accessibilityRole="button"
           onPress={() => router.back()}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          testID="student-certificates.back"
         >
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
@@ -95,21 +100,31 @@ export default function CertificatesScreen() {
             <AppText variant="bodyMedium" color={COLORS.textSecondary}>
               {error}
             </AppText>
-            <TouchableOpacity accessibilityRole="button" onPress={fetchCertificates} style={{ marginTop: SPACING.md }}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={fetchCertificates}
+              style={{ marginTop: SPACING.md }}
+              testID="student-certificates.retry"
+            >
               <AppText variant="bodyMedium" color={COLORS.primary}>
                 {t('retry')}
               </AppText>
             </TouchableOpacity>
           </View>
         ) : certificates.length === 0 ? (
-          <View style={styles.empty}>
+          <View style={styles.empty} testID="student-certificates.empty">
             <EmptyState colors={COLORS} icon="document-text-outline" title={t('noCertificates')} description="" />
           </View>
         ) : (
           <>
             <SectionHeader colors={COLORS} title={t('certificates')} />
-            {certificates.map((cert) => (
-              <AppCard key={cert.id} colors={COLORS} style={{ marginBottom: SPACING.sm }}>
+            {certificates.map((cert, index) => (
+              <AppCard
+                key={cert.id}
+                colors={COLORS}
+                style={{ marginBottom: SPACING.sm }}
+                testID={`student-certificates.row.${index}`}
+              >
                 <View style={styles.row}>
                   <Ionicons name="document-text-outline" size={28} color={COLORS.primary} />
                   <View style={{ flex: 1, marginStart: SPACING.md }}>
@@ -127,6 +142,7 @@ export default function CertificatesScreen() {
                     onPress={() => handleOpen(cert.id)}
                     style={[styles.btn, { backgroundColor: COLORS.primary }]}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    testID={`student-certificates.download.${index}`}
                   >
                     <AppText variant="bodySmall" color="#FFFFFF">
                       {t('downloadCertificate')}
@@ -140,6 +156,7 @@ export default function CertificatesScreen() {
                       { backgroundColor: COLORS.surface, borderColor: COLORS.borderSubtle, borderWidth: 1 },
                     ]}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    testID={`student-certificates.share.${index}`}
                   >
                     <AppText variant="bodySmall" color={COLORS.textPrimary}>
                       {t('shareCertificate')}
@@ -150,6 +167,7 @@ export default function CertificatesScreen() {
                     onPress={() => handleRegenerateLink(cert.id)}
                     style={[styles.iconBtn, { borderColor: COLORS.borderSubtle }]}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    testID={`student-certificates.regenerate.${index}`}
                   >
                     <Ionicons name="refresh-outline" size={18} color={COLORS.textSecondary} />
                   </TouchableOpacity>

@@ -1,0 +1,89 @@
+appId: com.quranreview.app
+tags: [student, smoke]
+---
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+- tapOn:
+    id: "bottom-nav.student-recordings"
+- extendedWaitUntil:
+    visible:
+      id: "student-recordings.screen"
+    timeout: 10000
+
+# Ali has no seeded recordings -> empty state.
+- extendedWaitUntil:
+    visible:
+      id: "student-recordings.empty"
+    timeout: 10000
+
+# Tap the record control (per coordinator resolution #3: do NOT start a real
+# recording — assert the recorder UI testID appears, then cancel it
+# immediately). NOTE: on this simulator, microphone permission was already
+# granted in a prior session (an OS-level grant that `clearState` does NOT
+# reset - it's simulator/OS state, not app state), so tapping "record"
+# starts an actual AVAudioSession recording with no permission prompt to
+# dismiss. Cancel it on the very next step so no real audio artifact is
+# produced or uploaded.
+- tapOn:
+    id: "student-recordings.record"
+- tapOn:
+    text: "OK"
+    optional: true
+- tapOn:
+    text: "Allow"
+    optional: true
+- tapOn:
+    text: "While Using the App"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "student-recordings.recording-banner"
+    timeout: 10000
+- tapOn:
+    id: "student-recordings.cancel-recording"
+- assertNotVisible:
+    id: "student-recordings.recording-banner"
+
+# Opens iOS's native UIDocumentPickerViewController ("Recents" browser) -
+# this is OS chrome, not app UI, so it has no testID surface. It shows an
+# "X" close icon (no "Cancel" text label) at its top-right; dismiss via a
+# raw point tap (same sanctioned-exception pattern as the AutoFill sheet in
+# BUGLOG.md/COVERAGE.md). The sheet's mount animation needs a brief settle
+# before the tap registers reliably - a single retry attempt was not enough
+# in a live run (the point tap landed while the presentation animation was
+# still in flight and silently missed); explicit waitForAnimationToEnd
+# settles before *and* after the tap, plus a third retry attempt, following
+# the same pattern already established for the AutoFill-sheet dismiss in
+# auth/02-register-smoke.yaml.
+- tapOn:
+    id: "student-recordings.pick-audio"
+- waitForAnimationToEnd:
+    timeout: 1500
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          point: "78%, 12%"
+      - waitForAnimationToEnd:
+          timeout: 1000
+      - extendedWaitUntil:
+          visible:
+            id: "student-recordings.screen"
+          timeout: 5000
+
+- tapOn:
+    id: "student-recordings.back"
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 10000

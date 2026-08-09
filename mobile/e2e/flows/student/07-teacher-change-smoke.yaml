@@ -1,0 +1,62 @@
+appId: com.quranreview.app
+tags: [student, smoke]
+---
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+- tapOn:
+    id: "bottom-nav.student-appointments"
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.screen"
+    timeout: 10000
+
+# Ali has an assigned teacher (ACCEPTED appointment w/ teacher@quran-review.com),
+# so the "change teacher" link (not "request teacher") renders inside the
+# booking form.
+- tapOn:
+    id: "student-appointments.book"
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.book-form"
+    timeout: 10000
+- tapOn:
+    id: "student-appointments.change-teacher"
+- extendedWaitUntil:
+    visible:
+      id: "student-teacher-change.screen"
+    timeout: 10000
+
+# Fill the request form but CANCEL without submitting (coordinator resolution
+# #5 - a hard requirement: submitting mutates state used by Plan 2's admin
+# flows and Journey 7).
+- tapOn:
+    id: "student-teacher-change.reason"
+- inputText: "The E2E smoke test needs a teacher change reason of at least ten characters."
+- tapOn:
+    id: "student-teacher-change.back"
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.screen"
+    timeout: 10000
+
+# Close the booking form and return home.
+- tapOn:
+    id: "student-appointments.book"
+- assertNotVisible:
+    id: "student-appointments.book-form"
+- tapOn:
+    id: "student-appointments.back"
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 10000

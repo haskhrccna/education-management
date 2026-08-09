@@ -1,0 +1,44 @@
+appId: com.quranreview.app
+tags: [student, smoke]
+---
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+
+# Reach student-ijazahs.screen via deep link rather than tapping
+# student-home.quick-action.6. quick-action.6 is UNVERIFIED against
+# BUGLOG.md Finding #3 (the wrong-destination quick-action bug that has hit
+# 3 of 7 tiles so far - .2/.3/.4 - see Task 6's report); per Task 7's
+# coordinator resolution this flow does not risk depending on its tap
+# landing correctly.
+- openLink: "quran-review://student/ijazahs"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "student-ijazahs.screen"
+    timeout: 10000
+
+# Ali has no seeded ijazahs (no ijazah/Ijazah references in either
+# packages/server/src/prisma/seed.ts or seed-e2e.ts) -> empty state.
+- extendedWaitUntil:
+    visible:
+      id: "student-ijazahs.empty"
+    timeout: 10000
+
+- tapOn:
+    id: "student-ijazahs.back"
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 10000

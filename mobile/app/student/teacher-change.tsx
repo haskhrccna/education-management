@@ -101,9 +101,9 @@ export default function TeacherChangeScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top']} testID="student-teacher-change.screen">
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} testID="student-teacher-change.back">
           <Ionicons name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'} size={22} color={COLORS.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
@@ -137,6 +137,7 @@ export default function TeacherChangeScreen() {
                 placeholder={isAssignmentRequest ? t('assignmentReasonPlaceholder') : t('changeReasonPlaceholder')}
                 placeholderTextColor={COLORS.textSecondary}
                 multiline
+                testID="student-teacher-change.reason"
               />
               <Text style={styles.charCount}>{reason.trim().length}/500</Text>
             </View>
@@ -145,6 +146,7 @@ export default function TeacherChangeScreen() {
               style={[styles.submitBtn, { opacity: reason.trim().length >= 10 && !isSubmitting ? 1 : 0.5 }]}
               onPress={handleSubmit}
               disabled={reason.trim().length < 10 || isSubmitting}
+              testID="student-teacher-change.submit"
             >
               {isSubmitting ? (
                 <ActivityIndicator color="#fff" />

@@ -214,7 +214,14 @@ export function BottomNav({ role, active }: BottomNavProps) {
   const { colors: COLORS, darkMode } = useTheme();
   const { unreadCount } = useNotifications();
 
-  const tabs = role === 'student' ? STUDENT_TABS : role === 'teacher' ? TEACHER_TABS : ADMIN_TABS;
+  const tabs =
+    role === 'student'
+      ? STUDENT_TABS
+      : role === 'teacher'
+        ? TEACHER_TABS
+        : role === 'parent'
+          ? PARENT_TABS
+          : ADMIN_TABS;
   const styles = navStyles(COLORS);
 
   return (
@@ -222,12 +229,14 @@ export function BottomNav({ role, active }: BottomNavProps) {
       <View style={styles.container}>
         {tabs.map((tab) => {
           const isActive = active === tab.id;
+          const routeSlug = tab.route.replace(/^\//, '').replace(/\//g, '-');
           return (
             <TouchableOpacity
               key={tab.id}
               style={[styles.tab, isActive && styles.tabActive]}
               onPress={() => router.push(tab.route as any)}
               activeOpacity={0.82}
+              testID={`bottom-nav.${routeSlug}`}
             >
               <View style={[styles.iconWrap, isActive && styles.iconWrapActive]}>
                 <Ionicons

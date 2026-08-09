@@ -13,7 +13,7 @@ export default function PendingApprovalPage() {
   const styles = createStyles(COLORS);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top']} testID="pending-approval.screen">
       <View style={styles.content}>
         <Animated.View entering={FadeInUp.duration(600)} style={styles.card}>
           <View style={styles.iconContainer}>
@@ -21,7 +21,9 @@ export default function PendingApprovalPage() {
             <Animated.View entering={FadeIn.delay(400).duration(800)} style={styles.pulseRing} />
           </View>
 
-          <Text style={styles.title}>{t('pendingApproval')}</Text>
+          <Text style={styles.title} testID="pending-approval.header">
+            {t('pendingApproval')}
+          </Text>
           <Text style={styles.description}>{t('pendingDesc')}</Text>
 
           <View style={styles.steps}>
@@ -44,7 +46,12 @@ export default function PendingApprovalPage() {
         </Animated.View>
 
         <Animated.View entering={FadeInUp.duration(600).delay(300)} style={styles.footer}>
-          <TouchableOpacity style={styles.button} onPress={() => router.push('/')} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => router.push('/')}
+            activeOpacity={0.8}
+            testID="pending-approval.logout"
+          >
             <Text style={styles.buttonText}>{t('backToLogin')}</Text>
           </TouchableOpacity>
         </Animated.View>

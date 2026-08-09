@@ -15,11 +15,16 @@ interface CardProps {
   children: React.ReactNode;
   colors: Colors;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-export function AppCard({ children, colors, style }: CardProps) {
+export function AppCard({ children, colors, style, testID }: CardProps) {
   const { spacingScale } = useSettingsScales();
-  return <View style={[uiStyles(colors, spacingScale).card, style]}>{children}</View>;
+  return (
+    <View style={[uiStyles(colors, spacingScale).card, style]} testID={testID}>
+      {children}
+    </View>
+  );
 }
 
 interface IconButtonProps {
@@ -31,6 +36,7 @@ interface IconButtonProps {
   size?: number;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
 export function IconButton({
@@ -42,6 +48,7 @@ export function IconButton({
   size = 44,
   disabled,
   style,
+  testID,
 }: IconButtonProps) {
   const background =
     tone === 'primary'
@@ -71,6 +78,7 @@ export function IconButton({
       activeOpacity={0.82}
       disabled={disabled}
       onPress={onPress}
+      testID={testID}
       style={[
         uiStyles(colors, 1).iconButton,
         {
@@ -157,9 +165,10 @@ interface SectionHeaderProps {
   onActionPress?: () => void;
   colors: Colors;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-export function SectionHeader({ title, actionLabel, onActionPress, colors, style }: SectionHeaderProps) {
+export function SectionHeader({ title, actionLabel, onActionPress, colors, style, testID }: SectionHeaderProps) {
   return (
     <View style={[uiStyles(colors, 1).sectionHeader, style]}>
       <AppText variant="titleLarge" style={uiStyles(colors, 1).sectionTitle}>
@@ -172,6 +181,7 @@ export function SectionHeader({ title, actionLabel, onActionPress, colors, style
           accessibilityRole="button"
           accessibilityLabel={actionLabel}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          testID={testID}
         >
           <AppText variant="labelLarge" style={uiStyles(colors, 1).sectionAction}>
             {actionLabel}
@@ -187,9 +197,10 @@ interface StatusPillProps {
   label: string;
   status?: 'success' | 'warning' | 'error' | 'info' | 'neutral';
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-export function StatusPill({ colors, label, status = 'neutral', style }: StatusPillProps) {
+export function StatusPill({ colors, label, status = 'neutral', style, testID }: StatusPillProps) {
   const bg =
     status === 'success'
       ? colors.successLight
@@ -211,7 +222,7 @@ export function StatusPill({ colors, label, status = 'neutral', style }: StatusP
             ? colors.info
             : colors.primary;
   return (
-    <View style={[uiStyles(colors, 1).statusPill, { backgroundColor: bg }, style]}>
+    <View style={[uiStyles(colors, 1).statusPill, { backgroundColor: bg }, style]} testID={testID}>
       <AppText variant="labelLarge" style={uiStyles(colors, 1).statusText}>
         {label}
       </AppText>
@@ -277,11 +288,12 @@ interface SegmentedControlProps {
   value: string;
   onChange: (value: string) => void;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-export function SegmentedControl({ colors, options, value, onChange, style }: SegmentedControlProps) {
+export function SegmentedControl({ colors, options, value, onChange, style, testID }: SegmentedControlProps) {
   return (
-    <View style={[uiStyles(colors, 1).segmentRow, style]}>
+    <View style={[uiStyles(colors, 1).segmentRow, style]} testID={testID}>
       {options.map((opt) => {
         const selected = opt.value === value;
         return (
@@ -295,6 +307,7 @@ export function SegmentedControl({ colors, options, value, onChange, style }: Se
               uiStyles(colors, 1).segmentChip,
               { backgroundColor: selected ? colors.primary : colors.surface, borderColor: colors.borderSubtle },
             ]}
+            testID={testID ? `${testID}.${opt.value}` : undefined}
           >
             <AppText variant="labelLarge" color={selected ? colors.textOnPrimary : colors.textPrimary}>
               {opt.label}

@@ -1,0 +1,18 @@
+appId: com.quranreview.app
+---
+# Metro-reconnect/dev-launcher boilerplate factored out to boot.yaml (shared
+# with 02-register-smoke.yaml and 03-forgot-password-smoke.yaml).
+- runFlow: boot.yaml
+- tapOn:
+    id: "login.email"
+- inputText: ${EMAIL}
+- tapOn:
+    id: "login.password"
+- inputText: ${PASSWORD}
+- tapOn:
+    id: "login.submit"
+# iOS may offer to save the just-submitted credentials in Keychain; dismiss
+# it so it doesn't block the next assertion/tap.
+- tapOn:
+    text: "Not Now"
+    optional: true

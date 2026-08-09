@@ -1,0 +1,70 @@
+appId: com.quranreview.app
+tags: [auth, smoke]
+---
+- clearKeychain
+- launchApp:
+    clearState: true
+# A leftover "Open in <app>?" system confirmation from a previous custom-scheme
+# deep link can persist across launches on this simulator; clear it first.
+- tapOn:
+    text: "Open"
+    optional: true
+# NOTE (deviation from the brief): the brief says "login as ali, then
+# `- openLink: quran-review://first-login`, assert first-login.screen". In
+# reality, ali cannot reach first-login.screen this way: ali is ACTIVE with
+# onboardingCompletedAt = null, so app/_layout.tsx's auth gate redirects any
+# route change (including this deep link, since segments[0] becomes
+# "first-login", not "onboarding") straight to /onboarding/student — verified
+# empirically (see BUGLOG.md). first-login.tsx is already flagged in BUGLOG.md
+# (Task 3) as orphaned/unreachable via in-app navigation; this confirms it's
+# also unreachable via direct deep link for any typical onboarding-incomplete
+# user, not just via missing navigation call sites — a stronger form of the
+# same finding, appended to that BUGLOG entry.
+# admin@quran-review.com is exempt from the onboarding gate (_layout.tsx:
+# `['student','teacher','parent'].includes(user.role)` excludes 'admin'), so
+# it's used here as the only seeded account that can actually reach this
+# screen to exercise its testIDs at all.
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: admin@quran-review.com
+      PASSWORD: Admin1234!
+- extendedWaitUntil:
+    notVisible:
+      id: "login.screen"
+    timeout: 20000
+- openLink: "quran-review://first-login"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "first-login.screen"
+    timeout: 10000
+# fill mismatching new/confirm passwords, submit, assert the error
+- tapOn:
+    id: "first-login.current-password"
+- inputText: "Admin1234!"
+- tapOn:
+    id: "first-login.new-password"
+- inputText: "NewPassword123!"
+- tapOn:
+    id: "first-login.confirm-password"
+- inputText: "DifferentPassword456!"
+- tapOn:
+    id: "first-login.submit"
+# NOTE (deviation): first-login.tsx surfaces every validation error via native
+# `Alert.alert(t('passwordsDoNotMatch'))` (single-argument call, so the i18n
+# string becomes the alert's title) rather than an inline testID'd error view
+# like login.error/register.error on the sibling auth screens — there is no
+# `first-login.error` testID to assert on (confirmed against Task 3's
+# inventory). This inconsistency is logged in BUGLOG.md. Assert on the native
+# alert's text, the only available signal, then dismiss it.
+- extendedWaitUntil:
+    visible:
+      text: "كلمتا المرور غير متطابقتين"
+    timeout: 10000
+- tapOn:
+    text: "OK"
+# Do NOT actually change a password (would break later flows / other seeded
+# users' credentials) — dismiss and stop here, per the brief.

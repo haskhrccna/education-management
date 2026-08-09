@@ -71,16 +71,16 @@ export default function ForgotPasswordScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} testID="forgot-password.screen">
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} testID="forgot-password.back-link">
           <Ionicons name="arrow-back-outline" size={22} color={COLORS.primary} style={styles.backIcon} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('forgotPassword')}</Text>
       </View>
       <ScrollView contentContainerStyle={styles.body}>
         {submitted ? (
-          <View style={styles.successCard}>
+          <View style={styles.successCard} testID="forgot-password.success">
             <View style={styles.successRow}>
               <Ionicons name="checkmark-circle-outline" size={22} color={COLORS.success} />
               <Text style={styles.successTitle}>{t('resetLinkSent')}</Text>
@@ -98,6 +98,7 @@ export default function ForgotPasswordScreen() {
                 placeholderTextColor={COLORS.textSecondary}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                testID="forgot-password.email"
               />
             </View>
             {error && <Text style={styles.errorText}>{error}</Text>}
@@ -105,6 +106,7 @@ export default function ForgotPasswordScreen() {
               style={[styles.btn, { opacity: email.trim() && !isLoading ? 1 : 0.5 }]}
               onPress={handleSubmit}
               disabled={!email.trim() || isLoading}
+              testID="forgot-password.submit"
             >
               {isLoading ? (
                 <ActivityIndicator color="#fff" />

@@ -1,0 +1,69 @@
+appId: com.quranreview.app
+tags: [student, smoke]
+---
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+
+# Reach student-gamification.screen via deep link, not a quick-action tap -
+# gamification.tsx isn't even reachable from a student-home quick-action
+# tile (only from parent/home.tsx), but Task 7's coordinator resolution
+# requires the deep-link path for all 5 of this task's screens for
+# consistency and to avoid depending on any tap-based navigation.
+- openLink: "quran-review://student/gamification"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "student-gamification.screen"
+    timeout: 10000
+
+# Streak metrics always render once gamification.tsx has loaded (server
+# returns a zeroed { currentStreak: 0, longestStreak: 0 } shape for a user
+# with no Streak row - see packages/server/src/services/gamification.service.ts
+# getMyGamification - rather than erroring), so this is unconditional.
+- extendedWaitUntil:
+    visible:
+      id: "student-gamification.streak"
+    timeout: 10000
+
+# Ali has no seeded UserBadge rows (no badge/Badge/UserBadge references in
+# either seed script) -> badge-wall empty state.
+- extendedWaitUntil:
+    visible:
+      id: "student-gamification.badges-empty"
+    timeout: 10000
+
+# Leaderboard scope switch: exercise both segments. Because no Streak rows
+# exist for ANY seeded user (same absence confirmed in seed.ts/seed-e2e.ts),
+# the leaderboard is empty under either scope - this isn't a coincidence of
+# ali's data specifically, so the empty-state assertion holds after both taps.
+- tapOn:
+    id: "student-gamification.leaderboard-scope.my-teacher"
+- extendedWaitUntil:
+    visible:
+      id: "student-gamification.leaderboard-empty"
+    timeout: 10000
+- tapOn:
+    id: "student-gamification.leaderboard-scope.all"
+- extendedWaitUntil:
+    visible:
+      id: "student-gamification.leaderboard-empty"
+    timeout: 10000
+
+- tapOn:
+    id: "student-gamification.back"
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 10000

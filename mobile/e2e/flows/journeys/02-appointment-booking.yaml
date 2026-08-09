@@ -1,0 +1,241 @@
+appId: com.quranreview.app
+tags: [journey]
+---
+# Journey 2: student books a NEW appointment -> teacher accepts it -> student sees
+# ACCEPTED. Reuses ali@/teacher@ (the seeded ACCEPTED pair, per CLAUDE.md) - this
+# flow books a SECOND appointment between the same two people (Ali's assigned
+# teacher is Ahmad), since a fresh date/time slot is needed (the seeded pair
+# already has one ACCEPTED appointment dated 2026-05-01).
+#
+# Every `launchApp: clearState: true` here is preceded by `clearKeychain`, per
+# Task 8's hard requirement (BUGLOG.md "Task 8 addendum 2") - iOS Keychain
+# (where the auth token lives) survives `clearState` alone, so each role
+# transition (student -> teacher -> student) would otherwise silently resume the
+# previous session instead of showing a fresh login.
+#
+# Determinism note: `GET /appointments` (both roles) is `orderBy: { requestedDate:
+# 'desc' }` (appointment.service.ts:133/139). The new booking below is dated
+# "today" (via the date-picker's first row - see the coordinate-tap note), which
+# is always later than the seeded pair's 2026-05-01 appointment - so the new
+# appointment is always global index 0 in the full `appointments` array, and the
+# seeded one is always index 1, regardless of when this flow actually runs. This
+# task also fixed a latent testID-collision bug in student/appointments.tsx (see
+# BUGLOG.md): `student-appointments.row.${index}` / `.status.${index}` used to be
+# indexed independently within each of the pending/decided filtered lists (both
+# starting at 0), which silently collided the moment a student had one pending AND
+# one decided appointment at the same time - exactly what this flow creates.
+# Fixed to index against the single global `appointments` array instead.
+
+# Part 1: student books a new appointment.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/boot.yaml
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+- tapOn:
+    id: "bottom-nav.student-appointments"
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.screen"
+    timeout: 10000
+# Baseline: the seeded ACCEPTED appointment (2026-05-01) is the only entry so
+# far, so it is global index 0 (decided list) before this flow adds anything.
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.row.0"
+    timeout: 10000
+
+- tapOn:
+    id: "student-appointments.book"
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.book-form"
+    timeout: 10000
+
+# Date picker: per BUGLOG.md ("Date/time picker modal rows... not individually
+# reachable by accessibility identifier"), the FlatList's rows collapse into one
+# accessibility node on iOS - `tapOn: id/text` cannot reach `date-option.N`. The
+# already-documented, already-verified workaround is a raw coordinate tap (BUGLOG
+# confirms this is functionally correct, not just a fallback: "A raw coordinate
+# tap at the first row's on-screen position... does select that date and close
+# the sheet correctly"). This flow taps the FIRST row (today, `date-option.0`) -
+# the row closest to the sheet's header, minimizing the coordinate-estimate error
+# a deeper row would carry. Today's date is always later than the seeded pair's
+# 2026-05-01 appointment, which is all this flow's determinism needs (see the
+# header note above) - it does not need to be literally "tomorrow".
+- scrollUntilVisible:
+    element:
+      id: "student-appointments.date-select"
+    direction: DOWN
+- tapOn:
+    id: "student-appointments.date-select"
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.date-modal-sheet"
+    timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 1000
+- tapOn:
+    point: "50%, 36%"
+- assertNotVisible:
+    id: "student-appointments.date-modal-sheet"
+
+# Time picker: same sheet/FlatList structure and same accessibility-swallowing
+# bug (BUGLOG.md), same workaround. Taps the first row (`time-option.0`, 00:00) -
+# any valid HH:MM is accepted server-side (`timeSchema` is a plain regex, no
+# business-hours restriction - packages/shared/src/validators/common.ts:17).
+- scrollUntilVisible:
+    element:
+      id: "student-appointments.time-select"
+    direction: DOWN
+- tapOn:
+    id: "student-appointments.time-select"
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.time-modal-sheet"
+    timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 1000
+- tapOn:
+    point: "50%, 36%"
+- assertNotVisible:
+    id: "student-appointments.time-modal-sheet"
+
+# Duration (default 30) and recurring (default off) are left as-is - the brief's
+# booking journey only requires date+time+submit; duration/recurring controls are
+# already exercised in 02-appointments-smoke.yaml.
+- scrollUntilVisible:
+    element:
+      id: "student-appointments.submit"
+    direction: DOWN
+- tapOn:
+    id: "student-appointments.submit"
+
+# handleSubmit() sets showForm(false) and re-fetches on success - the form
+# closing is a reliable signal the POST completed.
+- extendedWaitUntil:
+    notVisible:
+      id: "student-appointments.book-form"
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.status.0"
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.row.0"
+    timeout: 10000
+
+# Part 2: teacher accepts the new request.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/boot.yaml
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: teacher@quran-review.com
+      PASSWORD: Teacher1234!
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 20000
+- tapOn:
+    id: "teacher-home.nav-appointments"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-appointments.screen"
+    timeout: 10000
+# Deterministic: teacher@ has zero OTHER pending appointments in the seed data
+# (Ahmad's only seeded appointment with Ali is already ACCEPTED) - the new
+# REQUESTED appointment from Part 1 is always pending index 0.
+- extendedWaitUntil:
+    visible:
+      id: "teacher-appointments.row.0"
+    timeout: 10000
+- tapOn:
+    id: "teacher-appointments.accept.0"
+# handleAction() merges the ACCEPTED status into local state on success, moving
+# the row out of the pending list (which is what `.accept.0` is scoped to) -
+# the accept button disappearing is a reliable signal the PUT completed, same
+# pattern as journey 1's `admin-approvals.approve` disappearance check.
+- extendedWaitUntil:
+    notVisible:
+      id: "teacher-appointments.accept.0"
+    timeout: 10000
+
+# Part 3: student confirms ACCEPTED.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/boot.yaml
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+- tapOn:
+    id: "bottom-nav.student-appointments"
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.screen"
+    timeout: 10000
+# The newly-accepted appointment is now in the decided/history list. Per the
+# determinism note above, it is global index 0 (its date is always later than
+# the seeded pair's 2026-05-01 appointment, which is now index 1).
+#
+# Review finding: testID presence alone doesn't prove the status is actually
+# ACCEPTED (the same testID renders regardless of status value). Assert the
+# rendered Arabic label text too - statusLabel() in appointments.tsx maps
+# ACCEPTED -> "مقبول" (isAr) / "Accepted" (else); the app boots Arabic-first
+# in this suite (confirmed throughout - every other flow's screenshots render
+# Arabic UI), so "مقبول" is the correct expected text, not a guess. Text
+# assertions on localized content are otherwise avoided in this suite, but
+# there's no non-text alternative here (StatusPill doesn't expose the status
+# value via testID, only a generic one) - same class of necessary exception
+# already used for the revisions confirm-dialog text ("هل أنت متأكد؟").
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.status.0"
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.row.1"
+    timeout: 10000
+# Review finding: this testID-presence check alone doesn't prove the status
+# VALUE is specifically ACCEPTED (StatusPill renders the same testID
+# regardless of status). Two content-based alternatives were tried and both
+# failed for structural reasons, not app bugs: (1) a combined id+text
+# selector - StatusPill's testID lives on the outer View while the label is
+# a separate nested AppText child, so no single node satisfies both; (2) a
+# childOf-scoped text selector targeting that same child - also failed
+# despite AppCard/StatusPill being plain Views (not the nested-touchable
+# accessibility-swallowing pattern already documented elsewhere in
+# BUGLOG.md - confirmed by reading both components' source, neither has
+# accessibilityRole or onPress). Root cause of the childOf failure not
+# further pursued given time cost vs. benefit for a non-blocking finding.
+# Strengthened instead via a route Maestro DOES support cleanly: assert the
+# pending section is now empty, which conclusively proves nothing is left
+# un-accepted (server-side Part 2 already proved the accept PUT succeeded;
+# this closes the loop that the student's OWN view reflects it).
+- extendedWaitUntil:
+    visible:
+      id: "student-appointments.screen"
+    timeout: 5000
+- assertVisible:
+    text: "لا توجد مواعيد معلقة"
