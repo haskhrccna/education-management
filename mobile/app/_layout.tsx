@@ -60,7 +60,25 @@ export default function RootLayout() {
 
     // Any route segment that starts with a protected role folder is protected;
     // everything else (login, register, forgot-password, pending-approval, index) is public.
-    const protectedRoots = new Set(['student', 'teacher', 'admin', 'messages', 'parent', 'onboarding']);
+    // 'account', 'notifications', 'halaqa' added alongside Task 5's new public-route
+    // redirect branch below: these are top-level (non-role-prefixed) screens that
+    // still require an authenticated user (see account.tsx / notifications.tsx /
+    // halaqa/_layout.tsx's own useAuthStore() reads) — without listing them here,
+    // the new branch misclassified them as "public" and bounced an active user
+    // straight back to home the instant they navigated to any of the three,
+    // caught live via `maestro test mobile/e2e/flows/student/01-home-smoke.yaml`
+    // (student-home.notifications tap never reached notifications.screen).
+    const protectedRoots = new Set([
+      'student',
+      'teacher',
+      'admin',
+      'messages',
+      'parent',
+      'onboarding',
+      'account',
+      'notifications',
+      'halaqa',
+    ]);
     const inProtectedScreen = protectedRoots.has(segments[0]);
 
     if (!user) {
@@ -77,6 +95,14 @@ export default function RootLayout() {
       segments[0] !== 'onboarding'
     ) {
       router.replace(`/onboarding/${user.role}` as never);
+    } else if (user.status === 'active' && !inProtectedScreen) {
+      // A fully authenticated, active, onboarded user sitting on a PUBLIC
+      // route (e.g. loadSession() restored a still-valid Keychain token on a
+      // cold app restart, but nothing had ever redirected them off the
+      // login/register/forgot-password screens). Without this branch, a real
+      // user who force-quits and reopens the app sees the login form on
+      // every cold start even though their session never expired.
+      router.replace(`/${user.role}/home` as never);
     }
   }, [isLoaded, user, segments]);
 
