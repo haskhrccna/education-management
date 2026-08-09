@@ -125,7 +125,7 @@ export default function StudentPlansScreen() {
         />
       )}
 
-      <BottomNav role="student" active="home" />
+      <BottomNav role="student" active="none" />
     </View>
   );
 }

@@ -159,7 +159,7 @@ export default function TeacherChangeScreen() {
           </>
         )}
       </ScrollView>
-      <BottomNav role="student" active="home" />
+      <BottomNav role="student" active="none" />
     </SafeAreaView>
   );
 }

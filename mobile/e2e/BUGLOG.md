@@ -37,13 +37,13 @@
 - **Result:** `tapOn: text: "Close", optional: true` was tried in place of the point tap. Maestro reported it as `WARNED` (no matching element — the system "X" control isn't exposed under a matchable text/accessibility label to Maestro's iOS driver). Following screenshots then showed the field displaying a stuck "Automatic Strong Password cover view text" banner instead of the typed password, and the subsequent registration submit failed to reach `pending-approval.screen` — the same class of desync/wedge failure this section already documents, just reproduced via a different trigger (a failed dismiss attempt instead of a second focus without remounting).
 - **Conclusion:** the `point: "91%, 61%"` tap is kept as-is in both flows. Added to `COVERAGE.md`'s "Sanctioned text-selector exceptions" section with this evidence.
 
-## BottomNav shows "Home" as the active tab on the Ijazahs screen (and likely revisions/plans too)
+## BottomNav shows "Home" as the active tab on the Ijazahs screen (RESOLVED — Plan 1 findings fix-pass)
 - **Severity**: Low (cosmetic/nav-state)
 - **Screen:** `mobile/app/student/ijazahs.tsx` (and structurally, likely `revisions.tsx`/`plans.tsx` too — same `<BottomNav role="student" active="..." />` pattern)
 - **Steps:** From `student-home.screen`, navigate to `/student/ijazahs` via `student-home.quick-action.6`.
 - **Expected:** the bottom tab bar highlights whichever tab corresponds to the current screen (or no tab, if ijazahs/revisions/plans aren't primary tab destinations).
 - **Actual:** the "الرئيسية" (Home) tab remains highlighted green on the Ijazahs screen, even though the visible content is clearly the Ijazahs list (title "الإجازات", a "فشل التحميل" fetch-error message), not the home dashboard. Observed via a live simulator screenshot during this task's manual verification of quick-action navigation.
-- **Classification:** minor app bug (BottomNav `active` prop mismatch), not fixed in this task per scope (testIDs only). Noted here for whoever next touches `student/ijazahs.tsx`, `student/plans.tsx`, or `student/revisions.tsx`.
+- **Classification:** minor app bug (BottomNav `active` prop mismatch) — FIXED. `ijazahs.tsx`, `revisions.tsx`, `plans.tsx`, and `teacher-change.tsx` (found via a broader grep during the fix pass — same root cause, not previously documented individually) now pass `active="none"` instead of `active="home"`, since none of the four are primary tab destinations and `active="none"` matches no `STUDENT_TABS` id, correctly leaving the tab bar unhighlighted.
 
 ## Login success for a first-time ACTIVE user does not reach bottom-nav / home — routes to onboarding instead (not a bug, but breaks a Task 4 brief assumption)
 - **Screen:** flows/auth (01-login-smoke, correct-credentials case)
