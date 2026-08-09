@@ -88,10 +88,15 @@ tags: [student, smoke]
 # the time for any element requiring real scrolling - a `waitForAnimationToEnd`
 # inserted between the two did not help. This is a Maestro `scrollUntilVisible`
 # defect (this Maestro/XCUITest driver version's scroll-then-tap sequencing),
-# not a defect a real user would ever hit. `quick-action.2`/`.3` were never
-# actually affected either - they're above the fold and needed no scrolling,
-# which is why the original Plan 1 diagnosis found *them* (not .4/.5/.6)
-# unreliable: `scrollUntilVisible` no-ops when the target is already visible.
+# not a defect a real user would ever hit. `quick-action.2`/`.3` sit above
+# the fold and need no real scrolling, so `scrollUntilVisible` no-ops for
+# them - re-tested clean 3/3 each under the exact old flow pattern that
+# originally reproduced their failures, so coverage below was safely
+# restored for them too. Their *original* Plan 1 failure is only
+# indirectly, not conclusively, attributed to this same cause (see
+# BUGLOG.md's Finding #3 for the full, hedged explanation) - it's not
+# mechanistically explained the way .4/.5/.6's failures are, since neither
+# needs a real scroll for the scrollUntilVisible race to apply.
 #
 # Fix: replace `scrollUntilVisible` with a plain `swipe` gesture before
 # tapping any below-the-fold quick-action tile. Verified live: 100% correct
