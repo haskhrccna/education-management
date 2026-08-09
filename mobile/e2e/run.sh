@@ -35,6 +35,18 @@ if [ "$LOGIN_STATUS" != "200" ]; then
   exit 1
 fi
 
-echo "==> [4/4] check-testids + maestro test $FLOWS"
 node "$SCRIPT_DIR/../scripts/check-testids.js"
-maestro test "$FLOWS"
+
+if [ -z "${1:-}" ]; then
+  # Default (whole-suite) run: read-only smoke flows first, then data-mutating
+  # journeys, per the spec's ordering requirement — journeys create real
+  # appointments/grades/users that could otherwise land before a smoke flow's
+  # own assertions run against the same seeded rows.
+  echo "==> [4/4] check-testids + maestro test (auth, then student, then journeys)"
+  maestro test "$SCRIPT_DIR/flows/auth"
+  maestro test "$SCRIPT_DIR/flows/student"
+  maestro test "$SCRIPT_DIR/flows/journeys"
+else
+  echo "==> [4/4] check-testids + maestro test $FLOWS"
+  maestro test "$FLOWS"
+fi

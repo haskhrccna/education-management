@@ -214,7 +214,14 @@ export function BottomNav({ role, active }: BottomNavProps) {
   const { colors: COLORS, darkMode } = useTheme();
   const { unreadCount } = useNotifications();
 
-  const tabs = role === 'student' ? STUDENT_TABS : role === 'teacher' ? TEACHER_TABS : ADMIN_TABS;
+  const tabs =
+    role === 'student'
+      ? STUDENT_TABS
+      : role === 'teacher'
+        ? TEACHER_TABS
+        : role === 'parent'
+          ? PARENT_TABS
+          : ADMIN_TABS;
   const styles = navStyles(COLORS);
 
   return (

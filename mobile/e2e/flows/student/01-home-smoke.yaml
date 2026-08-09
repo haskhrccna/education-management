@@ -121,6 +121,7 @@ tags: [student, smoke]
 # rate-limiter BUGLOG entry above).
 
 # 2: grades -> /student/grades intended (see note above)
+- clearKeychain
 - launchApp:
     clearState: true
 - runFlow:
@@ -142,6 +143,7 @@ tags: [student, smoke]
     id: "student-home.screen"
 
 # 3: reports -> /student/reports intended (see note above)
+- clearKeychain
 - launchApp:
     clearState: true
 - runFlow:
@@ -164,6 +166,7 @@ tags: [student, smoke]
 
 # --- 4/5/6 + teacher-card + grades-view-all + mushaf-cta: one shared,
 # freshly-logged-in session (never observed misbehaving) ---
+- clearKeychain
 - launchApp:
     clearState: true
 - runFlow:
