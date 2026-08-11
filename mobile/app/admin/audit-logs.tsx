@@ -313,7 +313,7 @@ export default function AuditLogsScreen() {
           </View>
         ) : null}
       </ScrollView>
-      <BottomNav role="admin" active="home" />
+      <BottomNav role="admin" active="none" />
     </SafeAreaView>
   );
 }

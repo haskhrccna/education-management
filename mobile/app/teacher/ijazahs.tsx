@@ -323,7 +323,7 @@ export default function TeacherIjazahsScreen() {
         />
       )}
 
-      <BottomNav role="teacher" active="home" />
+      <BottomNav role="teacher" active="none" />
     </View>
   );
 }

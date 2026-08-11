@@ -204,7 +204,7 @@ export default function AdminMilestonesScreen() {
         />
       )}
 
-      <BottomNav role="admin" active="home" />
+      <BottomNav role="admin" active="none" />
     </SafeAreaView>
   );
 }
