@@ -1,0 +1,279 @@
+appId: com.quranreview.app
+tags: [teacher, smoke]
+---
+# Teacher smoke A, screen 1/4: teacher/home.tsx.
+# Pattern mirrors flows/student/01-home-smoke.yaml (tap -> assert-destination ->
+# return, via clearKeychain + clearState + _helpers/login.yaml).
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: teacher@quran-review.com
+      PASSWORD: Teacher1234!
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 20000
+
+# --- header icons: notifications / messages / account ---
+- tapOn:
+    id: "teacher-home.notifications"
+- extendedWaitUntil:
+    visible:
+      id: "notifications.screen"
+    timeout: 10000
+- tapOn:
+    id: "notifications.back"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000
+
+- tapOn:
+    id: "teacher-home.messages"
+- extendedWaitUntil:
+    visible:
+      id: "messages.screen"
+    timeout: 10000
+- tapOn:
+    id: "messages.back"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000
+
+- tapOn:
+    id: "teacher-home.account"
+- extendedWaitUntil:
+    visible:
+      id: "account.screen"
+    timeout: 10000
+- tapOn:
+    id: "account.back"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000
+
+# teacher-home.logout is deliberately NOT tapped (destructive - ends the
+# authenticated session under test), matching student-home.logout's posture.
+# Presence is verified by check-testids.js only.
+
+# --- bottom nav round trip (appointments <-> home) ---
+- tapOn:
+    id: "bottom-nav.teacher-appointments"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-appointments.screen"
+    timeout: 10000
+- tapOn:
+    id: "bottom-nav.teacher-home"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000
+
+# --- quick-action grid: requests / grade / reviews / reports / revisions / plans / ijazahs ---
+# Grid is 2 columns x 4 rows (7 tiles, last row has 1). Per the already-verified
+# root cause for this same class of below-the-fold grid on student-home.tsx
+# (BUGLOG.md Finding #3: a Maestro `scrollUntilVisible`-then-`tapOn` defect,
+# NOT an app bug), lower rows are reached with a plain `swipe` gesture instead
+# of `scrollUntilVisible`. Each destination visit returns home via
+# `bottom-nav.teacher-home`, which remounts the screen at the top, so swipe
+# counts below are NOT cumulative across tiles - each is measured fresh.
+
+# requests (row 0, above the fold - no swipe needed)
+- tapOn:
+    id: "teacher-home.nav-appointments"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-appointments.screen"
+    timeout: 10000
+- tapOn:
+    id: "bottom-nav.teacher-home"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000
+
+# grade (row 0, above the fold - no swipe needed)
+- tapOn:
+    id: "teacher-home.nav-grade-form"
+- extendedWaitUntil:
+    visible:
+      id: "grade-form.screen"
+    timeout: 10000
+- tapOn:
+    id: "grade-form.back"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000
+
+# reviews -> /teacher/recordings (row 1; has BottomNav, no dedicated .screen
+# testID yet - assert home is no longer visible, then return via the tab bar)
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- tapOn:
+    id: "teacher-home.recordings"
+- assertNotVisible:
+    id: "teacher-home.screen"
+- tapOn:
+    id: "bottom-nav.teacher-home"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000
+
+# reports -> /teacher/reports (row 1; has BottomNav, no dedicated .screen testID)
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- tapOn:
+    id: "teacher-home.reports"
+- assertNotVisible:
+    id: "teacher-home.screen"
+- tapOn:
+    id: "bottom-nav.teacher-home"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000
+
+# revisions -> /teacher/revisions (row 2; below the fold, further down)
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- tapOn:
+    id: "teacher-home.revisions"
+- assertNotVisible:
+    id: "teacher-home.screen"
+- tapOn:
+    id: "bottom-nav.teacher-home"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000
+
+# plans -> /teacher/plans (row 2; below the fold, further down)
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- tapOn:
+    id: "teacher-home.plans"
+- assertNotVisible:
+    id: "teacher-home.screen"
+- tapOn:
+    id: "bottom-nav.teacher-home"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000
+
+# ijazahs -> /teacher/ijazahs (row 3, sits alone - deepest tile)
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- tapOn:
+    id: "teacher-home.ijazahs"
+- assertNotVisible:
+    id: "teacher-home.screen"
+- tapOn:
+    id: "bottom-nav.teacher-home"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000
+
+# --- unconditional "pending reviews" card -> /teacher/recordings ---
+# Unlike the priority-queue rows below, this card always renders (shows a
+# "0 pending reviews" state rather than being conditionally hidden).
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- tapOn:
+    id: "teacher-home.pending-reviews"
+- assertNotVisible:
+    id: "teacher-home.screen"
+- tapOn:
+    id: "bottom-nav.teacher-home"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000
+
+# --- "Students needing attention" section: view-all action + first student card ---
+# teacher@ (Ahmad) has exactly one ACCEPTED student (Ali) in the seed data, so
+# teacher-home.student-card.0 deterministically renders regardless of whether
+# the at-risk branch or the plain-students-list fallback branch is active (both
+# use the same testID convention for their first row).
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- tapOn:
+    id: "teacher-home.students-view-all"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-appointments.screen"
+    timeout: 10000
+- tapOn:
+    id: "bottom-nav.teacher-home"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000
+
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- swipe:
+    start: 50%, 75%
+    end: 50%, 40%
+- tapOn:
+    id: "teacher-home.student-card.0"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-student-detail.screen"
+    timeout: 10000
+- tapOn:
+    id: "teacher-student-detail.back"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000

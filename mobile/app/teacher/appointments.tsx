@@ -97,7 +97,7 @@ export default function TeacherAppointmentsScreen() {
       testID="teacher-appointments.screen"
     >
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.back()} testID="teacher-appointments.back">
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
             size={22}
@@ -127,7 +127,7 @@ export default function TeacherAppointmentsScreen() {
         ) : error ? (
           <View style={styles.center}>
             <Text style={{ color: COLORS.error, marginBottom: SPACING.md }}>{error}</Text>
-            <TouchableOpacity onPress={onRefresh}>
+            <TouchableOpacity onPress={onRefresh} testID="teacher-appointments.retry">
               <Text style={{ color: COLORS.primary, fontWeight: '700' }}>{t('retry')}</Text>
             </TouchableOpacity>
           </View>
@@ -158,6 +158,7 @@ export default function TeacherAppointmentsScreen() {
                 showActions
                 testIDPrefix={`teacher-appointments.row.${index}`}
                 acceptTestID={`teacher-appointments.accept.${index}`}
+                declineTestID={`teacher-appointments.decline.${index}`}
                 statusTestID={`teacher-appointments.status.${index}`}
               />
             ))}
@@ -167,7 +168,7 @@ export default function TeacherAppointmentsScreen() {
                 {i18n.language === 'ar' ? 'السجل' : 'History'} · {decided.length}
               </Text>
             )}
-            {decided.map((a) => (
+            {decided.map((a, index) => (
               <AppointmentCard
                 key={a.id}
                 appt={a}
@@ -179,6 +180,7 @@ export default function TeacherAppointmentsScreen() {
                 onAccept={() => {}}
                 onReject={() => {}}
                 showActions={false}
+                testIDPrefix={`teacher-appointments.decided-row.${index}`}
               />
             ))}
           </>
@@ -202,6 +204,8 @@ interface CardProps {
   /** Task 9: minimal testIDs for the journeys/02-appointment-booking flow (pending rows only). */
   testIDPrefix?: string;
   acceptTestID?: string;
+  /** Task 1 (E2E Plan 2): the reject/decline button's testID — added alongside acceptTestID for symmetry. */
+  declineTestID?: string;
   statusTestID?: string;
 }
 
@@ -217,6 +221,7 @@ function AppointmentCard({
   showActions,
   testIDPrefix,
   acceptTestID,
+  declineTestID,
   statusTestID,
 }: CardProps) {
   const colors = statusStyle(appt.status, COLORS);
@@ -253,6 +258,7 @@ function AppointmentCard({
             onPress={onReject}
             disabled={isActing}
             activeOpacity={0.85}
+            testID={declineTestID}
           >
             {isActing ? (
               <ActivityIndicator color={COLORS.error} />

@@ -69,7 +69,11 @@ export default function TeacherStudentDetailScreen() {
     return (
       <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text style={{ color: COLORS.textSecondary }}>{t('notFound')}</Text>
-        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{ marginTop: 16 }}
+          testID="teacher-student-detail.not-found-back"
+        >
           <Text style={{ color: COLORS.primary }}>{t('goBack')}</Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -79,10 +83,14 @@ export default function TeacherStudentDetailScreen() {
   const displayName = studentName ?? 'Student';
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: COLORS.background }}
+      edges={['top']}
+      testID="teacher-student-detail.screen"
+    >
       <ScrollView contentContainerStyle={{ paddingBottom: SPACING['3xl'] }}>
         <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.back()} testID="teacher-student-detail.back">
             <Ionicons
               name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
               size={22}
@@ -158,6 +166,7 @@ export default function TeacherStudentDetailScreen() {
               style={[styles.addBtn, { backgroundColor: COLORS.primary }]}
               onPress={() => router.push(`/teacher/grade-form?studentId=${studentId}`)}
               activeOpacity={0.8}
+              testID="teacher-student-detail.add-grade"
             >
               <Text style={styles.addBtnText}>{t('addGradeFor', { name: displayName })}</Text>
             </TouchableOpacity>

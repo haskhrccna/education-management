@@ -1,0 +1,118 @@
+appId: com.quranreview.app
+tags: [teacher, smoke]
+---
+# Teacher smoke A, screen 3/4: teacher/grade-form.tsx.
+#
+# Deliberately does NOT tap `grade-form.submit` - submitting a real grade is
+# Journey 3's job (journeys/03-grade-visibility.yaml, already exists and is
+# live-verified), not this smoke flow's. This flow only proves the form
+# renders and every control is reachable/fillable.
+#
+# Reuses the exact scroll-then-tap / keyboard-dismiss sequence already proven
+# live by Journey 3 for this same screen (see BUGLOG.md "Task 9" entry):
+# `scrollUntilVisible` + `tapOn` is safe here (unlike student-home.tsx's
+# below-the-fold quick-action grid, which has its own documented Maestro
+# defect - BUGLOG.md Finding #3 - not applicable to this screen's simple
+# vertical ScrollView). The on-screen numeric keypad for `grade-form.grade-
+# input` has no Done/dismiss key and stays open to absorb later taps, so
+# every scroll-down step after typing first scrolls UP to and taps the
+# non-touchable `grade-form.header` View (keyboardShouldPersistTaps="handled"
+# lets that unhandled tap dismiss the keyboard).
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: teacher@quran-review.com
+      PASSWORD: Teacher1234!
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 20000
+
+- tapOn:
+    id: "teacher-home.nav-grade-form"
+- extendedWaitUntil:
+    visible:
+      id: "grade-form.screen"
+    timeout: 10000
+
+# Student select: Ali is teacher@'s only ACCEPTED student in the seed data,
+# so she is deterministically student-select.0 - already auto-selected by the
+# screen's own default-select-first-student effect, tapped explicitly anyway.
+- extendedWaitUntil:
+    visible:
+      id: "grade-form.student-select.0"
+    timeout: 10000
+- tapOn:
+    id: "grade-form.student-select.0"
+
+# Surah select: pick a real surah (not "Overall recital", the default) to
+# exercise the picker.
+- scrollUntilVisible:
+    element:
+      id: "grade-form.surah-select.0"
+    direction: DOWN
+- tapOn:
+    id: "grade-form.surah-select.0"
+
+# Grade input.
+- scrollUntilVisible:
+    element:
+      id: "grade-form.grade-input"
+    direction: DOWN
+- tapOn:
+    id: "grade-form.grade-input"
+- inputText: "B"
+
+# Dismiss the numeric keypad before continuing (see header comment).
+- scrollUntilVisible:
+    element:
+      id: "grade-form.header"
+    direction: UP
+- tapOn:
+    id: "grade-form.header"
+
+# Type selector: pick the first real GradeType (QUIZ).
+- scrollUntilVisible:
+    element:
+      id: "grade-form.type-chip.0"
+    direction: DOWN
+- tapOn:
+    id: "grade-form.type-chip.0"
+
+# Notes (optional free-text field).
+- scrollUntilVisible:
+    element:
+      id: "grade-form.notes-input"
+    direction: DOWN
+- tapOn:
+    id: "grade-form.notes-input"
+- inputText: "Smoke test - not submitted"
+
+# Dismiss the (regular, non-numeric) keyboard the same way before scrolling
+# to the submit button, so the keyboard can't intercept the final assertion.
+- scrollUntilVisible:
+    element:
+      id: "grade-form.header"
+    direction: UP
+- tapOn:
+    id: "grade-form.header"
+
+# Assert submit is visible AND enabled - do NOT tap it.
+- scrollUntilVisible:
+    element:
+      id: "grade-form.submit"
+    direction: DOWN
+- assertVisible:
+    id: "grade-form.submit"
+    enabled: true
+
+# Return without submitting.
+- tapOn:
+    id: "grade-form.back"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000

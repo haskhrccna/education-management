@@ -222,6 +222,7 @@ export default function TeacherHomeScreen() {
       icon: 'mic-outline' as const,
       route: '/teacher/recordings',
       tone: 'info',
+      testID: 'teacher-home.recordings',
     },
     {
       id: 'reports',
@@ -230,6 +231,7 @@ export default function TeacherHomeScreen() {
       icon: 'document-text-outline' as const,
       route: '/teacher/reports',
       tone: 'danger',
+      testID: 'teacher-home.reports',
     },
     {
       id: 'revisions',
@@ -238,6 +240,7 @@ export default function TeacherHomeScreen() {
       icon: 'book-outline' as const,
       route: '/teacher/revisions',
       tone: 'info',
+      testID: 'teacher-home.revisions',
     },
     {
       id: 'plans',
@@ -246,6 +249,7 @@ export default function TeacherHomeScreen() {
       icon: 'map-outline' as const,
       route: '/teacher/plans',
       tone: 'primary',
+      testID: 'teacher-home.plans',
     },
     {
       id: 'ijazahs',
@@ -254,6 +258,7 @@ export default function TeacherHomeScreen() {
       icon: 'ribbon-outline' as const,
       route: '/teacher/ijazahs',
       tone: 'gold',
+      testID: 'teacher-home.ijazahs',
     },
   ];
 
@@ -276,7 +281,11 @@ export default function TeacherHomeScreen() {
           </View>
           <View style={styles.headerActions}>
             <View>
-              <TouchableOpacity onPress={() => router.push('/notifications')} style={{ marginEnd: SPACING.md }}>
+              <TouchableOpacity
+                onPress={() => router.push('/notifications')}
+                style={{ marginEnd: SPACING.md }}
+                testID="teacher-home.notifications"
+              >
                 <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
               </TouchableOpacity>
               <IconButton
@@ -284,6 +293,7 @@ export default function TeacherHomeScreen() {
                 icon="chatbubble-outline"
                 accessibilityLabel={isAr ? 'الرسائل' : 'Messages'}
                 onPress={() => router.push('/messages')}
+                testID="teacher-home.messages"
               />
               {unreadCount > 0 ? (
                 <View style={styles.badge}>
@@ -297,6 +307,7 @@ export default function TeacherHomeScreen() {
               tone="primary"
               accessibilityLabel={isAr ? 'الحساب والخصوصية' : 'Account & Privacy'}
               onPress={() => router.push('/account')}
+              testID="teacher-home.account"
             />
             <IconButton
               colors={COLORS}
@@ -304,6 +315,7 @@ export default function TeacherHomeScreen() {
               tone="primary"
               accessibilityLabel={isAr ? 'تسجيل الخروج' : 'Log out'}
               onPress={handleLogout}
+              testID="teacher-home.logout"
             />
           </View>
         </View>
@@ -316,7 +328,7 @@ export default function TeacherHomeScreen() {
           </AppCard>
         ) : (
           <View style={styles.listStack}>
-            {todaysSessions.map((session) => {
+            {todaysSessions.map((session, index) => {
               const name = fullName(session.student);
               return (
                 <AppCard key={session.id} colors={COLORS} style={styles.studentCard}>
@@ -335,6 +347,7 @@ export default function TeacherHomeScreen() {
                     }
                     style={[styles.todayChip, { backgroundColor: COLORS.primary }]}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    testID={`teacher-home.today-grade.${index}`}
                   >
                     <Text style={styles.todayChipText}>{t('gradeAction')}</Text>
                   </TouchableOpacity>
@@ -344,6 +357,7 @@ export default function TeacherHomeScreen() {
                     onPress={() => router.push('/teacher/recordings')}
                     style={[styles.todayChip, { backgroundColor: COLORS.primaryMuted }]}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    testID={`teacher-home.today-review.${index}`}
                   >
                     <Text style={[styles.todayChipText, { color: COLORS.primary }]}>{t('reviewAction')}</Text>
                   </TouchableOpacity>
@@ -357,6 +371,7 @@ export default function TeacherHomeScreen() {
           accessibilityLabel={t('pendingReviews')}
           onPress={() => router.push('/teacher/recordings')}
           activeOpacity={0.85}
+          testID="teacher-home.pending-reviews"
         >
           <AppCard colors={COLORS} style={styles.studentCard}>
             <Ionicons name="mic-outline" size={22} color={COLORS.primary} />
@@ -434,13 +449,14 @@ export default function TeacherHomeScreen() {
           </AppCard>
         ) : (
           <View style={styles.listStack}>
-            {priorityAppointments.map((appointment) => {
+            {priorityAppointments.map((appointment, index) => {
               const name = fullName(appointment.student);
               return (
                 <TouchableOpacity
                   key={appointment.id}
                   activeOpacity={0.85}
                   onPress={() => router.push('/teacher/appointments')}
+                  testID={`teacher-home.priority-appointment.${index}`}
                 >
                   <AppCard colors={COLORS} style={styles.queueCard}>
                     <Avatar colors={COLORS} label={name} />
@@ -459,13 +475,14 @@ export default function TeacherHomeScreen() {
               );
             })}
 
-            {priorityRecordings.map((recording) => {
+            {priorityRecordings.map((recording, index) => {
               const name = fullName(recording.student);
               return (
                 <TouchableOpacity
                   key={recording.id}
                   activeOpacity={0.85}
                   onPress={() => router.push('/teacher/recordings')}
+                  testID={`teacher-home.priority-recording.${index}`}
                 >
                   <AppCard colors={COLORS} style={styles.queueCard}>
                     <View style={styles.recordingIcon}>
@@ -484,13 +501,14 @@ export default function TeacherHomeScreen() {
               );
             })}
 
-            {pendingChanges.slice(0, 1).map((request: any) => {
+            {pendingChanges.slice(0, 1).map((request: any, index) => {
               const name = fullName(request.student);
               return (
                 <TouchableOpacity
                   key={request.id}
                   activeOpacity={0.85}
                   onPress={() => router.push('/teacher/appointments')}
+                  testID={`teacher-home.priority-change.${index}`}
                 >
                   <AppCard colors={COLORS} style={styles.queueCard}>
                     <View style={styles.changeIcon}>
@@ -513,10 +531,11 @@ export default function TeacherHomeScreen() {
           actionLabel={isAr ? 'عرض الكل' : 'View all'}
           onActionPress={() => router.push('/teacher/appointments')}
           colors={COLORS}
+          testID="teacher-home.students-view-all"
         />
         {atRiskStudents.length > 0 ? (
           <View style={styles.listStack}>
-            {atRiskStudents.slice(0, 3).map((row) => {
+            {atRiskStudents.slice(0, 3).map((row, index) => {
               const name = `${row.firstName} ${row.lastName}`.trim();
               return (
                 <TouchableOpacity
@@ -525,6 +544,7 @@ export default function TeacherHomeScreen() {
                   onPress={() =>
                     router.push(`/teacher/student-detail?id=${row.studentId}&name=${encodeURIComponent(name)}`)
                   }
+                  testID={`teacher-home.student-card.${index}`}
                 >
                   <AppCard colors={COLORS} style={styles.studentCard}>
                     <Avatar colors={COLORS} label={name} size={38} />
@@ -559,6 +579,7 @@ export default function TeacherHomeScreen() {
                   onPress={() =>
                     router.push(`/teacher/student-detail?id=${student.id}&name=${encodeURIComponent(name)}`)
                   }
+                  testID={`teacher-home.student-card.${index}`}
                 >
                   <AppCard colors={COLORS} style={styles.studentCard}>
                     <Avatar colors={COLORS} label={name} size={38} />

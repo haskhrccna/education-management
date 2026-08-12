@@ -14,5 +14,9 @@
   "app/student/mushaf.tsx",
   "app/student/gamification.tsx",
   "app/student/certificates.tsx",
-  "app/student/ijazahs.tsx"
+  "app/student/ijazahs.tsx",
+  "app/teacher/home.tsx",
+  "app/teacher/appointments.tsx",
+  "app/teacher/grade-form.tsx",
+  "app/teacher/student-detail.tsx"
 ]
