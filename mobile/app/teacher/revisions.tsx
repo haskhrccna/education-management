@@ -483,7 +483,7 @@ export default function TeacherRevisionsScreen() {
         />
       )}
 
-      <BottomNav role="teacher" active="home" />
+      <BottomNav role="teacher" active="none" />
     </View>
   );
 }

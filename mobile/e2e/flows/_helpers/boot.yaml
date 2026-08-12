@@ -4,6 +4,18 @@ appId: com.quranreview.app
 # forgets the last-connected Metro server and shows its own picker UI instead of
 # the app. Re-point it at Metro before waiting for any app-level testID.
 - openLink: "com.quranreview.app://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
+# `clearState` resets iOS's SpringBoard "always open this scheme in the app"
+# preference, so the first openLink after it surfaces the system "Open in
+# <app>?" confirmation (Cancel / Open). It must be dismissed with Open or the
+# app never foregrounds and the app-level testID assertion below times out
+# against the home screen. Optional: on simulators where the preference is
+# already trained, no dialog appears and this WARNs-and-continues harmlessly.
+# The bare "Open" text matcher is intentionally broad, but safe here: the only
+# screen on-screen during this boot step is the system scheme dialog (or the
+# home screen, where no "Open" label exists) — no app UI is up yet to mis-hit.
+- tapOn:
+    text: "Open"
+    optional: true
 # First reconnect after clearState also surfaces Expo's one-time "developer
 # menu" explainer overlay, then the dev menu itself (Reload / Go home / Tools)
 # on top of the app; dismiss both if present so the app underneath is usable.

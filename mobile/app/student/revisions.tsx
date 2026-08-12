@@ -192,7 +192,7 @@ export default function StudentRevisionsScreen() {
         />
       )}
 
-      <BottomNav role="student" active="home" />
+      <BottomNav role="student" active="none" />
     </View>
   );
 }

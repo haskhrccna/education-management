@@ -36,22 +36,19 @@ tags: [student, smoke]
       id: "student-appointments.book-form"
     timeout: 10000
 
-# Exercise the date/time pickers (open + close) without actually submitting
-# a request. scrollUntilVisible before each tap rather than relying on
-# tapOn's own auto-scroll, which (per 01-home-smoke.yaml) doesn't reliably
-# reach controls deep in a scrollable form/grid.
+# Exercise the date/time pickers by actually selecting a row (not just
+# opening + dismissing) without submitting the form. scrollUntilVisible
+# before each tap rather than relying on tapOn's own auto-scroll, which (per
+# 01-home-smoke.yaml) doesn't reliably reach controls deep in a scrollable
+# form/grid.
 #
-# NOTE (app bug, logged in BUGLOG.md): `date-option.N` / `time-option.N` rows
-# are NOT individually reachable by id or text selector - iOS rolls the
+# Previously (BUGLOG.md, now RESOLVED) `date-option.N` / `time-option.N` rows
+# were NOT individually reachable by id or text selector - iOS rolled the
 # entire FlatList's ~90 rendered rows up into a single accessibility node on
-# the `modalSheet` Pressable ancestor (its accessibilityText is all ~90
-# labels concatenated; the rows have no separate accessibility nodes in the
-# hierarchy dump). Confirmed functional via a raw coordinate tap in the
-# simulator (it does select a date and close the sheet) - this is an
-# accessibility-tree exposure bug, not a broken control, but it also means a
-# VoiceOver user could not navigate this list row-by-row. Dismissing via the
-# already-reachable close control instead, which round-trips the sheet
-# deterministically without depending on the broken row exposure.
+# the `modalSheet` Pressable ancestor. Fixed by adding `accessible={false}` to
+# both modal-sheet Pressables (mobile/app/student/appointments.tsx), the same
+# pattern already shipped for admin/change-requests.tsx. Selecting row 0 now
+# closes the sheet as a side effect of the component's own onPress handler.
 - scrollUntilVisible:
     element:
       id: "student-appointments.date-select"
@@ -63,7 +60,7 @@ tags: [student, smoke]
       id: "student-appointments.date-modal-sheet"
     timeout: 10000
 - tapOn:
-    id: "student-appointments.date-modal-close"
+    id: "student-appointments.date-option.0"
 - assertNotVisible:
     id: "student-appointments.date-modal-sheet"
 
@@ -78,7 +75,7 @@ tags: [student, smoke]
       id: "student-appointments.time-modal-sheet"
     timeout: 10000
 - tapOn:
-    id: "student-appointments.time-modal-close"
+    id: "student-appointments.time-option.0"
 - assertNotVisible:
     id: "student-appointments.time-modal-sheet"
 

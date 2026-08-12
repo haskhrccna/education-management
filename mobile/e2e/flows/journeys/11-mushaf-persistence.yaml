@@ -6,12 +6,12 @@ tags: [journey]
 # proving both (a) the status write really reached the server/DB (not just
 # an optimistic local update) and (b) the authenticated session (Keychain
 # token) survives a real cold process restart with no credentials re-entered
-# at any point. Note (see the deviation comment further down, and BUGLOG.md):
-# the app's OWN post-relaunch UI lands on login.screen rather than home, a
-# real app bug diagnosed and documented during this task - but no login
-# step is performed to get past it; this flow proceeds straight to a
-# protected deep link, which succeeds precisely because the session itself
-# was never actually lost.
+# at any point. The app's own post-relaunch UI lands directly on
+# student-home.screen (see BUGLOG.md Task 10, RESOLVED): app/_layout.tsx's
+# auth gate now redirects an already-authenticated, active, onboarded user
+# off a public route (e.g. the transient login screen shown before
+# loadSession() resolves) straight to their home screen, with no manual
+# login step and no protected-deep-link workaround required.
 #
 # Unlike every other journey in this suite, this flow deliberately does NOT
 # use clearKeychain/clearState anywhere - the whole point is a NON-destructive
@@ -114,35 +114,17 @@ tags: [journey]
     text: "Close"
     optional: true
 
-# DEVIATION (diagnosed live, documented in BUGLOG.md as a real app bug):
-# a bare relaunch does NOT land on student-home.screen - it lands back on
-# login.screen. This is NOT the session failing to survive; it's a missing
-# redirect. app/_layout.tsx's auth gate only ever redirects (a) an
-# unauthenticated user OFF a protected screen, (b) a pending user TO
-# pending-approval, (c) a not-yet-onboarded user TO onboarding - there is no
-# branch that redirects an ALREADY-authenticated, active, onboarded user
-# who is sitting on the public login screen TO their home screen, and
-# app/(auth)/index.tsx (the login screen itself) has no such check either
-# (its only navigation-on-mount... there is none; it only navigates inside
-# handleLogin's success path). loadSession() (auth/store.ts) still runs on
-# every cold start and successfully re-fetches /users/profile from the
-# still-valid Keychain token, populating `user` in the store - confirmed by
-# diagnosis: a deep link straight to a PROTECTED route immediately after
-# this exact relaunch (no login step in between) lands cleanly on its
-# destination screen, proving the session itself is fully intact and the
-# server round-trip succeeds; only the UI's own decision to keep showing
-# the login screen is wrong. A real user in this situation would see their
-# app "log them out" on every cold start even though their credentials are
-# still valid underneath - filed as a new BUGLOG.md finding, not fixed at
-# the source here (the fix touches the shared root auth gate used by every
-# other flow in this suite, including the already-verified `first-login.tsx`
-# exception carved out of `protectedRoots` - out of this task's narrow
-# scope to risk a regression there). Extended wait added defensively
-# (network/render settle) before the deep-link navigation below, exactly as
-# every other post-relaunch step in this suite already does.
+# The app lands on student-home.screen directly after a bare relaunch - no
+# protected-deep-link workaround needed. app/_layout.tsx's auth gate now has
+# a fourth branch (added to fix the Task 10 BUGLOG finding): an already-
+# authenticated, active, onboarded user sitting on a PUBLIC route (as this
+# relaunch's cold start briefly is, before loadSession() resolves) is
+# redirected to `/${role}/home`. This proves the fix end-to-end: the session
+# (Keychain token) survives the real process kill AND the UI now correctly
+# reflects it, with no manual login step required.
 - extendedWaitUntil:
     visible:
-      id: "login.screen"
+      id: "student-home.screen"
     timeout: 20000
 
 # Re-open the SAME page (3) and confirm the memorized marker is still shown

@@ -127,9 +127,10 @@ interface MetricTileProps {
   label: string;
   tone?: 'primary' | 'gold' | 'info' | 'warning' | 'success';
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-export function MetricTile({ colors, value, label, tone = 'primary', style }: MetricTileProps) {
+export function MetricTile({ colors, value, label, tone = 'primary', style, testID }: MetricTileProps) {
   const { spacingScale } = useSettingsScales();
   // Tone drives the surface tint only. The value is rendered in ink so it always
   // clears WCAG AA — accent-on-same-hue-tint (e.g. amber on #FFF8E1) measured as
@@ -149,6 +150,7 @@ export function MetricTile({ colors, value, label, tone = 'primary', style }: Me
       <AppText
         variant="headlineMedium"
         style={[uiStyles(colors, spacingScale).metricValue, { color: colors.textPrimary }]}
+        testID={testID}
       >
         {value}
       </AppText>

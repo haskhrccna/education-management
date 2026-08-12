@@ -43,6 +43,43 @@ describe('grade.service', () => {
       });
     });
 
+    it('records daily activity after a successful grade creation', async () => {
+      mockedPrisma.user.findUnique.mockResolvedValue({ id: 'student-1', role: 'STUDENT' } as any);
+      mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appointment-1' } as any);
+      mockedPrisma.surah.findUnique.mockResolvedValue({ id: 1 } as any);
+      mockedPrisma.grade.create.mockResolvedValue({
+        id: 'grade-1',
+        studentId: 'student-1',
+        teacherId: 'teacher-1',
+        surahId: 1,
+        surah: { id: 1, number: 1, nameAr: 'الفاتحة', nameEn: 'Al-Fatiha' },
+        grade: '95',
+        type: 'EXAM',
+      } as any);
+
+      await createGrade('teacher-1', 'student-1', 1, '95', 'EXAM', 'Good work');
+      expect(mockedPrisma.streak.upsert).toHaveBeenCalled();
+    });
+
+    it('does not let a gamification failure break grade creation', async () => {
+      mockedPrisma.user.findUnique.mockResolvedValue({ id: 'student-1', role: 'STUDENT' } as any);
+      mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appointment-1' } as any);
+      mockedPrisma.surah.findUnique.mockResolvedValue({ id: 1 } as any);
+      mockedPrisma.grade.create.mockResolvedValue({
+        id: 'grade-1',
+        studentId: 'student-1',
+        teacherId: 'teacher-1',
+        surahId: 1,
+        surah: { id: 1, number: 1, nameAr: 'الفاتحة', nameEn: 'Al-Fatiha' },
+        grade: '95',
+        type: 'EXAM',
+      } as any);
+      mockedPrisma.streak.upsert.mockRejectedValue(new Error('DB down'));
+
+      const result = await createGrade('teacher-1', 'student-1', 1, '95', 'EXAM', 'Good work');
+      expect(result.id).toBe('grade-1');
+    });
+
     it('should allow overall recital grades with surahId = null (no Surah lookup)', async () => {
       mockedPrisma.user.findUnique.mockResolvedValue({ id: 'student-1', role: 'STUDENT' } as any);
       mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appointment-1' } as any);

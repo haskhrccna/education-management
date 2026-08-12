@@ -488,7 +488,12 @@ export default function StudentAppointmentsScreen() {
           onPress={() => setShowDatePicker(false)}
           testID="student-appointments.date-modal-backdrop"
         >
-          <Pressable style={styles.modalSheet} onPress={() => {}} testID="student-appointments.date-modal-sheet">
+          <Pressable
+            style={styles.modalSheet}
+            onPress={() => {}}
+            accessible={false}
+            testID="student-appointments.date-modal-sheet"
+          >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{isAr ? 'اختر التاريخ' : 'Select date'}</Text>
               <TouchableOpacity
@@ -540,7 +545,12 @@ export default function StudentAppointmentsScreen() {
           onPress={() => setShowTimePicker(false)}
           testID="student-appointments.time-modal-backdrop"
         >
-          <Pressable style={styles.modalSheet} onPress={() => {}} testID="student-appointments.time-modal-sheet">
+          <Pressable
+            style={styles.modalSheet}
+            onPress={() => {}}
+            accessible={false}
+            testID="student-appointments.time-modal-sheet"
+          >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{isAr ? 'اختر الوقت' : 'Select time'}</Text>
               <TouchableOpacity
