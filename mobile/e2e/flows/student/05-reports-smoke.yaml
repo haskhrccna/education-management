@@ -29,12 +29,12 @@ tags: [student, smoke]
 
 # Reliable entry into student-reports.screen: deep link via the app's
 # registered scheme (bypasses quick-action.3's unreliable click-navigation
-# entirely, same pattern as 05-first-login-smoke.yaml's openLink usage).
+# entirely).
 # NOTE: do NOT relaunch the app first - a relaunch (even with clearState:
 # false) drops back to login.screen (the session does not appear to
 # rehydrate before the deep link's route change fires); openLink while the
-# app is still running (same as 05-first-login-smoke.yaml, called right
-# after login with no launchApp in between) works reliably.
+# app is still running (called right after login with no launchApp in
+# between) works reliably.
 - openLink: "quran-review://student/reports"
 - tapOn:
     text: "Open"
