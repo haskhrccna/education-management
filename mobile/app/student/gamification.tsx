@@ -107,6 +107,7 @@ export default function GamificationScreen() {
                 value={String(gamification.streak.currentStreak)}
                 label={t('currentStreak')}
                 tone="gold"
+                testID="student-gamification.streak-value"
               />
               <MetricTile
                 colors={COLORS}

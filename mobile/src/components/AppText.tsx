@@ -15,6 +15,7 @@ interface AppTextProps {
   ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip';
   accessibilityLabel?: string;
   allowFontScaling?: boolean;
+  testID?: string;
 }
 
 export function AppText({
@@ -26,6 +27,7 @@ export function AppText({
   ellipsizeMode,
   accessibilityLabel,
   allowFontScaling = true,
+  testID,
 }: AppTextProps) {
   const { fontScale } = useSettingsScales();
   const rtl = useIsRTL();
@@ -49,6 +51,7 @@ export function AppText({
       ellipsizeMode={ellipsizeMode}
       accessibilityLabel={accessibilityLabel}
       allowFontScaling={allowFontScaling}
+      testID={testID}
     >
       {children}
     </Text>

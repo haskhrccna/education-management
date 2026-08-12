@@ -2,37 +2,26 @@ appId: com.quranreview.app
 tags: [journey]
 ---
 # Journey 10: student views their streak -> teacher submits a fresh grade for
-# them -> student re-logs-in and the streak screen still renders correctly.
+# them -> student re-logs-in and the streak screen reflects the new activity.
 #
-# What this DOES prove: student-gamification.streak survives a full app
-# relaunch + role switch + relaunch round trip (three clean cold starts),
-# i.e. the screen is not left in some broken/stuck state by an unrelated
-# write happening elsewhere in the app.
+# grade.service.ts's createGrade now calls recordActivity() (Plan 1 findings
+# fix-pass) - grading is wired into the streak the same way recording/
+# revision/mushaf/ijazah/memorization/curriculum-plan actions already are.
+# Ali has no seeded Streak row in either seed script, so before this flow's
+# grade submission, getMyGamification zero-fills { currentStreak: 0,
+# longestStreak: 0 }. After the grade submission, a Streak row now exists
+# with currentStreak/longestStreak >= 1.
 #
-# What this does NOT (and per the coordinator's own resolution, cannot)
-# prove: that submitting a GRADE changes the streak's numeric value. It does
-# not: streak.currentStreak/longestStreak come from the Streak table
-# (gamification.service.ts's getMyGamification), written by recordActivity()
-# - which DOES have real callers (mushaf/recording/revision/ijazah/
-# memorization/curriculum-plan services all call it - the streak genuinely
-# increments for those actions), but grade.service.ts is NOT one of them
-# (confirmed by direct grep, zero matches). So specifically for the grade-
-# submission path this journey tests, "streak still renders" is the correct
-# and only true claim - a content-based "the number changed" assertion here
-# would assert something grading specifically does not do. Logged in
-# BUGLOG.md (corrected post-review - the original write-up overclaimed a
-# systemic dead-code gap that doesn't exist; the real, narrower finding is
-# that grading alone doesn't count as streak-worthy activity).
-#
-# Ali has no seeded Streak row in either seed script (confirmed by Task 7),
-# so the server's getMyGamification zero-fills { currentStreak: 0,
-# longestStreak: 0 } rather than erroring - student-gamification.streak
-# (the metrics container View, not a per-value testID) is therefore
-# unconditionally visible on every login, before AND after this flow's grade
-# submission. This also means, unlike Journey 2's appointment booking, this
-# flow has NO duplicate-guard state to collide with on repeated bare re-runs
-# (Grade has no unique constraint - see packages/server/prisma/schema.prisma)
-# - safely re-runnable back-to-back without a DB reset.
+# student-gamification.streak-value (added alongside this fix) exposes the
+# raw currentStreak number distinctly from student-gamification.streak (the
+# metrics container View) - the final assertion below checks its text
+# changed from "0" to "1" across the relaunch/role-switch/relaunch round
+# trip, not just that the screen still renders. This also means, unlike
+# Journey 2's appointment booking, this flow has NO duplicate-guard state to
+# collide with on repeated bare re-runs (Grade has no unique constraint -
+# see packages/server/prisma/schema.prisma) - though a same-UTC-day re-run
+# won't increment currentStreak further past "1" (recordActivity's same-day
+# rule), so the "1" assertion still holds on repeated same-day runs.
 #
 # Every `launchApp: clearState: true` here is preceded by `clearKeychain`,
 # per Task 8's hard requirement (BUGLOG.md "Task 8 addendum 2") - iOS
@@ -66,6 +55,9 @@ tags: [journey]
     visible:
       id: "student-gamification.streak"
     timeout: 10000
+- assertVisible:
+    id: "student-gamification.streak-value"
+    text: "0"
 
 # Part 2: teacher submits a fresh grade for Ali. Reuses Journey 3's proven
 # grade-form sequence (student auto-select, scroll-to-input keyboard-
@@ -140,9 +132,8 @@ tags: [journey]
       id: "teacher-home.screen"
     timeout: 10000
 
-# Part 3: student re-logs-in; the streak screen still renders correctly
-# after the unrelated grade write and the full relaunch/role-switch round
-# trip.
+# Part 3: student re-logs-in; the streak screen reflects the grade write
+# from Part 2 after the full relaunch/role-switch round trip.
 - clearKeychain
 - launchApp:
     clearState: true
@@ -169,6 +160,9 @@ tags: [journey]
     visible:
       id: "student-gamification.streak"
     timeout: 10000
+- assertVisible:
+    id: "student-gamification.streak-value"
+    text: "1"
 
 - tapOn:
     id: "student-gamification.back"

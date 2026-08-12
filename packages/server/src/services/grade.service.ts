@@ -1,5 +1,6 @@
 import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
+import { recordActivity, evaluateMilestones } from './gamification.service';
 
 type GradeTypeInput = 'QUIZ' | 'ASSIGNMENT' | 'EXAM' | 'ORAL' | 'PARTICIPATION';
 
@@ -51,6 +52,16 @@ export const createGrade = async (
   // email + push payloads.
   const surahName = grade.surah?.nameAr ?? (grade.surahId ? `Surah #${grade.surahId}` : 'Overall Recital');
   await notifyNewGrade(studentId, { ...grade, surahName });
+
+  // Phase 5: a graded session counts as daily activity for the student,
+  // same as recording/revision/memorization/ijazah/curriculum-plan actions.
+  // Best-effort — a streak-update failure must not break grade submission.
+  try {
+    await recordActivity(studentId);
+    await evaluateMilestones(studentId);
+  } catch {
+    /* gamification is best-effort */
+  }
 
   return grade;
 };
