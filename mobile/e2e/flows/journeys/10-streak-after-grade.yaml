@@ -16,12 +16,18 @@ tags: [journey]
 # raw currentStreak number distinctly from student-gamification.streak (the
 # metrics container View) - the final assertion below checks its text
 # changed from "0" to "1" across the relaunch/role-switch/relaunch round
-# trip, not just that the screen still renders. This also means, unlike
-# Journey 2's appointment booking, this flow has NO duplicate-guard state to
-# collide with on repeated bare re-runs (Grade has no unique constraint -
-# see packages/server/prisma/schema.prisma) - though a same-UTC-day re-run
-# won't increment currentStreak further past "1" (recordActivity's same-day
-# rule), so the "1" assertion still holds on repeated same-day runs.
+# trip, not just that the screen still renders.
+#
+# RE-RUNNABILITY: unlike Journey 11, this flow is NOT idempotent - it needs a
+# fresh Ali (no Streak row) at start, i.e. a reseed/DB reset before each run,
+# which run.sh provides between flow-directory runs. Part 1 asserts
+# streak-value "0" *before* the grade; Part 2's grade calls recordActivity,
+# which persists a Streak row for Ali in Postgres (unaffected by clearKeychain/
+# clearState, which only reset the app sandbox + keychain, not the server DB).
+# So after one run Ali's currentStreak is 1: a bare same-UTC-day re-run fails
+# Part 1's "0"; a next-day re-run bumps it to 2, failing both Part 1's "0" and
+# Part 3's "1". (The Grade row itself has no unique constraint - the collision
+# state is the persisted Streak row, not a duplicate grade.)
 #
 # Every `launchApp: clearState: true` here is preceded by `clearKeychain`,
 # per Task 8's hard requirement (BUGLOG.md "Task 8 addendum 2") - iOS

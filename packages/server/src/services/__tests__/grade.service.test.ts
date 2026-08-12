@@ -43,7 +43,7 @@ describe('grade.service', () => {
       });
     });
 
-    it('records daily activity and evaluates milestones after a successful grade creation', async () => {
+    it('records daily activity after a successful grade creation', async () => {
       mockedPrisma.user.findUnique.mockResolvedValue({ id: 'student-1', role: 'STUDENT' } as any);
       mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appointment-1' } as any);
       mockedPrisma.surah.findUnique.mockResolvedValue({ id: 1 } as any);

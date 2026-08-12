@@ -10,6 +10,9 @@ appId: com.quranreview.app
 # app never foregrounds and the app-level testID assertion below times out
 # against the home screen. Optional: on simulators where the preference is
 # already trained, no dialog appears and this WARNs-and-continues harmlessly.
+# The bare "Open" text matcher is intentionally broad, but safe here: the only
+# screen on-screen during this boot step is the system scheme dialog (or the
+# home screen, where no "Open" label exists) — no app UI is up yet to mis-hit.
 - tapOn:
     text: "Open"
     optional: true
