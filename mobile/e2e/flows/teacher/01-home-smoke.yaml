@@ -202,16 +202,14 @@ tags: [teacher, smoke]
 
 # --- unconditional "pending reviews" card -> /teacher/recordings ---
 # Unlike the priority-queue rows below, this card always renders (shows a
-# "0 pending reviews" state rather than being conditionally hidden).
-- swipe:
-    start: 50%, 75%
-    end: 50%, 40%
-- swipe:
-    start: 50%, 75%
-    end: 50%, 40%
-- swipe:
-    start: 50%, 75%
-    end: 50%, 40%
+# "0 pending reviews" state rather than being conditionally hidden). teacher-
+# home is a plain vertical ScrollView (not the student-home quick-action grid
+# that had the documented scrollUntilVisible-then-tap defect, BUGLOG Finding
+# #3), so scrollUntilVisible reliably brings deep controls into view here.
+- scrollUntilVisible:
+    element:
+      id: "teacher-home.pending-reviews"
+    direction: DOWN
 - tapOn:
     id: "teacher-home.pending-reviews"
 - assertNotVisible:
@@ -228,18 +226,10 @@ tags: [teacher, smoke]
 # teacher-home.student-card.0 deterministically renders regardless of whether
 # the at-risk branch or the plain-students-list fallback branch is active (both
 # use the same testID convention for their first row).
-- swipe:
-    start: 50%, 75%
-    end: 50%, 40%
-- swipe:
-    start: 50%, 75%
-    end: 50%, 40%
-- swipe:
-    start: 50%, 75%
-    end: 50%, 40%
-- swipe:
-    start: 50%, 75%
-    end: 50%, 40%
+- scrollUntilVisible:
+    element:
+      id: "teacher-home.students-view-all"
+    direction: DOWN
 - tapOn:
     id: "teacher-home.students-view-all"
 - extendedWaitUntil:
@@ -253,18 +243,10 @@ tags: [teacher, smoke]
       id: "teacher-home.screen"
     timeout: 10000
 
-- swipe:
-    start: 50%, 75%
-    end: 50%, 40%
-- swipe:
-    start: 50%, 75%
-    end: 50%, 40%
-- swipe:
-    start: 50%, 75%
-    end: 50%, 40%
-- swipe:
-    start: 50%, 75%
-    end: 50%, 40%
+- scrollUntilVisible:
+    element:
+      id: "teacher-home.student-card.0"
+    direction: DOWN
 - tapOn:
     id: "teacher-home.student-card.0"
 - extendedWaitUntil:

@@ -3,29 +3,35 @@ appId: com.quranreview.app
 # Expo dev-client pitfall: after `launchApp: clearState: true`, the dev-launcher
 # forgets the last-connected Metro server and shows its own picker UI instead of
 # the app. Re-point it at Metro before waiting for any app-level testID.
-- openLink: "com.quranreview.app://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
 # `clearState` resets iOS's SpringBoard "always open this scheme in the app"
 # preference, so the first openLink after it surfaces the system "Open in
 # <app>?" confirmation (Cancel / Open). It must be dismissed with Open or the
-# app never foregrounds and the app-level testID assertion below times out
-# against the home screen. Optional: on simulators where the preference is
-# already trained, no dialog appears and this WARNs-and-continues harmlessly.
+# app never foregrounds. That dialog is racy — sometimes the openLink does not
+# foreground the app at all on the first attempt, leaving the iOS home screen.
+# Wrapping the whole boot sequence in `retry` makes it self-healing: if
+# login.email never appears, the block re-fires openLink (the scheme
+# preference is trained by then, so the retry foregrounds the app reliably).
+# On a healthy first attempt the block succeeds immediately and no retry runs,
+# so this cannot regress already-passing flows.
+#
 # The bare "Open" text matcher is intentionally broad, but safe here: the only
-# screen on-screen during this boot step is the system scheme dialog (or the
-# home screen, where no "Open" label exists) — no app UI is up yet to mis-hit.
-- tapOn:
-    text: "Open"
-    optional: true
-# First reconnect after clearState also surfaces Expo's one-time "developer
-# menu" explainer overlay, then the dev menu itself (Reload / Go home / Tools)
-# on top of the app; dismiss both if present so the app underneath is usable.
-- tapOn:
-    text: "Continue"
-    optional: true
-- tapOn:
-    text: "Close"
-    optional: true
-- extendedWaitUntil:
-    visible:
-      id: "login.email"
-    timeout: 30000
+# screen up during this boot step is the system scheme dialog (or the home
+# screen, where no "Open" label exists) — no app UI is up yet to mis-hit.
+# "Continue"/"Close" dismiss Expo's one-time dev-menu explainer + dev menu.
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: "com.quranreview.app://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
+      - tapOn:
+          text: "Open"
+          optional: true
+      - tapOn:
+          text: "Continue"
+          optional: true
+      - tapOn:
+          text: "Close"
+          optional: true
+      - extendedWaitUntil:
+          visible:
+            id: "login.email"
+          timeout: 20000

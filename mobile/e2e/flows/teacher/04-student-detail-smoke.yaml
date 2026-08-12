@@ -25,6 +25,12 @@ tags: [teacher, smoke]
       id: "teacher-home.screen"
     timeout: 20000
 
+# The student card sits at the bottom of teacher-home (below the quick-action
+# grid and priority queues) - scroll it into view before tapping.
+- scrollUntilVisible:
+    element:
+      id: "teacher-home.student-card.0"
+    direction: DOWN
 - tapOn:
     id: "teacher-home.student-card.0"
 - extendedWaitUntil:

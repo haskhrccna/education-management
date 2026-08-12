@@ -109,7 +109,12 @@ tags: [teacher, smoke]
     id: "grade-form.submit"
     enabled: true
 
-# Return without submitting.
+# Return without submitting. The view is scrolled down to the submit button,
+# so bring the header's back control back on-screen before tapping it.
+- scrollUntilVisible:
+    element:
+      id: "grade-form.back"
+    direction: UP
 - tapOn:
     id: "grade-form.back"
 - extendedWaitUntil:
