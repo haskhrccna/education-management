@@ -8,6 +8,9 @@
     "userInterfaceStyle": "light",
     "newArchitecture": true,
     "scheme": "quran-review",
+    "experiments": {
+      "baseUrl": "/education-management"
+    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -35,7 +38,8 @@
       "usesCleartextTraffic": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "output": "single"
     },
     "plugins": [
       "expo-localization",
