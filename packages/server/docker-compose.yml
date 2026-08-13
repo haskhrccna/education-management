@@ -15,6 +15,10 @@ services:
       - PORT=4000
       - ENABLE_WORKERS=true
       - CLIENT_URL=${CLIENT_URL:-}
+      - PUBLIC_API_URL=${PUBLIC_API_URL:-}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-}
+      - FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL:-}
+      - FIREBASE_PRIVATE_KEY=${FIREBASE_PRIVATE_KEY:-}
     depends_on:
       db:
         condition: service_healthy
@@ -23,6 +27,7 @@ services:
     volumes:
       - ./uploads:/app/uploads
       - ./reports:/app/reports
+      - ./certificates:/app/certificates
     restart: unless-stopped
 
   db:

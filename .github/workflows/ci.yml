@@ -37,6 +37,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Repository hygiene check
+        run: npm run check:hygiene
+
       - name: Prisma generate
         run: npm exec --workspace=@quran-review/server -- prisma generate
 
@@ -165,3 +168,9 @@ jobs:
 
       - name: i18n completeness check
         run: npm run check-i18n --workspace=mobile
+
+      - name: Route link check
+        run: npm run check-routes --workspace=mobile
+
+      - name: E2E testID coverage check
+        run: npm run check:testids --workspace=mobile
