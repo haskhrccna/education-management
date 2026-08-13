@@ -19,6 +19,7 @@
       "buildNumber": "1",
       "infoPlist": {
         "UIBackgroundModes": ["audio"],
+        "NSFaceIDUsageDescription": "يستخدم التطبيق Face ID لتسجيل الدخول إلى حسابك بأمان.",
         "NSMicrophoneUsageDescription": "يحتاج التطبيق إلى الميكروفون لتسجيل التلاوة القرآنية.",
         "NSDocumentsFolderUsageDescription": "يحتاج التطبيق إلى الوصول للملفات لرفع تسجيلات التلاوة.",
         "LSApplicationQueriesSchemes": ["whatsapp"]
@@ -39,6 +40,12 @@
     "plugins": [
       "expo-localization",
       "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "يستخدم التطبيق Face ID لتسجيل الدخول إلى حسابك بأمان."
+        }
+      ],
       "expo-document-picker",
       [
         "expo-av",

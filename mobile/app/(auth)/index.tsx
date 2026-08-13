@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/src/auth/store';
 import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,21 +26,46 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const login = useAuthStore((s) => s.login);
+  const loginWithBiometrics = useAuthStore((s) => s.loginWithBiometrics);
+  const refreshBiometricStatus = useAuthStore((s) => s.refreshBiometricStatus);
+  const isBiometricEnabled = useAuthStore((s) => s.isBiometricEnabled);
+  const biometricLabel = useAuthStore((s) => s.biometricLabel);
   const isLoading = useAuthStore((s) => s.isLoading);
   const { colors: COLORS } = useTheme();
   const styles = createStyles(COLORS);
+  const isAr = i18n.language === 'ar';
+
+  useEffect(() => {
+    refreshBiometricStatus(isAr).catch(() => {
+      /* optional capability check */
+    });
+  }, [isAr, refreshBiometricStatus]);
+
+  const routeAfterLogin = (role?: string) => {
+    const normalizedRole = role?.toLowerCase();
+    const allowedRoles = ['admin', 'teacher', 'student', 'parent'];
+    if (!normalizedRole || !allowedRoles.includes(normalizedRole)) {
+      Alert.alert(t('error'), t('unsupportedRole') ?? 'Unsupported role. Contact admin.');
+      return;
+    }
+    router.replace(`/${normalizedRole}/home`);
+  };
 
   const handleLogin = async () => {
     setError(null);
     try {
       const user = await login(email.trim(), password);
-      const role = user.role?.toLowerCase();
-      const allowedRoles = ['admin', 'teacher', 'student', 'parent'];
-      if (!allowedRoles.includes(role)) {
-        Alert.alert(t('error'), t('unsupportedRole') ?? 'Unsupported role. Contact admin.');
-        return;
-      }
-      router.replace(`/${role}/home`);
+      routeAfterLogin(user.role);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    setError(null);
+    try {
+      const user = await loginWithBiometrics(isAr);
+      routeAfterLogin(user.role);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Login failed');
     }
@@ -130,6 +155,22 @@ export default function LoginPage() {
                 {!isLoading && <Ionicons name="arrow-forward-outline" size={19} color={COLORS.goldLight} />}
               </View>
             </TouchableOpacity>
+            {isBiometricEnabled && (
+              <TouchableOpacity
+                style={[styles.biometricButton, isLoading && styles.buttonDisabled]}
+                onPress={handleBiometricLogin}
+                disabled={isLoading}
+                activeOpacity={0.8}
+                testID="login.biometric"
+              >
+                <View style={styles.buttonInner}>
+                  <Ionicons name="finger-print-outline" size={21} color={COLORS.primary} />
+                  <Text style={styles.biometricButtonText}>
+                    {t('loginWithBiometrics', { method: biometricLabel ?? t('biometrics') })}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={{ marginTop: SPACING.sm, alignItems: 'center' }}
               onPress={() => router.push('/forgot-password')}
@@ -312,6 +353,19 @@ const createStyles = (COLORS: any) =>
     buttonText: {
       color: COLORS.textOnPrimary,
       fontSize: 17,
+      fontWeight: '700',
+    },
+    biometricButton: {
+      backgroundColor: COLORS.surface,
+      borderRadius: RADIUS.lg,
+      borderWidth: 1,
+      borderColor: COLORS.primary,
+      padding: SPACING.lg,
+      alignItems: 'center',
+    },
+    biometricButtonText: {
+      color: COLORS.primary,
+      fontSize: 15,
       fontWeight: '700',
     },
     buttonIcon: {

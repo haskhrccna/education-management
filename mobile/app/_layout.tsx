@@ -56,7 +56,7 @@ export default function RootLayout() {
 
   // Auth gate: redirect based on session state once settings are loaded
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || authLoading) return;
 
     // Any route segment that starts with a protected role folder is protected;
     // everything else (login, register, forgot-password, pending-approval, index) is public.
@@ -104,9 +104,9 @@ export default function RootLayout() {
       // every cold start even though their session never expired.
       router.replace(`/${user.role}/home` as never);
     }
-  }, [isLoaded, user, segments]);
+  }, [authLoading, isLoaded, user, segments]);
 
-  if (!isLoaded || !fontsLoaded) {
+  if (!isLoaded || !fontsLoaded || authLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#1B5E20" />
