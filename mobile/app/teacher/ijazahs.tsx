@@ -131,7 +131,7 @@ export default function TeacherIjazahsScreen() {
     }
   };
 
-  const renderItem = ({ item }: { item: Ijazah }) => {
+  const renderItem = ({ item, index }: { item: Ijazah; index: number }) => {
     const studentName = item.student ? `${item.student.firstName} ${item.student.lastName}` : '';
     const scopeLabel =
       item.scope === 'FULL_QURAN'
@@ -145,7 +145,10 @@ export default function TeacherIjazahsScreen() {
             : item.surah?.nameEn;
 
     return (
-      <View style={[styles.card, { backgroundColor: COLORS.surface, borderLeftColor: COLORS.gold }]}>
+      <View
+        style={[styles.card, { backgroundColor: COLORS.surface, borderLeftColor: COLORS.gold }]}
+        testID={`teacher-ijazahs.row.${index}`}
+      >
         <View style={{ flex: 1 }}>
           <Text style={[styles.cardTitle, { color: COLORS.textPrimary }]}>{scopeLabel}</Text>
           <Text style={[styles.cardMeta, { color: COLORS.textSecondary }]}>{studentName}</Text>
@@ -159,15 +162,16 @@ export default function TeacherIjazahsScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: COLORS.background }]}>
+    <View style={[styles.screen, { backgroundColor: COLORS.background }]} testID="teacher-ijazahs.screen">
       <View style={[styles.header, { paddingTop: insets.top + SPACING.sm }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} testID="teacher-ijazahs.back">
           <Ionicons name={isAr ? 'chevron-forward' : 'chevron-back'} size={24} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: COLORS.text }]}>{isAr ? 'الإجازات' : 'Ijazahs'}</Text>
         <TouchableOpacity
           style={[styles.addBtn, { backgroundColor: COLORS.primary }]}
           onPress={() => setShowForm((v) => !v)}
+          testID="teacher-ijazahs.toggle-form"
         >
           <Ionicons name={showForm ? 'close' : 'add'} size={20} color="#fff" />
         </TouchableOpacity>
@@ -180,7 +184,7 @@ export default function TeacherIjazahsScreen() {
             <ActivityIndicator color={COLORS.primary} />
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
-              {students.map((s) => (
+              {students.map((s, index) => (
                 <TouchableOpacity
                   key={s.id}
                   style={[
@@ -191,6 +195,7 @@ export default function TeacherIjazahsScreen() {
                     },
                   ]}
                   onPress={() => setSelectedStudentId(s.id)}
+                  testID={`teacher-ijazahs.student.${index}`}
                 >
                   <Text style={[styles.chipText, { color: selectedStudentId === s.id ? '#fff' : COLORS.primary }]}>
                     {s.firstName} {s.lastName}
@@ -202,7 +207,7 @@ export default function TeacherIjazahsScreen() {
 
           <Text style={[styles.label, { color: COLORS.textSecondary }]}>{isAr ? 'النطاق' : 'Scope'}</Text>
           <View style={styles.chipsWrap}>
-            {(['SURAH', 'JUZ', 'FULL_QURAN'] as IjazahScope[]).map((s) => {
+            {(['SURAH', 'JUZ', 'FULL_QURAN'] as IjazahScope[]).map((s, index) => {
               const active = scope === s;
               const label =
                 s === 'SURAH'
@@ -224,6 +229,7 @@ export default function TeacherIjazahsScreen() {
                     { backgroundColor: active ? COLORS.primary : COLORS.background, borderColor: COLORS.primary },
                   ]}
                   onPress={() => setScope(s)}
+                  testID={`teacher-ijazahs.scope.${index}`}
                 >
                   <Text style={[styles.chipText, { color: active ? '#fff' : COLORS.primary }]}>{label}</Text>
                 </TouchableOpacity>
@@ -235,7 +241,7 @@ export default function TeacherIjazahsScreen() {
             <>
               <Text style={[styles.label, { color: COLORS.textSecondary }]}>{isAr ? 'السورة' : 'Surah'}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
-                {surahs.slice(0, 30).map((s) => (
+                {surahs.slice(0, 30).map((s, index) => (
                   <TouchableOpacity
                     key={s.id}
                     style={[
@@ -246,6 +252,7 @@ export default function TeacherIjazahsScreen() {
                       },
                     ]}
                     onPress={() => setSelectedSurahId(s.id)}
+                    testID={`teacher-ijazahs.surah.${index}`}
                   >
                     <Text style={[styles.chipText, { color: selectedSurahId === s.id ? '#fff' : COLORS.primary }]}>
                       {isAr ? s.nameAr : s.nameEn}
@@ -264,6 +271,7 @@ export default function TeacherIjazahsScreen() {
                 keyboardType="number-pad"
                 value={juzNumberStr}
                 onChangeText={setJuzNumberStr}
+                testID="teacher-ijazahs.juz-input"
               />
             </>
           ) : null}
@@ -277,12 +285,14 @@ export default function TeacherIjazahsScreen() {
             placeholderTextColor={COLORS.textSecondary}
             value={chainRef}
             onChangeText={setChainRef}
+            testID="teacher-ijazahs.chain-ref-input"
           />
 
           <TouchableOpacity
             style={[styles.submitBtn, { backgroundColor: COLORS.primary, opacity: submitting ? 0.6 : 1 }]}
             onPress={handleIssue}
             disabled={submitting}
+            testID="teacher-ijazahs.submit"
           >
             {submitting ? (
               <ActivityIndicator color="#fff" />
@@ -296,7 +306,7 @@ export default function TeacherIjazahsScreen() {
       {isLoading && !ijazahs.length ? (
         <ActivityIndicator style={{ marginTop: SPACING.xl * 2 }} color={COLORS.primary} />
       ) : error ? (
-        <TouchableOpacity style={styles.errorBox} onPress={() => refetch()}>
+        <TouchableOpacity style={styles.errorBox} onPress={() => refetch()} testID="teacher-ijazahs.retry">
           <Text style={[styles.errorText, { color: COLORS.error }]}>{t('loadFailed')}</Text>
         </TouchableOpacity>
       ) : (
@@ -313,7 +323,7 @@ export default function TeacherIjazahsScreen() {
             <RefreshControl refreshing={isLoading} onRefresh={() => refetch()} tintColor={COLORS.primary} />
           }
           ListEmptyComponent={
-            <View style={styles.emptyWrap}>
+            <View style={styles.emptyWrap} testID="teacher-ijazahs.empty">
               <Ionicons name="ribbon-outline" size={48} color={COLORS.textSecondary} />
               <Text style={[styles.cardMeta, { color: COLORS.textSecondary }]}>
                 {isAr ? 'لم تُصدر أي إجازة بعد' : 'No ijazahs issued yet'}

@@ -405,4 +405,40 @@ All 4 flows depend on the base seed's fixed teacher-student pairing (`teacher@qu
 
 ### Live verification
 
-**Deferred to the coordinator per this task's execution-mode override.** This task's own verification was limited to the two static gates: `node mobile/scripts/check-testids.js` (green, 20 screens covered) and `npx tsc --noEmit -p mobile/tsconfig.json` (clean). `bash mobile/e2e/run.sh flows/teacher` / `maestro test` was deliberately NOT run here — the coordinator owns the simulator/DB environment and runs live verification in the foreground. Anything below-the-fold swipe-count estimate in `01-home-smoke.yaml` (the quick-action grid, the priority-queue section, the students-needing-attention section) is a best-effort guess based on reading the source layout, not a live-measured value, and may need adjustment once actually run on a simulator.
+Static gates green at authoring (`check-testids.js`, `tsc`). **Live-verified by the coordinator: teacher 4/4 flows PASS** on iPhone 17 Pro Max / iOS 26.2. Two fixes were needed during live-verify (commit `933347f`): below-the-fold/scrolled-away controls switched from fixed-count `swipe` to `scrollUntilVisible`, and the shared `_helpers/boot.yaml` was hardened with a `retry` wrap to self-heal the intermittent post-`clearState` "Open in <app>?" boot race.
+
+## E2E Coverage — Teacher group (Plan 2, Task 2)
+
+Five screens: `teacher/recordings.tsx`, `reports.tsx`, `revisions.tsx`, `plans.tsx`, `ijazahs.tsx`, covered by `05-recordings-smoke.yaml` … `09-ijazahs-smoke.yaml`. `check-testids.js` enforces that no interactive element on these screens lacks a testID. Every create form is opened and every picker/field exercised, but **no create form is submitted** (plan creation → Journey 12, ijazah issuance → Journey 13) and **no list-row mutation is committed** (recordings approve/reject, revisions complete/missed/delete all open then cancel their confirm dialog).
+
+| Screen | testID | Flow | Coverage |
+|---|---|---|---|
+| teacher-recordings | `teacher-recordings.screen` / `.back` | `05-recordings-smoke.yaml` | asserted / tapped → home |
+| teacher-recordings | `teacher-recordings.filter.${value}` | `05` | each status-filter chip tapped, list re-renders |
+| teacher-recordings | `teacher-recordings.row.${index}` / `.play.${index}` | `05` | seeded recording row asserted; play toggled |
+| teacher-recordings | `teacher-recordings.approve/reject.${index}` | `05` | asserted visible — NOT tapped (mutating; review flow is out of smoke scope) |
+| teacher-recordings | `teacher-recordings.review-notes/review-submit/review-cancel` | `05` | review modal opened, notes filled, CANCELED (not submitted) |
+| teacher-recordings | `teacher-recordings.flag-ayah` / `.ayah.${id}` / `.ayah-cancel` | `05` | ayah-flag picker opened then canceled |
+| teacher-recordings | `teacher-recordings.retry` / `.empty` | *(presence only)* | error/empty-state controls; verified by `check-testids.js` |
+| teacher-reports | `teacher-reports.screen` / `.back` | `06-reports-smoke.yaml` | asserted / tapped → home |
+| teacher-reports | `teacher-reports.toggle-form` / `.student.${index}` / `.period-input` / `.notes-input` | `06` | form opened; student picked; period + notes filled |
+| teacher-reports | `teacher-reports.submit` | `06` | asserted visible+enabled — NOT tapped (report generation is a mutation) |
+| teacher-reports | `teacher-reports.row.${index}` / `.download.${index}` | `06` | seeded report row asserted; download control asserted visible (not opened) |
+| teacher-reports | `teacher-reports.retry` / `.empty` | *(presence only)* | verified by `check-testids.js` |
+| teacher-revisions | `teacher-revisions.screen` / `.back` | `07-revisions-smoke.yaml` | asserted / tapped → home |
+| teacher-revisions | `teacher-revisions.toggle-form` / `.mode.SURAH` / `.mode.DRILL` | `07` | form opened; both modes exercised |
+| teacher-revisions | `teacher-revisions.student.${index}` / `.surah.${index}` / `.ayah-input` / `.date-input` | `07` | pickers + inputs exercised |
+| teacher-revisions | `teacher-revisions.submit` | `07` | asserted visible+enabled — NOT tapped |
+| teacher-revisions | `teacher-revisions.row.${index}` / `.complete.${index}` / `.missed.${index}` / `.delete.${index}` | `07` | seeded PENDING row; each action opens its native confirm Alert, CANCELED (row stays PENDING) |
+| teacher-revisions | `teacher-revisions.retry` | *(presence only)* | verified by `check-testids.js` |
+| teacher-plans | `teacher-plans.screen` / `.back` | `08-plans-smoke.yaml` | asserted / tapped → home |
+| teacher-plans | `teacher-plans.toggle-form` / `.student.${index}` / `.name-input` / `.surah.${index}` / `.target-date-input` / `.add-item` | `08` | form opened; student + surah picked; name + date filled; item staged |
+| teacher-plans | `teacher-plans.submit` | `08` | asserted visible+enabled — NOT tapped (plan creation is Journey 12) |
+| teacher-plans | `teacher-plans.remove-item.${surahId}` | `08` | rendered after `add-item` (staged-row remove control); not tapped to keep the form state |
+| teacher-plans | `teacher-plans.row.${index}` / `.retry` / `.empty` | *(presence only)* | no plan seeded (empty state); verified by `check-testids.js` |
+| teacher-ijazahs | `teacher-ijazahs.screen` / `.back` | `09-ijazahs-smoke.yaml` | asserted / tapped → home |
+| teacher-ijazahs | `teacher-ijazahs.toggle-form` / `.student.${index}` / `.scope.${index}` / `.surah.${index}` / `.juz-input` / `.chain-ref-input` | `09` | form opened; JUZ scope (juz-input) then SURAH scope (surah picker) exercised; chain-ref filled |
+| teacher-ijazahs | `teacher-ijazahs.submit` | `09` | asserted visible+enabled — NOT tapped (issuance is Journey 13) |
+| teacher-ijazahs | `teacher-ijazahs.row.${index}` / `.retry` / `.empty` | *(presence only)* | no ijazah seeded (empty state); verified by `check-testids.js` |
+
+**Live verification:** run by the coordinator via `maestro test mobile/e2e/flows/teacher`; results recorded in the SDD ledger.

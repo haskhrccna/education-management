@@ -1,0 +1,157 @@
+appId: com.quranreview.app
+tags: [teacher, smoke]
+---
+# Teacher smoke B, screen 3/5: teacher/revisions.tsx.
+#
+# Seed-data note: teacher@ (Ahmad)'s only ACCEPTED student, ali@, has 3
+# seeded PENDING RevisionSchedule rows (packages/server/src/prisma/seed.ts,
+# carried through unchanged by seed-e2e.ts's runSeed() call). This screen's
+# GET reads all revisions belonging to any of the teacher's ACCEPTED
+# students (revision.service.ts's TEACHER branch), so
+# teacher-revisions.row.0 deterministically renders. Complete/missed/delete
+# each pop a native confirm Alert, all CANCELED here (never confirmed) -
+# same posture, and same Arabic button copy ("هل أنت متأكد؟" /
+# "هل تريد حذف هذه المراجعة؟" / cancel = "إلغاء", confirmed against
+# mobile/src/i18n/index.ts), as student/06-revisions-smoke.yaml. No DB
+# reset runs between flow-directory iterations, so nothing here may commit
+# a real mutation to the seeded PENDING rows.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: teacher@quran-review.com
+      PASSWORD: Teacher1234!
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 20000
+
+- openLink: "quran-review://teacher/revisions"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "teacher-revisions.screen"
+    timeout: 10000
+
+- extendedWaitUntil:
+    visible:
+      id: "teacher-revisions.row.0"
+    timeout: 10000
+
+# --- create form: open, exercise every picker/field, do NOT submit ---
+- tapOn:
+    id: "teacher-revisions.toggle-form"
+
+# DRILL mode first, to exercise the ayah-number input.
+- tapOn:
+    id: "teacher-revisions.mode.DRILL"
+- scrollUntilVisible:
+    element:
+      id: "teacher-revisions.student.0"
+    direction: DOWN
+- tapOn:
+    id: "teacher-revisions.student.0"
+- scrollUntilVisible:
+    element:
+      id: "teacher-revisions.surah.0"
+    direction: DOWN
+- tapOn:
+    id: "teacher-revisions.surah.0"
+- scrollUntilVisible:
+    element:
+      id: "teacher-revisions.ayah-input"
+    direction: DOWN
+- tapOn:
+    id: "teacher-revisions.ayah-input"
+- inputText: "5"
+- hideKeyboard
+
+# Switch back to SURAH mode (the default) to exercise the date field too,
+# landing the form on its default mode.
+- scrollUntilVisible:
+    element:
+      id: "teacher-revisions.mode.SURAH"
+    direction: UP
+- tapOn:
+    id: "teacher-revisions.mode.SURAH"
+- scrollUntilVisible:
+    element:
+      id: "teacher-revisions.date-input"
+    direction: DOWN
+- tapOn:
+    id: "teacher-revisions.date-input"
+- inputText: "2027-01-15"
+- hideKeyboard
+
+# Assert submit is visible AND enabled - do NOT tap it.
+- scrollUntilVisible:
+    element:
+      id: "teacher-revisions.submit"
+    direction: DOWN
+- assertVisible:
+    id: "teacher-revisions.submit"
+    enabled: true
+
+# Collapse the form so the row-action controls below it are reliably
+# reachable again (the form is a plain View here, not wrapped in its own
+# ScrollView, unlike plans.tsx/ijazahs.tsx).
+- scrollUntilVisible:
+    element:
+      id: "teacher-revisions.toggle-form"
+    direction: UP
+- tapOn:
+    id: "teacher-revisions.toggle-form"
+
+# --- row actions on row 0: complete / missed / delete, all CANCELED ---
+- scrollUntilVisible:
+    element:
+      id: "teacher-revisions.complete.0"
+    direction: DOWN
+- tapOn:
+    id: "teacher-revisions.complete.0"
+- extendedWaitUntil:
+    visible:
+      text: "هل أنت متأكد؟"
+    timeout: 10000
+- tapOn:
+    text: "إلغاء"
+
+- tapOn:
+    id: "teacher-revisions.missed.0"
+- extendedWaitUntil:
+    visible:
+      text: "هل أنت متأكد؟"
+    timeout: 10000
+- tapOn:
+    text: "إلغاء"
+
+- tapOn:
+    id: "teacher-revisions.delete.0"
+- extendedWaitUntil:
+    visible:
+      text: "هل تريد حذف هذه المراجعة؟"
+    timeout: 10000
+- tapOn:
+    text: "إلغاء"
+
+# Row still PENDING (not mutated) after all three cancels - the
+# complete/missed/delete controls still render on it.
+- extendedWaitUntil:
+    visible:
+      id: "teacher-revisions.complete.0"
+    timeout: 10000
+
+- scrollUntilVisible:
+    element:
+      id: "teacher-revisions.back"
+    direction: UP
+- tapOn:
+    id: "teacher-revisions.back"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000

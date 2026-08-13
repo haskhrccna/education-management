@@ -220,7 +220,7 @@ export default function TeacherRevisionsScreen() {
     MISSED: t('statusMissed'),
   };
 
-  const renderItem = ({ item }: { item: Revision }) => {
+  const renderItem = ({ item, index }: { item: Revision; index: number }) => {
     const tone = statusTone(item.status);
     const toneColor = TONE_COLORS[tone];
     const isDrill = item.ayahId != null;
@@ -230,6 +230,7 @@ export default function TeacherRevisionsScreen() {
 
     return (
       <View
+        testID={`teacher-revisions.row.${index}`}
         style={[
           styles.card,
           { backgroundColor: COLORS.surface, borderLeftColor: toneColor },
@@ -264,7 +265,7 @@ export default function TeacherRevisionsScreen() {
               <Text style={[styles.statusText, { color: toneColor }]}>{STATUS_LABELS[item.status] ?? item.status}</Text>
             </View>
             {item.status === 'PENDING' && (
-              <TouchableOpacity onPress={() => handleDelete(item)}>
+              <TouchableOpacity onPress={() => handleDelete(item)} testID={`teacher-revisions.delete.${index}`}>
                 <Ionicons name="trash-outline" size={18} color={COLORS.error} />
               </TouchableOpacity>
             )}
@@ -276,6 +277,7 @@ export default function TeacherRevisionsScreen() {
             <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: COLORS.success + '22', borderColor: COLORS.success }]}
               onPress={() => handleMark(item, 'COMPLETED')}
+              testID={`teacher-revisions.complete.${index}`}
             >
               <Ionicons name="checkmark-circle-outline" size={16} color={COLORS.success} />
               <Text style={[styles.actionText, { color: COLORS.success }]}>{t('markCompleted')}</Text>
@@ -283,6 +285,7 @@ export default function TeacherRevisionsScreen() {
             <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: COLORS.error + '22', borderColor: COLORS.error }]}
               onPress={() => handleMark(item, 'MISSED')}
+              testID={`teacher-revisions.missed.${index}`}
             >
               <Ionicons name="close-circle-outline" size={16} color={COLORS.error} />
               <Text style={[styles.actionText, { color: COLORS.error }]}>{t('markMissed')}</Text>
@@ -294,15 +297,16 @@ export default function TeacherRevisionsScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: COLORS.background }]}>
+    <View style={[styles.screen, { backgroundColor: COLORS.background }]} testID="teacher-revisions.screen">
       <View style={[styles.header, { paddingTop: insets.top + SPACING.sm }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} testID="teacher-revisions.back">
           <Ionicons name={isAr ? 'chevron-forward' : 'chevron-back'} size={24} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: COLORS.text }]}>{t('revisionScheduleTitle')}</Text>
         <TouchableOpacity
           style={[styles.addBtn, { backgroundColor: COLORS.primary }]}
           onPress={() => setShowForm((v) => !v)}
+          testID="teacher-revisions.toggle-form"
         >
           <Ionicons name={showForm ? 'close' : 'add'} size={20} color="#fff" />
         </TouchableOpacity>
@@ -319,6 +323,7 @@ export default function TeacherRevisionsScreen() {
                 { backgroundColor: mode === 'SURAH' ? COLORS.primary : COLORS.background, borderColor: COLORS.primary },
               ]}
               onPress={() => setMode('SURAH')}
+              testID="teacher-revisions.mode.SURAH"
             >
               <Text style={[styles.modeBtnText, { color: mode === 'SURAH' ? '#fff' : COLORS.primary }]}>
                 {isAr ? 'مراجعة سورة كاملة' : 'Whole-surah review'}
@@ -330,6 +335,7 @@ export default function TeacherRevisionsScreen() {
                 { backgroundColor: mode === 'DRILL' ? COLORS.primary : COLORS.background, borderColor: COLORS.primary },
               ]}
               onPress={() => setMode('DRILL')}
+              testID="teacher-revisions.mode.DRILL"
             >
               <Text style={[styles.modeBtnText, { color: mode === 'DRILL' ? '#fff' : COLORS.primary }]}>
                 {isAr ? 'تحديد آية ضعيفة' : 'Flag a weak ayah'}
@@ -344,7 +350,7 @@ export default function TeacherRevisionsScreen() {
             <Text style={[styles.noData, { color: COLORS.textSecondary }]}>{t('noAcceptedStudents')}</Text>
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
-              {students.map((s) => (
+              {students.map((s, index) => (
                 <TouchableOpacity
                   key={s.id}
                   style={[
@@ -355,6 +361,7 @@ export default function TeacherRevisionsScreen() {
                     },
                   ]}
                   onPress={() => setSelectedStudentId(s.id)}
+                  testID={`teacher-revisions.student.${index}`}
                 >
                   <Text style={[styles.chipText, { color: selectedStudentId === s.id ? '#fff' : COLORS.primary }]}>
                     {s.firstName} {s.lastName}
@@ -369,7 +376,7 @@ export default function TeacherRevisionsScreen() {
             <ActivityIndicator color={COLORS.primary} />
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
-              {surahs.slice(0, 30).map((s) => (
+              {surahs.slice(0, 30).map((s, index) => (
                 <TouchableOpacity
                   key={s.id}
                   style={[
@@ -380,6 +387,7 @@ export default function TeacherRevisionsScreen() {
                     },
                   ]}
                   onPress={() => setSelectedSurahId(s.id)}
+                  testID={`teacher-revisions.surah.${index}`}
                 >
                   <Text style={[styles.chipText, { color: selectedSurahId === s.id ? '#fff' : COLORS.primary }]}>
                     {isAr ? s.nameAr : s.nameEn}
@@ -406,6 +414,7 @@ export default function TeacherRevisionsScreen() {
                 value={scheduledDate}
                 onChangeText={setScheduledDate}
                 keyboardType="numbers-and-punctuation"
+                testID="teacher-revisions.date-input"
               />
             </>
           ) : (
@@ -425,6 +434,7 @@ export default function TeacherRevisionsScreen() {
                 value={ayahNumberStr}
                 onChangeText={setAyahNumberStr}
                 keyboardType="number-pad"
+                testID="teacher-revisions.ayah-input"
               />
               <Text style={[styles.noData, { color: COLORS.textSecondary }]}>
                 {isAr
@@ -438,6 +448,7 @@ export default function TeacherRevisionsScreen() {
             style={[styles.submitBtn, { backgroundColor: COLORS.primary, opacity: isSubmitting ? 0.6 : 1 }]}
             onPress={handleAdd}
             disabled={isSubmitting}
+            testID="teacher-revisions.submit"
           >
             <Text style={styles.submitText}>
               {isSubmitting
@@ -455,7 +466,7 @@ export default function TeacherRevisionsScreen() {
       {isLoading && !revisions.length ? (
         <ActivityIndicator style={{ marginTop: SPACING.xl * 2 }} color={COLORS.primary} />
       ) : error ? (
-        <TouchableOpacity style={styles.errorBox} onPress={fetchRevisions}>
+        <TouchableOpacity style={styles.errorBox} onPress={fetchRevisions} testID="teacher-revisions.retry">
           <Text style={[styles.errorText, { color: COLORS.error }]}>{t('loadFailed')}</Text>
         </TouchableOpacity>
       ) : (

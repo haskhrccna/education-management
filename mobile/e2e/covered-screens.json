@@ -18,5 +18,10 @@
   "app/teacher/home.tsx",
   "app/teacher/appointments.tsx",
   "app/teacher/grade-form.tsx",
-  "app/teacher/student-detail.tsx"
+  "app/teacher/student-detail.tsx",
+  "app/teacher/recordings.tsx",
+  "app/teacher/reports.tsx",
+  "app/teacher/revisions.tsx",
+  "app/teacher/plans.tsx",
+  "app/teacher/ijazahs.tsx"
 ]

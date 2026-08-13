@@ -163,11 +163,14 @@ export default function TeacherPlansScreen() {
     AHEAD: COLORS.primary,
   };
 
-  const renderPlan = ({ item }: { item: CurriculumPlan }) => {
+  const renderPlan = ({ item, index }: { item: CurriculumPlan; index: number }) => {
     const paceColor = PACE_COLORS[item.pace];
     const student = students.find((s) => s.id === item.studentId);
     return (
-      <View style={[styles.card, { backgroundColor: COLORS.surface, borderLeftColor: paceColor }]}>
+      <View
+        style={[styles.card, { backgroundColor: COLORS.surface, borderLeftColor: paceColor }]}
+        testID={`teacher-plans.row.${index}`}
+      >
         <View style={styles.cardTop}>
           <View style={{ flex: 1 }}>
             <Text style={[styles.planName, { color: COLORS.text }]}>{item.name}</Text>
@@ -207,15 +210,16 @@ export default function TeacherPlansScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: COLORS.background }]}>
+    <View style={[styles.screen, { backgroundColor: COLORS.background }]} testID="teacher-plans.screen">
       <View style={[styles.header, { paddingTop: insets.top + SPACING.sm }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} testID="teacher-plans.back">
           <Ionicons name={isAr ? 'chevron-forward' : 'chevron-back'} size={24} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: COLORS.text }]}>{isAr ? 'خطط الحفظ' : 'Curriculum plans'}</Text>
         <TouchableOpacity
           style={[styles.addBtn, { backgroundColor: COLORS.primary }]}
           onPress={() => setShowForm((v) => !v)}
+          testID="teacher-plans.toggle-form"
         >
           <Ionicons name={showForm ? 'close' : 'add'} size={20} color="#fff" />
         </TouchableOpacity>
@@ -230,7 +234,7 @@ export default function TeacherPlansScreen() {
             <ActivityIndicator color={COLORS.primary} />
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
-              {students.map((s) => (
+              {students.map((s, index) => (
                 <TouchableOpacity
                   key={s.id}
                   style={[
@@ -241,6 +245,7 @@ export default function TeacherPlansScreen() {
                     },
                   ]}
                   onPress={() => setSelectedStudentId(s.id)}
+                  testID={`teacher-plans.student.${index}`}
                 >
                   <Text style={[styles.chipText, { color: selectedStudentId === s.id ? '#fff' : COLORS.primary }]}>
                     {s.firstName} {s.lastName}
@@ -260,13 +265,14 @@ export default function TeacherPlansScreen() {
             placeholderTextColor={COLORS.textSecondary}
             value={planName}
             onChangeText={setPlanName}
+            testID="teacher-plans.name-input"
           />
 
           <Text style={[styles.label, { color: COLORS.textSecondary, marginTop: SPACING.md }]}>
             {isAr ? 'إضافة سورة' : 'Add a surah'}
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
-            {surahs.slice(0, 30).map((s) => (
+            {surahs.slice(0, 30).map((s, index) => (
               <TouchableOpacity
                 key={s.id}
                 style={[
@@ -277,6 +283,7 @@ export default function TeacherPlansScreen() {
                   },
                 ]}
                 onPress={() => setSelectedSurahId(s.id)}
+                testID={`teacher-plans.surah.${index}`}
               >
                 <Text style={[styles.chipText, { color: selectedSurahId === s.id ? '#fff' : COLORS.primary }]}>
                   {isAr ? s.nameAr : s.nameEn}
@@ -295,8 +302,13 @@ export default function TeacherPlansScreen() {
               value={targetDate}
               onChangeText={setTargetDate}
               keyboardType="numbers-and-punctuation"
+              testID="teacher-plans.target-date-input"
             />
-            <TouchableOpacity style={[styles.smallAddBtn, { backgroundColor: COLORS.primary }]} onPress={addStagedItem}>
+            <TouchableOpacity
+              style={[styles.smallAddBtn, { backgroundColor: COLORS.primary }]}
+              onPress={addStagedItem}
+              testID="teacher-plans.add-item"
+            >
               <Ionicons name="add" size={20} color="#fff" />
             </TouchableOpacity>
           </View>
@@ -308,7 +320,10 @@ export default function TeacherPlansScreen() {
                   <Text style={[styles.stagedText, { color: COLORS.text }]}>
                     {item.surahLabel} · {item.targetDate}
                   </Text>
-                  <TouchableOpacity onPress={() => removeStagedItem(item.surahId)}>
+                  <TouchableOpacity
+                    onPress={() => removeStagedItem(item.surahId)}
+                    testID={`teacher-plans.remove-item.${item.surahId}`}
+                  >
                     <Ionicons name="close-circle-outline" size={18} color={COLORS.error} />
                   </TouchableOpacity>
                 </View>
@@ -320,6 +335,7 @@ export default function TeacherPlansScreen() {
             style={[styles.submitBtn, { backgroundColor: COLORS.primary, opacity: isSubmitting ? 0.6 : 1 }]}
             onPress={handleSubmit}
             disabled={isSubmitting}
+            testID="teacher-plans.submit"
           >
             <Text style={styles.submitText}>
               {isSubmitting ? t('submitting') : isAr ? 'إنشاء الخطة' : 'Create plan'}
@@ -331,7 +347,7 @@ export default function TeacherPlansScreen() {
       {isLoading && !plans.length ? (
         <ActivityIndicator style={{ marginTop: SPACING.xl * 2 }} color={COLORS.primary} />
       ) : error ? (
-        <TouchableOpacity style={styles.errorBox} onPress={() => refetch()}>
+        <TouchableOpacity style={styles.errorBox} onPress={() => refetch()} testID="teacher-plans.retry">
           <Text style={[styles.errorText, { color: COLORS.error }]}>{t('loadFailed')}</Text>
         </TouchableOpacity>
       ) : (
@@ -348,7 +364,7 @@ export default function TeacherPlansScreen() {
             <RefreshControl refreshing={isLoading} onRefresh={() => refetch()} tintColor={COLORS.primary} />
           }
           ListEmptyComponent={
-            <View style={styles.emptyWrap}>
+            <View style={styles.emptyWrap} testID="teacher-plans.empty">
               <Ionicons name="map-outline" size={48} color={COLORS.textSecondary} />
               <Text style={[styles.emptyTitle, { color: COLORS.text }]}>{isAr ? 'لا توجد خطط' : 'No plans yet'}</Text>
               <Text style={[styles.emptyDesc, { color: COLORS.textSecondary }]}>

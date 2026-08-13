@@ -253,9 +253,10 @@ export default function TeacherRecordingsScreen() {
     }
   };
 
-  const renderItem = ({ item }: { item: Recording }) => (
+  const renderItem = ({ item, index }: { item: Recording; index: number }) => (
     <TeacherRecordingCard
       recording={item}
+      index={index}
       COLORS={COLORS}
       isRTL={isRTL}
       isPlaying={playingId === item.id}
@@ -272,6 +273,7 @@ export default function TeacherRecordingsScreen() {
     return (
       <TouchableOpacity
         onPress={() => setFilter(value)}
+        testID={`teacher-recordings.filter.${value}`}
         style={[
           styles.chip,
           {
@@ -288,9 +290,13 @@ export default function TeacherRecordingsScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: COLORS.background }}
+      edges={['top']}
+      testID="teacher-recordings.screen"
+    >
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
-        <TouchableOpacity onPress={() => router.back()} accessibilityRole="button">
+        <TouchableOpacity onPress={() => router.back()} accessibilityRole="button" testID="teacher-recordings.back">
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
             size={22}
@@ -314,7 +320,7 @@ export default function TeacherRecordingsScreen() {
       {error ? (
         <View style={styles.center}>
           <Text style={{ color: COLORS.error, marginBottom: SPACING.md, textAlign: 'center' }}>{error}</Text>
-          <TouchableOpacity onPress={refresh}>
+          <TouchableOpacity onPress={refresh} testID="teacher-recordings.retry">
             <Text style={{ color: COLORS.primary, fontWeight: '700' }}>{t('retry')}</Text>
           </TouchableOpacity>
         </View>
@@ -329,7 +335,7 @@ export default function TeacherRecordingsScreen() {
             loading ? (
               <ActivityIndicator style={{ marginTop: 40 }} color={COLORS.primary} />
             ) : (
-              <View style={styles.center}>
+              <View style={styles.center} testID="teacher-recordings.empty">
                 <Text style={{ fontSize: 40, marginBottom: SPACING.md }}>🎧</Text>
                 <Text style={[styles.emptyTitle, { color: COLORS.textPrimary }]}>{t('noRecordings')}</Text>
               </View>
@@ -371,6 +377,7 @@ export default function TeacherRecordingsScreen() {
                       accessibilityLabel={t('flagWeakAyah')}
                       onPress={openFlagPicker}
                       disabled={flagLoading}
+                      testID="teacher-recordings.flag-ayah"
                       style={{
                         flexDirection: isRTL ? 'row-reverse' : 'row',
                         alignItems: 'center',
@@ -403,6 +410,7 @@ export default function TeacherRecordingsScreen() {
               placeholder={t('reviewNotesPlaceholder')}
               placeholderTextColor={COLORS.textMuted}
               multiline
+              testID="teacher-recordings.review-notes"
               style={[
                 styles.modalInput,
                 {
@@ -419,6 +427,7 @@ export default function TeacherRecordingsScreen() {
                 onPress={() => setReviewing(null)}
                 style={[styles.modalBtn, { backgroundColor: COLORS.surfaceAlt }]}
                 disabled={submittingReview}
+                testID="teacher-recordings.review-cancel"
               >
                 <Text style={[styles.modalBtnText, { color: COLORS.textPrimary }]}>{t('cancel')}</Text>
               </TouchableOpacity>
@@ -432,6 +441,7 @@ export default function TeacherRecordingsScreen() {
                   },
                 ]}
                 disabled={submittingReview}
+                testID="teacher-recordings.review-submit"
               >
                 {submittingReview ? (
                   <ActivityIndicator color="#fff" size="small" />
@@ -460,6 +470,7 @@ export default function TeacherRecordingsScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`${t('ayah')} ${ayah.number}`}
                   onPress={() => flagAyah(ayah.id)}
+                  testID={`teacher-recordings.ayah.${ayah.id}`}
                   style={{
                     paddingVertical: SPACING.sm,
                     paddingHorizontal: SPACING.md,
@@ -480,6 +491,7 @@ export default function TeacherRecordingsScreen() {
               accessibilityRole="button"
               accessibilityLabel={t('cancel')}
               onPress={() => setFlagAyahs(null)}
+              testID="teacher-recordings.ayah-cancel"
               style={[styles.modalBtn, { backgroundColor: COLORS.surfaceAlt, marginTop: SPACING.sm }]}
             >
               <Text style={[styles.modalBtnText, { color: COLORS.textPrimary }]}>{t('cancel')}</Text>
@@ -495,6 +507,7 @@ export default function TeacherRecordingsScreen() {
 
 interface TeacherCardProps {
   recording: Recording;
+  index: number;
   COLORS: AnyColors;
   isRTL: boolean;
   isPlaying: boolean;
@@ -507,6 +520,7 @@ interface TeacherCardProps {
 
 function TeacherRecordingCard({
   recording,
+  index,
   COLORS,
   isRTL,
   isPlaying,
@@ -532,6 +546,7 @@ function TeacherRecordingCard({
 
   return (
     <View
+      testID={`teacher-recordings.row.${index}`}
       style={[
         cardStyles.card,
         {
@@ -588,6 +603,7 @@ function TeacherRecordingCard({
           onPress={onTogglePlay}
           style={[cardStyles.playBtn, { backgroundColor: COLORS.primary }]}
           accessibilityLabel={isPlaying ? t('pauseRecording') : t('playRecording')}
+          testID={`teacher-recordings.play.${index}`}
         >
           <Text style={cardStyles.playBtnIcon}>{isPlaying ? '❚❚' : '▶'}</Text>
         </TouchableOpacity>
@@ -617,10 +633,18 @@ function TeacherRecordingCard({
 
       {status === 'PENDING' && (
         <View style={cardStyles.actionRow}>
-          <TouchableOpacity onPress={onReject} style={[cardStyles.actionBtn, { backgroundColor: COLORS.errorLight }]}>
+          <TouchableOpacity
+            onPress={onReject}
+            style={[cardStyles.actionBtn, { backgroundColor: COLORS.errorLight }]}
+            testID={`teacher-recordings.reject.${index}`}
+          >
             <Text style={[cardStyles.actionBtnText, { color: COLORS.error }]}>{t('rejectRecording')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={onApprove} style={[cardStyles.actionBtn, { backgroundColor: COLORS.success }]}>
+          <TouchableOpacity
+            onPress={onApprove}
+            style={[cardStyles.actionBtn, { backgroundColor: COLORS.success }]}
+            testID={`teacher-recordings.approve.${index}`}
+          >
             <Text style={[cardStyles.actionBtnText, { color: '#fff' }]}>{t('approveRecording')}</Text>
           </TouchableOpacity>
         </View>

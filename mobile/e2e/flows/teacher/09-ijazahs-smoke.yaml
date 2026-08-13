@@ -1,0 +1,98 @@
+appId: com.quranreview.app
+tags: [teacher, smoke]
+---
+# Teacher smoke B, screen 5/5: teacher/ijazahs.tsx.
+#
+# Seed note: no ijazah is seeded for ali@ (Journey 13 is what issues one), so
+# this smoke asserts the screen renders and exercises the issue form WITHOUT
+# submitting (issuing is Journey 13's job, not this smoke's). Scope buttons are
+# SURAH(0)/JUZ(1)/FULL_QURAN(2); the surah picker shows only for SURAH and the
+# juz-input only for JUZ - both branches are exercised, landing on SURAH.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: teacher@quran-review.com
+      PASSWORD: Teacher1234!
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 20000
+
+- openLink: "quran-review://teacher/ijazahs"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "teacher-ijazahs.screen"
+    timeout: 10000
+
+# --- issue form: open, exercise every picker/field, do NOT submit ---
+- tapOn:
+    id: "teacher-ijazahs.toggle-form"
+- tapOn:
+    id: "teacher-ijazahs.student.0"
+
+# JUZ scope first (reveals the juz-number input).
+- scrollUntilVisible:
+    element:
+      id: "teacher-ijazahs.scope.1"
+    direction: DOWN
+- tapOn:
+    id: "teacher-ijazahs.scope.1"
+- scrollUntilVisible:
+    element:
+      id: "teacher-ijazahs.juz-input"
+    direction: DOWN
+- tapOn:
+    id: "teacher-ijazahs.juz-input"
+- inputText: "3"
+- hideKeyboard
+
+# Back to SURAH scope (the default) to exercise the surah picker; land here.
+- scrollUntilVisible:
+    element:
+      id: "teacher-ijazahs.scope.0"
+    direction: UP
+- tapOn:
+    id: "teacher-ijazahs.scope.0"
+- scrollUntilVisible:
+    element:
+      id: "teacher-ijazahs.surah.0"
+    direction: DOWN
+- tapOn:
+    id: "teacher-ijazahs.surah.0"
+- scrollUntilVisible:
+    element:
+      id: "teacher-ijazahs.chain-ref-input"
+    direction: DOWN
+- tapOn:
+    id: "teacher-ijazahs.chain-ref-input"
+- inputText: "Smoke - not submitted"
+- hideKeyboard
+
+# Assert submit is visible AND enabled - do NOT tap it.
+- scrollUntilVisible:
+    element:
+      id: "teacher-ijazahs.submit"
+    direction: DOWN
+- assertVisible:
+    id: "teacher-ijazahs.submit"
+    enabled: true
+
+# Collapse the form and return.
+- scrollUntilVisible:
+    element:
+      id: "teacher-ijazahs.toggle-form"
+    direction: UP
+- tapOn:
+    id: "teacher-ijazahs.toggle-form"
+- tapOn:
+    id: "teacher-ijazahs.back"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000
