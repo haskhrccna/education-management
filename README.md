@@ -245,6 +245,8 @@ https://haskhrccna.github.io/education-management/
 
 GitHub Pages deployment is handled by `.github/workflows/pages.yml` on every push to `main`. In the GitHub repository, set **Settings → Pages → Source** to **GitHub Actions**.
 
+GitHub Pages must be available for the repository. If this repository is private, that may require making the repo public or using a GitHub plan that supports Pages for private repositories.
+
 For login/API flows on the deployed site, add a repository variable named `EXPO_PUBLIC_API_URL` with your deployed API URL, for example:
 
 ```text
