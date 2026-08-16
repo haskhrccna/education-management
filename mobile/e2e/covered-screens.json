@@ -23,5 +23,9 @@
   "app/teacher/reports.tsx",
   "app/teacher/revisions.tsx",
   "app/teacher/plans.tsx",
-  "app/teacher/ijazahs.tsx"
+  "app/teacher/ijazahs.tsx",
+  "app/admin/home.tsx",
+  "app/admin/user-detail.tsx",
+  "app/admin/change-requests.tsx",
+  "app/admin/broadcast.tsx"
 ]

@@ -61,7 +61,11 @@ export default function UserDetailScreen() {
     return (
       <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text style={{ color: COLORS.textSecondary }}>{t('notFound')}</Text>
-        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{ marginTop: 16 }}
+          testID="admin-user-detail.not-found-back"
+        >
           <Text style={{ color: COLORS.primary }}>{t('goBack')}</Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -126,11 +130,11 @@ export default function UserDetailScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top']} testID="admin-user-detail.screen">
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} testID="admin-user-detail.back">
             <Ionicons name="arrow-back-outline" size={20} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
@@ -140,7 +144,11 @@ export default function UserDetailScreen() {
                 : 'Edit User'
               : user.firstName + ' ' + user.lastName}
           </Text>
-          <TouchableOpacity onPress={() => setIsEditing(!isEditing)} style={styles.editBtn}>
+          <TouchableOpacity
+            onPress={() => setIsEditing(!isEditing)}
+            style={styles.editBtn}
+            testID="admin-user-detail.edit"
+          >
             <Ionicons name={isEditing ? 'close-outline' : 'create-outline'} size={19} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
@@ -162,6 +170,7 @@ export default function UserDetailScreen() {
                     value={formData.firstName}
                     onChangeText={(text) => setFormData({ ...formData, firstName: text })}
                     textAlign="right"
+                    testID="admin-user-detail.first-name"
                   />
                 </View>
                 <View style={styles.inputHalf}>
@@ -171,6 +180,7 @@ export default function UserDetailScreen() {
                     value={formData.lastName}
                     onChangeText={(text) => setFormData({ ...formData, lastName: text })}
                     textAlign="right"
+                    testID="admin-user-detail.last-name"
                   />
                 </View>
               </View>
@@ -182,6 +192,7 @@ export default function UserDetailScreen() {
                   onChangeText={(text) => setFormData({ ...formData, email: text })}
                   textAlign="right"
                   keyboardType="email-address"
+                  testID="admin-user-detail.email"
                 />
               </View>
               <View style={styles.inputRow}>
@@ -192,6 +203,7 @@ export default function UserDetailScreen() {
                     value={formData.status}
                     onChangeText={(text) => setFormData({ ...formData, status: text })}
                     textAlign="right"
+                    testID="admin-user-detail.status"
                   />
                 </View>
                 <View style={styles.inputHalf}>
@@ -201,10 +213,16 @@ export default function UserDetailScreen() {
                     value={formData.role}
                     onChangeText={(text) => setFormData({ ...formData, role: text })}
                     textAlign="right"
+                    testID="admin-user-detail.role"
                   />
                 </View>
               </View>
-              <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={isSaving}>
+              <TouchableOpacity
+                style={styles.saveBtn}
+                onPress={handleSave}
+                disabled={isSaving}
+                testID="admin-user-detail.save"
+              >
                 <Text style={styles.saveBtnText}>{isSaving ? t('loading') : t('submit')}</Text>
               </TouchableOpacity>
             </View>
@@ -378,7 +396,7 @@ export default function UserDetailScreen() {
         {/* Delete Button */}
         {!isEditing && (
           <Animated.View entering={FadeInUp.duration(400).delay(250)}>
-            <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
+            <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete} testID="admin-user-detail.delete">
               <Ionicons name="trash-outline" size={20} color={COLORS.error} />
               <Text style={styles.deleteText}>{i18n.language === 'ar' ? 'حذف المستخدم' : 'Delete User'}</Text>
             </TouchableOpacity>

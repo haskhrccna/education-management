@@ -1,0 +1,223 @@
+appId: com.quranreview.app
+tags: [admin, smoke]
+---
+# Admin smoke A, screen 1/4: admin/home.tsx.
+# Pattern mirrors flows/teacher/01-home-smoke.yaml (tap -> assert-destination ->
+# return, via clearKeychain + clearState + _helpers/login.yaml).
+#
+# Scope notes:
+# - admin-home.logout is deliberately NOT tapped (destructive - ends the
+#   authenticated session under test), matching teacher-home.logout's posture.
+# - academy-card.0 (academy-health) and academy-card.1 (academy-profile) are
+#   NOT tapped: neither screen has a BottomNav or a back-button testID yet
+#   (both are "0 testIDs today", reserved for Task 4 "Admin smoke B" per
+#   docs/superpowers/plans/2026-08-12-e2e-plan2-teacher-admin.md) - there is
+#   no safe way back from them yet. Presence of the cards is verified by
+#   check-testids.js only.
+# - bottom-nav.halaqa is NOT tapped - /halaqa carries zero testIDs anywhere in
+#   the app today and is out of scope for every task in this plan so far.
+# - admin/analytics.tsx and admin/settings.tsx are Task 4 scope for full
+#   coverage (no dedicated `.screen`/`.back` testIDs yet); this flow only
+#   uses `assertNotVisible: admin-home.screen` + bottom-nav return for them,
+#   the same pattern flows/teacher/01-home-smoke.yaml uses for its own
+#   not-yet-tagged destinations (recordings/reports).
+# - `admin-analytics.teacher-row.${index}` is a minimal bridge testID added
+#   in THIS task (see task-3-report.md) - it is the ONLY live navigation path
+#   to admin/user-detail anywhere in the app today. home.tsx has no user-list
+#   of its own (unlike the plan's original assumption of an
+#   `admin-home.user-row.${index}` control) - it was reconciled to reality.
+
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: admin@quran-review.com
+      PASSWORD: Admin1234!
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 20000
+
+# --- header icons: notifications / messages / settings / account ---
+- tapOn:
+    id: "admin-home.notifications"
+- extendedWaitUntil:
+    visible:
+      id: "notifications.screen"
+    timeout: 10000
+- tapOn:
+    id: "notifications.back"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000
+
+- tapOn:
+    id: "admin-home.messages"
+- extendedWaitUntil:
+    visible:
+      id: "messages.screen"
+    timeout: 10000
+- tapOn:
+    id: "messages.back"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000
+
+# admin/settings.tsx has no dedicated `.screen` testID yet (Task 4 scope) -
+# assert admin-home is gone, then return via the shared BottomNav it renders
+# (role="admin" active="settings").
+- tapOn:
+    id: "admin-home.settings"
+- assertNotVisible:
+    id: "admin-home.screen"
+- tapOn:
+    id: "bottom-nav.admin-home"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000
+
+- tapOn:
+    id: "admin-home.account"
+- extendedWaitUntil:
+    visible:
+      id: "account.screen"
+    timeout: 10000
+- tapOn:
+    id: "account.back"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000
+
+# admin-home.logout deliberately NOT tapped - see header note.
+
+# --- approvals summary link -> change-requests (admin-approvals.* screen) ---
+- tapOn:
+    id: "admin-home.approvals"
+- extendedWaitUntil:
+    visible:
+      id: "admin-approvals.screen"
+    timeout: 10000
+- tapOn:
+    id: "admin-approvals.back"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000
+
+# --- bottom-nav round trip: broadcast / requests / analytics ---
+- tapOn:
+    id: "bottom-nav.admin-broadcast"
+- extendedWaitUntil:
+    visible:
+      id: "admin-broadcast.screen"
+    timeout: 10000
+- tapOn:
+    id: "admin-broadcast.back"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000
+
+- tapOn:
+    id: "bottom-nav.admin-change-requests"
+- extendedWaitUntil:
+    visible:
+      id: "admin-approvals.screen"
+    timeout: 10000
+- tapOn:
+    id: "admin-approvals.back"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000
+
+# analytics.tsx has no dedicated `.screen` testID yet (Task 4 scope) - assert
+# admin-home is gone, then use its one bridge testID to reach user-detail.
+- tapOn:
+    id: "bottom-nav.admin-analytics"
+- assertNotVisible:
+    id: "admin-home.screen"
+
+# --- open the first user row -> admin-user-detail.screen -> back ---
+# teacherLoad lists ALL TEACHER-role users unconditionally (no active-student
+# filter, see packages/server/src/services/academy-health.service.ts) - both
+# seed variants create at least 2 teachers, so row 0 always exists.
+- extendedWaitUntil:
+    visible:
+      id: "admin-analytics.teacher-row.0"
+    timeout: 10000
+- tapOn:
+    id: "admin-analytics.teacher-row.0"
+- extendedWaitUntil:
+    visible:
+      id: "admin-user-detail.screen"
+    timeout: 10000
+- tapOn:
+    id: "admin-user-detail.back"
+- assertNotVisible:
+    id: "admin-home.screen"
+- tapOn:
+    id: "bottom-nav.admin-home"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000
+
+# --- academy grid: milestones (card.2) / broadcast (card.3) / audit-logs (card.4) ---
+# academy-card.0 (academy-health) and .1 (academy-profile) skipped - see
+# header note (no return path yet, Task 4 scope).
+- scrollUntilVisible:
+    element:
+      id: "admin-home.academy-card.2"
+    direction: DOWN
+- tapOn:
+    id: "admin-home.academy-card.2"
+- assertNotVisible:
+    id: "admin-home.screen"
+- tapOn:
+    id: "bottom-nav.admin-home"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000
+
+- scrollUntilVisible:
+    element:
+      id: "admin-home.academy-card.3"
+    direction: DOWN
+- tapOn:
+    id: "admin-home.academy-card.3"
+- extendedWaitUntil:
+    visible:
+      id: "admin-broadcast.screen"
+    timeout: 10000
+- tapOn:
+    id: "admin-broadcast.back"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000
+
+- scrollUntilVisible:
+    element:
+      id: "admin-home.academy-card.4"
+    direction: DOWN
+- tapOn:
+    id: "admin-home.academy-card.4"
+- assertNotVisible:
+    id: "admin-home.screen"
+- tapOn:
+    id: "bottom-nav.admin-home"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000
+
+# admin-home.retry only renders on a fetch error, not hit by this happy-path
+# flow; presence verified by check-testids.js only.

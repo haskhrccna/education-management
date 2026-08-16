@@ -1,0 +1,67 @@
+appId: com.quranreview.app
+tags: [admin, smoke]
+---
+# Admin smoke A, screen 4/4: admin/broadcast.tsx.
+#
+# Discipline: fills the recipient + message fields and asserts the send
+# button becomes enabled, but never taps it - sending a real broadcast (and
+# the notification it fans out) is Journey 9's job, not this smoke flow's.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: admin@quran-review.com
+      PASSWORD: Admin1234!
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 20000
+
+- tapOn:
+    id: "bottom-nav.admin-broadcast"
+- extendedWaitUntil:
+    visible:
+      id: "admin-broadcast.screen"
+    timeout: 10000
+
+# Send starts disabled (message is empty) - assert that before filling.
+- assertVisible:
+    id: "admin-broadcast.send"
+    enabled: false
+
+# --- tap each target chip: ALL (already selected) / STUDENT / TEACHER ---
+- tapOn:
+    id: "admin-broadcast.target.0"
+- tapOn:
+    id: "admin-broadcast.target.1"
+- tapOn:
+    id: "admin-broadcast.target.2"
+- tapOn:
+    id: "admin-broadcast.target.0"
+
+# --- fill the message body ---
+- tapOn:
+    id: "admin-broadcast.message"
+- inputText: "E2E smoke test - not sent"
+
+# Dismiss the keyboard the same way flows/teacher/03-grade-form-smoke.yaml
+# does: tap the non-touchable, testID'd header View
+# (keyboardShouldPersistTaps="handled" on this screen's ScrollView lets the
+# unhandled tap through to dismiss it) before the final assertion, so the
+# keyboard can't intercept it or obscure the send button below.
+- tapOn:
+    id: "admin-broadcast.header"
+
+# --- assert send is now enabled - do NOT tap it ---
+- assertVisible:
+    id: "admin-broadcast.send"
+    enabled: true
+
+- tapOn:
+    id: "admin-broadcast.back"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000

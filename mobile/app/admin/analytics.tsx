@@ -138,10 +138,16 @@ export default function AdminAnalyticsScreen() {
                 {t('noData')}
               </AppText>
             ) : (
-              analytics.teacherLoad.map((item) => (
+              analytics.teacherLoad.map((item, index) => (
                 <TouchableOpacity
                   key={item.teacher.id}
                   onPress={() => router.push(`/admin/user-detail?id=${item.teacher.id}` as any)}
+                  // Task-3 bridge testID (see task-3-report.md): this row is the only
+                  // live path to admin/user-detail in the app today. Full Standard-
+                  // procedure coverage of this screen (root/.back/retry) is Task 4's
+                  // job — this single id lets Task 3's home/user-detail smoke flows
+                  // reach the screen without duplicating Task 4's work.
+                  testID={`admin-analytics.teacher-row.${index}`}
                 >
                   <AppCard colors={COLORS} style={{ marginBottom: SPACING.sm }}>
                     <View style={styles.row}>

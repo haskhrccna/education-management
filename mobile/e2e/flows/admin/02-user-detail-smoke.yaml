@@ -1,0 +1,88 @@
+appId: com.quranreview.app
+tags: [admin, smoke]
+---
+# Admin smoke A, screen 2/4: admin/user-detail.tsx.
+#
+# Reached via bottom-nav.admin-analytics -> admin-analytics.teacher-row.0 (the
+# only live navigation path to this screen today - see 01-home-smoke.yaml's
+# header note and task-3-report.md). Deliberately does NOT save or delete the
+# user - per the task's Discipline section, mutating a real seeded account is
+# out of scope for this smoke flow (toggle edit, assert the form renders,
+# then back WITHOUT submitting).
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: admin@quran-review.com
+      PASSWORD: Admin1234!
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 20000
+
+- tapOn:
+    id: "bottom-nav.admin-analytics"
+- assertNotVisible:
+    id: "admin-home.screen"
+- extendedWaitUntil:
+    visible:
+      id: "admin-analytics.teacher-row.0"
+    timeout: 10000
+- tapOn:
+    id: "admin-analytics.teacher-row.0"
+- extendedWaitUntil:
+    visible:
+      id: "admin-user-detail.screen"
+    timeout: 10000
+
+# Read-only profile card is visible by default (not editing yet) - the
+# teacher/student relation cards and analytics/activity sections below are
+# plain, non-touchable Views (verified by reading the full source), so the
+# only remaining interactive elements are the edit toggle and its form.
+
+# --- toggle edit -> assert the form's inputs render ---
+- tapOn:
+    id: "admin-user-detail.edit"
+- extendedWaitUntil:
+    visible:
+      id: "admin-user-detail.first-name"
+    timeout: 10000
+- assertVisible:
+    id: "admin-user-detail.last-name"
+- assertVisible:
+    id: "admin-user-detail.email"
+- assertVisible:
+    id: "admin-user-detail.status"
+- assertVisible:
+    id: "admin-user-detail.role"
+- assertVisible:
+    id: "admin-user-detail.save"
+
+# Do NOT tap admin-user-detail.save - no mutation in this smoke flow.
+
+# --- toggle edit back off (same control, now shows the close icon) ---
+- tapOn:
+    id: "admin-user-detail.edit"
+- extendedWaitUntil:
+    visible:
+      id: "admin-user-detail.screen"
+    timeout: 10000
+- assertNotVisible:
+    id: "admin-user-detail.first-name"
+
+# admin-user-detail.delete is visible in the non-editing state (verified by
+# check-testids.js only) - NOT tapped, per Discipline (destructive mutation
+# reserved for a future journey, not this smoke flow).
+
+- tapOn:
+    id: "admin-user-detail.back"
+- assertNotVisible:
+    id: "admin-home.screen"
+- tapOn:
+    id: "bottom-nav.admin-home"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000
