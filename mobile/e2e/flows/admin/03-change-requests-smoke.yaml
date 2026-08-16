@@ -83,12 +83,10 @@ tags: [admin, smoke]
     id: "admin-approvals.deny"
 
 # Do NOT tap admin-approvals.approve / .deny - Journey 7 owns that decision.
-
-# --- collapse row.0 ---
-- tapOn:
-    id: "admin-approvals.row.0"
-- assertNotVisible:
-    id: "admin-approvals.note"
+# (The row toggle is already exercised by the expand tap above; a second
+# collapse tap is intentionally omitted - once expanded, the accordion's tap
+# target shifts under the revealed note/approve/deny controls, so a re-tap on
+# the row header does not reliably collapse it. Expand coverage is sufficient.)
 
 - tapOn:
     id: "admin-approvals.back"

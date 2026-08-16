@@ -36,7 +36,12 @@ export default function UserDetailScreen() {
     setIsLoading(true);
     try {
       const res = await apiClient.get(`/admin/users/${id}`);
-      const data = res.data?.data;
+      // GET /admin/users/:id returns { user, analytics } directly as the body
+      // (admin.module.ts getUserById -> `body: result`), NOT wrapped in a
+      // `{ data }` envelope like the LIST endpoint. Reading res.data.data here
+      // was always undefined and crashed the screen with "Cannot read property
+      // 'user' of undefined" (surfaced by the admin user-detail E2E smoke).
+      const data = res.data;
       setUser(data.user);
       setAnalytics(data.analytics);
       setFormData({
