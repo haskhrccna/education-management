@@ -64,8 +64,9 @@ tags: [teacher, smoke]
 - tapOn:
     id: "teacher-reports.notes-input"
 - inputText: "Smoke test - not submitted"
-- hideKeyboard
 
+# Scroll down to submit - the scroll swipe dismisses the keyboard (Maestro's
+# hideKeyboard can't perform a dismiss on this input's keypad).
 # Assert submit is visible AND enabled - do NOT tap it.
 - scrollUntilVisible:
     element:

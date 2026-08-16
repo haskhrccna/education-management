@@ -68,10 +68,10 @@ tags: [teacher, smoke]
 - tapOn:
     id: "teacher-revisions.ayah-input"
 - inputText: "5"
-- hideKeyboard
 
-# Switch back to SURAH mode (the default) to exercise the date field too,
-# landing the form on its default mode.
+# The ayah numeric keypad has no dismiss key (Maestro's hideKeyboard can't
+# perform it here), so drop focus by scrolling up to the mode toggle - the
+# scroll swipe dismisses the keypad - then tap it to switch back to SURAH mode.
 - scrollUntilVisible:
     element:
       id: "teacher-revisions.mode.SURAH"
@@ -85,8 +85,9 @@ tags: [teacher, smoke]
 - tapOn:
     id: "teacher-revisions.date-input"
 - inputText: "2027-01-15"
-- hideKeyboard
 
+# Scroll down to submit - the scroll swipe dismisses the date keypad (which,
+# like the ayah keypad, has no dismiss key for hideKeyboard to press).
 # Assert submit is visible AND enabled - do NOT tap it.
 - scrollUntilVisible:
     element:

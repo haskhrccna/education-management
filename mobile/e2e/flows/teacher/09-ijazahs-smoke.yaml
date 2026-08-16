@@ -36,7 +36,18 @@ tags: [teacher, smoke]
 - tapOn:
     id: "teacher-ijazahs.student.0"
 
-# JUZ scope first (reveals the juz-number input).
+# SURAH is the default scope - exercise its surah picker FIRST (no scope toggle
+# needed), so the picker is reached without tapping a scope button through an
+# open keypad (which was flaky).
+- scrollUntilVisible:
+    element:
+      id: "teacher-ijazahs.surah.0"
+    direction: DOWN
+- tapOn:
+    id: "teacher-ijazahs.surah.0"
+
+# Then switch to JUZ scope to reveal + exercise the juz-number input; land here
+# (the scope the form ends on doesn't matter - submit is asserted, never tapped).
 - scrollUntilVisible:
     element:
       id: "teacher-ijazahs.scope.1"
@@ -50,21 +61,9 @@ tags: [teacher, smoke]
 - tapOn:
     id: "teacher-ijazahs.juz-input"
 - inputText: "3"
-- hideKeyboard
 
-# Back to SURAH scope (the default) to exercise the surah picker; land here.
-- scrollUntilVisible:
-    element:
-      id: "teacher-ijazahs.scope.0"
-    direction: UP
-- tapOn:
-    id: "teacher-ijazahs.scope.0"
-- scrollUntilVisible:
-    element:
-      id: "teacher-ijazahs.surah.0"
-    direction: DOWN
-- tapOn:
-    id: "teacher-ijazahs.surah.0"
+# chain-ref is shown for all scopes; scrollUntilVisible's swipe dismisses the
+# juz keypad on the way down.
 - scrollUntilVisible:
     element:
       id: "teacher-ijazahs.chain-ref-input"
@@ -72,8 +71,8 @@ tags: [teacher, smoke]
 - tapOn:
     id: "teacher-ijazahs.chain-ref-input"
 - inputText: "Smoke - not submitted"
-- hideKeyboard
 
+# scrollUntilVisible's swipe dismisses the keyboard (hideKeyboard can't here).
 # Assert submit is visible AND enabled - do NOT tap it.
 - scrollUntilVisible:
     element:
