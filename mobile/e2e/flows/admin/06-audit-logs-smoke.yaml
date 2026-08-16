@@ -79,13 +79,14 @@ tags: [admin, smoke]
 - tapOn:
     id: "admin-audit-logs.clear-filters"
 
-# --- a real row, unfiltered ---
-- extendedWaitUntil:
-    visible:
-      id: "admin-audit-logs.row.0"
-    timeout: 10000
-- tapOn:
-    id: "admin-audit-logs.row.0"
+# --- audit-log content is non-deterministic ---
+# A freshly reseeded E2E DB has zero audit_logs (they are written only by
+# audited admin mutations at runtime — none are seeded), and journeys 7/9 add
+# some later. So this smoke asserts the screen + its filter controls render
+# (above), not a specific row-vs-empty content state; the row and its expand
+# control are exercised by Journey 7/9's audit-trail assertions instead.
+- assertVisible:
+    id: "admin-audit-logs.screen"
 
 - tapOn:
     id: "admin-audit-logs.back"

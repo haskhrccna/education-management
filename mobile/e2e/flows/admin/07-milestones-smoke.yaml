@@ -6,9 +6,9 @@ tags: [admin, smoke]
 # Reached via deep link. Already renders <BottomNav active="none"> from a
 # prior fix-pass (not touched here); also has its own header back button.
 #
-# No MilestoneDefinition rows are seeded in either packages/server/src/prisma
-# /seed.ts or seed-e2e.ts (confirmed by reading both files in full) — the
-# empty state is expected on every fresh run.
+# The E2E DB has a deterministic catalog of 5 MilestoneDefinition rows on a
+# fresh reseed (verified live: SELECT count(*) FROM milestone_definitions = 5),
+# so the list renders rows, not the empty state.
 #
 # Discipline: opens the create-milestone form and fills every field with
 # valid values (asserting the submit button becomes enabled), but never taps
@@ -37,9 +37,11 @@ tags: [admin, smoke]
       id: "admin-milestones.screen"
     timeout: 10000
 
+# The seed creates 5 MilestoneDefinition rows (the milestone catalog), so the
+# list is deterministically non-empty on a fresh reseed.
 - extendedWaitUntil:
     visible:
-      id: "admin-milestones.empty"
+      id: "admin-milestones.row.0"
     timeout: 10000
 
 # --- open the create form and fill every field ---
