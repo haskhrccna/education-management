@@ -1,0 +1,74 @@
+appId: com.quranreview.app
+tags: [admin, smoke]
+---
+# Admin smoke B, screen 1/6: admin/analytics.tsx.
+#
+# Reached via deep link (not bottom-nav.admin-analytics — Task 3's
+# 01-home-smoke.yaml already exercises that bottom-nav round trip while the
+# screen had only its Task-3 bridge testID; this flow gives the screen its
+# own full Standard-procedure pass). router.back() from a deep-linked screen
+# pops to whatever the router stack's previous entry was, so admin-home is
+# asserted first — matching the pattern flows/student/08..12 use.
+#
+# analytics.tsx is mostly read-only metric tiles (weekly-active-students
+# summary, surah-miss-rate bars, teacher-load rows) — no filter/segment/date
+# control exists on this screen (confirmed by reading the full source). The
+# only interactive elements are the header back button, the conditional
+# fetch-error retry, and the teacher-load rows (Task 3's bridge to
+# admin-user-detail.screen).
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: admin@quran-review.com
+      PASSWORD: Admin1234!
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 20000
+
+- openLink: "quran-review://admin/analytics"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "admin-analytics.screen"
+    timeout: 10000
+
+# --- teacherLoad row -> admin-user-detail.screen -> back ---
+# teacherLoad lists ALL TEACHER-role users unconditionally (no active-student
+# filter — packages/server/src/services/academy-health.service.ts uses the
+# same unconditional shape); both seed variants create at least 2 teachers,
+# so row 0 always exists (established in Task 3's report/COVERAGE.md).
+- scrollUntilVisible:
+    element:
+      id: "admin-analytics.teacher-row.0"
+    direction: DOWN
+- tapOn:
+    id: "admin-analytics.teacher-row.0"
+- extendedWaitUntil:
+    visible:
+      id: "admin-user-detail.screen"
+    timeout: 10000
+- tapOn:
+    id: "admin-user-detail.back"
+- extendedWaitUntil:
+    visible:
+      id: "admin-analytics.screen"
+    timeout: 10000
+
+# Header (and its back button) is a sibling of the scrollable body, not
+# inside it — it stays on-screen regardless of scroll position, so no
+# scroll-up is needed before tapping it.
+- tapOn:
+    id: "admin-analytics.back"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000
+
+# admin-analytics.retry only renders on a fetch error, not hit by this
+# happy-path flow. Presence verified by check-testids.js only.

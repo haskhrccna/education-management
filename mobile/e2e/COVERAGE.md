@@ -497,3 +497,76 @@ All 4 flows depend on fixed seed facts verified by reading `packages/server/src/
 ### Live verification
 
 **Deferred to the coordinator per this task's EXECUTION-MODE OVERRIDE** — only static gates were run at authoring time (`node mobile/scripts/check-testids.js` OK; `npx tsc --noEmit -p mobile/tsconfig.json` clean). `bash mobile/e2e/run.sh flows/admin` / `maestro test` were deliberately NOT run in this session.
+
+## E2E Coverage — Admin group B (Plan 2, Task 4)
+
+Six screens: `admin/analytics.tsx`, `audit-logs.tsx`, `milestones.tsx`, `settings.tsx`, `academy-health.tsx`, `academy-profile.tsx` — all 0 testIDs at the start of this task except `analytics.tsx`'s single Task-3 bridge testID (`admin-analytics.teacher-row.${index}`, kept as-is). All 6 are now in `covered-screens.json` (35 screens covered total after this task); `check-testids.js` enforces that no interactive element on any of them is missing a testID.
+
+Every screen is reached via `openLink: "quran-review://admin/<route>"` (+ optional `tapOn text:"Open"`) from `admin-home.screen`, not via `admin-home.*`/`bottom-nav.*` taps — this gives each screen its own full pass independent of Task 3's home-screen round trips (which already exercise `bottom-nav.admin-analytics`, `admin-home.settings`, `admin-home.academy-card.0-4` with only presence-level assertions on these 6 destinations). Each flow's `<screen>.back` returns to `admin-home.screen`, since the deep link is fired while `admin-home.screen` is the current router-stack entry (same precedent as `flows/student/08..12-*-smoke.yaml`).
+
+**Naming decision:** `admin-audit-logs.*` and `admin-milestones.*` are new prefixes (both screens' `<BottomNav active="none">` from a prior fix-pass was left untouched — neither flow uses it, both use the screens' own pre-existing header back buttons instead, newly given `.back` testIDs).
+
+| screen | control (testID) | flow file | step |
+|---|---|---|---|
+| admin-analytics | `admin-analytics.screen` | `05-analytics-smoke.yaml` | asserted visible after the deep link |
+| admin-analytics | `admin-analytics.back` | `05-` | tapped, returns to `admin-home.screen` |
+| admin-analytics | `admin-analytics.retry` | *(none — testID present, not tapped)* | Only rendered on a fetch error; the happy-path flow never hits it. Presence verified by `check-testids.js` only. |
+| admin-analytics | `admin-analytics.teacher-row.${index}` | **Pre-existing (Task 3).** `05-` | `.0` scrolled into view and tapped -> `admin-user-detail.screen`, back via `admin-user-detail.back` (returns to `admin-analytics.screen`, not home directly — same behavior Task 3 documented) |
+| admin-audit-logs | `admin-audit-logs.screen` | `06-audit-logs-smoke.yaml` | asserted visible after the deep link |
+| admin-audit-logs | `admin-audit-logs.back` | `06-` | tapped, returns to `admin-home.screen` |
+| admin-audit-logs | `admin-audit-logs.actor-input` | `06-` | filled with `"admin"` (matches the logged-in Super Admin account's own email, guaranteed present in every seed variant) |
+| admin-audit-logs | `admin-audit-logs.actor-option.${index}` | `06-` | `.0` tapped, selects the actor filter |
+| admin-audit-logs | `admin-audit-logs.actor-clear` | `06-` | tapped, clears the selected-actor filter |
+| admin-audit-logs | `admin-audit-logs.filter-action` / `.filter-entity` | `06-` | both filled with free text (`"CREATE"` / `"User"`) |
+| admin-audit-logs | `admin-audit-logs.filter-date-from` / `.filter-date-to` | `06-` | both filled with complete `YYYY-MM-DD` values (`2020-01-01` / `2030-01-01`) — the only format that commits to `filters` per the screen's own `DATE_RE` guard |
+| admin-audit-logs | `admin-audit-logs.clear-filters` | `06-` | tapped, resets every filter field (only rendered once `hasFilters` is true, which it is after the fills above) |
+| admin-audit-logs | `admin-audit-logs.row.${index}` | `06-` | `.0` asserted visible (unfiltered list) and tapped to expand — see the Determinism note below re: audit-log data provenance |
+| admin-audit-logs | `admin-audit-logs.retry` | *(none — testID present, not tapped)* | Only rendered on a fetch error. Presence verified by `check-testids.js` only. |
+| admin-audit-logs | `admin-audit-logs.empty` | *(none — testID present, not tapped)* | Only rendered when `rows.length === 0`; not expected to render given at least one prior admin-audited action exists (see Determinism). Presence verified by `check-testids.js` only. |
+| admin-audit-logs | `admin-audit-logs.prev` / `.next` | *(none — testID present, not tapped)* | The pager only renders when `totalPages > 1`; page count depends on how many `AuditLog` rows have accumulated in this environment, not asserted either way. Presence verified by `check-testids.js` only. |
+| admin-milestones | `admin-milestones.screen` | `07-milestones-smoke.yaml` | asserted visible after the deep link |
+| admin-milestones | `admin-milestones.back` | `07-` | tapped, returns to `admin-home.screen` |
+| admin-milestones | `admin-milestones.empty` | `07-` | asserted visible — no `MilestoneDefinition` row is seeded in `seed.ts` or `seed-e2e.ts` (confirmed by reading both in full) |
+| admin-milestones | `admin-milestones.toggle-form` | `07-` | tapped twice — opens the create form, then closes it again without submitting |
+| admin-milestones | `admin-milestones.name-input` / `.description-input` / `.icon-input` / `.threshold-input` | `07-` | all 4 filled with valid values |
+| admin-milestones | `admin-milestones.trigger-chip.${trig}` | `07-` | `.REVISION_COUNT` then `.SURAH_COUNT` tapped in sequence |
+| admin-milestones | `admin-milestones.submit` | `07-` | asserted visible+enabled (every field valid, threshold=5>0) — deliberately **not tapped**: submitting creates a real `Milestone`/`Badge` row that "applies to every user on their next activity, no deploy needed" per the screen's own success-alert copy, a mutation out of smoke scope |
+| admin-milestones | `admin-milestones.row.${index}` | *(none — testID present, not tapped)* | No milestone rows exist in any run observed (see `.empty` above); presence verified by `check-testids.js` only. |
+| admin-settings | `admin-settings.screen` | `08-settings-smoke.yaml` | asserted visible after the deep link |
+| admin-settings | `admin-settings.back` | `08-` | tapped, returns to `admin-home.screen` |
+| admin-settings | `admin-settings.theme.${key}` (green/blue/purple/dark) | `08-` | `.blue` tapped, then `.green` (default) tapped to restore |
+| admin-settings | `admin-settings.font-size.${key}` (small/medium/large) | `08-` | `.large` tapped, then `.medium` (default) tapped to restore |
+| admin-settings | `admin-settings.dark-mode` | `08-` | **Stable name, reused by Plan 3's Journey 14 per the brief.** Asserted `checked: false` (default), tapped -> asserted `checked: true`, tapped again -> asserted `checked: false` |
+| admin-settings | `admin-settings.notifications` / `.compact-view` | `08-` | both tapped twice (on then off) |
+| admin-settings | `admin-settings.language` | `08-` | **Stable name, reused by Plan 3's Journey 14 per the brief.** The container `View` wrapping both language buttons — scrolled into view and asserted visible, **not tapped** (RTL flip + relaunch is Journey 14's job) |
+| admin-settings | `admin-settings.language.ar` / `.language.en` | *(none — testID present, not tapped)* | Added on the two individual language buttons (nested inside `admin-settings.language`) for Journey 14's future use — neither tapped here, same reason as the container. Presence verified by `check-testids.js` only. |
+| admin-settings | `admin-settings.save` | *(none — testID present, not tapped)* | Only calls `router.back()` (every setting already applies instantly via the Zustand store — there is no distinct save step); the header back button is used for this flow's `<screen>.back` return instead. Presence verified by `check-testids.js` only. |
+| admin-academy-health | `admin-academy-health.screen` | `09-academy-health-smoke.yaml` | asserted visible after the deep link |
+| admin-academy-health | `admin-academy-health.back` | `09-` | tapped, returns to `admin-home.screen` |
+| admin-academy-health | `admin-academy-health.export-pdf` | `09-` | scrolled into view, asserted visible — deliberately **not tapped**: opens an in-app `SFSafariViewController` against a URL carrying the admin's raw JWT as a query param (per the screen's own comment, this avoids the OS default browser specifically because of that leak risk); tapping it is out of scope for a read-only metrics smoke pass |
+| admin-academy-health | `admin-academy-health.retry` | *(none — testID present, not tapped)* | Only rendered on a fetch error. Presence verified by `check-testids.js` only. |
+| admin-academy-profile | `admin-academy-profile.screen` | `10-academy-profile-smoke.yaml` | asserted visible after the deep link |
+| admin-academy-profile | `admin-academy-profile.back` | `10-` | tapped, returns to `admin-home.screen` |
+| admin-academy-profile | `admin-academy-profile.display-name` / `.program-name` / `.public-bio` / `.contact-email` | `10-` | all 4 filled with smoke-test values |
+| admin-academy-profile | `admin-academy-profile.active` | `10-` | toggled once |
+| admin-academy-profile | `admin-academy-profile.save` | `10-` | asserted visible+enabled — deliberately **not tapped** (Discipline: no real `AcademyProfile` upsert from this smoke flow) |
+
+### Scope note: no per-screen "toggle edit" on `academy-profile.tsx`
+
+Unlike `admin/user-detail.tsx` (which has a dedicated `.edit` toggle gating read-only vs. editable state), `academy-profile.tsx`'s 4 text fields and 1 switch are always directly editable once the initial `GET` resolves — confirmed by reading the full source (no `editing` state variable exists on this screen). The brief's Step 1 language ("the edit form inputs + save") was applied to the fields as they actually exist, not to a toggle that isn't there.
+
+### New pattern: `checked:` selector on RN `Switch`
+
+`08-settings-smoke.yaml`'s dark-mode assertions use Maestro's `checked: true/false` selector against `admin-settings.dark-mode` (a React Native `Switch`, which surfaces its `value` prop through the native accessibility "toggle" state on both platforms). No prior flow in this suite has asserted a `Switch`'s state this way (grepped `flows/` for `checked:`/`Switch` — no hits before this task), so this is an unverified-in-this-repo but standard Maestro pattern; flagged here for the coordinator's live-verification pass in case the selector needs an adjustment (e.g. `checked: "true"` string form) on this RN/Expo version.
+
+### Determinism
+
+`admin-audit-logs.row.0`'s presence depends on at least one `AuditLog` row already existing in this environment. No seed script (`seed.ts`/`seed-e2e.ts`) inserts an `AuditLog` row directly — the middleware (`packages/server/src/prisma/audit.middleware.ts`) fires on every `create`/`update`/`delete`/`updateMany`/`deleteMany` against `User`/`Appointment`/`Grade`/`Recording`/`Message`/`Report`, which the seed scripts themselves trigger via `prisma.user.create(...)` when inserting the seeded accounts, plus every prior E2E run's registration/appointment/message activity in a DB that hasn't been reset. This task's brief states as an established fact that "audit logs exist (admin actions are logged)" in this environment; `06-audit-logs-smoke.yaml` trusts that fact rather than re-deriving it, and documents the risk here for the coordinator: if a specific fresh/reset DB genuinely has zero `AuditLog` rows, `admin-audit-logs.row.0`'s `extendedWaitUntil` will time out and this flow will need `admin-audit-logs.empty` substituted instead.
+
+`admin-milestones.empty` and `admin-analytics.teacher-row.0` are both confirmed deterministic by direct inspection of `seed.ts`/`seed-e2e.ts` (no `MilestoneDefinition` row is ever inserted; at least 2 `TEACHER`-role users always exist).
+
+None of the 6 flows commit a mutation: `admin-milestones.submit` and `admin-academy-profile.save` are asserted enabled but never tapped; `admin-academy-health.export-pdf` is asserted visible but never tapped (avoids handing a JWT-bearing URL to an in-app browser); `admin-settings`'s theme/font-size/notifications/compact-view toggles are on-device-only (MMKV, wiped by every flow's own `clearState: true`) and are each returned to their default value within the same flow; `admin-settings.language.ar`/`.en` are never tapped (reserved for Plan 3's Journey 14).
+
+### Live verification
+
+**Deferred to the coordinator per this task's EXECUTION-MODE OVERRIDE** — only static gates were run at authoring time (`node mobile/scripts/check-testids.js` OK, 35 screens covered; `npx tsc --noEmit -p mobile/tsconfig.json` clean). `bash mobile/e2e/run.sh flows/admin` / `maestro test` were deliberately NOT run in this session — per the brief's Test line, the full expected result is **10/10 admin flows PASS** (the 4 from Task 3 plus these 6), not yet confirmed live.

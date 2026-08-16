@@ -59,7 +59,7 @@ export default function AcademyProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top']} testID="admin-academy-profile.screen">
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -68,6 +68,7 @@ export default function AcademyProfileScreen() {
           accessibilityRole="button"
           accessibilityLabel={t('goBack')}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          testID="admin-academy-profile.back"
         >
           <Ionicons name="arrow-back-outline" size={22} color={COLORS.primary} />
         </TouchableOpacity>
@@ -97,6 +98,7 @@ export default function AcademyProfileScreen() {
               placeholderTextColor={COLORS.textMuted}
               editable={!save.isPending}
               accessibilityLabel={t('academyDisplayName')}
+              testID="admin-academy-profile.display-name"
             />
           </AppCard>
 
@@ -112,6 +114,7 @@ export default function AcademyProfileScreen() {
               placeholderTextColor={COLORS.textMuted}
               editable={!save.isPending}
               accessibilityLabel={t('academyProgramName')}
+              testID="admin-academy-profile.program-name"
             />
           </AppCard>
 
@@ -130,6 +133,7 @@ export default function AcademyProfileScreen() {
               textAlignVertical="top"
               editable={!save.isPending}
               accessibilityLabel={t('academyPublicBio')}
+              testID="admin-academy-profile.public-bio"
             />
           </AppCard>
 
@@ -147,6 +151,7 @@ export default function AcademyProfileScreen() {
               autoCapitalize="none"
               editable={!save.isPending}
               accessibilityLabel={t('academyContactEmail')}
+              testID="admin-academy-profile.contact-email"
             />
           </AppCard>
 
@@ -161,6 +166,7 @@ export default function AcademyProfileScreen() {
               thumbColor="#fff"
               disabled={save.isPending}
               accessibilityLabel={t('academyActive')}
+              testID="admin-academy-profile.active"
             />
           </AppCard>
 
@@ -171,6 +177,7 @@ export default function AcademyProfileScreen() {
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel={t('save')}
+            testID="admin-academy-profile.save"
           >
             {save.isPending ? (
               <ActivityIndicator color={COLORS.textOnPrimary} size="small" />

@@ -1,0 +1,57 @@
+appId: com.quranreview.app
+tags: [admin, smoke]
+---
+# Admin smoke B, screen 5/6: admin/academy-health.tsx.
+#
+# Reached via deep link. Read-only board-meeting metrics (StatCard grid +
+# teacherLoad rows) — no filter/segment/date control on this screen
+# (confirmed by reading the full source); the only interactive elements are
+# the header back button, the conditional fetch-error retry, and the
+# export-PDF button.
+#
+# export-pdf is asserted visible but deliberately NOT tapped: it opens an
+# in-app SFSafariViewController (WebBrowser.openBrowserAsync) against a URL
+# carrying the admin's raw JWT as a query param (the screen's own comment
+# explains this is why it avoids the OS default browser) — tapping it would
+# hand control to a native browser overlay outside this flow's scope and
+# isn't a "segment/refresh/filter" control per this task's Discipline
+# ("Read-only metric screens ... assert screen + exercise any
+# segment/refresh/filter, then back").
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: admin@quran-review.com
+      PASSWORD: Admin1234!
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 20000
+
+- openLink: "quran-review://admin/academy-health"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "admin-academy-health.screen"
+    timeout: 10000
+
+- scrollUntilVisible:
+    element:
+      id: "admin-academy-health.export-pdf"
+    direction: DOWN
+- assertVisible:
+    id: "admin-academy-health.export-pdf"
+
+- tapOn:
+    id: "admin-academy-health.back"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000
+
+# admin-academy-health.retry only renders on a fetch error, not hit by this
+# happy-path flow. Presence verified by check-testids.js only.

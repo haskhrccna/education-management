@@ -27,5 +27,11 @@
   "app/admin/home.tsx",
   "app/admin/user-detail.tsx",
   "app/admin/change-requests.tsx",
-  "app/admin/broadcast.tsx"
+  "app/admin/broadcast.tsx",
+  "app/admin/analytics.tsx",
+  "app/admin/audit-logs.tsx",
+  "app/admin/milestones.tsx",
+  "app/admin/settings.tsx",
+  "app/admin/academy-health.tsx",
+  "app/admin/academy-profile.tsx"
 ]

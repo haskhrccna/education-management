@@ -1,0 +1,97 @@
+appId: com.quranreview.app
+tags: [admin, smoke]
+---
+# Admin smoke B, screen 3/6: admin/milestones.tsx.
+#
+# Reached via deep link. Already renders <BottomNav active="none"> from a
+# prior fix-pass (not touched here); also has its own header back button.
+#
+# No MilestoneDefinition rows are seeded in either packages/server/src/prisma
+# /seed.ts or seed-e2e.ts (confirmed by reading both files in full) — the
+# empty state is expected on every fresh run.
+#
+# Discipline: opens the create-milestone form and fills every field with
+# valid values (asserting the submit button becomes enabled), but never taps
+# submit — that would create a real Milestone/Badge row applying to every
+# user on their next activity (per the screen's own success-alert copy),
+# a real mutation out of this smoke flow's scope.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: admin@quran-review.com
+      PASSWORD: Admin1234!
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 20000
+
+- openLink: "quran-review://admin/milestones"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "admin-milestones.screen"
+    timeout: 10000
+
+- extendedWaitUntil:
+    visible:
+      id: "admin-milestones.empty"
+    timeout: 10000
+
+# --- open the create form and fill every field ---
+- tapOn:
+    id: "admin-milestones.toggle-form"
+- extendedWaitUntil:
+    visible:
+      id: "admin-milestones.name-input"
+    timeout: 10000
+- tapOn:
+    id: "admin-milestones.name-input"
+- inputText: "E2E smoke test - not created"
+- tapOn:
+    id: "admin-milestones.description-input"
+- inputText: "Not submitted by this flow"
+- tapOn:
+    id: "admin-milestones.icon-input"
+- inputText: "star"
+- tapOn:
+    id: "admin-milestones.trigger-chip.REVISION_COUNT"
+- tapOn:
+    id: "admin-milestones.trigger-chip.SURAH_COUNT"
+
+# scrollUntilVisible's swipe also dismisses the icon-input's keyboard before
+# the threshold field is tapped (per house convention — no hideKeyboard).
+- scrollUntilVisible:
+    element:
+      id: "admin-milestones.threshold-input"
+    direction: DOWN
+- tapOn:
+    id: "admin-milestones.threshold-input"
+- inputText: "5"
+
+# Dismiss the keyboard via the same scroll-to-reveal pattern, then assert the
+# submit button is enabled — deliberately NOT tapped (see Discipline above).
+- scrollUntilVisible:
+    element:
+      id: "admin-milestones.submit"
+    direction: DOWN
+- assertVisible:
+    id: "admin-milestones.submit"
+    enabled: true
+
+# --- close the form without submitting, then back home ---
+- tapOn:
+    id: "admin-milestones.toggle-form"
+- assertNotVisible:
+    id: "admin-milestones.name-input"
+
+- tapOn:
+    id: "admin-milestones.back"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000

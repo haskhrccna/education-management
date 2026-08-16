@@ -93,7 +93,11 @@ export default function AcademyHealthScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: COLORS.background }]} edges={['top']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: COLORS.background }]}
+      edges={['top']}
+      testID="admin-academy-health.screen"
+    >
       <View style={[styles.header, { backgroundColor: COLORS.surface, borderBottomColor: COLORS.surfaceAlt }]}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -102,6 +106,7 @@ export default function AcademyHealthScreen() {
           accessibilityRole="button"
           accessibilityLabel={t('goBack')}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          testID="admin-academy-health.back"
         >
           <Ionicons name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'} size={22} color={COLORS.primary} />
         </TouchableOpacity>
@@ -118,7 +123,12 @@ export default function AcademyHealthScreen() {
           <AppText variant="bodyMedium" color={COLORS.textSecondary}>
             {error}
           </AppText>
-          <TouchableOpacity accessibilityRole="button" onPress={() => refetch()} style={{ marginTop: SPACING.md }}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={() => refetch()}
+            style={{ marginTop: SPACING.md }}
+            testID="admin-academy-health.retry"
+          >
             <AppText variant="bodyMedium" color={COLORS.primary}>
               {t('retry')}
             </AppText>
@@ -205,6 +215,7 @@ export default function AcademyHealthScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('exportPdf')}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            testID="admin-academy-health.export-pdf"
           >
             <Ionicons name="document-text-outline" size={20} color={COLORS.textOnPrimary} />
             <AppText variant="titleMedium" color={COLORS.textOnPrimary} style={{ marginStart: SPACING.sm }}>

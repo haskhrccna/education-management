@@ -94,15 +94,20 @@ export default function AdminMilestonesScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: COLORS.background }]} edges={['top']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: COLORS.background }]}
+      edges={['top']}
+      testID="admin-milestones.screen"
+    >
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} testID="admin-milestones.back">
           <Ionicons name="arrow-back-outline" size={22} color={COLORS.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Milestone catalog</Text>
         <TouchableOpacity
           style={[styles.addBtn, { backgroundColor: COLORS.primary }]}
           onPress={() => setShowForm((v) => !v)}
+          testID="admin-milestones.toggle-form"
         >
           <Ionicons name={showForm ? 'close' : 'add'} size={20} color="#fff" />
         </TouchableOpacity>
@@ -117,6 +122,7 @@ export default function AdminMilestonesScreen() {
             placeholderTextColor={COLORS.textSecondary}
             value={name}
             onChangeText={setName}
+            testID="admin-milestones.name-input"
           />
 
           <Text style={styles.label}>Description</Text>
@@ -126,6 +132,7 @@ export default function AdminMilestonesScreen() {
             placeholderTextColor={COLORS.textSecondary}
             value={description}
             onChangeText={setDescription}
+            testID="admin-milestones.description-input"
           />
 
           <Text style={styles.label}>Icon key</Text>
@@ -135,6 +142,7 @@ export default function AdminMilestonesScreen() {
             placeholderTextColor={COLORS.textSecondary}
             value={iconKey}
             onChangeText={setIconKey}
+            testID="admin-milestones.icon-input"
           />
 
           <Text style={styles.label}>Trigger</Text>
@@ -149,6 +157,7 @@ export default function AdminMilestonesScreen() {
                     { backgroundColor: active ? COLORS.primary : COLORS.background, borderColor: COLORS.primary },
                   ]}
                   onPress={() => setTriggerType(trig)}
+                  testID={`admin-milestones.trigger-chip.${trig}`}
                 >
                   <Text style={[styles.chipText, { color: active ? '#fff' : COLORS.primary }]}>
                     {triggerLabel(trig)}
@@ -164,12 +173,14 @@ export default function AdminMilestonesScreen() {
             keyboardType="number-pad"
             value={threshold}
             onChangeText={setThreshold}
+            testID="admin-milestones.threshold-input"
           />
 
           <TouchableOpacity
             style={[styles.submitBtn, { backgroundColor: COLORS.primary, opacity: submitting ? 0.6 : 1 }]}
             onPress={handleCreate}
             disabled={submitting}
+            testID="admin-milestones.submit"
           >
             {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>Create milestone</Text>}
           </TouchableOpacity>
@@ -186,8 +197,8 @@ export default function AdminMilestonesScreen() {
           refreshControl={
             <RefreshControl refreshing={isLoading} onRefresh={fetchMilestones} tintColor={COLORS.primary} />
           }
-          renderItem={({ item }) => (
-            <View style={[styles.card, { backgroundColor: COLORS.surface }]}>
+          renderItem={({ item, index }) => (
+            <View style={[styles.card, { backgroundColor: COLORS.surface }]} testID={`admin-milestones.row.${index}`}>
               <Text style={[styles.cardTitle, { color: COLORS.textPrimary }]}>{item.badge.name}</Text>
               <Text style={[styles.cardMeta, { color: COLORS.textSecondary }]}>{item.badge.description}</Text>
               <Text style={[styles.cardMeta, { color: COLORS.textSecondary }]}>
@@ -196,7 +207,7 @@ export default function AdminMilestonesScreen() {
             </View>
           )}
           ListEmptyComponent={
-            <View style={styles.emptyWrap}>
+            <View style={styles.emptyWrap} testID="admin-milestones.empty">
               <Ionicons name="trophy-outline" size={40} color={COLORS.textSecondary} />
               <Text style={[styles.cardMeta, { color: COLORS.textSecondary }]}>No custom milestones yet</Text>
             </View>
