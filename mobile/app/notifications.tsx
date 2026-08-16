@@ -91,7 +91,7 @@ export default function NotificationsScreen() {
     if (route) router.push(route as any);
   };
 
-  const renderItem = ({ item }: { item: Notification }) => {
+  const renderItem = ({ item, index }: { item: Notification; index: number }) => {
     const isUnread = !item.readAt;
     return (
       <TouchableOpacity
@@ -99,6 +99,7 @@ export default function NotificationsScreen() {
         onPress={() => handlePress(item)}
         accessibilityRole="button"
         accessibilityLabel={`${item.title}. ${item.body}`}
+        testID={`notifications.row.${index}`}
       >
         <AppCard colors={COLORS} style={{ opacity: isUnread ? 1 : 0.72 }}>
           <View style={styles.row}>

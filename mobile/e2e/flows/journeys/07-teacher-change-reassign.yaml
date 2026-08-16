@@ -1,0 +1,238 @@
+appId: com.quranreview.app
+tags: [journey]
+---
+# Journey 7: student requests a teacher change/assignment -> admin approves it
+# by assigning a specific new teacher -> the reassignment is visible on the
+# NEW teacher's own appointments list.
+#
+# Student choice: Omar (`student@`), not Ali. Omar is seeded with NO
+# `assignedTeacherId` (seed.ts: "Omar (student3) is left unassigned to
+# exercise that state") and one REQUESTED (not ACCEPTED) appointment with
+# Sarah (`sarah@`). Ali's `assignedTeacherId`/ACCEPTED pairing with Ahmad
+# (`teacher@`) is the baseline several OTHER journeys (2, 3, 10) depend on
+# staying intact within a single suite run - reassigning Omar instead avoids
+# disturbing that pairing, per this task's brief.
+#
+# Approval mechanism (verified by reading mobile/app/admin/change-requests.tsx
+# before writing this flow, per this task's instruction): a TEACHER_CHANGE row
+# has NO plain `admin-approvals.approve` button - only `.assign-teacher`
+# (opens a teacher-picker modal) and `.deny`. Approving a teacher change
+# without picking a teacher is not a UI-reachable action (`decideTeacherChange`
+# with a `newTeacherId` only fires from the modal row's `onPress`), so this
+# flow goes through `.assign-teacher` -> `.teacher-modal.row.0`.
+#
+# Teacher-modal row order: `GET /users/teachers` returns ACTIVE teachers
+# "firstName asc" (packages/shared/src/contracts/users.contracts.ts:44) - of
+# the two seeded ACTIVE teachers, "Ahmad" < "Sarah" alphabetically, so
+# `admin-approvals.teacher-modal.row.0` is always Ahmad (`teacher@`) and
+# `.row.1` is always Sarah. This flow assigns Ahmad - a genuine reassignment
+# away from Omar's current (REQUESTED-appointment) teacher, Sarah.
+#
+# Side effects of APPROVE+newTeacherId (packages/server/src/services/
+# teacherChange.service.ts's decideTeacherChangeRequest, also documented in
+# this repo's CLAUDE.md "Teacher Change Approval Side Effects"): (1) sets
+# Omar's `assignedTeacherId` to Ahmad; (2) reassigns Omar's ACCEPTED/REQUESTED
+# appointments' `teacherId` to Ahmad - his REQUESTED-with-Sarah appointment
+# becomes REQUESTED-with-Ahmad; (3) since Omar had no ACCEPTED appointment,
+# a brand-new ACCEPTED appointment is auto-created for Omar+Ahmad, dated
+# exactly one year from whenever this flow runs - always later than every
+# other seeded appointment date (2026-05-01, 2026-05-02), so it is
+# deterministically the newest entry in Ahmad's appointment list regardless
+# of run date. Part 3 below asserts both the reassigned REQUESTED
+# appointment (pending list, row.0 - Ahmad had zero pending appointments
+# before this flow) and the new auto-created ACCEPTED appointment (decided
+# list, decided-row.0 - always the newest by requestedDate).
+#
+# *** MUTATION / re-runnability: this journey mutates persistent, real DB
+# state - Omar's `assignedTeacherId`, his appointment's `teacherId`, and a
+# newly-created appointment row - and is NOT idempotent (a second run
+# without a reset fails at Part 1's submit: `submitTeacherChangeRequest`
+# 409s with "You already have a pending request" once Omar already has a
+# PENDING TeacherChangeRequest, and after Part 2 approves it Omar's
+# `isAssignmentRequest` check also no longer holds the same way since he now
+# has an ACCEPTED appointment). This journey MUST run against a fresh
+# `run.sh` reset and is order-sensitive relative to other journeys in a bare
+# multi-file run: it also changes Ahmad's (`teacher@`) appointment list
+# (adds 2 new entries), which Journey 2's own determinism comment ("teacher@
+# has zero OTHER pending appointments in the seed data") assumes does NOT
+# happen before it runs - do not run this journey before Journey 2 in the
+# same DB session.
+#
+# Every `launchApp: clearState: true` here is preceded by `clearKeychain`,
+# per Task 8's hard requirement (BUGLOG.md "Task 8 addendum 2") - iOS
+# Keychain survives clearState alone and would otherwise leak the previous
+# role's session into the next login.
+
+# Part 1: Omar submits a teacher-assignment request.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/boot.yaml
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: student@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+- openLink: "quran-review://student/teacher-change"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "student-teacher-change.screen"
+    timeout: 10000
+- tapOn:
+    id: "student-teacher-change.reason"
+- inputText: "Need a teacher whose schedule fits my new evening study hours."
+# Per BUGLOG.md's established `hideKeyboard`-is-unreliable finding: no
+# `hideKeyboard` call - scrollUntilVisible's own swipe dismisses the
+# keyboard before the submit tap, same pattern as journey 3/10's
+# grade-form flows.
+- scrollUntilVisible:
+    element:
+      id: "student-teacher-change.submit"
+    direction: DOWN
+- tapOn:
+    id: "student-teacher-change.submit"
+# handleSubmit shows a native Alert (title = t('requestSubmitted'), a single
+# hardcoded "OK" button whose onPress calls router.back()).
+- extendedWaitUntil:
+    visible:
+      text: "OK"
+    timeout: 10000
+- tapOn:
+    text: "OK"
+# Re-open the same screen explicitly rather than trusting where router.back()
+# landed (ambiguous after a deep-link entry with no prior in-app navigation
+# history to pop to). useTeacherChange's fetchRequests() runs on every mount
+# and unconditionally invalidates+refetches, so re-opening reliably reflects
+# the just-created PENDING request regardless of back()'s actual destination.
+- openLink: "quran-review://student/teacher-change"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "student-teacher-change.screen"
+    timeout: 10000
+# statusCard has no dedicated testID (out of this task's scope to add one -
+# see the brief's interface list), so this asserts the EXACT reason text
+# just typed (not a translated string, so this is not the kind of
+# text-selector this suite otherwise avoids) - positive proof the request
+# was created and is now PENDING.
+- assertVisible:
+    text: "Need a teacher whose schedule fits my new evening study hours."
+
+# Part 2: admin approves, assigning Ahmad as the new teacher.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/boot.yaml
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: admin@quran-review.com
+      PASSWORD: Admin1234!
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 20000
+- openLink: "quran-review://admin/change-requests"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "admin-approvals.screen"
+    timeout: 10000
+# Filtering to TEACHER_CHANGE isolates the list to exactly Omar's just-created
+# request (a fresh reseed has zero seeded TeacherChangeRequest rows), so it is
+# deterministically row.0 without needing a scroll search.
+- tapOn:
+    id: "admin-approvals.filter.TEACHER_CHANGE"
+- extendedWaitUntil:
+    visible:
+      id: "admin-approvals.row.0"
+    timeout: 10000
+- tapOn:
+    id: "admin-approvals.row.0"
+# Same animated-reveal settle wait already established for this screen's
+# expand/collapse transition (journeys/01-registration-approval.yaml).
+- waitForAnimationToEnd:
+    timeout: 1500
+- extendedWaitUntil:
+    visible:
+      id: "admin-approvals.assign-teacher"
+    timeout: 10000
+- tapOn:
+    id: "admin-approvals.assign-teacher"
+# openTeacherPicker() lazily fetches the teacher list on first open
+# (`if (teachers.length === 0) setTeachers(await fetchTeachers())`) - wait
+# for the async-loaded row rather than assuming the modal itself appearing
+# means the list is populated.
+- extendedWaitUntil:
+    visible:
+      id: "admin-approvals.teacher-modal.row.0"
+    timeout: 10000
+- tapOn:
+    id: "admin-approvals.teacher-modal.row.0"
+# Selecting a row closes the modal synchronously (`setShowTeacherModal(false)`)
+# then fires the APPROVE+newTeacherId decision. The modal's close button
+# disappearing confirms the modal itself closed; the row then disappearing
+# from the (still-filtered) TEACHER_CHANGE list confirms the PUT completed
+# and `finish()`'s refresh ran (the request is no longer PENDING, so it no
+# longer matches the filter) - same disappearance-as-success-signal pattern
+# used throughout this suite (journey 1's admin-approvals.approve, journey
+# 2's teacher-appointments.accept.0).
+- extendedWaitUntil:
+    notVisible:
+      id: "admin-approvals.teacher-modal.close"
+    timeout: 10000
+- extendedWaitUntil:
+    notVisible:
+      id: "admin-approvals.row.0"
+    timeout: 10000
+
+# Part 3: Ahmad (the new teacher) sees the reassignment.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/boot.yaml
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: teacher@quran-review.com
+      PASSWORD: Teacher1234!
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 20000
+- tapOn:
+    id: "teacher-home.nav-appointments"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-appointments.screen"
+    timeout: 10000
+# Pending list: Omar's REQUESTED-with-Sarah appointment, reassigned to
+# Ahmad's teacherId by the approval above. Ahmad had zero pending
+# appointments before this journey (his only pre-existing appointment, with
+# Ali, was already ACCEPTED) - deterministically row.0.
+- extendedWaitUntil:
+    visible:
+      id: "teacher-appointments.row.0"
+    timeout: 10000
+# Decided list: the brand-new ACCEPTED appointment auto-created for
+# Omar+Ahmad (requestedDate = today + 1 year, always later than every other
+# seeded/created appointment date in this suite) - deterministically the
+# newest entry, hence decided-row.0, regardless of when this flow runs.
+- extendedWaitUntil:
+    visible:
+      id: "teacher-appointments.decided-row.0"
+    timeout: 10000
