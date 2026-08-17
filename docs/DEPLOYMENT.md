@@ -23,8 +23,13 @@ EMAIL_USER=your-email@gmail.com
 EMAIL_PASS=your-app-password
 EMAIL_FROM=noreply@your-domain.com
 
-# FCM (optional, for push notifications)
-FCM_SERVICE_ACCOUNT_KEY=base64-encoded-service-account-json
+# Firebase Cloud Messaging (optional, for push notifications)
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-...@your-project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+
+# Public API URL (required in production for public verify/share images)
+PUBLIC_API_URL=https://api.your-domain.com
 
 # Workers
 ENABLE_WORKERS=true
@@ -35,17 +40,21 @@ ENABLE_WORKERS=true
 ```bash
 cd packages/server
 npx prisma migrate deploy
-npx prisma db seed
 ```
+
+Only run `npx prisma db seed` intentionally for a new/demo environment. Do not
+seed production after real users exist.
 
 ### 3. Docker Deployment
 
 ```bash
 cd packages/server
+npx prisma migrate deploy
 docker-compose -f docker-compose.yml up -d
 ```
 
 Services:
+
 - API: port 4000
 - PostgreSQL: port 5432
 - Redis: port 6379
@@ -83,6 +92,7 @@ server {
 ### 6. SSL/TLS
 
 Enable HSTS is already configured in Helmet. Ensure:
+
 - SSL certificate is valid
 - HTTPS redirects are in place
 - `CLIENT_URL` env var matches your frontend domain
@@ -107,6 +117,7 @@ tar -czf uploads_$(date +%Y%m%d).tar.gz uploads/
 ### 9. Monitoring
 
 Set up alerts for:
+
 - High error rates (> 1%)
 - Slow queries (> 500ms)
 - High memory usage (> 80%)
@@ -120,7 +131,8 @@ cd mobile
 eas build --platform ios     # or android
 ```
 
-Update `mobile/src/api/client.ts` with production API URL.
+Set `EXPO_PUBLIC_API_URL=https://api.your-domain.com/api/v1` for production
+builds. Do not hardcode the production API URL in `mobile/src/api/client.ts`.
 
 ### 11. Database migrations
 

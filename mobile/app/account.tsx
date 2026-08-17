@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Share, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Share, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -7,21 +7,68 @@ import { Ionicons } from '@expo/vector-icons';
 import { RADIUS, SPACING } from '@/constants/theme';
 import { useAuthStore } from '@/src/auth/store';
 import { accountApi } from '@/src/api/account';
+import { getBiometricStatus, isBiometricPreferenceEnabled } from '@/src/auth/biometric';
 import { AppCard, AppText, IconButton } from '@/src/components/design';
 import { useTheme } from '@/src/hooks/useTheme';
 
 export default function AccountPrivacyScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const isAr = i18n.language === 'ar';
   const { colors: COLORS } = useTheme();
   const logout = useAuthStore((s) => s.logout);
   const user = useAuthStore((s) => s.user);
+  const isBiometricEnabled = useAuthStore((s) => s.isBiometricEnabled);
+  const biometricLabel = useAuthStore((s) => s.biometricLabel);
+  const refreshBiometricStatus = useAuthStore((s) => s.refreshBiometricStatus);
+  const enableBiometricLogin = useAuthStore((s) => s.enableBiometricLogin);
+  const disableBiometricLogin = useAuthStore((s) => s.disableBiometricLogin);
   const isStudent = user?.role === 'student';
 
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [biometricBusy, setBiometricBusy] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricReason, setBiometricReason] = useState<string | null>(null);
+  const [biometricSettingOn, setBiometricSettingOn] = useState(false);
+
+  useEffect(() => {
+    const syncBiometricSetting = async () => {
+      const [status, preferenceEnabled] = await Promise.all([
+        getBiometricStatus(isAr),
+        isBiometricPreferenceEnabled(),
+        refreshBiometricStatus(isAr),
+      ]);
+      setBiometricAvailable(status.available);
+      setBiometricReason(status.reason ?? null);
+      setBiometricSettingOn(preferenceEnabled && status.available && status.hasStoredSession);
+    };
+    syncBiometricSetting().catch(() => {
+      setBiometricAvailable(false);
+      setBiometricSettingOn(false);
+      setBiometricReason(t('biometricUnavailable'));
+    });
+  }, [isAr, refreshBiometricStatus, t]);
+
+  const handleBiometricToggle = async (enabled: boolean) => {
+    setBiometricBusy(true);
+    try {
+      if (enabled) {
+        await enableBiometricLogin(isAr);
+        setBiometricSettingOn(true);
+        Alert.alert(t('success'), t('biometricEnabled'));
+      } else {
+        await disableBiometricLogin();
+        setBiometricSettingOn(false);
+        Alert.alert(t('success'), t('biometricDisabled'));
+      }
+    } catch (err: any) {
+      Alert.alert(t('error'), err?.message ?? t('biometricUnavailable'));
+    } finally {
+      setBiometricBusy(false);
+    }
+  };
 
   const handleExport = async () => {
     setExporting(true);
@@ -110,6 +157,39 @@ export default function AccountPrivacyScreen() {
         )}
 
         <AppCard colors={COLORS} style={styles.card}>
+          <View style={styles.switchRow}>
+            <View style={[styles.row, { flex: 1 }]}>
+              <Ionicons name="finger-print-outline" size={22} color={COLORS.primary} />
+              <View style={{ flex: 1, marginStart: SPACING.sm }}>
+                <AppText variant="titleMedium" color={COLORS.textPrimary}>
+                  {t('biometricLogin')}
+                </AppText>
+                <AppText variant="bodySmall" color={COLORS.textSecondary} style={{ marginTop: SPACING.xs }}>
+                  {t('biometricLoginDesc', { method: biometricLabel ?? t('biometrics') })}
+                </AppText>
+                <AppText
+                  variant="bodySmall"
+                  color={biometricAvailable ? COLORS.primary : COLORS.textMuted}
+                  style={{ marginTop: SPACING.xs }}
+                >
+                  {biometricAvailable
+                    ? t('biometricSettingStatus', { status: biometricSettingOn ? t('on') : t('off') })
+                    : biometricReason}
+                </AppText>
+              </View>
+            </View>
+            <Switch
+              value={isBiometricEnabled || biometricSettingOn}
+              onValueChange={handleBiometricToggle}
+              disabled={biometricBusy || !biometricAvailable}
+              trackColor={{ false: COLORS.borderSubtle, true: COLORS.primary }}
+              thumbColor="#FFFFFF"
+              testID="account.biometric-toggle"
+            />
+          </View>
+        </AppCard>
+
+        <AppCard colors={COLORS} style={styles.card}>
           <View style={styles.row}>
             <Ionicons name="download-outline" size={22} color={COLORS.primary} />
             <AppText variant="titleMedium" color={COLORS.textPrimary} style={{ marginStart: SPACING.sm }}>
@@ -179,5 +259,6 @@ const styles = StyleSheet.create({
   body: { padding: SPACING.lg, gap: SPACING.md },
   card: { gap: SPACING.xs },
   row: { flexDirection: 'row', alignItems: 'center' },
+  switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SPACING.md },
   action: { borderRadius: RADIUS.md, padding: SPACING.md, alignItems: 'center', marginTop: SPACING.sm },
 });

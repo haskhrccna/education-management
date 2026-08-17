@@ -7,7 +7,9 @@
   ],
   "scripts": {
     "prepare": "husky",
-    "test:server": "npm run test --workspace=@quran-review/server"
+    "test:server": "npm run test --workspace=@quran-review/server",
+    "build:web": "npm run build:web --workspace=mobile",
+    "check:hygiene": "node scripts/check-repo-hygiene.js"
   },
   "devDependencies": {
     "husky": "^9.1.7",

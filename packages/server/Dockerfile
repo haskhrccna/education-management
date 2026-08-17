@@ -40,5 +40,6 @@ COPY --from=builder /app/node_modules ./node_modules
 
 EXPOSE 4000
 
-# Run Prisma migrations then start the compiled server
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
+# Start the compiled server. Run `prisma migrate deploy` as a release step
+# before rolling out app containers so multi-instance deploys do not race.
+CMD ["node", "dist/server.js"]

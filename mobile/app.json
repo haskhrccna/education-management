@@ -8,6 +8,9 @@
     "userInterfaceStyle": "light",
     "newArchitecture": true,
     "scheme": "quran-review",
+    "experiments": {
+      "baseUrl": "/education-management"
+    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -19,6 +22,7 @@
       "buildNumber": "1",
       "infoPlist": {
         "UIBackgroundModes": ["audio"],
+        "NSFaceIDUsageDescription": "يستخدم التطبيق Face ID لتسجيل الدخول إلى حسابك بأمان.",
         "NSMicrophoneUsageDescription": "يحتاج التطبيق إلى الميكروفون لتسجيل التلاوة القرآنية.",
         "NSDocumentsFolderUsageDescription": "يحتاج التطبيق إلى الوصول للملفات لرفع تسجيلات التلاوة.",
         "LSApplicationQueriesSchemes": ["whatsapp"]
@@ -34,11 +38,18 @@
       "usesCleartextTraffic": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "output": "single"
     },
     "plugins": [
       "expo-localization",
       "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "يستخدم التطبيق Face ID لتسجيل الدخول إلى حسابك بأمان."
+        }
+      ],
       "expo-document-picker",
       [
         "expo-av",

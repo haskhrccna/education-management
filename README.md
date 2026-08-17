@@ -229,6 +229,32 @@ npm run test:server          # from repo root
 cd packages/server && npm test -- --watch   # watch mode
 ```
 
+### Deploy Web To GitHub Pages
+
+The Expo app can be exported as a static web build for GitHub Pages:
+
+```bash
+npm run build:web
+```
+
+The build output is `mobile/dist`. The export is configured for:
+
+```text
+https://haskhrccna.github.io/education-management/
+```
+
+GitHub Pages deployment is handled by `.github/workflows/pages.yml` on every push to `main`. In the GitHub repository, set **Settings → Pages → Source** to **GitHub Actions**.
+
+GitHub Pages must be available for the repository. If this repository is private, that may require making the repo public or using a GitHub plan that supports Pages for private repositories.
+
+For login/API flows on the deployed site, add a repository variable named `EXPO_PUBLIC_API_URL` with your deployed API URL, for example:
+
+```text
+https://api.example.com/api/v1
+```
+
+Without that variable, the static frontend still deploys, but authenticated screens need a reachable backend before they can load live data.
+
 ### Seeded Users
 
 | Email | Password | Role | Status |

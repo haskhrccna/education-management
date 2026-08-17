@@ -363,7 +363,7 @@ describe('parents', () => {
         .send({ action: 'APPROVE' });
 
       const today = new Date();
-      today.setUTCHours(1, 0, 0, 0);
+      today.setHours(1, 0, 0, 0);
       await prisma.appointment.create({
         data: {
           studentId: student.id,
