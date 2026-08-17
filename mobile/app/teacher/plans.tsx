@@ -226,7 +226,7 @@ export default function TeacherPlansScreen() {
       </View>
 
       {showForm && (
-        <ScrollView style={[styles.form, { backgroundColor: COLORS.surface }]}>
+        <ScrollView style={[styles.form, { backgroundColor: COLORS.surface }]} keyboardShouldPersistTaps="handled">
           <Text style={[styles.formTitle, { color: COLORS.text }]}>{isAr ? 'خطة جديدة' : 'New plan'}</Text>
 
           <Text style={[styles.label, { color: COLORS.textSecondary }]}>{t('studentLabel')}</Text>

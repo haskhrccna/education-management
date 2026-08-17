@@ -1,0 +1,130 @@
+appId: com.quranreview.app
+tags: [journey]
+---
+# Journey 13: teacher issues a SURAH-scope ijazah to a student -> that same
+# student sees the new ijazah in their own ijazahs screen.
+#
+# Student choice: Ali (`ali@`). On a fresh E2E seed the teacher `teacher@`
+# (Ahmad) has exactly one ACCEPTED appointment — with Ali — and no ijazahs are
+# seeded for anyone (seed-e2e.ts creates none), so:
+#   * teacher/ijazahs.tsx builds its student picker from the teacher's ACCEPTED
+#     appointments (same fetchMeta pattern as plans), making Ali the ONLY chip
+#     -> `teacher-ijazahs.student.0` is deterministically Ali. Unlike plans,
+#     the student is NOT pre-selected here (selectedStudentId defaults ''), so
+#     the tap on student.0 is REQUIRED. The surah picker IS pre-selected
+#     (surahs[0]) but this flow taps surah.0 explicitly.
+#   * scope options render in the fixed order ['SURAH','JUZ','FULL_QURAN'], so
+#     `teacher-ijazahs.scope.0` is always SURAH (also the default). SURAH scope
+#     needs only student + surah (chain-ref is optional and skipped), so no text
+#     input is focused before submit.
+#
+# PRECONDITION (seed-e2e.ts): a SURAH ijazah is a real memorization gate —
+# ijazah.service.ts throws 409 "not yet fully memorized" unless the student's
+# MemorizationProgress for the chosen surah is COMPLETE. seed-e2e.ts stamps Ali
+# COMPLETE on Al-Fatiha (surah number 1). Because getSurahs orders by number
+# asc, `teacher-ijazahs.surah.0` IS Al-Fatiha — the exact surah Ali has
+# memorized — so tapping surah.0 (not a later chip) is REQUIRED for the issue
+# to succeed.
+#   * because zero ijazahs exist before this run, `teacher-ijazahs.row.0` after
+#     submit proves THIS issue, and `student-ijazahs.row.0` for Ali proves it
+#     reached the student (not a pre-seeded artifact).
+#
+# *** MUTATION / re-runnability: creates a real Ijazah row; NOT idempotent
+# (a second run adds another). Expects a fresh reseed and, within a suite
+# session, must NOT run after Journey 7 (which adds Omar as a second Ahmad
+# student, shifting the student-picker index assumptions).
+#
+# Every `launchApp: clearState: true` is preceded by `clearKeychain` (iOS
+# Keychain survives clearState — see BUGLOG "Task 8 addendum 2").
+
+# Part 1: teacher (Ahmad) issues a SURAH ijazah to Ali.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/boot.yaml
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: teacher@quran-review.com
+      PASSWORD: Teacher1234!
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 20000
+- openLink: "quran-review://teacher/ijazahs"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "teacher-ijazahs.screen"
+    timeout: 10000
+
+# Open the create form and fill it out (SURAH scope: student + surah only).
+- tapOn:
+    id: "teacher-ijazahs.toggle-form"
+# student.0 loads async (fetchMeta) — wait before tapping.
+- extendedWaitUntil:
+    visible:
+      id: "teacher-ijazahs.student.0"
+    timeout: 10000
+- tapOn:
+    id: "teacher-ijazahs.student.0"
+- tapOn:
+    id: "teacher-ijazahs.scope.0"
+- scrollUntilVisible:
+    element:
+      id: "teacher-ijazahs.surah.0"
+    direction: DOWN
+- tapOn:
+    id: "teacher-ijazahs.surah.0"
+- scrollUntilVisible:
+    element:
+      id: "teacher-ijazahs.submit"
+    direction: DOWN
+- tapOn:
+    id: "teacher-ijazahs.submit"
+# handleIssue shows a native Alert(t('success'), 'تم إصدار الإجازة') with a
+# single default "OK" button, then closes the form.
+- extendedWaitUntil:
+    visible:
+      text: "تم إصدار الإجازة"
+    timeout: 10000
+- tapOn:
+    text: "OK"
+# The form collapses (setShowForm(false)) and the new ijazah appears in the list.
+- extendedWaitUntil:
+    visible:
+      id: "teacher-ijazahs.row.0"
+    timeout: 10000
+
+# Part 2: Ali logs in and sees the new ijazah.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/boot.yaml
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+- openLink: "quran-review://student/ijazahs"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "student-ijazahs.screen"
+    timeout: 10000
+# Zero ijazahs were seeded for Ali, so this row is the ijazah Ahmad just
+# issued — positive proof the issue reached the student's own ijazahs feed.
+- extendedWaitUntil:
+    visible:
+      id: "student-ijazahs.row.0"
+    timeout: 10000

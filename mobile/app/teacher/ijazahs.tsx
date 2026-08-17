@@ -178,7 +178,7 @@ export default function TeacherIjazahsScreen() {
       </View>
 
       {showForm && (
-        <ScrollView style={[styles.form, { backgroundColor: COLORS.surface }]}>
+        <ScrollView style={[styles.form, { backgroundColor: COLORS.surface }]} keyboardShouldPersistTaps="handled">
           <Text style={[styles.label, { color: COLORS.textSecondary }]}>{t('studentLabel')}</Text>
           {loadingMeta ? (
             <ActivityIndicator color={COLORS.primary} />

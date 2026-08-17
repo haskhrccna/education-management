@@ -1,0 +1,144 @@
+appId: com.quranreview.app
+tags: [journey]
+---
+# Journey 12: teacher creates a curriculum plan for a student -> that same
+# student sees the new plan in their own plans screen.
+#
+# Student choice: Ali (`ali@`). On a fresh E2E seed the teacher `teacher@`
+# (Ahmad) has exactly one ACCEPTED appointment — with Ali — and no curriculum
+# plans are seeded for anyone (seed-e2e.ts creates none), so:
+#   * teacher/plans.tsx builds its student picker from the teacher's ACCEPTED
+#     appointments (fetchMeta: filter status==='ACCEPTED' && student, dedupe),
+#     making Ali the ONLY chip -> `teacher-plans.student.0` is deterministically
+#     Ali. fetchMeta also pre-selects unique[0] (Ali) and surahs[0], but this
+#     flow taps both pickers explicitly anyway.
+#   * because zero plans exist before this run, `teacher-plans.row.0` appearing
+#     after submit proves THIS create, and `student-plans.row.0` appearing for
+#     Ali proves the plan reached the student (not a pre-seeded artifact).
+#
+# *** MUTATION / re-runnability: this journey creates a real CurriculumPlan row
+# and is NOT idempotent in a strict sense (a second run adds a second plan, so
+# `row.0` still holds but is no longer "the only plan"). It expects a fresh
+# reseed. It also depends on Ali being Ahmad's only ACCEPTED student, so within
+# a single suite session it must NOT run after Journey 7 (which reassigns Omar
+# to Ahmad, adding a second student chip and shifting index assumptions).
+#
+# The teacher-plans create form's ScrollView sets keyboardShouldPersistTaps=
+# "handled" (like grade-form and teacher-change), so the add-item and submit
+# taps fire on the first try even with the date/name keyboard still open.
+# scrollUntilVisible is still used to bring each long-form control into view.
+#
+# Every `launchApp: clearState: true` is preceded by `clearKeychain` (iOS
+# Keychain survives clearState and would otherwise leak the prior role's
+# session into the next login — see BUGLOG "Task 8 addendum 2").
+
+# Part 1: teacher (Ahmad) creates a plan for Ali.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/boot.yaml
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: teacher@quran-review.com
+      PASSWORD: Teacher1234!
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 20000
+- openLink: "quran-review://teacher/plans"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "teacher-plans.screen"
+    timeout: 10000
+
+# Open the create form and fill it out.
+- tapOn:
+    id: "teacher-plans.toggle-form"
+# student.0 loads async (fetchMeta) — wait for it rather than tapping blind.
+- extendedWaitUntil:
+    visible:
+      id: "teacher-plans.student.0"
+    timeout: 10000
+- tapOn:
+    id: "teacher-plans.student.0"
+- scrollUntilVisible:
+    element:
+      id: "teacher-plans.name-input"
+    direction: DOWN
+- tapOn:
+    id: "teacher-plans.name-input"
+- inputText: "Juz Amma in 12 weeks"
+# scrollUntilVisible's swipe dismisses the keyboard before the next tap.
+- scrollUntilVisible:
+    element:
+      id: "teacher-plans.surah.0"
+    direction: DOWN
+- tapOn:
+    id: "teacher-plans.surah.0"
+- scrollUntilVisible:
+    element:
+      id: "teacher-plans.target-date-input"
+    direction: DOWN
+- tapOn:
+    id: "teacher-plans.target-date-input"
+- inputText: "2027-01-15"
+- scrollUntilVisible:
+    element:
+      id: "teacher-plans.add-item"
+    direction: DOWN
+- tapOn:
+    id: "teacher-plans.add-item"
+- scrollUntilVisible:
+    element:
+      id: "teacher-plans.submit"
+    direction: DOWN
+- tapOn:
+    id: "teacher-plans.submit"
+# handleSubmit shows a native Alert(t('success'), 'تم إنشاء الخطة') with a
+# single default "OK" button, then closes the form.
+- extendedWaitUntil:
+    visible:
+      text: "تم إنشاء الخطة"
+    timeout: 10000
+- tapOn:
+    text: "OK"
+# The form collapses (setShowForm(false)) and the new plan appears in the list.
+- extendedWaitUntil:
+    visible:
+      id: "teacher-plans.row.0"
+    timeout: 10000
+
+# Part 2: Ali logs in and sees the new plan.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/boot.yaml
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+- openLink: "quran-review://student/plans"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "student-plans.screen"
+    timeout: 10000
+# Zero plans were seeded for Ali, so this row is the plan Ahmad just created —
+# positive proof the create reached the student's own plans feed.
+- extendedWaitUntil:
+    visible:
+      id: "student-plans.row.0"
+    timeout: 10000
