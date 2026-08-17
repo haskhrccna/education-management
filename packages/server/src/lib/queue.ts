@@ -114,14 +114,25 @@ if (process.env.ENABLE_WORKERS === 'true') {
       new Worker(
         'broadcast',
         async (job) => {
-          const { sendToUser } = await import('../services/socket.service');
+          const { notifyUser } = await import('../services/notification.service');
           const { prisma } = await import('../prisma/client');
           const { message, targetRole } = job.data;
           const where = targetRole ? { role: targetRole.toUpperCase() as any } : {};
           const users = await prisma.user.findMany({ where, select: { id: true } });
-          for (const user of users) {
-            sendToUser(user.id, 'broadcast', { message, sentAt: new Date().toISOString() });
-          }
+          const sentAt = new Date().toISOString();
+          // Persist a durable notification per recipient (notifyUser also emits
+          // the socket event + best-effort push) so broadcasts land in the
+          // /notifications feed, not just as an ephemeral socket event.
+          await Promise.all(
+            users.map((user) =>
+              notifyUser({
+                userId: user.id,
+                event: 'broadcast',
+                data: { message, sentAt },
+                push: { title: 'Broadcast', body: message },
+              })
+            )
+          );
           logger.info({ recipients: users.length }, 'Broadcast job completed');
         },
         { connection: workerConnection }

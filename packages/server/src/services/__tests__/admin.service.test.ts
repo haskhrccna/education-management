@@ -185,5 +185,21 @@ describe('admin.service', () => {
       await broadcastMessage('Hello students', 'student');
       expect(mockedPrisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { role: 'STUDENT' } }));
     });
+
+    it('persists a durable notification row for every recipient (not just a socket event)', async () => {
+      mockedPrisma.user.findMany.mockResolvedValue([{ id: 'user-1' }, { id: 'user-2' }] as any);
+
+      await broadcastMessage('Hello everyone');
+
+      // notifyUser persists one notification.create per recipient — without this
+      // a broadcast never reached the recipient's /notifications feed (the bug
+      // Plan 2 Journey 9 surfaced).
+      expect(mockedPrisma.notification.create).toHaveBeenCalledTimes(2);
+      expect(mockedPrisma.notification.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ userId: 'user-1', type: 'broadcast', body: 'Hello everyone' }),
+        })
+      );
+    });
   });
 });

@@ -3,7 +3,7 @@ import { hashPassword } from './auth.service';
 import { AppError } from '../middleware/error.middleware';
 import { addBroadcastJob } from '../lib/queue';
 import { sendAccountApprovedEmail } from './email.service';
-import { sendToUser } from './socket.service';
+import { notifyUser } from './notification.service';
 
 const MAX_BULK_IDS = 1000;
 
@@ -165,13 +165,23 @@ export const broadcastMessage = async (message: string, targetRole?: string) => 
   const where = targetRole ? { role: targetRole.toUpperCase() as 'STUDENT' | 'TEACHER' | 'ADMIN' } : {};
   const users = await prisma.user.findMany({ where, select: { id: true } });
 
-  let sentCount = 0;
-  for (const user of users) {
-    sendToUser(user.id, 'broadcast', { message, sentAt: new Date().toISOString() });
-    sentCount++;
-  }
+  // Persist a durable Notification row for every recipient (via notifyUser,
+  // which also emits the real-time socket event and a best-effort push). The
+  // previous bare sendToUser() only fired a socket event, so a broadcast never
+  // appeared in the recipient's /notifications feed (Plan 2 Journey 9 finding).
+  const sentAt = new Date().toISOString();
+  await Promise.all(
+    users.map((user) =>
+      notifyUser({
+        userId: user.id,
+        event: 'broadcast',
+        data: { message, sentAt },
+        push: { title: 'Broadcast', body: message },
+      })
+    )
+  );
 
-  return { sent: true, recipients: sentCount, message };
+  return { sent: true, recipients: users.length, message };
 };
 
 export const bulkApproveStudents = async (studentIds: string[]) => {
