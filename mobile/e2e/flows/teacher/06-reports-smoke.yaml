@@ -1,0 +1,86 @@
+appId: com.quranreview.app
+tags: [teacher, smoke]
+---
+# Teacher smoke B, screen 2/5: teacher/reports.tsx.
+#
+# Seed-data note: neither seed script creates any Report rows for Ahmad's
+# students, so the report list is always empty (teacher-reports.empty)
+# against a freshly reset+reseeded DB - teacher-reports.row.N /
+# .download.N never render. Presence verified by check-testids.js only.
+#
+# The create form IS opened and every picker/field is exercised, but
+# submit is deliberately NOT tapped - per the brief, submitting any of the
+# 5 screens' create forms is out of this smoke flow's scope.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: teacher@quran-review.com
+      PASSWORD: Teacher1234!
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 20000
+
+- openLink: "quran-review://teacher/reports"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "teacher-reports.screen"
+    timeout: 10000
+
+- extendedWaitUntil:
+    visible:
+      id: "teacher-reports.empty"
+    timeout: 10000
+
+- tapOn:
+    id: "teacher-reports.toggle-form"
+
+# Student chip: Ali is teacher@'s only ACCEPTED student in the seed data.
+- scrollUntilVisible:
+    element:
+      id: "teacher-reports.student.0"
+    direction: DOWN
+- tapOn:
+    id: "teacher-reports.student.0"
+
+- scrollUntilVisible:
+    element:
+      id: "teacher-reports.period-input"
+    direction: DOWN
+- tapOn:
+    id: "teacher-reports.period-input"
+- inputText: "Term 1"
+
+- scrollUntilVisible:
+    element:
+      id: "teacher-reports.notes-input"
+    direction: DOWN
+- tapOn:
+    id: "teacher-reports.notes-input"
+- inputText: "Smoke test - not submitted"
+
+# Scroll down to submit - the scroll swipe dismisses the keyboard (Maestro's
+# hideKeyboard can't perform a dismiss on this input's keypad).
+# Assert submit is visible AND enabled - do NOT tap it.
+- scrollUntilVisible:
+    element:
+      id: "teacher-reports.submit"
+    direction: DOWN
+- assertVisible:
+    id: "teacher-reports.submit"
+    enabled: true
+
+# Header (back / toggle-form) sits outside the ScrollView, so it stays
+# on-screen regardless of scroll position - no need to scroll up first.
+- tapOn:
+    id: "teacher-reports.back"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000

@@ -48,11 +48,11 @@ export default function AdminSettingsScreen() {
   const dynamicStyles = createStyles(COLORS, fontScale, spacingScale);
 
   return (
-    <SafeAreaView style={dynamicStyles.container} edges={['top']}>
+    <SafeAreaView style={dynamicStyles.container} edges={['top']} testID="admin-settings.screen">
       {/* Header */}
       <View style={dynamicStyles.header}>
         <View style={dynamicStyles.headerTop}>
-          <TouchableOpacity onPress={() => router.back()} style={dynamicStyles.backBtn}>
+          <TouchableOpacity onPress={() => router.back()} style={dynamicStyles.backBtn} testID="admin-settings.back">
             <Ionicons name="arrow-back-outline" size={20} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={[dynamicStyles.headerTitle, { fontSize: 18 * fontScale }]}>
@@ -87,6 +87,7 @@ export default function AdminSettingsScreen() {
                   settings.theme === theme.key && { borderColor: COLORS.primary, borderWidth: 2 },
                 ]}
                 onPress={() => settings.setTheme(theme.key)}
+                testID={`admin-settings.theme.${theme.key}`}
               >
                 <View style={[dynamicStyles.themeColor, { backgroundColor: getThemeColor(theme.key) }]} />
                 <Text
@@ -124,6 +125,7 @@ export default function AdminSettingsScreen() {
                   settings.fontSize === fs.key && { borderColor: COLORS.primary, borderWidth: 2 },
                 ]}
                 onPress={() => settings.setFontSize(fs.key)}
+                testID={`admin-settings.font-size.${fs.key}`}
               >
                 <Text
                   style={[
@@ -167,6 +169,7 @@ export default function AdminSettingsScreen() {
               onValueChange={(v) => settings.setDarkMode(v)}
               trackColor={{ false: '#e7e5e4', true: COLORS.primary }}
               thumbColor={settings.darkMode ? '#fff' : '#fff'}
+              testID="admin-settings.dark-mode"
             />
           </View>
 
@@ -184,6 +187,7 @@ export default function AdminSettingsScreen() {
               onValueChange={(v) => settings.setNotifications(v)}
               trackColor={{ false: '#e7e5e4', true: COLORS.primary }}
               thumbColor={settings.notifications ? '#fff' : '#fff'}
+              testID="admin-settings.notifications"
             />
           </View>
 
@@ -201,6 +205,7 @@ export default function AdminSettingsScreen() {
               onValueChange={(v) => settings.setCompactView(v)}
               trackColor={{ false: '#e7e5e4', true: COLORS.primary }}
               thumbColor={settings.compactView ? '#fff' : '#fff'}
+              testID="admin-settings.compact-view"
             />
           </View>
         </Animated.View>
@@ -213,10 +218,11 @@ export default function AdminSettingsScreen() {
               {i18n.language === 'ar' ? 'اللغة' : 'Language'}
             </Text>
           </View>
-          <View style={dynamicStyles.langRow}>
+          <View style={dynamicStyles.langRow} testID="admin-settings.language">
             <TouchableOpacity
               style={[dynamicStyles.langBtn, i18n.language === 'ar' && { borderColor: COLORS.primary, borderWidth: 2 }]}
               onPress={() => i18n.changeLanguage('ar')}
+              testID="admin-settings.language.ar"
             >
               <Text
                 style={[dynamicStyles.langText, i18n.language === 'ar' && { color: COLORS.primary, fontWeight: '700' }]}
@@ -227,6 +233,7 @@ export default function AdminSettingsScreen() {
             <TouchableOpacity
               style={[dynamicStyles.langBtn, i18n.language === 'en' && { borderColor: COLORS.primary, borderWidth: 2 }]}
               onPress={() => i18n.changeLanguage('en')}
+              testID="admin-settings.language.en"
             >
               <Text
                 style={[dynamicStyles.langText, i18n.language === 'en' && { color: COLORS.primary, fontWeight: '700' }]}
@@ -242,6 +249,7 @@ export default function AdminSettingsScreen() {
           <TouchableOpacity
             style={[dynamicStyles.saveBtn, { backgroundColor: COLORS.primary }]}
             onPress={() => router.back()}
+            testID="admin-settings.save"
           >
             <Text style={dynamicStyles.saveBtnText}>{i18n.language === 'ar' ? 'حفظ الإعدادات' : 'Save Settings'}</Text>
           </TouchableOpacity>

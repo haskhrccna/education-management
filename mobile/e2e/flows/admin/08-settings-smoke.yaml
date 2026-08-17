@@ -1,0 +1,99 @@
+appId: com.quranreview.app
+tags: [admin, smoke]
+---
+# Admin smoke B, screen 4/6: admin/settings.tsx.
+#
+# Reached via deep link. This screen is shared with the teacher role
+# (conditional BottomNav at the bottom of the component); here it renders
+# <BottomNav role="admin" active="settings"> since the logged-in user is
+# admin@quran-review.com.
+#
+# All settings (theme/font-size/dark-mode/notifications/compact-view) persist
+# to on-device MMKV storage only (src/settings/store.ts) — not a server
+# mutation — and clearState: true at the top of every flow in this suite
+# wipes it before the next run, so cycling these controls is safe.
+#
+# Discipline (per brief): dark-mode is toggled on then off with its switch
+# state asserted each way; the language control is asserted present but
+# NEITHER of its two buttons (.ar/.en) is tapped — switching triggers an RTL
+# layout flip + relaunch, reserved for Plan 3's Journey 14.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: admin@quran-review.com
+      PASSWORD: Admin1234!
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 20000
+
+- openLink: "quran-review://admin/settings"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "admin-settings.screen"
+    timeout: 10000
+
+# --- theme swatches: pick blue, then return to the default (green) ---
+- tapOn:
+    id: "admin-settings.theme.blue"
+- tapOn:
+    id: "admin-settings.theme.green"
+
+# --- font size: pick large, then return to the default (medium) ---
+- tapOn:
+    id: "admin-settings.font-size.large"
+- tapOn:
+    id: "admin-settings.font-size.medium"
+
+# --- dark mode: assert default (off), toggle on, assert on, toggle off,
+# assert off again ---
+- assertVisible:
+    id: "admin-settings.dark-mode"
+    checked: false
+- tapOn:
+    id: "admin-settings.dark-mode"
+- assertVisible:
+    id: "admin-settings.dark-mode"
+    checked: true
+- tapOn:
+    id: "admin-settings.dark-mode"
+- assertVisible:
+    id: "admin-settings.dark-mode"
+    checked: false
+
+# --- notifications / compact-view toggles: on then off ---
+- tapOn:
+    id: "admin-settings.notifications"
+- tapOn:
+    id: "admin-settings.notifications"
+- tapOn:
+    id: "admin-settings.compact-view"
+- tapOn:
+    id: "admin-settings.compact-view"
+
+# --- language control: present, NOT tapped (see Discipline above) ---
+- scrollUntilVisible:
+    element:
+      id: "admin-settings.language"
+    direction: DOWN
+- assertVisible:
+    id: "admin-settings.language"
+
+- tapOn:
+    id: "admin-settings.back"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000
+
+# admin-settings.save merely calls router.back() (no distinct save call —
+# every setting above already applies instantly via the Zustand store), so
+# it is presence-only here; the header back button above is used for the
+# produces-list <screen>.back return instead. Presence verified by
+# check-testids.js only.

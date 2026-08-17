@@ -196,6 +196,7 @@ export default function ApprovalsScreen() {
           accessibilityRole="button"
           accessibilityLabel={t('back')}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          testID="admin-approvals.back"
         >
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={COLORS.textPrimary} />
         </TouchableOpacity>
@@ -228,7 +229,12 @@ export default function ApprovalsScreen() {
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refreshAll} tintColor={COLORS.primary} />}
       >
         {combinedError && !isLoading ? (
-          <TouchableOpacity onPress={refreshAll} accessibilityRole="button" style={s.errorBanner}>
+          <TouchableOpacity
+            onPress={refreshAll}
+            accessibilityRole="button"
+            style={s.errorBanner}
+            testID="admin-approvals.retry"
+          >
             <AppText variant="bodyMedium" style={{ color: COLORS.error, textAlign: 'center' }}>
               {combinedError}
             </AppText>
@@ -300,6 +306,7 @@ export default function ApprovalsScreen() {
                             placeholder={t('approvalsNotePlaceholder')}
                             placeholderTextColor={COLORS.textSecondary}
                             multiline
+                            testID="admin-approvals.note"
                           />
                         </>
                       ) : null}
@@ -313,6 +320,7 @@ export default function ApprovalsScreen() {
                             disabled={deciding}
                             accessibilityRole="button"
                             onPress={() => openTeacherPicker(row.id)}
+                            testID="admin-approvals.assign-teacher"
                           >
                             <AppText variant="labelLarge" style={{ color: COLORS.textOnPrimary }}>
                               {t('approvalsAssignTeacher')}
@@ -323,6 +331,7 @@ export default function ApprovalsScreen() {
                             disabled={deciding}
                             accessibilityRole="button"
                             onPress={() => decideTeacherChange(row.id, 'DENY')}
+                            testID="admin-approvals.deny"
                           >
                             <AppText variant="labelLarge" style={{ color: COLORS.textOnPrimary }}>
                               {t('approvalsDeny')}
@@ -352,6 +361,7 @@ export default function ApprovalsScreen() {
                               disabled={deciding}
                               accessibilityRole="button"
                               onPress={() => decideParentLink(row.id, 'DENY')}
+                              testID="admin-approvals.deny"
                             >
                               <AppText variant="labelLarge" style={{ color: COLORS.textOnPrimary }}>
                                 {t('approvalsDeny')}
@@ -386,12 +396,13 @@ export default function ApprovalsScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={t('close')}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                testID="admin-approvals.teacher-modal.close"
               >
                 <Ionicons name="close" size={22} color={COLORS.textSecondary} />
               </TouchableOpacity>
             </View>
             <ScrollView>
-              {teachers.map((tc) => (
+              {teachers.map((tc, index) => (
                 <TouchableOpacity
                   key={tc.id}
                   style={s.teacherRow}
@@ -400,6 +411,7 @@ export default function ApprovalsScreen() {
                     setShowTeacherModal(false);
                     if (targetRequestId) decideTeacherChange(targetRequestId, 'APPROVE', tc.id);
                   }}
+                  testID={`admin-approvals.teacher-modal.row.${index}`}
                 >
                   <Avatar colors={COLORS} label={`${tc.firstName} ${tc.lastName}`} size={38} />
                   <AppText variant="bodyMedium" style={{ color: COLORS.textPrimary }}>

@@ -88,13 +88,14 @@ export default function AuditLogsScreen() {
     row.user ? `${row.user.firstName} ${row.user.lastName}`.trim() : t('auditLogUnknownActor');
 
   return (
-    <SafeAreaView style={s.screen} edges={['top']}>
+    <SafeAreaView style={s.screen} edges={['top']} testID="admin-audit-logs.screen">
       <View style={s.appBar}>
         <TouchableOpacity
           onPress={() => router.back()}
           accessibilityRole="button"
           accessibilityLabel={t('back')}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          testID="admin-audit-logs.back"
         >
           <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={COLORS.textPrimary} />
         </TouchableOpacity>
@@ -120,6 +121,7 @@ export default function AuditLogsScreen() {
               accessibilityRole="button"
               accessibilityLabel={t('auditLogClearFilters')}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              testID="admin-audit-logs.actor-clear"
             >
               <Ionicons name="close-circle" size={22} color={COLORS.textSecondary} />
             </TouchableOpacity>
@@ -133,15 +135,17 @@ export default function AuditLogsScreen() {
               placeholder={t('auditLogFilterActor')}
               placeholderTextColor={COLORS.textSecondary}
               autoCapitalize="none"
+              testID="admin-audit-logs.actor-input"
             />
             {actorMatches.length > 0 ? (
               <View style={s.actorDropdown}>
-                {actorMatches.map((a) => (
+                {actorMatches.map((a, index) => (
                   <TouchableOpacity
                     key={a.id}
                     onPress={() => pickActor(a)}
                     accessibilityRole="button"
                     style={s.actorRow}
+                    testID={`admin-audit-logs.actor-option.${index}`}
                   >
                     <Avatar colors={COLORS} label={`${a.firstName} ${a.lastName}`} size={28} />
                     <View style={{ flex: 1 }}>
@@ -165,6 +169,7 @@ export default function AuditLogsScreen() {
           placeholder={t('auditLogFilterAction')}
           placeholderTextColor={COLORS.textSecondary}
           autoCapitalize="characters"
+          testID="admin-audit-logs.filter-action"
         />
         <TextInput
           style={s.input}
@@ -173,6 +178,7 @@ export default function AuditLogsScreen() {
           placeholder={t('auditLogFilterEntity')}
           placeholderTextColor={COLORS.textSecondary}
           autoCapitalize="characters"
+          testID="admin-audit-logs.filter-entity"
         />
         <View style={s.dateRow}>
           <TextInput
@@ -182,6 +188,7 @@ export default function AuditLogsScreen() {
             placeholder={`${t('auditLogFilterFrom')} (YYYY-MM-DD)`}
             placeholderTextColor={COLORS.textSecondary}
             autoCapitalize="none"
+            testID="admin-audit-logs.filter-date-from"
           />
           <TextInput
             style={[s.input, s.dateInput]}
@@ -190,6 +197,7 @@ export default function AuditLogsScreen() {
             placeholder={`${t('auditLogFilterTo')} (YYYY-MM-DD)`}
             placeholderTextColor={COLORS.textSecondary}
             autoCapitalize="none"
+            testID="admin-audit-logs.filter-date-to"
           />
         </View>
         {hasFilters ? (
@@ -202,6 +210,7 @@ export default function AuditLogsScreen() {
             }}
             accessibilityRole="button"
             style={s.clearBtn}
+            testID="admin-audit-logs.clear-filters"
           >
             <AppText variant="labelLarge" style={{ color: COLORS.primary }}>
               {t('auditLogClearFilters')}
@@ -215,7 +224,12 @@ export default function AuditLogsScreen() {
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refresh} tintColor={COLORS.primary} />}
       >
         {error ? (
-          <TouchableOpacity onPress={refresh} style={s.errorBanner} accessibilityRole="button">
+          <TouchableOpacity
+            onPress={refresh}
+            style={s.errorBanner}
+            accessibilityRole="button"
+            testID="admin-audit-logs.retry"
+          >
             <AppText variant="bodyMedium" style={{ color: COLORS.error, textAlign: 'center' }}>
               {t('auditLogLoadFailed')}
             </AppText>
@@ -229,9 +243,11 @@ export default function AuditLogsScreen() {
             <SkeletonCard lines={3} />
           </>
         ) : rows.length === 0 ? (
-          <EmptyState colors={COLORS} icon="document-text-outline" title={t('auditLogEmpty')} />
+          <View testID="admin-audit-logs.empty">
+            <EmptyState colors={COLORS} icon="document-text-outline" title={t('auditLogEmpty')} />
+          </View>
         ) : (
-          rows.map((row) => {
+          rows.map((row, index) => {
             const expanded = expandedId === row.id;
             return (
               <TouchableOpacity
@@ -239,6 +255,7 @@ export default function AuditLogsScreen() {
                 activeOpacity={0.85}
                 onPress={() => setExpandedId(expanded ? null : row.id)}
                 accessibilityRole="button"
+                testID={`admin-audit-logs.row.${index}`}
               >
                 <AppCard colors={COLORS} style={s.row}>
                   <View style={s.rowTop}>
@@ -291,6 +308,7 @@ export default function AuditLogsScreen() {
               style={[s.pagerBtn, page <= 1 && s.pagerBtnDisabled]}
               accessibilityRole="button"
               accessibilityLabel={t('auditLogPrev')}
+              testID="admin-audit-logs.prev"
             >
               <AppText variant="labelLarge" style={{ color: COLORS.textOnPrimary }}>
                 {t('auditLogPrev')}
@@ -305,6 +323,7 @@ export default function AuditLogsScreen() {
               style={[s.pagerBtn, page >= totalPages && s.pagerBtnDisabled]}
               accessibilityRole="button"
               accessibilityLabel={t('auditLogNext')}
+              testID="admin-audit-logs.next"
             >
               <AppText variant="labelLarge" style={{ color: COLORS.textOnPrimary }}>
                 {t('auditLogNext')}

@@ -1,0 +1,71 @@
+appId: com.quranreview.app
+tags: [teacher, smoke]
+---
+# Teacher smoke A, screen 2/4: teacher/appointments.tsx.
+#
+# Seed-data note: teacher@ (Ahmad) has exactly one appointment in the base
+# seed (packages/server/src/prisma/seed.ts) - Ali's ACCEPTED session - and
+# ZERO pending (PENDING/REQUESTED) appointments. seed-e2e.ts (the seed
+# `run.sh` actually uses) does not add any more appointments for Ahmad. So
+# against a freshly-reset+reseeded DB, the "Pending" section is empty and no
+# accept/decline control renders at all - there is nothing to assert visible
+# there. `teacher-appointments.accept.${index}` / `.decline.${index}` exist on
+# `AppointmentCard` (verified by check-testids.js and exercised live by
+# `journeys/02-appointment-booking.yaml`, which creates a real pending booking
+# first) but are NOT exercised by this smoke flow for that reason. This flow
+# instead asserts the ACCEPTED/decided row that IS guaranteed to render.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: teacher@quran-review.com
+      PASSWORD: Teacher1234!
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 20000
+
+- tapOn:
+    id: "bottom-nav.teacher-appointments"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-appointments.screen"
+    timeout: 10000
+
+# At least one row from Ali's ACCEPTED appointment (the "History" section's
+# first, and only, row against the base seed).
+- extendedWaitUntil:
+    visible:
+      id: "teacher-appointments.decided-row.0"
+    timeout: 10000
+
+# No status-filter chips exist on this screen (confirmed by reading the full
+# source: teacher/appointments.tsx only splits into a "Pending"/"History"
+# section by status, no chip-based filter control) - nothing to exercise here.
+
+# Retry button only renders on a fetch error, not hit by this happy-path flow;
+# presence verified by check-testids.js only.
+
+- tapOn:
+    id: "bottom-nav.teacher-home"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000
+
+# Round-trip via the header back control too (teacher-appointments.back),
+# reached again through the same bottom-nav tab.
+- tapOn:
+    id: "bottom-nav.teacher-appointments"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-appointments.screen"
+    timeout: 10000
+- tapOn:
+    id: "teacher-appointments.back"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000

@@ -106,7 +106,7 @@ export default function GradeFormScreen() {
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         {/* Header */}
         <View style={[styles.header, { backgroundColor: COLORS.primary }]} testID="grade-form.header">
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.back()} testID="grade-form.back">
             <Ionicons
               name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
               size={22}
@@ -160,12 +160,13 @@ export default function GradeFormScreen() {
                   selectedSurahId === null && { backgroundColor: COLORS.primary },
                 ]}
                 onPress={() => setSelectedSurahId(null)}
+                testID="grade-form.surah-select.overall"
               >
                 <Text style={[styles.chipText, { color: selectedSurahId === null ? '#fff' : COLORS.textPrimary }]}>
                   {t('overallRecital')}
                 </Text>
               </TouchableOpacity>
-              {surahs.map((s) => (
+              {surahs.map((s, index) => (
                 <TouchableOpacity
                   key={s.id}
                   style={[
@@ -174,6 +175,7 @@ export default function GradeFormScreen() {
                     selectedSurahId === s.id && { backgroundColor: COLORS.primary },
                   ]}
                   onPress={() => setSelectedSurahId(s.id)}
+                  testID={`grade-form.surah-select.${index}`}
                 >
                   <Text style={[styles.chipText, { color: selectedSurahId === s.id ? '#fff' : COLORS.textPrimary }]}>
                     {isRTL ? `${s.number}. ${s.nameAr}` : `${s.number}. ${s.nameEn}`}
@@ -235,6 +237,7 @@ export default function GradeFormScreen() {
             onChangeText={setNotes}
             multiline
             numberOfLines={3}
+            testID="grade-form.notes-input"
           />
 
           {/* Submit */}
@@ -261,6 +264,7 @@ export default function GradeFormScreen() {
           <TouchableOpacity
             style={[styles.cancelBtn, { backgroundColor: COLORS.surface }]}
             onPress={() => router.back()}
+            testID="grade-form.cancel"
           >
             <Text style={[styles.cancelText, { color: COLORS.textSecondary }]}>{t('cancel')}</Text>
           </TouchableOpacity>

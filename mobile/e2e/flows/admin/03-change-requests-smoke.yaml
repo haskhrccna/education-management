@@ -1,0 +1,96 @@
+appId: com.quranreview.app
+tags: [admin, smoke]
+---
+# Admin smoke A, screen 3/4: admin/change-requests.tsx (the combined
+# "Approvals" screen - keeps its existing `admin-approvals.*` testID prefix
+# from Plan 1's Journey 8/9 work; NOT renamed to `admin-change-requests.*`
+# per this task's CRITICAL reconciliation note).
+#
+# Seed-data note (verified against packages/server/src/prisma/seed.ts +
+# seed-e2e.ts): no TEACHER_CHANGE request is seeded, so `rows` is always
+# [...linkRows, ...userRows] - row.0 is deterministically parent2@'s PENDING
+# PARENT_LINK request to Ali, row.1 is fatima@'s PENDING STUDENT_ACCOUNT.
+# Both exist in every fresh E2E seed, so the list is never empty (per the
+# task brief's seed-reality note) - assertions below target real rows, not
+# an empty state.
+#
+# Discipline: this flow asserts the approve/reject controls are VISIBLE on a
+# real seeded request but never taps them - deciding a request is Journey 7's
+# job, not this smoke flow's.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: admin@quran-review.com
+      PASSWORD: Admin1234!
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 20000
+
+- tapOn:
+    id: "bottom-nav.admin-change-requests"
+- extendedWaitUntil:
+    visible:
+      id: "admin-approvals.screen"
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: "admin-approvals.row.0"
+    timeout: 10000
+
+# --- filter chips: tap each, assert the screen keeps rendering ---
+# TEACHER_CHANGE is empty in every seed variant (no request seeded), so only
+# PARENT_LINK/STUDENT_ACCOUNT/ALL are asserted to still show row.0.
+- tapOn:
+    id: "admin-approvals.filter.STUDENT_ACCOUNT"
+- extendedWaitUntil:
+    visible:
+      id: "admin-approvals.row.0"
+    timeout: 10000
+
+- tapOn:
+    id: "admin-approvals.filter.PARENT_LINK"
+- extendedWaitUntil:
+    visible:
+      id: "admin-approvals.row.0"
+    timeout: 10000
+
+- tapOn:
+    id: "admin-approvals.filter.TEACHER_CHANGE"
+- assertVisible:
+    id: "admin-approvals.screen"
+
+- tapOn:
+    id: "admin-approvals.filter.ALL"
+- extendedWaitUntil:
+    visible:
+      id: "admin-approvals.row.0"
+    timeout: 10000
+
+# --- expand row.0 (parent2's PENDING PARENT_LINK) -> assert decide controls ---
+- tapOn:
+    id: "admin-approvals.row.0"
+- extendedWaitUntil:
+    visible:
+      id: "admin-approvals.note"
+    timeout: 10000
+- assertVisible:
+    id: "admin-approvals.approve"
+- assertVisible:
+    id: "admin-approvals.deny"
+
+# Do NOT tap admin-approvals.approve / .deny - Journey 7 owns that decision.
+# (The row toggle is already exercised by the expand tap above; a second
+# collapse tap is intentionally omitted - once expanded, the accordion's tap
+# target shifts under the revealed note/approve/deny controls, so a re-tap on
+# the row header does not reliably collapse it. Expand coverage is sufficient.)
+
+- tapOn:
+    id: "admin-approvals.back"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000

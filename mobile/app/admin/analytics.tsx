@@ -28,12 +28,17 @@ export default function AdminAnalyticsScreen() {
   const { analytics, isLoading, error, fetchAnalytics } = useAnalytics();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: COLORS.background }}
+      edges={['top']}
+      testID="admin-analytics.screen"
+    >
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
         <TouchableOpacity
           accessibilityRole="button"
           onPress={() => router.back()}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          testID="admin-analytics.back"
         >
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
@@ -60,6 +65,7 @@ export default function AdminAnalyticsScreen() {
               accessibilityRole="button"
               onPress={() => fetchAnalytics()}
               style={{ marginTop: SPACING.md }}
+              testID="admin-analytics.retry"
             >
               <AppText variant="bodyMedium" color={COLORS.primary}>
                 {t('retry')}
@@ -138,10 +144,16 @@ export default function AdminAnalyticsScreen() {
                 {t('noData')}
               </AppText>
             ) : (
-              analytics.teacherLoad.map((item) => (
+              analytics.teacherLoad.map((item, index) => (
                 <TouchableOpacity
                   key={item.teacher.id}
                   onPress={() => router.push(`/admin/user-detail?id=${item.teacher.id}` as any)}
+                  // Task-3 bridge testID (see task-3-report.md): this row is the only
+                  // live path to admin/user-detail in the app today. Full Standard-
+                  // procedure coverage of this screen (root/.back/retry) is Task 4's
+                  // job — this single id lets Task 3's home/user-detail smoke flows
+                  // reach the screen without duplicating Task 4's work.
+                  testID={`admin-analytics.teacher-row.${index}`}
                 >
                   <AppCard colors={COLORS} style={{ marginBottom: SPACING.sm }}>
                     <View style={styles.row}>

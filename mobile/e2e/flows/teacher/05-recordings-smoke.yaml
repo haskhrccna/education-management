@@ -1,0 +1,64 @@
+appId: com.quranreview.app
+tags: [teacher, smoke]
+---
+# Teacher smoke B, screen 1/5: teacher/recordings.tsx.
+#
+# Seed-data note: neither packages/server/src/prisma/seed.ts nor
+# seed-e2e.ts creates any Recording rows for any user, so teacher@'s
+# (Ahmad's) recordings-to-review queue is always empty against a freshly
+# reset+reseeded DB - the FlatList's ListEmptyComponent
+# (teacher-recordings.empty) always renders instead of a row. Per-row
+# controls (play/approve/reject, the review modal, and the weak-ayah flag
+# picker) therefore have no row to exercise and are NOT tapped by this flow
+# - presence verified by check-testids.js only.
+#
+# Reached via the deep link (openLink), not teacher-home's swipe-then-tap
+# tile, per this task's execution-mode override (live verification deferred
+# to the coordinator) - mirrors student/08-12-*-smoke.yaml's precedent for
+# below-the-fold destinations reached without depending on an unverified
+# swipe count.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: teacher@quran-review.com
+      PASSWORD: Teacher1234!
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 20000
+
+- openLink: "quran-review://teacher/recordings"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "teacher-recordings.screen"
+    timeout: 10000
+
+# Filter chips: tap through PENDING -> APPROVED -> REJECTED -> back to ALL
+# (the default), matching the tap-through-then-restore pattern used
+# elsewhere in this suite (e.g. student-appointments.duration-chip).
+- tapOn:
+    id: "teacher-recordings.filter.PENDING"
+- tapOn:
+    id: "teacher-recordings.filter.APPROVED"
+- tapOn:
+    id: "teacher-recordings.filter.REJECTED"
+- tapOn:
+    id: "teacher-recordings.filter.ALL"
+
+- extendedWaitUntil:
+    visible:
+      id: "teacher-recordings.empty"
+    timeout: 10000
+
+- tapOn:
+    id: "teacher-recordings.back"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000

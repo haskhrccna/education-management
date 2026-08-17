@@ -1,0 +1,143 @@
+appId: com.quranreview.app
+tags: [journey]
+---
+# Journey 9: admin sends a broadcast to students -> a targeted student (ali@)
+# sees a new notification.
+#
+# *** CONFIRMED APP BUG - this journey is EXPECTED TO FAIL against the
+# current app. See mobile/e2e/BUGLOG.md ("Admin broadcast never persists a
+# Notification row"). Static source analysis before writing this flow found:
+# `broadcastMessage()` (packages/server/src/services/admin.service.ts) - both
+# its synchronous no-Redis fallback AND the BullMQ worker path in
+# packages/server/src/lib/queue.ts - calls socket.service.ts's `sendToUser()`
+# ONLY, a bare `io.to(userId).emit(event, data)`. It never calls
+# notification.service.ts's `notifyUser()`-style helper, which is the ONLY
+# code path in this codebase that persists a row to the `notification` table
+# (confirmed: `notification.service.ts`'s own `sendToUser` call is a
+# SEPARATE, later step inside `notifyUser`, after the DB write - broadcast
+# skips straight to the socket emit with no DB write at all). The mobile app
+# also has zero client-side listeners for a 'broadcast' socket event
+# (grepped `mobile/src`, `mobile/app` - no matches), so even a client
+# connected at broadcast-time would get nothing durable, and
+# `GET /notifications` (which the notifications screen reads) only ever
+# queries the `notification` table - it can never show a broadcast, no
+# matter how long you wait or how you reach it, because nothing is ever
+# written there.
+#
+# This flow is written as the CORRECT, intended end-to-end behavior (per the
+# brief), NOT weakened to match the bug - per this task's hard instruction
+# not to weaken assertions just to force a pass. Expect Part 2's final
+# assertion to fail until the app bug above is fixed (e.g. by having
+# broadcastMessage() call notifyUser() per-recipient instead of/in addition
+# to the raw socket emit).
+#
+# Determinism / count-based proof (not an arbitrary index pick): ali@ is
+# seeded with EXACTLY 2 notifications by seed-e2e.ts (new_grade, new_message
+# - both deleted then recreated on every reseed). `GET /notifications` orders
+# `createdAt desc` (notification.service.ts:105), so IF the broadcast
+# persisted correctly, the new notification would be the newest ->
+# `notifications.row.0`, pushing the 2 seeded ones to `.row.1`/`.row.2`.
+# Asserting `.row.0` alone would be a WEAK, trivially-true-anyway check
+# (ali's 2 seeded notifications already make it true with no broadcast at
+# all) - asserting `.row.2` is the real, count-based proof that a THIRD
+# notification now exists, per this suite's established "verify counts
+# against the seed" pattern (see BUGLOG.md/COVERAGE.md's other journeys).
+#
+# *** MUTATION / order-sensitive: this journey needs a FRESH reseed before
+# it runs, and must NOT run in the same DB session after
+# 03-grade-visibility.yaml or 10-streak-after-grade.yaml - both submit a
+# grade for ali, and grade.service.ts's createGrade calls `notifyNewGrade`
+# (a REAL notification.service.ts call, unlike broadcast), which adds
+# another genuine notification row for ali and invalidates the exact
+# row-index math above (the baseline would no longer be exactly 2).
+#
+# Every `launchApp: clearState: true` here is preceded by `clearKeychain`,
+# per Task 8's hard requirement (BUGLOG.md "Task 8 addendum 2") - iOS
+# Keychain survives clearState alone and would otherwise leak the previous
+# role's session into the next login.
+
+# Part 1: admin sends a broadcast targeted at students only.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/boot.yaml
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: admin@quran-review.com
+      PASSWORD: Admin1234!
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 20000
+- openLink: "quran-review://admin/broadcast"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "admin-broadcast.screen"
+    timeout: 10000
+# chips = [ALL(0), STUDENT(1), TEACHER(2)] (admin/broadcast.tsx) - index 1 is
+# "Students Only" (t('studentsOnly')), the target group ali@ belongs to.
+- tapOn:
+    id: "admin-broadcast.target.1"
+- tapOn:
+    id: "admin-broadcast.message"
+- inputText: "Journey 9 E2E broadcast - please review your latest progress."
+# Per BUGLOG.md's established `hideKeyboard`-is-unreliable finding: no
+# `hideKeyboard` call - scrollUntilVisible's own swipe dismisses the
+# keyboard before the send tap.
+- scrollUntilVisible:
+    element:
+      id: "admin-broadcast.send"
+    direction: DOWN
+- tapOn:
+    id: "admin-broadcast.send"
+# handleSend shows a native Alert (title '', message = t('broadcastSent'), a
+# single hardcoded "OK" button whose onPress calls router.back()).
+- extendedWaitUntil:
+    visible:
+      text: "OK"
+    timeout: 10000
+- tapOn:
+    text: "OK"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000
+
+# Part 2: ali@ (a targeted student) checks notifications.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/boot.yaml
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+- tapOn:
+    id: "student-home.notifications"
+- extendedWaitUntil:
+    visible:
+      id: "notifications.screen"
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: "notifications.row.0"
+    timeout: 10000
+# The decisive assertion: proves a THIRD notification exists on top of
+# ali's 2 seeded ones - see the header comment for why row.2 (not row.0,
+# which is trivially true from the seed alone) is the real proof, and why
+# this is currently expected to fail (BUGLOG.md's confirmed app bug).
+- extendedWaitUntil:
+    visible:
+      id: "notifications.row.2"
+    timeout: 10000

@@ -52,10 +52,15 @@ export default function BroadcastScreen() {
   ];
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top']} testID="admin-broadcast.screen">
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.7}>
+      <View style={styles.header} testID="admin-broadcast.header">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backBtn}
+          activeOpacity={0.7}
+          testID="admin-broadcast.back"
+        >
           <Ionicons name="arrow-back-outline" size={22} color={COLORS.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('broadcastMessage')}</Text>
@@ -71,7 +76,7 @@ export default function BroadcastScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionLabel}>{t('broadcastRecipients')}</Text>
           <View style={styles.chipsRow}>
-            {chips.map((chip) => {
+            {chips.map((chip, index) => {
               const isActive = target === chip.key;
               return (
                 <TouchableOpacity
@@ -79,6 +84,7 @@ export default function BroadcastScreen() {
                   style={[styles.chip, isActive && styles.chipActive]}
                   onPress={() => setTarget(chip.key)}
                   activeOpacity={0.75}
+                  testID={`admin-broadcast.target.${index}`}
                 >
                   <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{chip.label}</Text>
                 </TouchableOpacity>
@@ -100,6 +106,7 @@ export default function BroadcastScreen() {
             value={content}
             onChangeText={setContent}
             editable={!sending}
+            testID="admin-broadcast.message"
           />
         </View>
 
@@ -109,6 +116,7 @@ export default function BroadcastScreen() {
           onPress={handleSend}
           disabled={!content.trim() || sending}
           activeOpacity={0.8}
+          testID="admin-broadcast.send"
         >
           {sending ? (
             <ActivityIndicator color={COLORS.textOnPrimary} size="small" />

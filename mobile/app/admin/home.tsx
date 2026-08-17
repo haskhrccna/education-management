@@ -131,7 +131,11 @@ export default function AdminHomeScreen() {
             </View>
             <View style={styles.headerActions}>
               <View>
-                <TouchableOpacity onPress={() => router.push('/notifications')} style={{ marginEnd: SPACING.md }}>
+                <TouchableOpacity
+                  onPress={() => router.push('/notifications')}
+                  style={{ marginEnd: SPACING.md }}
+                  testID="admin-home.notifications"
+                >
                   <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
                 </TouchableOpacity>
                 <IconButton
@@ -140,6 +144,7 @@ export default function AdminHomeScreen() {
                   tone="ghost"
                   accessibilityLabel={isAr ? 'الرسائل' : 'Messages'}
                   onPress={() => router.push('/messages')}
+                  testID="admin-home.messages"
                 />
                 {unreadCount > 0 ? (
                   <View style={styles.badge}>
@@ -153,6 +158,7 @@ export default function AdminHomeScreen() {
                 tone="ghost"
                 accessibilityLabel={isAr ? 'الإعدادات' : 'Settings'}
                 onPress={() => router.push('/admin/settings')}
+                testID="admin-home.settings"
               />
               <IconButton
                 colors={COLORS}
@@ -160,6 +166,7 @@ export default function AdminHomeScreen() {
                 tone="ghost"
                 accessibilityLabel={isAr ? 'الحساب والخصوصية' : 'Account & Privacy'}
                 onPress={() => router.push('/account')}
+                testID="admin-home.account"
               />
               <IconButton
                 colors={COLORS}
@@ -167,6 +174,7 @@ export default function AdminHomeScreen() {
                 tone="ghost"
                 accessibilityLabel={isAr ? 'تسجيل الخروج' : 'Log out'}
                 onPress={handleLogout}
+                testID="admin-home.logout"
               />
             </View>
           </View>
@@ -203,13 +211,14 @@ export default function AdminHomeScreen() {
 
         <SectionHeader title={t('academySection')} colors={COLORS} />
         <View style={styles.academyGrid}>
-          {academyCards.map((card) => (
+          {academyCards.map((card, index) => (
             <TouchableOpacity
               key={card.route}
               activeOpacity={0.85}
               accessibilityRole="button"
               style={styles.academyCard}
               onPress={() => router.push(card.route as never)}
+              testID={`admin-home.academy-card.${index}`}
             >
               <Ionicons name={card.icon} size={22} color={COLORS.primary} />
               <AppText variant="titleMedium" style={{ color: COLORS.textPrimary }} numberOfLines={1}>
@@ -220,7 +229,12 @@ export default function AdminHomeScreen() {
         </View>
 
         {(fetchError || pendingLinkFailed) && !isLoading ? (
-          <TouchableOpacity activeOpacity={0.85} onPress={refreshAll} style={styles.errorBanner}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={refreshAll}
+            style={styles.errorBanner}
+            testID="admin-home.retry"
+          >
             <Text style={styles.errorText}>{fetchError ?? t('loadFailed')}</Text>
           </TouchableOpacity>
         ) : null}

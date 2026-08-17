@@ -1,0 +1,62 @@
+appId: com.quranreview.app
+tags: [teacher, smoke]
+---
+# Teacher smoke A, screen 4/4: teacher/student-detail.tsx.
+#
+# BUGLOG note (per the brief): this screen reads the student's display name
+# from a `name` route param and falls back to the literal string "Student"
+# when absent. Every assertion below targets `teacher-student-detail.screen`
+# (the root testID), never a name string, per that note.
+#
+# The screen's only interactive elements besides the header back button are
+# the stats row (plain Text, non-touchable), the recent-grades list (plain
+# View rows, non-touchable - no per-item link exists in the current source),
+# and the "Add grade for {name}" button, which is exercised below.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: teacher@quran-review.com
+      PASSWORD: Teacher1234!
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 20000
+
+# The student card sits at the bottom of teacher-home (below the quick-action
+# grid and priority queues) - scroll it into view before tapping.
+- scrollUntilVisible:
+    element:
+      id: "teacher-home.student-card.0"
+    direction: DOWN
+- tapOn:
+    id: "teacher-home.student-card.0"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-student-detail.screen"
+    timeout: 10000
+
+# "Add grade for {name}" -> /teacher/grade-form?studentId=... - only real
+# link/action on this screen. Assert its destination, then return WITHOUT
+# submitting (grade submission is Journey 3's job, not this smoke flow's).
+- tapOn:
+    id: "teacher-student-detail.add-grade"
+- extendedWaitUntil:
+    visible:
+      id: "grade-form.screen"
+    timeout: 10000
+- tapOn:
+    id: "grade-form.back"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-student-detail.screen"
+    timeout: 10000
+
+- tapOn:
+    id: "teacher-student-detail.back"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000

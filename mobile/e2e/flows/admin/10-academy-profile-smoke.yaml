@@ -1,0 +1,77 @@
+appId: com.quranreview.app
+tags: [admin, smoke]
+---
+# Admin smoke B, screen 6/6: admin/academy-profile.tsx.
+#
+# Reached via deep link. This screen has no separate "toggle edit" control
+# (unlike admin/user-detail.tsx) — every field is always directly editable
+# once the initial GET resolves, whether or not an AcademyProfile row exists
+# yet (profile.tsx's own comment: "stays at defaults pre-first-save, 404").
+#
+# Discipline: fills every field and toggles the active switch, then asserts
+# the save button is enabled — but deliberately does NOT tap it, so no real
+# AcademyProfile row is created/mutated by this smoke flow.
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: admin@quran-review.com
+      PASSWORD: Admin1234!
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 20000
+
+- openLink: "quran-review://admin/academy-profile"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "admin-academy-profile.screen"
+    timeout: 10000
+
+- tapOn:
+    id: "admin-academy-profile.display-name"
+- inputText: "E2E Smoke Academy"
+- tapOn:
+    id: "admin-academy-profile.program-name"
+- inputText: "E2E Smoke Program"
+- tapOn:
+    id: "admin-academy-profile.public-bio"
+- inputText: "Not saved - smoke test only"
+
+# scrollUntilVisible's swipe dismisses the bio field's keyboard before the
+# next field is tapped (per house convention — no hideKeyboard).
+- scrollUntilVisible:
+    element:
+      id: "admin-academy-profile.contact-email"
+    direction: DOWN
+- tapOn:
+    id: "admin-academy-profile.contact-email"
+- inputText: "smoke@example.com"
+
+- scrollUntilVisible:
+    element:
+      id: "admin-academy-profile.active"
+    direction: DOWN
+- tapOn:
+    id: "admin-academy-profile.active"
+
+# --- assert save is enabled, but do NOT tap it (see Discipline above) ---
+- scrollUntilVisible:
+    element:
+      id: "admin-academy-profile.save"
+    direction: DOWN
+- assertVisible:
+    id: "admin-academy-profile.save"
+    enabled: true
+
+- tapOn:
+    id: "admin-academy-profile.back"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000

@@ -95,6 +95,21 @@ async function mainE2E() {
     ],
   });
 
+  // Ali has FULLY memorized Al-Fatiha (surah number 1) — the precondition for
+  // Journey 13 (teacher issues a SURAH-scope ijazah). ijazah.service.ts rejects
+  // a SURAH ijazah with 409 "not yet fully memorized" unless the student's
+  // MemorizationProgress for that surah is COMPLETE. surah.0 in the
+  // teacher-ijazahs picker (getSurahs → orderBy number asc) is number 1, so
+  // this is exactly the surah Journey 13 selects. Upserted for idempotency
+  // (memorization_progress has a @@unique([userId, surahId])).
+  if (fatiha) {
+    await prisma.memorizationProgress.upsert({
+      where: { userId_surahId: { userId: ali.id, surahId: fatiha.id } },
+      update: { status: 'COMPLETE', completedAt: new Date(), memorizedAyahs: 7 },
+      create: { userId: ali.id, surahId: fatiha.id, status: 'COMPLETE', completedAt: new Date(), memorizedAyahs: 7 },
+    });
+  }
+
   // Task 5 (coordinator resolution #1): app/_layout.tsx redirects any active
   // student/teacher/parent with onboardingCompletedAt == null to the
   // onboarding wizard before it ever reaches home/appointments/grades. Stamp

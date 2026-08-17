@@ -135,9 +135,13 @@ export default function TeacherReportsScreen() {
   const dateLocale = i18n.language === 'ar' ? 'ar-SA' : 'en-US';
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }} edges={['top']}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: COLORS.background }}
+      edges={['top']}
+      testID="teacher-reports.screen"
+    >
       <View style={[styles.header, { backgroundColor: COLORS.primary }]}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.back()} testID="teacher-reports.back">
           <Ionicons
             name={isRTL ? 'arrow-forward-outline' : 'arrow-back-outline'}
             size={22}
@@ -147,7 +151,12 @@ export default function TeacherReportsScreen() {
         </TouchableOpacity>
         <View style={styles.headerRow}>
           <Text style={styles.title}>{t('reports')}</Text>
-          <TouchableOpacity style={styles.headerAction} onPress={() => setShowForm((v) => !v)} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={styles.headerAction}
+            onPress={() => setShowForm((v) => !v)}
+            activeOpacity={0.85}
+            testID="teacher-reports.toggle-form"
+          >
             <Text style={styles.headerActionText}>{showForm ? t('cancel') : `+ ${t('createReport')}`}</Text>
           </TouchableOpacity>
         </View>
@@ -172,7 +181,7 @@ export default function TeacherReportsScreen() {
               </Text>
             ) : (
               <View style={styles.chipRow}>
-                {students.map((s) => {
+                {students.map((s, index) => {
                   const active = selectedStudentId === s.id;
                   return (
                     <TouchableOpacity
@@ -183,6 +192,7 @@ export default function TeacherReportsScreen() {
                         active && { backgroundColor: COLORS.primary },
                       ]}
                       onPress={() => setSelectedStudentId(s.id)}
+                      testID={`teacher-reports.student.${index}`}
                     >
                       <Text style={[styles.chipText, { color: active ? '#fff' : COLORS.textPrimary }]}>
                         {s.firstName} {s.lastName}
@@ -210,6 +220,7 @@ export default function TeacherReportsScreen() {
               value={period}
               onChangeText={setPeriod}
               maxLength={80}
+              testID="teacher-reports.period-input"
             />
 
             <Text style={[styles.label, { color: COLORS.textSecondary }]}>{t('reportNotes')}</Text>
@@ -231,6 +242,7 @@ export default function TeacherReportsScreen() {
               onChangeText={setNotes}
               multiline
               maxLength={1900}
+              testID="teacher-reports.notes-input"
             />
 
             <TouchableOpacity
@@ -238,6 +250,7 @@ export default function TeacherReportsScreen() {
               onPress={handleSubmit}
               disabled={!canSubmit}
               activeOpacity={0.85}
+              testID="teacher-reports.submit"
             >
               {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>{t('submit')}</Text>}
             </TouchableOpacity>
@@ -249,18 +262,18 @@ export default function TeacherReportsScreen() {
         ) : error ? (
           <View style={styles.center}>
             <Text style={{ color: COLORS.error, marginBottom: SPACING.md }}>{error}</Text>
-            <TouchableOpacity onPress={onRefresh}>
+            <TouchableOpacity onPress={onRefresh} testID="teacher-reports.retry">
               <Text style={{ color: COLORS.primary, fontWeight: '700' }}>{t('retry')}</Text>
             </TouchableOpacity>
           </View>
         ) : reports.length === 0 ? (
-          <View style={styles.center}>
+          <View style={styles.center} testID="teacher-reports.empty">
             <Text style={{ fontSize: 40, marginBottom: SPACING.md }}>📑</Text>
             <Text style={[styles.emptyTitle, { color: COLORS.textPrimary }]}>{t('noReports')}</Text>
             <Text style={[styles.emptyDesc, { color: COLORS.textSecondary }]}>{t('noReportsDesc')}</Text>
           </View>
         ) : (
-          reports.map((r) => {
+          reports.map((r, index) => {
             const { period: p, notes: n } = parsePeriod(r.summary);
             const studentName = studentNameById[r.studentId] ?? '—';
             const dateStr = new Date(r.generatedAt).toLocaleDateString(dateLocale, {
@@ -269,7 +282,11 @@ export default function TeacherReportsScreen() {
               day: 'numeric',
             });
             return (
-              <View key={r.id} style={[styles.card, { backgroundColor: COLORS.surface }]}>
+              <View
+                key={r.id}
+                style={[styles.card, { backgroundColor: COLORS.surface }]}
+                testID={`teacher-reports.row.${index}`}
+              >
                 <View style={styles.cardHeader}>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.studentName, { color: COLORS.textPrimary }]}>{studentName}</Text>
@@ -301,6 +318,7 @@ export default function TeacherReportsScreen() {
                   onPress={() => handleDownload(r.id)}
                   disabled={downloadingId === r.id}
                   activeOpacity={0.85}
+                  testID={`teacher-reports.download.${index}`}
                 >
                   {downloadingId === r.id ? (
                     <ActivityIndicator color={COLORS.primary} />

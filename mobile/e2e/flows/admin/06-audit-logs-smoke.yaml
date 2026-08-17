@@ -1,0 +1,102 @@
+appId: com.quranreview.app
+tags: [admin, smoke]
+---
+# Admin smoke B, screen 2/6: admin/audit-logs.tsx.
+#
+# Reached via deep link. This screen already renders <BottomNav active="none">
+# from a prior fix-pass (not touched here), but also has its own header back
+# button — used to return home per the produces list (<screen>.back).
+#
+# Exercises the actor filter (type -> pick a dropdown match -> clear), the
+# free-text action/entity filters and the date-range filters (fill -> clear
+# via clear-filters), then a seeded row. Per this task's brief ("audit logs
+# exist — admin actions are logged"), at least one AuditLog row is expected
+# in this environment (AUDIT_MODELS = User/Appointment/Grade/Recording/
+# Message/Report create/update/delete — prisma/audit.middleware.ts — fires on
+# any prior registration/appointment/grade activity in this DB, none of which
+# is seeded directly in seed.ts/seed-e2e.ts as an AuditLog row itself).
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: admin@quran-review.com
+      PASSWORD: Admin1234!
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 20000
+
+- openLink: "quran-review://admin/audit-logs"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "admin-audit-logs.screen"
+    timeout: 10000
+
+# --- actor filter: type "admin" (matches the logged-in Super Admin account
+# itself, email admin@quran-review.com — guaranteed present in every seed
+# variant), pick the first dropdown match, then clear it ---
+- tapOn:
+    id: "admin-audit-logs.actor-input"
+- inputText: "admin"
+- extendedWaitUntil:
+    visible:
+      id: "admin-audit-logs.actor-option.0"
+    timeout: 10000
+- tapOn:
+    id: "admin-audit-logs.actor-option.0"
+- extendedWaitUntil:
+    visible:
+      id: "admin-audit-logs.actor-clear"
+    timeout: 10000
+- tapOn:
+    id: "admin-audit-logs.actor-clear"
+
+# --- action / entity free-text filters, then date-range filters ---
+- tapOn:
+    id: "admin-audit-logs.filter-action"
+- inputText: "CREATE"
+- tapOn:
+    id: "admin-audit-logs.filter-entity"
+- inputText: "User"
+- tapOn:
+    id: "admin-audit-logs.filter-date-from"
+- inputText: "2020-01-01"
+- tapOn:
+    id: "admin-audit-logs.filter-date-to"
+- inputText: "2030-01-01"
+
+# --- clear-filters resets every field (dismisses the keyboard too, since
+# it's a tap outside any focused TextInput) ---
+- extendedWaitUntil:
+    visible:
+      id: "admin-audit-logs.clear-filters"
+    timeout: 10000
+- tapOn:
+    id: "admin-audit-logs.clear-filters"
+
+# --- audit-log content is non-deterministic ---
+# A freshly reseeded E2E DB has zero audit_logs (they are written only by
+# audited admin mutations at runtime — none are seeded), and journeys 7/9 add
+# some later. So this smoke asserts the screen + its filter controls render
+# (above), not a specific row-vs-empty content state; the row and its expand
+# control are exercised by Journey 7/9's audit-trail assertions instead.
+- assertVisible:
+    id: "admin-audit-logs.screen"
+
+- tapOn:
+    id: "admin-audit-logs.back"
+- extendedWaitUntil:
+    visible:
+      id: "admin-home.screen"
+    timeout: 10000
+
+# admin-audit-logs.retry only renders on a fetch error, not hit by this
+# happy-path flow. admin-audit-logs.prev/.next (pager) only render when
+# totalPages > 1 — not asserted, since page count depends on how many
+# AuditLog rows have accumulated in this environment. Presence of all three
+# verified by check-testids.js only.

@@ -1,0 +1,89 @@
+appId: com.quranreview.app
+tags: [teacher, smoke]
+---
+# Teacher smoke B, screen 4/5: teacher/plans.tsx.
+#
+# Seed note: no curriculum plan is seeded for ali@ (Journey 12 is what creates
+# one), so this smoke asserts the screen renders and exercises the create form
+# WITHOUT submitting (plan creation is Journey 12's job, not this smoke's). The
+# form is its own nested ScrollView; the student/surah pickers are horizontal
+# chip rows, so index 0 is the first chip (visible once its section is in view).
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: teacher@quran-review.com
+      PASSWORD: Teacher1234!
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 20000
+
+- openLink: "quran-review://teacher/plans"
+- tapOn:
+    text: "Open"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "teacher-plans.screen"
+    timeout: 10000
+
+# --- create form: open, exercise every picker/field, do NOT submit ---
+- tapOn:
+    id: "teacher-plans.toggle-form"
+- tapOn:
+    id: "teacher-plans.student.0"
+- scrollUntilVisible:
+    element:
+      id: "teacher-plans.name-input"
+    direction: DOWN
+- tapOn:
+    id: "teacher-plans.name-input"
+- inputText: "Smoke plan - not submitted"
+# scrollUntilVisible's swipe dismisses the keyboard (hideKeyboard can't here).
+- scrollUntilVisible:
+    element:
+      id: "teacher-plans.surah.0"
+    direction: DOWN
+- tapOn:
+    id: "teacher-plans.surah.0"
+- scrollUntilVisible:
+    element:
+      id: "teacher-plans.target-date-input"
+    direction: DOWN
+- tapOn:
+    id: "teacher-plans.target-date-input"
+- inputText: "2027-03-01"
+# add-item stages the (surah, date) pair, revealing a remove-item control.
+# scrollUntilVisible's swipe dismisses the date keypad (hideKeyboard can't here).
+- scrollUntilVisible:
+    element:
+      id: "teacher-plans.add-item"
+    direction: DOWN
+- tapOn:
+    id: "teacher-plans.add-item"
+
+# Assert submit is visible AND enabled - do NOT tap it.
+- scrollUntilVisible:
+    element:
+      id: "teacher-plans.submit"
+    direction: DOWN
+- assertVisible:
+    id: "teacher-plans.submit"
+    enabled: true
+
+# Collapse the form and return.
+- scrollUntilVisible:
+    element:
+      id: "teacher-plans.toggle-form"
+    direction: UP
+- tapOn:
+    id: "teacher-plans.toggle-form"
+- tapOn:
+    id: "teacher-plans.back"
+- extendedWaitUntil:
+    visible:
+      id: "teacher-home.screen"
+    timeout: 10000
