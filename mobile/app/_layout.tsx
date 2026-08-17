@@ -36,7 +36,17 @@ export default function RootLayout() {
     if (I18nManager.isRTL !== shouldBeRTL) {
       I18nManager.forceRTL(shouldBeRTL);
       if (Platform.OS === 'web') {
-        window?.location?.reload?.();
+        // Do NOT reload on web. React Native Web does not persist forceRTL
+        // across a page reload, so `isRTL` resets to false on every load and,
+        // for the Arabic-first default, this branch would fire forceRTL +
+        // reload on each load — an infinite reload loop that leaves the page
+        // permanently blank (the exact GitHub Pages "blank page" symptom).
+        // forceRTL() above already flips isRTL in-memory for this render pass,
+        // so RN Web resolves start/end styles correctly; we only need to set
+        // the document direction for the browser's own layout — no reload.
+        if (typeof document !== 'undefined') {
+          document.documentElement.setAttribute('dir', shouldBeRTL ? 'rtl' : 'ltr');
+        }
       } else {
         const { DevSettings } = require('react-native');
         DevSettings?.reload?.();
