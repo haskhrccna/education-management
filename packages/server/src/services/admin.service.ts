@@ -1,7 +1,6 @@
 import { prisma } from '../prisma/client';
 import { hashPassword } from './auth.service';
 import { AppError } from '../middleware/error.middleware';
-import { addBroadcastJob } from '../lib/queue';
 import { sendAccountApprovedEmail } from './email.service';
 import { notifyUser } from './notification.service';
 
@@ -155,20 +154,17 @@ function safeAverage(grades: string[]): number {
 }
 
 export const broadcastMessage = async (message: string, targetRole?: string) => {
-  // Add to background queue if Redis is available
-  const job = await addBroadcastJob(message, targetRole);
-  if (job) {
-    return { sent: true, queued: true, message };
-  }
-
-  // Fallback: synchronous broadcast (for dev without Redis)
+  // Persist + deliver a durable Notification to every recipient INLINE. This
+  // used to offload to a BullMQ job whenever Redis was present and only emit a
+  // Socket.IO event — so with Redis up (and no worker running) nothing was ever
+  // persisted and a broadcast never reached the /notifications feed (Plan 2
+  // Journey 9 finding). Persistence is the durable contract, so it must run
+  // regardless of Redis; notifyUser also emits the real-time socket event + a
+  // best-effort push. Broadcasts are an infrequent admin action, so doing the
+  // fan-out inline (parallelised) is acceptable.
   const where = targetRole ? { role: targetRole.toUpperCase() as 'STUDENT' | 'TEACHER' | 'ADMIN' } : {};
   const users = await prisma.user.findMany({ where, select: { id: true } });
 
-  // Persist a durable Notification row for every recipient (via notifyUser,
-  // which also emits the real-time socket event and a best-effort push). The
-  // previous bare sendToUser() only fired a socket event, so a broadcast never
-  // appeared in the recipient's /notifications feed (Plan 2 Journey 9 finding).
   const sentAt = new Date().toISOString();
   await Promise.all(
     users.map((user) =>
