@@ -110,7 +110,7 @@ export default function TeacherChangeScreen() {
           {isAssignmentRequest ? t('requestTeacherAssignment') : t('requestTeacherChange')}
         </Text>
       </View>
-      <ScrollView contentContainerStyle={styles.body}>
+      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         {isLoading ? (
           <ActivityIndicator color={COLORS.primary} />
         ) : pendingRequest ? (
