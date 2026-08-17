@@ -1,0 +1,70 @@
+appId: com.quranreview.app
+tags: [auth, smoke]
+---
+# Biometric login — UI-renders smoke (merged feature: expo-local-authentication).
+#
+# Scope (deliberately UI-only): Face ID / Touch ID UNLOCK cannot be driven by
+# Maestro — the OS biometric prompt is a system sheet outside the app's view
+# hierarchy, and the simulator has no enrolled biometric by default. So this
+# smoke does NOT attempt an actual biometric unlock. It proves the two things
+# that ARE deterministically observable and that the native-module merge could
+# have broken:
+#   1. The app boots to login.screen at all — i.e. the auth store's init-time
+#      getBiometricStatus() call (which touches the native ExpoLocalAuthentication
+#      module) did NOT crash the app. Before the post-merge native rebuild the
+#      app crashed here with "Cannot find native module 'ExpoLocalAuthentication'".
+#   2. The account screen's biometric settings row renders, with its toggle
+#      (`account.biometric-toggle`) present — proving the account-side
+#      availability detection (getBiometricStatus + isBiometricPreferenceEnabled)
+#      ran and rendered without throwing. The toggle is always mounted (it is
+#      merely disabled when biometrics are unavailable/unenrolled), so its
+#      presence is deterministic regardless of the simulator's enrollment state.
+#
+# The login.biometric button is intentionally NOT asserted: it renders only when
+# isBiometricEnabled (a previously-enabled preference AND an available sensor),
+# which is false on a fresh clearState install — its correct state here is
+# ABSENT, so asserting its visibility would be wrong.
+#
+# clearKeychain precedes clearState per the suite-wide rule (iOS Keychain
+# survives clearState — see BUGLOG "Task 8 addendum 2").
+
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    file: ../_helpers/boot.yaml
+# (1) App reached login.screen — the init-time native biometric-status probe
+# did not crash the app.
+- extendedWaitUntil:
+    visible:
+      id: "login.screen"
+    timeout: 20000
+- runFlow:
+    file: ../_helpers/login.yaml
+    env:
+      EMAIL: ali@quran-review.com
+      PASSWORD: Student1234!
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 20000
+
+# (2) Account screen's biometric settings row renders.
+- tapOn:
+    id: "student-home.account"
+- extendedWaitUntil:
+    visible:
+      id: "account.screen"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      id: "account.biometric-toggle"
+    direction: DOWN
+- assertVisible:
+    id: "account.biometric-toggle"
+- tapOn:
+    id: "account.back"
+- extendedWaitUntil:
+    visible:
+      id: "student-home.screen"
+    timeout: 10000
