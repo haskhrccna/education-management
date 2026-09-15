@@ -99,8 +99,25 @@ jobs:
           // a 2.x/3.x/4.x patch, or if RN's codegen drops its old minimatch/glob
           // dependency and can take 5.x directly.
           const MOBILE_TOOLCHAIN_EXCEPTIONS = new Set(['postcss', 'brace-expansion']);
+          // 2026-09-16: npm audit published new high-severity advisories for
+          // build/test-toolchain packages. Each chain below was verified with
+          // `npm ls <pkg>` to route ONLY through the Expo/React Native build
+          // toolchain, the jest/ts-jest test toolchain, or the Prisma CLI —
+          // never through code the API server loads at runtime:
+          //   @expo/metro-config, metro-config, metro-transform-worker,
+          //   image-size, fast-uri   -> mobile/ Expo/metro build toolchain
+          //   js-yaml                 -> server: ts-jest -> babel-plugin-istanbul
+          //                             -> @istanbuljs/load-nyc-config (tests only)
+          //   deepmerge-ts            -> server: prisma CLI -> @prisma/config
+          //                             (migration-time tooling, not @prisma/client)
+          // Re-review this list whenever Expo SDK, Prisma, or jest is upgraded.
+          const TOOLCHAIN_EXCEPTIONS = new Set([
+            ...MOBILE_TOOLCHAIN_EXCEPTIONS,
+            '@expo/metro-config', 'metro-config', 'metro-transform-worker',
+            'image-size', 'fast-uri', 'js-yaml', 'deepmerge-ts',
+          ]);
           const bad = Object.values(audit.vulnerabilities || {}).filter(
-            (v) => (v.severity === 'high' || v.severity === 'critical') && !MOBILE_TOOLCHAIN_EXCEPTIONS.has(v.name)
+            (v) => (v.severity === 'high' || v.severity === 'critical') && !TOOLCHAIN_EXCEPTIONS.has(v.name)
           );
           if (bad.length) {
             console.error('High/critical vulnerabilities in the server\'s dependency surface:');
