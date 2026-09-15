@@ -152,6 +152,17 @@ export const streamObject = async (storageKey: string, res: import('express').Re
   });
 };
 
+/** Assert an object exists BEFORE side effects (e.g. audit logging) run.
+ *  Throws 503 when storage is disabled and 404 when the object is missing. */
+export const assertObjectExists = async (storageKey: string): Promise<void> => {
+  if (!ENABLED) throw new AppError(503, 'Object storage is not enabled');
+  try {
+    await getClient().statObject(BUCKET, storageKey);
+  } catch {
+    throw new AppError(404, 'File not found');
+  }
+};
+
 export const __resetStorageForTests = () => {
   client = null;
   bucketChecked = false;

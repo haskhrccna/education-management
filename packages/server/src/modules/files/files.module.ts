@@ -18,6 +18,9 @@ const downloadRecordingFile = defineRoute(
     // the bucket; legacy local-disk rows fall through unchanged.
     const blob = await fileService.resolveRecordingStorageBlob(userId!, userRole, String(params.id));
     if (blob) {
+      // SEC-M4: audit only REAL downloads. Resolve the object first so a
+      // missing blob throws 404 BEFORE the audit row is written.
+      await storageService.assertObjectExists(blob.storageKey);
       if (userRole === 'PARENT') {
         await auditLog({
           userId: userId!,

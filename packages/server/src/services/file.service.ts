@@ -73,10 +73,13 @@ export const resolveRecordingStorageBlob = async (
   return { storageKey: s3UrlToKey(recording.url), fileName };
 };
 
-/** A URL counts as S3-stored when it is a raw ''/no-slash object key OR an
- *  absolute http(s) URL whose path starts with the bucket name. Legacy local
- *  recordings always start with '/uploads/'. */
-export const isLikelyS3Url = (url: string): boolean => !url.startsWith('/') || /^https?:\/\//.test(url);
+/** A URL counts as S3-stored when it is (a) a raw object key from the
+ *  presign flow — always produced as 'recordings/<userId>/<uuid>-<name>' —
+ *  or (b) an absolute http(s) CDN URL. Legacy local-disk rows use
+ *  '/uploads/...' or the older relative 'uploads/...' shape and must fall
+ *  through to the disk path. Do NOT treat every slash-less string as S3:
+ *  legacy relative paths also lack a leading slash. */
+export const isLikelyS3Url = (url: string): boolean => /^https?:\/\//.test(url) || url.startsWith('recordings/');
 
 /** Strip the scheme/host and leading /<bucket>/ from a storage URL, leaving
  *  the raw object key. Raw keys pass through unchanged. */
