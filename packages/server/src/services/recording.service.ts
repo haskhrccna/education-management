@@ -7,6 +7,8 @@ import { recordActivity, evaluateMilestones } from './gamification.service';
 import { addScoringJob } from '../lib/queue';
 import { scoreRecording } from './recitation-scorer.service';
 import { isRecordingBlockedByConsent } from './guardian-consent.service';
+import * as storageService from './storage.service';
+import { isLikelyS3Url, s3UrlToKey } from './file.service';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 
@@ -87,6 +89,57 @@ export const uploadRecording = async (
   return recording;
 };
 
+/**
+ * S3 flow: a presigned PUT already landed the blob in the bucket;
+ * this verifies the object and writes the Recording row against it.
+ */
+export const completeRecordingUpload = async (
+  studentId: string,
+  storageKey: string,
+  fileName: string,
+  fileSizeBytes: number | undefined,
+  contentType: string,
+  page?: number,
+  surahId?: number
+) => {
+  if (await isRecordingBlockedByConsent(studentId)) {
+    throw new AppError(403, 'A linked guardian must consent before recitation recordings can be uploaded');
+  }
+
+  const { url, fileSizeBytes: actualSize } = await storageService.completeUpload(storageKey);
+
+  const safeName = path.basename(fileName).replace(/[^a-zA-Z0-9._-]/g, '_');
+  const recording = await prisma.recording.create({
+    data: {
+      studentId,
+      // STORAGE_PUBLIC_BASE_URL configured → absolute CDN URL; else the raw
+      // object key (the /files/recordings/:id download resolves both shapes).
+      url,
+      fileName: safeName,
+      fileSizeBytes: fileSizeBytes ?? actualSize ?? 0,
+      contentType,
+      page: page ?? null,
+      surahId: surahId ?? null,
+    },
+  });
+
+  try {
+    await recordActivity(studentId);
+    await evaluateMilestones(studentId);
+  } catch {
+    /* gamification is best-effort */
+  }
+
+  try {
+    const queued = await addScoringJob(recording.id);
+    if (!queued) await scoreRecording(recording.id);
+  } catch {
+    /* scoring is best-effort */
+  }
+
+  return recording;
+};
+
 export const listRecordings = async (userId: string, userRole?: string) => {
   let where: Record<string, unknown> = userRole === 'ADMIN' ? {} : { studentId: userId };
 
@@ -147,6 +200,14 @@ export const deleteRecording = async (recordingId: string, userId: string, isTea
   if (!isTeacherOrAdmin && recording.studentId !== userId) throw new AppError(403, 'Permission denied');
   if (isTeacherOrAdmin && recording.studentId !== userId) {
     await assertTeacherCanAccessStudent(userId, recording.studentId);
+  }
+
+  // S3-stored recordings (created via POST /files/complete) carry a raw
+  // object key or CDN URL in `url` — delete from the bucket. Legacy rows
+  // point at UPLOAD_DIR.
+  if (isLikelyS3Url(recording.url)) {
+    await storageService.removeObject(s3UrlToKey(recording.url));
+    return await prisma.recording.delete({ where: { id: recordingId } });
   }
 
   const fileName = recording.url.split('/').pop() || '';

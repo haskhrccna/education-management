@@ -1,7 +1,12 @@
 import { z } from 'zod';
 import { defineContract, ErrorEnvelope, DateOut, rawResponse } from './types';
 import { UserRole } from '../enums/roles';
-import { CreateRecordingSchema, GenerateReportSchema } from '../validators/common';
+import {
+  FileCompleteBodySchema,
+  FilePresignBodySchema,
+  CreateRecordingSchema,
+  GenerateReportSchema,
+} from '../validators/common';
 
 /** Raw Prisma Recording echo (list adds a `student` include — looseObject tolerates it). */
 const RecordingRow = z.looseObject({
@@ -157,5 +162,36 @@ export const mediaContracts = {
     access: [UserRole.ADMIN],
     authVia: 'headerOrQueryToken',
     responses: { 200: rawResponse('application/pdf'), 401: ErrorEnvelope, 403: ErrorEnvelope },
+  }),
+
+  presignUpload: defineContract({
+    method: 'POST',
+    path: '/api/v1/files/presign',
+    summary:
+      'Issue a short-lived S3 presigned PUT (MinIO locally, S3 in prod) for a recording blob. 201 { storageKey, uploadUrl }',
+    access: 'authenticated',
+    request: { body: FilePresignBodySchema },
+    responses: {
+      201: z.object({ storageKey: z.string(), uploadUrl: z.string(), expiresInSeconds: z.number() }),
+      400: ErrorEnvelope,
+      401: ErrorEnvelope,
+      413: ErrorEnvelope,
+      503: ErrorEnvelope,
+    },
+  }),
+  completeUpload: defineContract({
+    method: 'POST',
+    path: '/api/v1/files/complete',
+    summary:
+      'Verify a presigned object landed in the bucket and (when recording metadata is provided) create the Recording row. 200 { recording, url }',
+    access: 'authenticated',
+    request: { body: FileCompleteBodySchema },
+    responses: {
+      200: z.object({ recording: RecordingRow, url: z.string() }),
+      400: ErrorEnvelope,
+      401: ErrorEnvelope,
+      404: ErrorEnvelope,
+      503: ErrorEnvelope,
+    },
   }),
 };

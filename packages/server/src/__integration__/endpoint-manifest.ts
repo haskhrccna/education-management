@@ -124,6 +124,9 @@ const v1: EndpointSpec[] = [
   { method: 'GET', path: '/api/v1/files/reports/:id', access: 'authenticated' },
   { method: 'GET', path: '/api/v1/files/certificates/:id', access: 'authenticated' },
   { method: 'GET', path: '/api/v1/files/academy-health.pdf', access: ['ADMIN'] },
+  // S3-compatible media layer (presigned PUT + complete)
+  { method: 'POST', path: '/api/v1/files/presign', access: 'authenticated' },
+  { method: 'POST', path: '/api/v1/files/complete', access: 'authenticated' },
   // exports
   { method: 'GET', path: '/api/v1/exports/grades', access: ['TEACHER', 'ADMIN'] },
   { method: 'GET', path: '/api/v1/exports/appointments', access: ['TEACHER', 'ADMIN'] },

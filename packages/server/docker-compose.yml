@@ -19,11 +19,22 @@ services:
       - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-}
       - FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL:-}
       - FIREBASE_PRIVATE_KEY=${FIREBASE_PRIVATE_KEY:-}
+      # S3-compatible media storage (MinIO container below; swap endpoint/creds for prod S3)
+      - STORAGE_ENABLED=${STORAGE_ENABLED:-}
+      - STORAGE_ENDPOINT=${STORAGE_ENDPOINT:-minio}
+      - STORAGE_PORT=${STORAGE_PORT:-9000}
+      - STORAGE_USE_SSL=${STORAGE_USE_SSL:-false}
+      - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY:-minioadmin}
+      - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY:-minioadmin}
+      - STORAGE_BUCKET=${STORAGE_BUCKET:-quran-review-media}
+      - STORAGE_PUBLIC_BASE_URL=${STORAGE_PUBLIC_BASE_URL:-}
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_started
+      minio:
+        condition: service_healthy
     volumes:
       - ./uploads:/app/uploads
       - ./reports:/app/reports
@@ -53,5 +64,26 @@ services:
       - '6379:6379'
     restart: unless-stopped
 
+  # Local S3-compatible store for the shared media layer (POST /files/presign).
+  # Production: point STORAGE_ENDPOINT at S3/R2 with TLS instead of running this.
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${STORAGE_ACCESS_KEY:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${STORAGE_SECRET_KEY:-minioadmin}
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  minio_data:
