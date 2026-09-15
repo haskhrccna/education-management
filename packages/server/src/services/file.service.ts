@@ -43,6 +43,53 @@ export const resolveRecordingDownload = async (
   return { filePath: uploadStorage.getLocalPath(fileName), fileName };
 };
 
+/**
+ * S3 flow counterpart: when the Recording row carries a raw object key
+ * (created via POST /files/complete), stream it from S3-compatible storage
+ * instead of local disk. Returns null when the row is a legacy local-disk
+ * recording — callers fall back to resolveRecordingDownload above.
+ */
+export const resolveRecordingStorageBlob = async (
+  userId: string,
+  userRole: string | undefined,
+  recordingId: string
+): Promise<{ storageKey: string; fileName: string } | null> => {
+  const recording = await prisma.recording.findUnique({ where: { id: recordingId } });
+  if (!recording) throw new AppError(404, 'Recording not found');
+
+  const isOwner = recording.studentId === userId;
+  const isAdmin = userRole === 'ADMIN';
+  const isTeacher = userRole === 'TEACHER';
+  const isParent = userRole === 'PARENT';
+  if (isParent) {
+    await assertParentHasApprovedLink(userId, recording.studentId);
+  } else if (!isOwner && !isAdmin && !isTeacher) {
+    throw new AppError(403, 'Permission denied');
+  }
+  if (isTeacher) await assertTeacherStudentRelationship(userId, recording.studentId);
+
+  if (!isLikelyS3Url(recording.url)) return null;
+  const fileName = recording.fileName || recording.url.split('/').pop() || 'recording';
+  return { storageKey: s3UrlToKey(recording.url), fileName };
+};
+
+/** A URL counts as S3-stored when it is (a) a raw object key from the
+ *  presign flow — always produced as 'recordings/<userId>/<uuid>-<name>' —
+ *  or (b) an absolute http(s) CDN URL. Legacy local-disk rows use
+ *  '/uploads/...' or the older relative 'uploads/...' shape and must fall
+ *  through to the disk path. Do NOT treat every slash-less string as S3:
+ *  legacy relative paths also lack a leading slash. */
+export const isLikelyS3Url = (url: string): boolean => /^https?:\/\//.test(url) || url.startsWith('recordings/');
+
+/** Strip the scheme/host and leading /<bucket>/ from a storage URL, leaving
+ *  the raw object key. Raw keys pass through unchanged. */
+export const s3UrlToKey = (url: string): string => {
+  if (!/^https?:\/\//.test(url)) return url.replace(/^\/+/, '');
+  const path = url.replace(/^https?:\/\/[^/]+/, '');
+  const bucket = process.env.STORAGE_BUCKET || 'quran-review-media';
+  return path.replace(new RegExp(`^/${bucket}/`), '').replace(/^\/+/, '');
+};
+
 export const resolveReportDownload = async (
   userId: string,
   userRole: string | undefined,

@@ -45,6 +45,45 @@ if (fs.existsSync(jsDir)) {
 fs.copyFileSync(indexPath, fallbackPath);
 fs.writeFileSync(nojekyllPath, '');
 
+// --- PWA: static export emits `dist/index.html` for the root only; service
+// worker + manifest live in `public/` and are copied verbatim by Expo. Make
+// sure a manifest link tag exists (Expo emits only favicon/base) and stamp
+// the deployment's base path into the SW registration script for scoping.
+const indexHtml = fs.readFileSync(indexPath, 'utf8');
+const baseHref = (indexHtml.match(/<base[^>]*href="([^"]+)"/) || [])[1] || './';
+// Expo copies public/* verbatim (sw.js already landed) but does NOT emit a
+// manifest.json — write one from app.json's web block so install-to-homescreen
+// works without any bundler change.
+const appJson = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'app.json'), 'utf8')).expo;
+const manifestJson = {
+  name: appJson.web?.name || appJson.name,
+  short_name: appJson.web?.shortName || appJson.name,
+  description: appJson.web?.description || '',
+  start_url: baseHref,
+  scope: baseHref,
+  display: appJson.web?.display || 'standalone',
+  orientation: appJson.web?.orientation || appJson.orientation || 'portrait',
+  theme_color: appJson.web?.themeColor || '#1B5E20',
+  background_color: appJson.web?.backgroundColor || appJson.splash?.backgroundColor || '#1B5E20',
+  lang: appJson.web?.lang || 'ar',
+  dir: appJson.web?.dir || 'auto',
+  icons: [
+    { src: `${baseHref}assets/assets/icon.png`.replace(/\.\//, './'), sizes: 'any', type: 'image/png', purpose: 'any' },
+    { src: `${baseHref}favicon.ico`.replace(/\.\//, './'), sizes: '16x16 32x32', type: 'image/x-icon' },
+  ],
+};
+if (!fs.existsSync(path.join(distDir, 'manifest.json'))) {
+  fs.writeFileSync(path.join(distDir, 'manifest.json'), JSON.stringify(manifestJson, null, 2));
+  console.log('prepare-github-pages: wrote dist/manifest.json');
+}
+if (!indexHtml.includes('rel="manifest"')) {
+  const manifestTag = `  <link rel="manifest" href="${baseHref.replace(/\/$/, '')}/manifest.json" />\n`;
+  fs.writeFileSync(indexPath, indexHtml.replace('</head>', `${manifestTag}</head>`));
+  // 404.html is the fallback on Pages — keep it in sync.
+  fs.copyFileSync(indexPath, fallbackPath);
+  console.log(`prepare-github-pages: injected manifest link (base ${baseHref})`);
+}
+
 console.log(
   `prepare-github-pages: neutralized import.meta in ${patchedFiles} bundle(s) (${patchedHits} hit(s)); ` +
     'wrote dist/404.html and dist/.nojekyll'

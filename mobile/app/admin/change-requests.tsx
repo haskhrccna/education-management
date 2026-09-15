@@ -14,6 +14,7 @@ import { SkeletonCard } from '@/src/components/SkeletonCard';
 import { BottomNav } from '@/src/components/BottomNav';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
+import { useResponsive, DESKTOP_CONTENT_MAX_WIDTH } from '@/src/hooks/useResponsive';
 
 type ApprovalKind = 'TEACHER_CHANGE' | 'PARENT_LINK' | 'STUDENT_ACCOUNT';
 type FilterKey = 'ALL' | ApprovalKind;
@@ -37,6 +38,7 @@ interface ApprovalRow {
 }
 
 export default function ApprovalsScreen() {
+  const { isDesktopWeb } = useResponsive();
   const { t } = useTranslation();
   // Non-string decisions only (icon direction) — matches the house
   // convention in audit-logs.tsx. Deliberately not a local isAr ternary
@@ -225,7 +227,10 @@ export default function ApprovalsScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={s.list}
+        contentContainerStyle={[
+          s.list,
+          isDesktopWeb && { maxWidth: DESKTOP_CONTENT_MAX_WIDTH, alignSelf: 'center' as const, width: '100%' as const },
+        ]}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refreshAll} tintColor={COLORS.primary} />}
       >
         {combinedError && !isLoading ? (

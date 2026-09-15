@@ -19,6 +19,7 @@ import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { milestonesApi, MilestoneDefinition, MilestoneTriggerType } from '@/src/api/milestones';
 import { BottomNav } from '@/src/components/BottomNav';
 import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
+import { useResponsive, DESKTOP_CONTENT_MAX_WIDTH } from '@/src/hooks/useResponsive';
 
 const TRIGGER_TYPES: MilestoneTriggerType[] = [
   'SURAH_COUNT',
@@ -42,6 +43,7 @@ function triggerLabel(trigger: MilestoneTriggerType): string {
 }
 
 export default function AdminMilestonesScreen() {
+  const { isDesktopWeb } = useResponsive();
   const router = useRouter();
   const { colors: COLORS } = useTheme();
   const styles = createStyles(COLORS);
@@ -193,7 +195,14 @@ export default function AdminMilestonesScreen() {
         <FlatList
           data={milestones}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[
+            styles.list,
+            isDesktopWeb && {
+              maxWidth: DESKTOP_CONTENT_MAX_WIDTH,
+              alignSelf: 'center' as const,
+              width: '100%' as const,
+            },
+          ]}
           refreshControl={
             <RefreshControl refreshing={isLoading} onRefresh={fetchMilestones} tintColor={COLORS.primary} />
           }

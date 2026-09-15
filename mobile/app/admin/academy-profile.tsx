@@ -17,8 +17,10 @@ import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { AppCard, AppText } from '@/src/components/design';
 import { useAcademyProfile } from '@/src/hooks/useAcademyProfile';
 import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
+import { useResponsive, DESKTOP_CONTENT_MAX_WIDTH } from '@/src/hooks/useResponsive';
 
 export default function AcademyProfileScreen() {
+  const { isDesktopWeb } = useResponsive();
   const router = useRouter();
   const { t } = useTranslation();
   const { colors: COLORS } = useTheme();
@@ -82,7 +84,14 @@ export default function AcademyProfileScreen() {
         <ActivityIndicator style={{ marginTop: SPACING.xl }} color={COLORS.primary} />
       ) : (
         <ScrollView
-          contentContainerStyle={styles.body}
+          contentContainerStyle={[
+            styles.body,
+            isDesktopWeb && {
+              maxWidth: DESKTOP_CONTENT_MAX_WIDTH,
+              alignSelf: 'center' as const,
+              width: '100%' as const,
+            },
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >

@@ -69,6 +69,20 @@ export const CreateRecordingSchema = z.object({
   surahId: z.coerce.number().int().min(1).max(114).optional(),
 });
 
+// S3-compatible upload flow (POST /api/v1/files/presign + /complete).
+export const FilePresignBodySchema = z.object({
+  fileName: fileNameSchema,
+  contentType: z.string().min(1).max(100),
+  fileSizeBytes: z.number().int().min(0).optional(),
+  kind: z.enum(['recording', 'report', 'certificate', 'upload']).optional(),
+});
+
+export const FileCompleteBodySchema = z.object({
+  storageKey: z.string().min(1).max(1024),
+  // When provided, a Recording row is created atomically with the completed upload.
+  recording: CreateRecordingSchema.optional(),
+});
+
 export const GenerateReportSchema = z.object({
   studentId: uuidSchema,
   summary: z.string().max(2000),

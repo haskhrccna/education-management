@@ -17,10 +17,12 @@ import { RADIUS, SHADOWS, SPACING } from '@/constants/theme';
 import { messagesApi } from '@/src/api/messages';
 import { BottomNav } from '@/src/components/BottomNav';
 import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
+import { useResponsive, DESKTOP_CONTENT_MAX_WIDTH } from '@/src/hooks/useResponsive';
 
 type TargetRole = 'ALL' | 'STUDENT' | 'TEACHER';
 
 export default function BroadcastScreen() {
+  const { isDesktopWeb } = useResponsive();
   const router = useRouter();
   const { t } = useTranslation();
   const { colors: COLORS } = useTheme();
@@ -68,7 +70,10 @@ export default function BroadcastScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.body}
+        contentContainerStyle={[
+          styles.body,
+          isDesktopWeb && { maxWidth: DESKTOP_CONTENT_MAX_WIDTH, alignSelf: 'center' as const, width: '100%' as const },
+        ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >

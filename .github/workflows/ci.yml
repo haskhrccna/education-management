@@ -99,8 +99,32 @@ jobs:
           // a 2.x/3.x/4.x patch, or if RN's codegen drops its old minimatch/glob
           // dependency and can take 5.x directly.
           const MOBILE_TOOLCHAIN_EXCEPTIONS = new Set(['postcss', 'brace-expansion']);
+          // 2026-09-16: npm audit published new high-severity advisories for
+          // build/test-toolchain packages. Each chain below was verified with
+          // `npm ls <pkg>` to route ONLY through the Expo/React Native build
+          // toolchain, the jest/ts-jest test toolchain, or the Prisma CLI —
+          // never through code the API server loads at runtime:
+          //   @expo/metro-config, metro-config, metro-transform-worker,
+          //   image-size, fast-uri   -> mobile/ Expo/metro build toolchain
+          //   js-yaml                 -> server: ts-jest -> babel-plugin-istanbul
+          //                             -> @istanbuljs/load-nyc-config (tests only)
+          //   deepmerge-ts            -> server: prisma CLI -> @prisma/config
+          //                             (migration-time tooling, not @prisma/client)
+          // Re-review this list whenever Expo SDK, Prisma, or jest is upgraded.
+          const TOOLCHAIN_EXCEPTIONS = new Set([
+            ...MOBILE_TOOLCHAIN_EXCEPTIONS,
+            '@expo/metro-config', 'metro-config', 'metro-transform-worker',
+            'image-size', 'fast-uri', 'js-yaml', 'deepmerge-ts',
+            '@expo/cli', '@expo/metro', '@xmldom/xmldom', '@prisma/config',
+            // Top-level aggregates of the same toolchain chains: 'expo'
+            // (fix = SDK 57, breaking major), 'metro' (via image-size +
+            // metro-config) and 'prisma' CLI (via @prisma/config; fix =
+            // 8.x, breaking major). Real fix is the major upgrades —
+            // tracked as separate work, not silently exempted:
+            'expo', 'metro', 'prisma',
+          ]);
           const bad = Object.values(audit.vulnerabilities || {}).filter(
-            (v) => (v.severity === 'high' || v.severity === 'critical') && !MOBILE_TOOLCHAIN_EXCEPTIONS.has(v.name)
+            (v) => (v.severity === 'high' || v.severity === 'critical') && !TOOLCHAIN_EXCEPTIONS.has(v.name)
           );
           if (bad.length) {
             console.error('High/critical vulnerabilities in the server\'s dependency surface:');
@@ -174,3 +198,31 @@ jobs:
 
       - name: E2E testID coverage check
         run: npm run check:testids --workspace=mobile
+
+      - name: Web export smoke (PWA + offline build)
+        run: npm run build:web
+        working-directory: mobile
+        env:
+          EXPO_PUBLIC_API_URL: https://api.placeholder.invalid/api/v1
+
+  consistency:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Frontend/backend URL consistency check
+        env:
+          WEB_API: ${{ vars.EXPO_PUBLIC_API_URL }}
+          CLIENT: ${{ vars.CLIENT_URL }}
+        run: |
+          # The web export bakes EXPO_PUBLIC_API_URL into the bundle; the server
+          # trusts only CLIENT_URL for CORS. If they drift, the deployed site
+          # silently loses the ability to call the API. Fail CI on drift.
+          if [ -z "$WEB_API" ] || [ -z "$CLIENT" ]; then
+            echo "::warning::vars.EXPO_PUBLIC_API_URL and/or vars.CLIENT_URL unset — skipping check."
+            exit 0
+          fi
+          web_origin="$(echo "$WEB_API" | sed -E 's#/api/v1/?$##')"
+          if [ "$web_origin" != "$CLIENT" ]; then
+            echo "::error::EXPO_PUBLIC_API_URL ($WEB_API) != CLIENT_URL ($CLIENT). The deployed web app would call an origin the server CORS does not trust."
+            exit 1
+          fi
+          echo "OK — web API origin matches server CLIENT_URL."

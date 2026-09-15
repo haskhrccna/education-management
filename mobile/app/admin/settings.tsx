@@ -9,8 +9,10 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useAuthStore } from '@/src/auth/store';
 import { BottomNav } from '@/src/components/BottomNav';
 import { useTheme } from '@/src/hooks/useTheme';
+import { useResponsive, DESKTOP_CONTENT_MAX_WIDTH } from '@/src/hooks/useResponsive';
 
 export default function AdminSettingsScreen() {
+  const { isDesktopWeb } = useResponsive();
   const router = useRouter();
   const { i18n } = useTranslation();
   const settings = useSettingsStore();
@@ -64,7 +66,10 @@ export default function AdminSettingsScreen() {
 
       <ScrollView
         style={dynamicStyles.content}
-        contentContainerStyle={dynamicStyles.list}
+        contentContainerStyle={[
+          dynamicStyles.list,
+          isDesktopWeb && { maxWidth: DESKTOP_CONTENT_MAX_WIDTH, alignSelf: 'center' as const, width: '100%' as const },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Theme Selection */}
