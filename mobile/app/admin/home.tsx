@@ -16,6 +16,7 @@ import { AppText } from '@/src/components/AppText';
 import { BottomNav } from '@/src/components/BottomNav';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
+import { useResponsive, DESKTOP_CONTENT_MAX_WIDTH } from '@/src/hooks/useResponsive';
 
 interface User {
   id: string;
@@ -35,6 +36,7 @@ export default function AdminHomeScreen() {
   const logout = useAuthStore((s) => s.logout);
   const { colors: COLORS } = useTheme();
   const styles = createStyles(COLORS);
+  const { isDesktopWeb, gridColumns } = useResponsive();
 
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -118,7 +120,13 @@ export default function AdminHomeScreen() {
     <View style={[styles.screen, { backgroundColor: COLORS.background }]} testID="admin-home.screen">
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACING.lg }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + SPACING.lg },
+          // Desktop web: center the column and let the grid breathe — the
+          // one-pager was designed for a 390px phone, not a 1440px monitor.
+          isDesktopWeb && { maxWidth: DESKTOP_CONTENT_MAX_WIDTH, alignSelf: 'center' as const, width: '100%' as const },
+        ]}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refreshAll} tintColor={COLORS.primary} />}
       >
         <View style={styles.hero}>
@@ -210,13 +218,14 @@ export default function AdminHomeScreen() {
         </View>
 
         <SectionHeader title={t('academySection')} colors={COLORS} />
+        {/* Desktop web gets a multi-column grid; phones keep 2-up. */}
         <View style={styles.academyGrid}>
           {academyCards.map((card, index) => (
             <TouchableOpacity
               key={card.route}
               activeOpacity={0.85}
               accessibilityRole="button"
-              style={styles.academyCard}
+              style={[styles.academyCard, { flexBasis: `${Math.floor(100 / gridColumns) - 2}%` as never }]}
               onPress={() => router.push(card.route as never)}
               testID={`admin-home.academy-card.${index}`}
             >
