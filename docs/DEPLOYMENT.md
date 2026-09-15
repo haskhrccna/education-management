@@ -31,6 +31,15 @@ FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY----
 # Public API URL (required in production for public verify/share images)
 PUBLIC_API_URL=https://api.your-domain.com
 
+# Shared media layer (S3-compatible — MinIO locally, any S3 provider in prod).
+# One bucket serves BOTH the web app and the mobile app.
+STORAGE_ENABLED=1
+STORAGE_ENDPOINT=https://minio.your-domain.com
+STORAGE_ACCESS_KEY=your-access-key
+STORAGE_SECRET_KEY=your-secret-key
+STORAGE_BUCKET=quran-review-media
+STORAGE_PUBLIC_BASE_URL=https://media.your-domain.com
+
 # Workers
 ENABLE_WORKERS=true
 ```
@@ -106,6 +115,44 @@ docker exec education_db pg_dump -U postgres education > backup_$(date +%Y%m%d).
 # Uploads backup
 tar -czf uploads_$(date +%Y%m%d).tar.gz uploads/
 ```
+
+**Managed/automated variant (recommended for production).** The daily
+`pg_dump` above is a starting point, not a strategy. A production deployment
+should additionally:
+
+1. Run `pg_dump` on a schedule (cron / systemd timer / CI nightly job) and
+   push the artifact to off-host storage (S3-compatible bucket, the same
+   MinIO/S3 setup as the media layer — never keep backups only on the DB VM).
+2. If the database is a managed service (RDS, Neon, Supabase, DigitalOcean
+   PG), rely on its point-in-time recovery AND keep one logical `pg_dump`
+   per day for portability.
+3. Test a restore at least once a quarter: restore the latest dump into a
+   throwaway Postgres, run `npx prisma migrate deploy` + the schema-parity
+   check (`packages/server/scripts/verify-migrations.sh`) and a smoke login.
+4. Media files: enable bucket versioning on `STORAGE_BUCKET` so a bad
+   overwrite/delete is recoverable independently of the database. Recordings
+   are the primary student data — they deserve the same backup discipline as
+   the DB.
+5. Keep `JWT_SECRET` and `STORAGE_SECRET_KEY` in a secrets manager or
+   encrypted backup; restoring the database without them is a half-restore.
+
+### 7b. Prometheus metrics scraping
+
+`GET /metrics` exposes Prometheus-format metrics. Add a scrape job for the API
+host (port 4000, path `/metrics`) to your Prometheus instance:
+
+```yaml
+scrape_configs:
+  - job_name: quran-review-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["api.your-domain.com:4000"]
+```
+
+Recommended alert rules (see section 9): error rate > 1%, queue backlog
+> 100, p95 latency > 1s. The metrics endpoint requires no auth by design —
+do NOT expose port 4000 publicly beyond the reverse proxy; scrape over the
+private network.
 
 ### 8. Scaling
 

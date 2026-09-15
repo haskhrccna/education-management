@@ -174,3 +174,31 @@ jobs:
 
       - name: E2E testID coverage check
         run: npm run check:testids --workspace=mobile
+
+      - name: Web export smoke (PWA + offline build)
+        run: npm run build:web
+        working-directory: mobile
+        env:
+          EXPO_PUBLIC_API_URL: https://api.placeholder.invalid/api/v1
+
+  consistency:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Frontend/backend URL consistency check
+        env:
+          WEB_API: ${{ vars.EXPO_PUBLIC_API_URL }}
+          CLIENT: ${{ vars.CLIENT_URL }}
+        run: |
+          # The web export bakes EXPO_PUBLIC_API_URL into the bundle; the server
+          # trusts only CLIENT_URL for CORS. If they drift, the deployed site
+          # silently loses the ability to call the API. Fail CI on drift.
+          if [ -z "$WEB_API" ] || [ -z "$CLIENT" ]; then
+            echo "::warning::vars.EXPO_PUBLIC_API_URL and/or vars.CLIENT_URL unset — skipping check."
+            exit 0
+          fi
+          web_origin="$(echo "$WEB_API" | sed -E 's#/api/v1/?$##')"
+          if [ "$web_origin" != "$CLIENT" ]; then
+            echo "::error::EXPO_PUBLIC_API_URL ($WEB_API) != CLIENT_URL ($CLIENT). The deployed web app would call an origin the server CORS does not trust."
+            exit 1
+          fi
+          echo "OK — web API origin matches server CLIENT_URL."
