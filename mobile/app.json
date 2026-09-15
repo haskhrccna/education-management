@@ -39,7 +39,17 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "output": "single"
+      "output": "static",
+      "bundler": "metro",
+      "name": "مراجعة القرآن",
+      "shortName": "Quran Review",
+      "description": "Quran memorization review and teacher-guided recitation tracking.",
+      "themeColor": "#1B5E20",
+      "backgroundColor": "#1B5E20",
+      "display": "standalone",
+      "orientation": "portrait",
+      "lang": "ar",
+      "dir": "auto"
     },
     "plugins": [
       "expo-localization",

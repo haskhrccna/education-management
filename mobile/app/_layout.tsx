@@ -57,6 +57,27 @@ export default function RootLayout() {
   useEffect(() => {
     i18n.init();
   }, []);
+
+  // PWA: register the offline service worker + add the manifest link tag.
+  // Web-only; a no-op on native builds. Base path from app.json baseUrl so
+  // the scope works on both GitHub Pages project paths and root domains.
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+    const base = (typeof document !== 'undefined' && document.querySelector('base')?.getAttribute('href')) || '/';
+    const scriptUrl = `${base.replace(/\/$/, '')}/sw.js`;
+    const register = async () => {
+      try {
+        const reg = await navigator.serviceWorker.register(scriptUrl, { scope: base });
+        if (__DEV__) console.log('[PWA] service worker registered:', reg.scope);
+      } catch (err) {
+        // Registration failure must never blank the app — offline is a
+        // progressive enhancement, not a hard dependency.
+        console.warn('[PWA] service worker registration failed:', (err as Error)?.message);
+      }
+    };
+    const t = setTimeout(register, 1500); // don't compete with first paint
+    return () => clearTimeout(t);
+  }, []);
   useEffect(() => {
     loadSettings();
   }, []);
