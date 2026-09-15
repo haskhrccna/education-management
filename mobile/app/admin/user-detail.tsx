@@ -18,7 +18,9 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useTheme } from '@/src/hooks/useTheme';
+import { useResponsive, DESKTOP_CONTENT_MAX_WIDTH } from '@/src/hooks/useResponsive';
 export default function UserDetailScreen() {
+  const { isDesktopWeb } = useResponsive();
   const router = useRouter();
   const id = useRequiredParam('id');
   const { t, i18n } = useTranslation();
@@ -159,7 +161,14 @@ export default function UserDetailScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={[
+          styles.list,
+          isDesktopWeb && { maxWidth: DESKTOP_CONTENT_MAX_WIDTH, alignSelf: 'center' as const, width: '100%' as const },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Profile Card */}
         <Animated.View entering={FadeInUp.duration(400)} style={styles.profileCard}>
           <View style={styles.avatar}>

@@ -13,6 +13,7 @@ import { BottomNav } from '@/src/components/BottomNav';
 import { useAuditLogs } from '@/src/hooks/useAuditLogs';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
+import { useResponsive, DESKTOP_CONTENT_MAX_WIDTH } from '@/src/hooks/useResponsive';
 
 interface ActorOption {
   id: string;
@@ -22,6 +23,7 @@ interface ActorOption {
 }
 
 export default function AuditLogsScreen() {
+  const { isDesktopWeb } = useResponsive();
   const { t } = useTranslation();
   // Non-string decisions only (icon direction, Intl locale) — matches the
   // house convention in academy-health.tsx. Deliberately not a local isAr
@@ -220,7 +222,10 @@ export default function AuditLogsScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={s.list}
+        contentContainerStyle={[
+          s.list,
+          isDesktopWeb && { maxWidth: DESKTOP_CONTENT_MAX_WIDTH, alignSelf: 'center' as const, width: '100%' as const },
+        ]}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refresh} tintColor={COLORS.primary} />}
       >
         {error ? (

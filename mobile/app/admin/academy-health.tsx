@@ -21,6 +21,7 @@ import { academyHealthApi, TeacherLoadRow } from '@/src/api/academyHealth';
 import { secureStorage } from '@/src/storage/secureStorage';
 import { useIsRTL } from '@/src/i18n/useIsRTL';
 import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
+import { useResponsive, DESKTOP_CONTENT_MAX_WIDTH } from '@/src/hooks/useResponsive';
 
 interface StatCardProps {
   colors: ThemeColors;
@@ -70,6 +71,7 @@ function fullName(row: Pick<TeacherLoadRow, 'firstName' | 'lastName'>): string {
 }
 
 export default function AcademyHealthScreen() {
+  const { isDesktopWeb } = useResponsive();
   const router = useRouter();
   const { t } = useTranslation();
   const isRTL = useIsRTL();
@@ -140,7 +142,14 @@ export default function AcademyHealthScreen() {
         </View>
       ) : (
         <ScrollView
-          contentContainerStyle={styles.body}
+          contentContainerStyle={[
+            styles.body,
+            isDesktopWeb && {
+              maxWidth: DESKTOP_CONTENT_MAX_WIDTH,
+              alignSelf: 'center' as const,
+              width: '100%' as const,
+            },
+          ]}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={isLoading} onRefresh={() => refetch()} tintColor={COLORS.primary} />

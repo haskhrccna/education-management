@@ -10,6 +10,7 @@ import { RADIUS, SPACING } from '@/constants/theme';
 import { AppCard, AppText, EmptyState, MetricTile, ProgressBar, SectionHeader } from '@/src/components/design';
 import { BottomNav } from '@/src/components/BottomNav';
 import { useTheme } from '@/src/hooks/useTheme';
+import { useResponsive, DESKTOP_CONTENT_MAX_WIDTH } from '@/src/hooks/useResponsive';
 
 function formatPct(value: number): string {
   return `${Math.round(value * 100)}%`;
@@ -20,6 +21,7 @@ function fullName(p: { firstName: string; lastName: string }): string {
 }
 
 export default function AdminAnalyticsScreen() {
+  const { isDesktopWeb } = useResponsive();
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const isRTL = useIsRTL();
@@ -53,7 +55,10 @@ export default function AdminAnalyticsScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.body}
+        contentContainerStyle={[
+          styles.body,
+          isDesktopWeb && { maxWidth: DESKTOP_CONTENT_MAX_WIDTH, alignSelf: 'center' as const, width: '100%' as const },
+        ]}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => fetchAnalytics()} />}
       >
         {error ? (
