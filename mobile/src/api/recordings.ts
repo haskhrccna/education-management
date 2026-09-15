@@ -68,7 +68,11 @@ export const recordingsApi = {
     return res.data;
   },
 
-  // Legacy uri-based helper for callers that don't already have a FormData
+  /**
+   * S3 flow: presign the blob, PUT it straight to S3/MinIO, then call
+   * /files/complete to create the Recording row. Falls back to the legacy
+   * multipart POST when the server has STORAGE_ENABLED off (503 response).
+   */
   upload: async (
     fileUri: string,
     fileName: string,
@@ -77,18 +81,67 @@ export const recordingsApi = {
     page?: number,
     surahId?: number
   ): Promise<Recording> => {
-    const formData = new FormData();
-    formData.append('file', {
-      uri: fileUri,
-      name: fileName,
-      type: contentType,
-    } as unknown as Blob);
-    formData.append('fileName', fileName);
-    formData.append('fileSizeBytes', String(fileSize));
-    formData.append('contentType', contentType);
-    if (page != null) formData.append('page', String(page));
-    if (surahId != null) formData.append('surahId', String(surahId));
-    return recordingsApi.uploadRecording(formData);
+    try {
+      return await recordingsApi.uploadViaS3(fileUri, fileName, fileSize, contentType, page, surahId);
+    } catch (err: unknown) {
+      const status =
+        (err as { response?: { status?: number } })?.response?.status ?? (err as { status?: number })?.status;
+      const message = (err as Error)?.message ?? '';
+      // Only fall back on "server has storage disabled" — not on network/S3 errors.
+      if (status === 503 || message.includes('Object storage is not enabled')) {
+        const formData = new FormData();
+        formData.append('file', { uri: fileUri, name: fileName, type: contentType } as unknown as Blob);
+        formData.append('fileName', fileName);
+        formData.append('fileSizeBytes', String(fileSize));
+        formData.append('contentType', contentType);
+        if (page != null) formData.append('page', String(page));
+        if (surahId != null) formData.append('surahId', String(surahId));
+        return recordingsApi.uploadRecording(formData);
+      }
+      throw err;
+    }
+  },
+
+  uploadViaS3: async (
+    fileUri: string,
+    fileName: string,
+    fileSize: number,
+    contentType: string,
+    page?: number,
+    surahId?: number
+  ): Promise<Recording> => {
+    // 1) Presign
+    const presign = expectStatus(
+      await contractClient.call(mediaContracts.presignUpload, {
+        body: { fileName, contentType, fileSizeBytes: fileSize, kind: 'recording' } as never,
+      }),
+      201
+    );
+    const { storageKey, uploadUrl } = presign.body as { storageKey: string; uploadUrl: string };
+
+    // 2) PUT the blob (fetch handles file:// URIs in RN; web callers pass a blob URL)
+    const fileResp = await fetch(fileUri);
+    const blob = await fileResp.blob();
+    const put = await fetch(uploadUrl, { method: 'PUT', body: blob, headers: { 'Content-Type': contentType } });
+    if (!put.ok) throw new Error(`S3 upload failed (${put.status})`);
+
+    // 3) Complete → create the Recording row
+    const complete = expectStatus(
+      await contractClient.call(mediaContracts.completeUpload, {
+        body: {
+          storageKey,
+          recording: {
+            fileName,
+            fileSizeBytes: fileSize,
+            contentType,
+            ...(page != null ? { page } : {}),
+            ...(surahId != null ? { surahId } : {}),
+          },
+        } as never,
+      }),
+      200
+    );
+    return (complete.body as { recording: Recording }).recording;
   },
 
   reviewRecording: async (id: string, body: ReviewRecordingBody): Promise<Recording> => {
