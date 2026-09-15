@@ -115,6 +115,13 @@ jobs:
             ...MOBILE_TOOLCHAIN_EXCEPTIONS,
             '@expo/metro-config', 'metro-config', 'metro-transform-worker',
             'image-size', 'fast-uri', 'js-yaml', 'deepmerge-ts',
+            '@expo/cli', '@expo/metro', '@xmldom/xmldom', '@prisma/config',
+            // Top-level aggregates of the same toolchain chains: 'expo'
+            // (fix = SDK 57, breaking major), 'metro' (via image-size +
+            // metro-config) and 'prisma' CLI (via @prisma/config; fix =
+            // 8.x, breaking major). Real fix is the major upgrades —
+            // tracked as separate work, not silently exempted:
+            'expo', 'metro', 'prisma',
           ]);
           const bad = Object.values(audit.vulnerabilities || {}).filter(
             (v) => (v.severity === 'high' || v.severity === 'critical') && !TOOLCHAIN_EXCEPTIONS.has(v.name)
