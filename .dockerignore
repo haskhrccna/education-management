@@ -1,0 +1,23 @@
+# Docker build context for packages/server/Dockerfile (context = repo root).
+# The image needs only the root manifests, packages/shared and packages/server;
+# everything else just makes the upload to the build host slower, and a local
+# node_modules would be copied over the one npm installs inside the image.
+node_modules
+**/node_modules
+.git
+.github
+.expo
+**/.expo
+**/dist
+mobile
+docs
+tasks
+scripts
+*.bundle
+*.patch
+*.log
+# Generated/served at runtime, never baked into the image (see DEPLOYMENT.md §12).
+packages/server/mushaf-pages
+packages/server/uploads
+packages/server/reports
+packages/server/certificates
