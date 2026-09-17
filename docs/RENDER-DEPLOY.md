@@ -107,3 +107,4 @@ as above. The app and the site then share one database by construction.
 | `/api/health` returns `degraded` | Redis absent — expected, the queue runs synchronously |
 | Deploy log ends at `mushaf-pages incomplete` | `ALLOW_MISSING_MUSHAF_PAGES` was removed from the environment |
 | Build fails at `npm ci` with `sh: 1: husky: not found` | Fixed in this repo. The root `prepare` script ran husky, which is a root devDependency the image does not install; `prepare` is now tolerant of it being absent |
+| Deploy exits 127 with `sh: <long command>: not found`, then "no open ports detected" | Fixed in this repo. A multi-command start string in the platform's command field is passed to `sh` as a single command name; startup now lives in `packages/server/docker-entrypoint.sh`, which the image runs as its CMD |

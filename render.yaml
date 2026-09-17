@@ -27,10 +27,10 @@ services:
     dockerContext: . # the Dockerfile copies from the monorepo root
     healthCheckPath: /api/health
     autoDeploy: true
-    # Migrations run as part of startup so a fresh database is never served by
-    # an app expecting tables that do not exist. `migrate deploy` only applies
-    # committed migrations — it never generates or resets anything.
-    dockerCommand: sh -c "npx prisma migrate deploy && node dist/server.js"
+    # No dockerCommand on purpose: the image's own entrypoint
+    # (packages/server/docker-entrypoint.sh) runs the migrations and then the
+    # server. A multi-command string here is passed to sh as a single command
+    # name and the container exits 127.
     envVars:
       - key: NODE_ENV
         value: production

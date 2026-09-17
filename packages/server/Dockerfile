@@ -46,8 +46,11 @@ COPY --from=builder /app/node_modules ./node_modules
 ENV MUSHAF_PAGES_DIR=/app/mushaf-pages
 RUN mkdir -p /app/mushaf-pages
 
+# Startup script: migrations, then the server (see the script for why this is
+# not a platform "start command" string).
+COPY packages/server/docker-entrypoint.sh ./
+RUN chmod +x ./docker-entrypoint.sh
+
 EXPOSE 4000
 
-# Start the compiled server. Run `prisma migrate deploy` as a release step
-# before rolling out app containers so multi-instance deploys do not race.
-CMD ["node", "dist/server.js"]
+CMD ["./docker-entrypoint.sh"]
