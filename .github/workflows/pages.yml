@@ -30,6 +30,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Require a production API URL
+        env:
+          WEB_API: ${{ vars.EXPO_PUBLIC_API_URL }}
+        run: |
+          # EXPO_PUBLIC_API_URL is baked into the bundle at build time. When it
+          # is unset the client falls back to http://localhost:4000/api/v1
+          # (mobile/src/api/client.ts) — so the published site quietly ships
+          # pointing at the visitor's own machine and can never reach the
+          # database. Refuse to publish that build.
+          if [ -z "$WEB_API" ]; then
+            echo "::error::Repository variable EXPO_PUBLIC_API_URL is not set. Set it to the deployed API base URL (e.g. https://api.example.com/api/v1) under Settings → Secrets and variables → Actions → Variables. Without it the published site falls back to localhost and cannot reach the database."
+            exit 1
+          fi
+          case "$WEB_API" in
+            https://*) ;;
+            *) echo "::error::EXPO_PUBLIC_API_URL must be an https:// URL (got: $WEB_API). GitHub Pages is served over HTTPS, so a plain-HTTP API is blocked as mixed content."; exit 1 ;;
+          esac
+          echo "Building the web app against $WEB_API"
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 

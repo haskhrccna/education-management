@@ -200,7 +200,7 @@ From `/impeccable critique app/student/gamification.tsx` (24/40). Fixes the rewa
 5. **polish — a11y + i18n**
    - [ ] back button `accessibilityLabel={t('back')}`.
    - [ ] badge date color `textMuted` (2.68:1) → `textSecondary` (4.6:1).
-   - [ ] **Add missing i18n keys (ar+en):** gamification, streak, currentStreak, longestStreak, badgeWall, noBadgesYet, noBadgesYetDesc, leaderboard, leaderboardAll, leaderboardMyTeacher, leaderboardEmpty, leaderboardError, back. (All currently render raw camelCase — Arabic users see English.)
+   - [x] **Add missing i18n keys (ar+en):** gamification, streak, currentStreak, longestStreak, badgeWall, noBadgesYet, noBadgesYetDesc, leaderboard, leaderboardAll, leaderboardMyTeacher, leaderboardEmpty, leaderboardError, back. — DONE (verified 2026-09-17: every key present in both `ar` and `en` in `src/i18n/index.ts`; `npm run check-i18n` reports ar 489 / en 485 with no missing used key).
 
 ## Verify
 - [x] `tsc --noEmit`: 0 new errors (only the same 6 pre-existing mmkv async-read errors; none in PR2's 4 files). All 5 steps done.
@@ -394,8 +394,8 @@ Final commit: `ae53ef9`.
 
 ## Immediate next tasks
 
-- [ ] F4a — Repair `surahs` baseline migration so `prisma migrate reset --force` works on a fresh DB.
-- [ ] F4b — Mushaf asset pipeline: documented one-command populate + production fail-loud guard.
+- [x] F4a — Repair `surahs` baseline migration so `prisma migrate reset --force` works on a fresh DB. — DONE (verified 2026-09-17: all 33 migrations apply cleanly to an empty PostgreSQL 16 database, producing 30 tables with **zero** column drift against `schema.prisma`).
+- [x] F4b — Mushaf asset pipeline: documented one-command populate + production fail-loud guard. — DONE (`src/server.ts` exits 1 in production below 604 pages unless `ALLOW_MISSING_MUSHAF_PAGES=1`; `docs/DEPLOYMENT.md` §12 documents the populate command, and 2026-09-17 added the container path — `MUSHAF_PAGES_DIR` in the Dockerfile + a compose mount, without which the image could not boot).
 - [ ] F1 — Page-level memorization on the real Mushaf (schema + contracts + reader UI + progress surfaces).
 
 ## Horizon schedule
@@ -412,3 +412,44 @@ Final commit: `ae53ef9`.
 - `security-reviewer` agent sign-off on auth/public/admin/offline surfaces.
 - ar + en i18n for every new string.
 - No completion without proof (tests, logs, or diffs).
+
+---
+
+# 2026-09-17 — Health audit + go-live fix pass (DONE)
+
+Full audit of a fresh clone: server/shared/mobile typecheck clean, 331 tests
+green at the time, all 33 migrations apply to an empty database with zero
+drift, hygiene/i18n/route/testID checks green, CI green. The **deployed**
+product was the problem, not the code.
+
+Fixed (each with proof):
+
+- [x] Web app permanently offline. `setupOnlineManager()` ran on web, where
+      NetInfo probes `HEAD /` — a 404 on a Pages project site — so React Query
+      paused every query and mutation. Proof: a login attempt now issues
+      `POST <api>/auth/login`; before, no request left the page.
+- [x] Service worker never registered (`<base href>` that the export does not
+      emit → `/sw.js` → 404). Proof: scope is now `<origin>/education-management/`.
+- [x] Blank `<title>`, no description, `lang="en"` on every exported page.
+      Added `app/+html.tsx` + helmet-empty-title strip. Proof: title, meta and
+      `lang=ar/dir=rtl` assert green in the Pages-emulator smoke.
+- [x] Auth screens missed the desktop-centering pass — the sign-in form spanned
+      a 1280px window. Now capped and centred.
+- [x] Report + certificate PDFs were local-disk only, so every deploy on an
+      ephemeral host orphaned the rows. Now offloaded to the shared bucket when
+      `STORAGE_ENABLED=1`, with legacy rows still served from disk. 13 tests.
+- [x] `prepare-github-pages.js` release guards (no title / no description / no
+      manifest / no sw.js / base-path mismatch fails the build).
+- [x] Pages deploy refuses to publish without `EXPO_PUBLIC_API_URL`; CI fails
+      when only one of `EXPO_PUBLIC_API_URL` / `CLIENT_URL` is set.
+- [x] Pre-commit hook could never run (lint-staged v16 spawns without a shell).
+- [x] Docs drift: README/CLAUDE test counts (131/17 → 344/38) and Express
+      version (5 → 4).
+
+Remaining, and owner-blocked (needs accounts/credentials, not code):
+
+- [ ] Deploy the API + managed Postgres + Redis + S3 bucket, run
+      `prisma migrate deploy`, seed one real admin.
+- [ ] Set repo variables `EXPO_PUBLIC_API_URL` + `CLIENT_URL`, and the same
+      URL in `mobile/eas.json` for the app build.
+- [ ] Privacy policy + terms at public URLs (App Store submission gate).

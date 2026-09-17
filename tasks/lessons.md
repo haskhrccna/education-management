@@ -28,3 +28,43 @@
 - Use Plan Mode for any multi-stage build and keep the plan artifact under `~/.hermes/plans/`.
 - Update `tasks/todo.md` and create `tasks/lessons.md` at the end of each multi-stage delivery.
 - Never commit debug scripts or temporary files; remove them before the final commit.
+
+## Web export (added 2026-09-17)
+
+- React Native libraries that poll the network are not safe to run on web.
+  `@react-native-community/netinfo` probes `HEAD /` on web; on a GitHub Pages
+  *project* site that is a permanent 404, which wedges React Query's
+  `onlineManager` into offline and pauses every query and mutation. Gate
+  NetInfo behind `Platform.OS !== 'web'` and let the browser's own
+  `online`/`offline` events drive it.
+- The Expo web export emits **no** `<base>` tag. Anything that needs the deploy
+  base path must read `process.env.EXPO_BASE_URL` (inlined from app.json
+  `experiments.baseUrl`), never a `<base href>` lookup.
+- Expo's static renderer always emits an empty `<title data-rh="true">` from
+  react-helmet, and browsers honour the FIRST title element — a title set in
+  `+html.tsx` alone is dead on arrival. Strip the empty one at export time and
+  re-assert `document.title` on navigation.
+- A "successful" export proves nothing about the deployed page. Assert the
+  release-critical facts (title, description, manifest, sw.js, base path) in
+  `scripts/prepare-github-pages.js` so the build fails instead of the site.
+- Test a Pages build against a server that 404s the site root and serves under
+  the base path — a plain `python3 -m http.server` at the root hides both the
+  offline wedge and every base-path bug.
+
+## Deployment
+
+- A build-time env var that falls back to `localhost` must be enforced in the
+  workflow, not documented. An unset `EXPO_PUBLIC_API_URL` published a site
+  pointing at the visitor's own machine, and the CI consistency check skipped
+  itself in exactly that case.
+- Files the database references and cannot regenerate (report PDFs,
+  certificates) need object storage before the first real deploy; a render
+  cache (share images) does not.
+- Anything the server refuses to boot without must be in the image or mounted
+  by the compose file — the Mushaf pages were documented but neither.
+
+## Tooling (added 2026-09-17)
+
+- lint-staged v16 spawns commands **without a shell** and appends staged paths
+  to each one: `cd x && y` fails with ENOENT, and `tsc -p` fails with TS5042.
+  Use a function entry in `lint-staged.config.js` for whole-project commands.

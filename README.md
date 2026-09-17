@@ -55,7 +55,7 @@ A full-stack Quran memorization management system for Islamic schools. Students 
 | State | Zustand |
 | i18n | i18next · Arabic (RTL) primary, English secondary |
 | API Client | Axios (typed, in `mobile/src/api/`) |
-| Server | Express 5 · TypeScript |
+| Server | Express 4 · TypeScript |
 | ORM | Prisma 6 · PostgreSQL |
 | Auth | JWT (access + refresh tokens) · bcrypt |
 | Queue | Redis + BullMQ |
@@ -63,7 +63,7 @@ A full-stack Quran memorization management system for Islamic schools. Students 
 | Validation | Zod (`@quran-review/shared`) |
 | Rate Limiting | express-rate-limit (tiered: standard / auth / admin / upload / password-reset) |
 | Security | helmet · cors · sanitize-html (request + response) |
-| Testing | Jest + ts-jest · 131 tests · 17 suites |
+| Testing | Jest + ts-jest · 344 tests · 38 suites |
 | Logging | Pino |
 | Metrics | Prometheus (`/metrics`) |
 

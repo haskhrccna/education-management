@@ -45,7 +45,7 @@ npm start                            # Expo dev server
 | State | Zustand (`src/auth/store`, `src/settings/store`) |
 | i18n | i18next · Arabic RTL primary, English secondary |
 | API client | Axios (`mobile/src/api/client.ts`) |
-| Server | Express 5 · TypeScript |
+| Server | Express 4 · TypeScript |
 | ORM | Prisma 6 · PostgreSQL |
 | Auth | JWT access + refresh tokens · bcrypt |
 | Queue | Redis + BullMQ (graceful no-op if Redis absent) |

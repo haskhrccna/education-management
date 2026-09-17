@@ -28,6 +28,12 @@ services:
       - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY:-minioadmin}
       - STORAGE_BUCKET=${STORAGE_BUCKET:-quran-review-media}
       - STORAGE_PUBLIC_BASE_URL=${STORAGE_PUBLIC_BASE_URL:-}
+      # The 604 Mushaf page images are ~51MB and are NOT in git or in the
+      # image — they are mounted from the host (see DEPLOYMENT.md §12). The
+      # server refuses to start in production without them; set
+      # ALLOW_MISSING_MUSHAF_PAGES=1 to boot consciously without the reader.
+      - MUSHAF_PAGES_DIR=/app/mushaf-pages
+      - ALLOW_MISSING_MUSHAF_PAGES=${ALLOW_MISSING_MUSHAF_PAGES:-}
     depends_on:
       db:
         condition: service_healthy
@@ -39,6 +45,7 @@ services:
       - ./uploads:/app/uploads
       - ./reports:/app/reports
       - ./certificates:/app/certificates
+      - ./mushaf-pages:/app/mushaf-pages
     restart: unless-stopped
 
   db:

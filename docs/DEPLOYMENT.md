@@ -1,5 +1,40 @@
 # Deployment Guide
 
+## Go-live: one database behind both the app and the web site
+
+The mobile app and the web export are the same client. They share a database
+only when both are pointed at the same deployed API. In order:
+
+1. **Deploy the API** (§1–§3 below) — Node service + managed Postgres +
+   Redis + an S3-compatible bucket. Set `CLIENT_URL` to the web site's origin
+   (`https://<user>.github.io` for a Pages project site) or CORS will reject
+   the browser, and `PUBLIC_API_URL` to the API's own public origin.
+2. **Run migrations** against the production database:
+   `npx prisma migrate deploy` (never `db push`).
+3. **Set the two GitHub repository variables** (Settings → Secrets and
+   variables → Actions → *Variables*):
+   - `EXPO_PUBLIC_API_URL` = `https://api.<your-domain>/api/v1`
+   - `CLIENT_URL` = the site origin, matching the server's `CLIENT_URL`
+   The Pages workflow **refuses to publish** without `EXPO_PUBLIC_API_URL`,
+   because an unset value bakes `http://localhost:4000/api/v1` into the
+   bundle and the published site silently talks to the visitor's own machine.
+   CI fails if only one of the two is set.
+4. **Build the mobile app** against the same origin: `mobile/eas.json` →
+   `build.production.env.EXPO_PUBLIC_API_URL`. Same value as step 3.
+5. **Seed one real admin** (not the demo seed) and rotate the documented
+   default passwords.
+6. **Verify**: open the web site, log in, upload a recording, download a
+   report. Then log in as the same user in the app — the data must match.
+
+### Object storage covers every file the database references
+
+`STORAGE_ENABLED=1` (§1) is not optional on an ephemeral host. With it set,
+recitation recordings, report PDFs and completion certificates all live in the
+bucket, so they survive a redeploy; rows created before the bucket existed keep
+being served from local disk. Share images are a render cache and stay local by
+design. Without a bucket, use a persistent volume for `uploads/`, `reports/`
+and `certificates/` — the compose file mounts all three.
+
 ## Production Deployment Checklist
 
 ### 1. Environment Setup
@@ -218,3 +253,9 @@ Env vars:
 - `ALLOW_MISSING_MUSHAF_PAGES=1` — let a production server start with an
   incomplete set (otherwise it refuses to boot, by design — the app must never
   404 the Quran)
+
+In a container the images are **not** in the image: `Dockerfile` sets
+`MUSHAF_PAGES_DIR=/app/mushaf-pages` and `docker-compose.yml` mounts
+`./mushaf-pages` there. On a managed host, attach a persistent volume at that
+path and populate it once, or set `ALLOW_MISSING_MUSHAF_PAGES=1` to launch
+without the Mushaf reader.

@@ -38,6 +38,14 @@ COPY --from=builder /app/packages/shared ./packages/shared
 # Production node_modules (includes Prisma client + @quran-review/shared symlink)
 COPY --from=builder /app/node_modules ./node_modules
 
+# Mushaf page images (604 WebPs, ~51MB) are not in git and not baked into the
+# image — mount them here (docker-compose does this) or point
+# MUSHAF_PAGES_DIR at a persistent volume. src/server.ts refuses to start in
+# production with an incomplete set, so a container with neither exits
+# immediately unless ALLOW_MISSING_MUSHAF_PAGES=1 is set deliberately.
+ENV MUSHAF_PAGES_DIR=/app/mushaf-pages
+RUN mkdir -p /app/mushaf-pages
+
 EXPOSE 4000
 
 # Start the compiled server. Run `prisma migrate deploy` as a release step

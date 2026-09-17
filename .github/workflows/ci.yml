@@ -216,9 +216,17 @@ jobs:
           # The web export bakes EXPO_PUBLIC_API_URL into the bundle; the server
           # trusts only CLIENT_URL for CORS. If they drift, the deployed site
           # silently loses the ability to call the API. Fail CI on drift.
-          if [ -z "$WEB_API" ] || [ -z "$CLIENT" ]; then
-            echo "::warning::vars.EXPO_PUBLIC_API_URL and/or vars.CLIENT_URL unset — skipping check."
+          # Half-configured is worse than unconfigured: it looks deployed and
+          # fails at the first request. Only the both-unset case (a fresh fork,
+          # or a repo whose API is not deployed yet) is allowed to skip — and
+          # the Pages workflow refuses to publish in that state anyway.
+          if [ -z "$WEB_API" ] && [ -z "$CLIENT" ]; then
+            echo "::warning::vars.EXPO_PUBLIC_API_URL and vars.CLIENT_URL are both unset — no deployment to check. The Pages deploy will fail until EXPO_PUBLIC_API_URL is set."
             exit 0
+          fi
+          if [ -z "$WEB_API" ] || [ -z "$CLIENT" ]; then
+            echo "::error::Only one of EXPO_PUBLIC_API_URL / CLIENT_URL is set. The web app would call an origin the server's CORS does not trust (or vice versa). Set both."
+            exit 1
           fi
           web_origin="$(echo "$WEB_API" | sed -E 's#/api/v1/?$##')"
           if [ "$web_origin" != "$CLIENT" ]; then
