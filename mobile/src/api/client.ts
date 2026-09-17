@@ -30,12 +30,15 @@ export function isApiUnreachableByConfig(): boolean {
 const API_BASE = getApiBase();
 
 if (isApiUnreachableByConfig()) {
+  // Public builds get the plain fact only — a visitor's console is not the
+  // place for this project's build or deployment details. The actionable
+  // version is dev-only.
   // eslint-disable-next-line no-console
-  console.error(
-    '[API] This site was built without EXPO_PUBLIC_API_URL, so it is calling ' +
-      `${API_BASE} — the visitor's own machine. Set the EXPO_PUBLIC_API_URL ` +
-      'repository variable to the deployed API and redeploy.'
-  );
+  console.error('[API] No server is configured for this site, so requests cannot succeed.');
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.error(`[API] EXPO_PUBLIC_API_URL was not set at build time; falling back to ${API_BASE}.`);
+  }
 }
 if (__DEV__) {
   // eslint-disable-next-line no-console

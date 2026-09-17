@@ -141,6 +141,12 @@ if (!finalIndex.includes('rel="manifest"')) {
 if (!fs.existsSync(path.join(distDir, 'sw.js'))) {
   failures.push('dist/sw.js is missing — offline support would 404 at registration.');
 }
+// Without an app/_sitemap route of our own, expo-router generates its
+// developer screen at /_sitemap, which lists every route by SOURCE FILE NAME
+// on the public site. The override must never be deleted by accident.
+if (!fs.existsSync(path.join(__dirname, '..', 'app', '_sitemap.tsx'))) {
+  failures.push("app/_sitemap.tsx is missing — expo-router would publish its developer route listing at /_sitemap.");
+}
 // The service worker is registered at `${baseHref}sw.js`; if the manifest and
 // the export disagree about the base path, registration 404s silently.
 const manifestHref = (finalIndex.match(/rel="manifest"\s+href="([^"]+)"/) || [])[1];
