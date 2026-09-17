@@ -15,8 +15,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { SPACING, RADIUS } from '@/constants/theme';
 import { apiClient } from '@/src/api/client';
 import { useTheme } from '@/src/hooks/useTheme';
+import { useResponsive, AUTH_CONTENT_MAX_WIDTH } from '@/src/hooks/useResponsive';
 
 export default function ForgotPasswordScreen() {
+  const { isWideWeb } = useResponsive();
+  const authWidth = isWideWeb
+    ? { maxWidth: AUTH_CONTENT_MAX_WIDTH, alignSelf: 'center' as const, width: '100%' as const }
+    : null;
   const { t } = useTranslation();
   const { colors: COLORS } = useTheme();
   const [email, setEmail] = useState('');
@@ -78,7 +83,7 @@ export default function ForgotPasswordScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('forgotPassword')}</Text>
       </View>
-      <ScrollView contentContainerStyle={styles.body}>
+      <ScrollView contentContainerStyle={[styles.body, authWidth]}>
         {submitted ? (
           <View style={styles.successCard} testID="forgot-password.success">
             <View style={styles.successRow}>

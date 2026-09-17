@@ -7,6 +7,8 @@ export interface Responsive {
   isTabletUp: boolean;
   /** Number of columns for nav-card grids at this viewport. */
   gridColumns: 2 | 3 | 4;
+  /** Web viewport wide enough that a full-bleed form would look broken (>=600px). */
+  isWideWeb: boolean;
 }
 
 /**
@@ -20,8 +22,16 @@ export function useResponsive(): Responsive {
   const isDesktopWeb = isWeb && width >= 1024;
   const isTabletUp = width >= 768;
   const gridColumns = (isDesktopWeb ? 4 : isTabletUp ? 3 : 2) as 2 | 3 | 4;
-  return { isDesktopWeb, isTabletUp, gridColumns };
+  const isWideWeb = isWeb && width >= 600;
+  return { isDesktopWeb, isTabletUp, gridColumns, isWideWeb };
 }
 
 /** Max content width for desktop-web screens — keep forms + lists readable. */
 export const DESKTOP_CONTENT_MAX_WIDTH = 1120;
+
+/**
+ * Max content width for single-column auth screens. A sign-in form stretched
+ * across a 1280px browser window reads as an unfinished port, not an app —
+ * these screens are the first thing a new academy sees on the web.
+ */
+export const AUTH_CONTENT_MAX_WIDTH = 460;

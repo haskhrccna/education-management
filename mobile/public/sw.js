@@ -10,29 +10,24 @@
  *    on Pages mirrors index.html) so the app opens offline.
  *  - Everything else (POST/PUT/DELETE, auth): passthrough.
  */
-const STATIC_CACHE = 'qr-static-v2';
-const API_CACHE = 'qr-api-v2';
-const SHELL_CACHE = 'qr-shell-v2';
+const STATIC_CACHE = 'qr-static-v3';
+const API_CACHE = 'qr-api-v3';
+const SHELL_CACHE = 'qr-shell-v3';
 
-const CACHEABLE_API = /^\/api\/v1\/(surahs|mushaf\/(page\/\d+|surahs\/\d+))$/;
+const CACHEABLE_API = /\/api\/v1\/(surahs|mushaf\/(page\/\d+|surahs\/\d+))$/;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
       const shell = self.caches.open(SHELL_CACHE);
-      // Precache the app shell + 404 fallback + the stable learning endpoints
-      // EXPO_PUBLIC_API_URL is stamped into index.html at build time; offline
-      // fallback still serves the cached shell when the API is unreachable.
-      await Promise.all([
-        shell.then((c) => c.addAll(['index.html', '404.html'].map((p) => new Request(p, { cache: 'reload' })))),
-        // Surah/ayah metadata is immutable in practice — precache it so the
-        // recitation picker works offline after first login.
-        ...['/api/v1/surahs'].map((p) =>
-          self.caches
-            .open(API_CACHE)
-            .then((c) => c.add(new Request(p, { credentials: 'include' })).catch(() => undefined))
-        ),
-      ]);
+      // Precache the app shell + the 404 fallback so the app opens offline.
+      // Relative Requests resolve against the SW script URL, so they are
+      // correct on both a root domain and a GitHub Pages project path.
+      // The API lives on a DIFFERENT origin in every real deployment, and it
+      // requires a bearer token the service worker does not have — so nothing
+      // is precached from it here; API responses are cached as the app
+      // fetches them (see CACHEABLE_API below).
+      await shell.then((c) => c.addAll(['index.html', '404.html'].map((p) => new Request(p, { cache: 'reload' }))));
       self.skipWaiting();
     })()
   );
@@ -53,21 +48,27 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Only same-origin GET requests are ever cached; pass through everything else.
-  if (req.method !== 'GET' || url.origin !== self.location.origin) return;
+  if (req.method !== 'GET') return;
+
+  // Stable Quran content is cacheable even cross-origin: the API is served
+  // from its own host (api.<domain>), so an origin check would have made this
+  // branch dead code in every real deployment.
+  if (CACHEABLE_API.test(url.pathname)) {
+    event.respondWith(networkFirstCache(req, API_CACHE));
+    return;
+  }
+
+  // Everything else is only ever cached same-origin.
+  if (url.origin !== self.location.origin) return;
 
   if (req.mode === 'navigate') {
     event.respondWith(networkFirstShell(req));
     return;
   }
 
-  if (CACHEABLE_API.test(url.pathname)) {
-    event.respondWith(networkFirstCache(req, API_CACHE));
-    return;
-  }
-
-  // Static assets under the Expo export (/_expo/..., /assets/...)
-  if (url.pathname.startsWith('/_expo/') || /\.(js|css|png|jpg|jpeg|webp|woff2?|ttf|otf|svg|ico)$/.test(url.pathname)) {
+  // Static assets under the Expo export — the path is prefixed with the
+  // deploy base path on a project site, so match anywhere in the path.
+  if (url.pathname.includes('/_expo/') || /\.(js|css|png|jpg|jpeg|webp|woff2?|ttf|otf|svg|ico)$/.test(url.pathname)) {
     event.respondWith(cacheFirst(req, STATIC_CACHE));
     return;
   }

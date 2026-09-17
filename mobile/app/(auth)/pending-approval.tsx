@@ -6,7 +6,12 @@ import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useTheme } from '@/src/hooks/useTheme';
+import { useResponsive, AUTH_CONTENT_MAX_WIDTH } from '@/src/hooks/useResponsive';
 export default function PendingApprovalPage() {
+  const { isWideWeb } = useResponsive();
+  const authWidth = isWideWeb
+    ? { maxWidth: AUTH_CONTENT_MAX_WIDTH, alignSelf: 'center' as const, width: '100%' as const }
+    : null;
   const router = useRouter();
   const { t } = useTranslation();
   const { colors: COLORS } = useTheme();
@@ -14,7 +19,7 @@ export default function PendingApprovalPage() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']} testID="pending-approval.screen">
-      <View style={styles.content}>
+      <View style={[styles.content, authWidth]}>
         <Animated.View entering={FadeInUp.duration(600)} style={styles.card}>
           <View style={styles.iconContainer}>
             <Ionicons name="time-outline" size={64} color={COLORS.primary} />

@@ -18,6 +18,20 @@ import { OfflineBanner } from '@/src/components/OfflineBanner';
 
 setupOnlineManager();
 
+/**
+ * Deployment base path for the web build ('/' on a root domain,
+ * '/education-management/' on GitHub Pages). `EXPO_BASE_URL` is inlined by
+ * the bundler from app.json `experiments.baseUrl`.
+ */
+/** Browser tab / bookmark / share title for the web build. */
+const WEB_DOCUMENT_TITLE = 'مراجعة القرآن · Quran Review';
+
+function getWebBasePath(): string {
+  const raw = (process.env.EXPO_BASE_URL ?? '').trim();
+  if (!raw || raw === '/') return '/';
+  return `/${raw.replace(/^\/+|\/+$/g, '')}/`;
+}
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const { loadSettings, darkMode, isLoaded, language } = useSettingsStore();
@@ -63,7 +77,12 @@ export default function RootLayout() {
   // the scope works on both GitHub Pages project paths and root domains.
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
-    const base = (typeof document !== 'undefined' && document.querySelector('base')?.getAttribute('href')) || '/';
+    // The Expo web export does NOT emit a <base> tag, so reading one here
+    // always fell back to '/' and registered '/sw.js' — a 404 on a GitHub
+    // Pages project site, which silently disabled offline support entirely.
+    // EXPO_BASE_URL is inlined at build time from app.json's
+    // experiments.baseUrl, and is '' for a root-domain deploy.
+    const base = getWebBasePath();
     const scriptUrl = `${base.replace(/\/$/, '')}/sw.js`;
     const register = async () => {
       try {
@@ -78,6 +97,16 @@ export default function RootLayout() {
     const t = setTimeout(register, 1500); // don't compete with first paint
     return () => clearTimeout(t);
   }, []);
+  // Web: keep the browser tab title correct. Expo's static renderer emits an
+  // empty react-helmet <title>, and react-helmet re-applies it on hydration
+  // and on every navigation — so a title set once at build time would be
+  // wiped the moment the app mounts. Re-assert it whenever the route changes.
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    if (document.title !== WEB_DOCUMENT_TITLE) document.title = WEB_DOCUMENT_TITLE;
+    document.documentElement.setAttribute('lang', language === 'ar' ? 'ar' : 'en');
+  }, [segments, language]);
+
   useEffect(() => {
     loadSettings();
   }, []);

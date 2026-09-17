@@ -17,7 +17,12 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useTheme } from '@/src/hooks/useTheme';
+import { useResponsive, AUTH_CONTENT_MAX_WIDTH } from '@/src/hooks/useResponsive';
 export default function RegisterPage() {
+  const { isWideWeb } = useResponsive();
+  const authWidth = isWideWeb
+    ? { maxWidth: AUTH_CONTENT_MAX_WIDTH, alignSelf: 'center' as const, width: '100%' as const }
+    : null;
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const [firstName, setFirstName] = useState('');
@@ -48,7 +53,7 @@ export default function RegisterPage() {
     <SafeAreaView style={styles.container} edges={['top']} testID="register.screen">
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, authWidth]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
