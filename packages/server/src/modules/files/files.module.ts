@@ -59,6 +59,30 @@ const downloadRecordingFile = defineRoute(
 const downloadReportFile = defineRoute(
   mediaContracts.downloadReportFile,
   async ({ params, userId, userRole, req, res }) => {
+    // Object storage first: report PDFs generated while a bucket is
+    // configured live there (they must survive a redeploy). Legacy
+    // local-disk rows fall through unchanged.
+    const blob = await fileService.resolveReportStorageBlob(userId!, userRole, String(params.id));
+    if (blob) {
+      // Resolve the object BEFORE the audit row is written, so a missing
+      // blob 404s rather than logging a download that never happened.
+      await storageService.assertObjectExists(blob.storageKey);
+      if (userRole === 'PARENT') {
+        await auditLog({
+          userId: userId!,
+          action: 'PARENT_DOWNLOAD_REPORT',
+          resourceType: 'REPORT',
+          resourceId: String(params.id),
+          ipAddress: req.ip,
+          userAgent: req.get('user-agent'),
+        });
+      }
+      res.setHeader('Content-Disposition', `attachment; filename="${blob.fileName}"`);
+      res.setHeader('Cache-Control', 'private, no-store');
+      await storageService.streamObject(blob.storageKey, res);
+      return { status: 200 as const, handled: true as const };
+    }
+
     const { filePath, fileName } = await fileService.resolveReportDownload(userId!, userRole, String(params.id));
     if (userRole === 'PARENT') {
       await auditLog({
@@ -79,6 +103,15 @@ const downloadReportFile = defineRoute(
 const downloadCertificateFile = defineRoute(
   mediaContracts.downloadCertificateFile,
   async ({ params, userId, userRole, res }) => {
+    const blob = await fileService.resolveCertificateStorageBlob(userId!, userRole, String(params.id));
+    if (blob) {
+      await storageService.assertObjectExists(blob.storageKey);
+      res.setHeader('Content-Disposition', `attachment; filename="${blob.fileName}"`);
+      res.setHeader('Cache-Control', 'private, no-store');
+      await storageService.streamObject(blob.storageKey, res);
+      return { status: 200 as const, handled: true as const };
+    }
+
     const { filePath, fileName } = await fileService.resolveCertificateDownload(userId!, userRole, String(params.id));
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.sendFile(filePath);

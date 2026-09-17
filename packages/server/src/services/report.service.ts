@@ -4,8 +4,34 @@ import path from 'path';
 import { prisma } from '../prisma/client';
 import { logger } from '../lib/logger';
 import { AppError } from '../middleware/error.middleware';
+import * as storageService from './storage.service';
 
 const REPORTS_DIR = path.join(process.cwd(), 'reports');
+
+/**
+ * Generated PDFs (reports, certificates) are referenced by a DB row for the
+ * life of the account and cannot be re-derived — a report is a point-in-time
+ * snapshot. On an ephemeral host (Render/Railway/Fly/containers) the local
+ * disk is wiped on every deploy, so with object storage configured we hand
+ * the finished PDF to the shared bucket and return its object key as the
+ * stored URL. The key shape mirrors the recordings flow: a raw key (no
+ * leading slash) means "in the bucket", '/reports/...' means legacy disk.
+ * Share images are deliberately NOT migrated: they are a render cache keyed
+ * by verification token and regenerate on demand.
+ */
+async function offloadToObjectStorage(localPath: string, key: string): Promise<string | null> {
+  if (!storageService.isStorageEnabled()) return null;
+  try {
+    await storageService.putFile(localPath, key, 'application/pdf');
+    await fs.promises.unlink(localPath).catch(() => {});
+    return key;
+  } catch (err) {
+    // Never fail the user's action because the bucket is unreachable — the
+    // PDF is already on disk and the local path still works for this host.
+    logger.error({ err, key }, 'PDF upload to object storage failed — keeping the local copy');
+    return null;
+  }
+}
 
 export const ensureReportsDir = async () => {
   try {
@@ -99,7 +125,7 @@ export const generatePDFReport = async (teacherId: string, studentId: string, su
     });
   });
 
-  return pdfUrl;
+  return (await offloadToObjectStorage(docPath, `reports/${fileName}`)) ?? pdfUrl;
 };
 
 /**
@@ -120,8 +146,12 @@ export const createReport = async (teacherId: string, studentId: string, summary
       data: { teacherId, studentId, pdfUrl, generatedAt: new Date(), summary },
     });
   } catch (dbErr) {
-    // DB insert failed — delete the orphaned PDF to avoid disk accumulation
+    // DB insert failed — delete the orphaned PDF so neither the disk nor the
+    // bucket accumulates files no row will ever point at.
     const fileName = pdfUrl.split('/').pop() ?? '';
+    if (!pdfUrl.startsWith('/')) {
+      await storageService.removeObject(pdfUrl).catch(() => {});
+    }
     const filePath = path.join(process.cwd(), 'reports', fileName);
     await fs.promises.unlink(filePath).catch(() => {});
     throw dbErr;
@@ -224,5 +254,5 @@ export const generateCertificatePDF = async (studentId: string): Promise<string>
     });
   });
 
-  return `/certificates/${fileName}`;
+  return (await offloadToObjectStorage(docPath, `certificates/${fileName}`)) ?? `/certificates/${fileName}`;
 };

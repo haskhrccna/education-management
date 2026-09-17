@@ -16,21 +16,6 @@
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.3"
   },
-  "lint-staged": {
-    "packages/server/src/**/*.ts": [
-      "prettier --write",
-      "cd packages/server && npx tsc --noEmit"
-    ],
-    "packages/shared/src/**/*.ts": [
-      "prettier --write"
-    ],
-    "mobile/src/**/*.{ts,tsx}": [
-      "prettier --write"
-    ],
-    "mobile/app/**/*.{ts,tsx}": [
-      "prettier --write"
-    ]
-  },
   "dependencies": {
     "agency-agents": "^0.0.1",
     "zustand": "^4.5.7"

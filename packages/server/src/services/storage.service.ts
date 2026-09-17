@@ -127,6 +127,17 @@ export const completeUpload = async (storageKey: string): Promise<CompleteResult
   return { url, fileSizeBytes: stat.size ?? null };
 };
 
+/**
+ * Upload a file that the server generated locally (report / certificate PDFs).
+ * Used to make generated documents survive a redeploy on an ephemeral host,
+ * where the local-disk adapter loses them.
+ */
+export const putFile = async (localPath: string, storageKey: string, contentType: string): Promise<void> => {
+  if (!ENABLED) throw new AppError(503, 'Object storage is not enabled');
+  await ensureBucket();
+  await getClient().fPutObject(BUCKET, storageKey, localPath, { 'Content-Type': contentType });
+};
+
 /** Delete an object; best-effort (used by the recordings cleanup path later). */
 export const removeObject = async (storageKey: string): Promise<void> => {
   if (!ENABLED) return;

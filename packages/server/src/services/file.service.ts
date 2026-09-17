@@ -81,6 +81,13 @@ export const resolveRecordingStorageBlob = async (
  *  legacy relative paths also lack a leading slash. */
 export const isLikelyS3Url = (url: string): boolean => /^https?:\/\//.test(url) || url.startsWith('recordings/');
 
+/** Same discriminator for server-generated PDFs. A report/certificate row
+ *  written while object storage was configured stores the raw object key
+ *  ('reports/<file>.pdf'); every legacy row stores an absolute-looking local
+ *  path ('/reports/<file>.pdf'), so the leading slash is the tell. */
+export const isObjectStoragePdfUrl = (url: string, prefix: 'reports' | 'certificates'): boolean =>
+  /^https?:\/\//.test(url) || url.startsWith(`${prefix}/`);
+
 /** Strip the scheme/host and leading /<bucket>/ from a storage URL, leaving
  *  the raw object key. Raw keys pass through unchanged. */
 export const s3UrlToKey = (url: string): string => {
@@ -134,4 +141,48 @@ export const resolveCertificateDownload = async (
   if (!exists) throw new AppError(404, 'File not found');
 
   return { filePath: certificateStorage.getLocalPath(fileName), fileName };
+};
+
+/**
+ * Object-storage counterparts of the two resolvers above. Authorization is
+ * identical — these run the SAME checks before revealing anything — and they
+ * return null for legacy local-disk rows so the caller falls back to disk.
+ */
+export const resolveReportStorageBlob = async (
+  userId: string,
+  userRole: string | undefined,
+  reportId: string
+): Promise<{ storageKey: string; fileName: string } | null> => {
+  const report = await prisma.report.findUnique({ where: { id: reportId } });
+  if (!report) throw new AppError(404, 'Report not found');
+
+  const isOwner = report.studentId === userId;
+  const isAdmin = userRole === 'ADMIN';
+  const isTeacher = userRole === 'TEACHER';
+  const isParent = userRole === 'PARENT';
+  if (isParent) {
+    await assertParentHasApprovedLink(userId, report.studentId);
+  } else if (!isOwner && !isAdmin && !isTeacher) {
+    throw new AppError(403, 'Permission denied');
+  }
+  if (isTeacher) await assertTeacherStudentRelationship(userId, report.studentId);
+
+  if (!isObjectStoragePdfUrl(report.pdfUrl, 'reports')) return null;
+  return { storageKey: s3UrlToKey(report.pdfUrl), fileName: report.pdfUrl.split('/').pop() || 'report.pdf' };
+};
+
+export const resolveCertificateStorageBlob = async (
+  userId: string,
+  userRole: string | undefined,
+  certId: string
+): Promise<{ storageKey: string; fileName: string } | null> => {
+  const cert = await prisma.certificate.findUnique({ where: { id: certId } });
+  if (!cert) throw new AppError(404, 'Certificate not found');
+
+  const isOwner = cert.studentId === userId;
+  const isAdmin = userRole === 'ADMIN';
+  if (!isOwner && !isAdmin) throw new AppError(403, 'Permission denied');
+
+  if (!isObjectStoragePdfUrl(cert.pdfUrl, 'certificates')) return null;
+  return { storageKey: s3UrlToKey(cert.pdfUrl), fileName: cert.pdfUrl.split('/').pop() || 'certificate.pdf' };
 };
