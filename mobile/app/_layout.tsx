@@ -35,7 +35,7 @@ function getWebBasePath(): string {
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const { loadSettings, darkMode, isLoaded, language } = useSettingsStore();
-  const { loadSession, user, isLoading: authLoading } = useAuthStore();
+  const { loadSession, user, isLoading: authLoading, isSessionRestored } = useAuthStore();
   const router = useRouter();
   const segments = useSegments();
 
@@ -166,7 +166,12 @@ export default function RootLayout() {
     }
   }, [authLoading, isLoaded, user, segments]);
 
-  if (!isLoaded || !fontsLoaded || authLoading) {
+  // Gate on the ONE-TIME session restore, not on `authLoading`. `authLoading`
+  // is also true during login/register, and swapping the whole tree for a
+  // spinner there unmounted the screen that was awaiting the result — so a
+  // failed sign-in came back to a freshly mounted form with its error state
+  // wiped, showing the user nothing at all.
+  if (!isLoaded || !fontsLoaded || !isSessionRestored) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#1B5E20" />

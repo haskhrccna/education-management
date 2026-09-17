@@ -140,6 +140,8 @@ const arTranslations: Record<string, string> = {
   totalGrades: 'الإجمالي',
   retry: 'إعادة المحاولة',
   back: 'رجوع',
+  loginFailed: 'تعذّر تسجيل الدخول',
+  serverUnavailable: 'تعذّر الوصول إلى الخادم. لم يتم ربط هذا الموقع بخادم بعد — يرجى مراجعة مسؤول الأكاديمية.',
 
   // Gamification
   gamification: 'الإنجازات',
@@ -676,6 +678,9 @@ const enTranslations: Record<string, string> = {
   totalGrades: 'Total',
   retry: 'Retry',
   back: 'Back',
+  loginFailed: 'Sign-in failed',
+  serverUnavailable:
+    'Cannot reach the server. This site is not connected to a backend yet — please contact your academy administrator.',
 
   // Gamification
   gamification: 'Achievements',

@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useTheme } from '@/src/hooks/useTheme';
 import { useResponsive, AUTH_CONTENT_MAX_WIDTH } from '@/src/hooks/useResponsive';
+import { isApiUnreachableByConfig } from '@/src/api/client';
 export default function LoginPage() {
   const { isWideWeb } = useResponsive();
   const authWidth = isWideWeb
@@ -56,13 +57,24 @@ export default function LoginPage() {
     router.replace(`/${normalizedRole}/home`);
   };
 
+  /**
+   * A hosted web build published without EXPO_PUBLIC_API_URL calls the
+   * visitor's own machine, and axios reports that as a bare "Network Error" —
+   * which reads as "your internet is broken" to a parent trying to sign in.
+   * Name the real cause instead.
+   */
+  const describeLoginError = (err: unknown): string => {
+    if (isApiUnreachableByConfig()) return t('serverUnavailable');
+    return err instanceof Error ? err.message : t('loginFailed');
+  };
+
   const handleLogin = async () => {
     setError(null);
     try {
       const user = await login(email.trim(), password);
       routeAfterLogin(user.role);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(describeLoginError(err));
     }
   };
 
@@ -72,7 +84,7 @@ export default function LoginPage() {
       const user = await loginWithBiometrics(isAr);
       routeAfterLogin(user.role);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(describeLoginError(err));
     }
   };
 

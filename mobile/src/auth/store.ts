@@ -19,6 +19,14 @@ interface AuthState {
   user: AuthUser | null;
   token: string | null;
   isLoading: boolean;
+  /**
+   * True once the one-time session restore at app start has finished (with or
+   * without a session). The root layout blocks the UI on THIS, never on
+   * `isLoading` — `isLoading` also covers login/register, and blocking on it
+   * unmounted the whole screen tree mid-login, destroying the local error
+   * state, so a failed sign-in silently showed nothing at all.
+   */
+  isSessionRestored: boolean;
   isBiometricEnabled: boolean;
   biometricLabel: string | null;
   login: (email: string, password: string) => Promise<AuthUser>;
@@ -69,7 +77,7 @@ async function restoreSessionFromStorage(set: (state: Partial<AuthState>) => voi
   const res = await apiClient.get('/users/profile');
   const user = normalizeUser(res.data);
   const currentToken = (await secureStorage.getItem('auth_token')) ?? token;
-  set({ user, token: currentToken, isLoading: false });
+  set({ user, token: currentToken, isLoading: false, isSessionRestored: true });
   return user;
 }
 
@@ -77,6 +85,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: null,
   isLoading: false,
+  isSessionRestored: false,
   isBiometricEnabled: false,
   biometricLabel: null,
 
@@ -167,7 +176,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
       if (status.enabled && status.hasStoredSession) {
         delete apiClient.defaults.headers.common.Authorization;
-        set({ user: null, token: null, isLoading: false });
+        set({ user: null, token: null, isLoading: false, isSessionRestored: true });
         return;
       }
       await restoreSessionFromStorage(set);
@@ -175,7 +184,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       await secureStorage.deleteItem('auth_token');
       await secureStorage.deleteItem('refresh_token');
       delete apiClient.defaults.headers.common.Authorization;
-      set({ user: null, token: null, isLoading: false });
+      set({ user: null, token: null, isLoading: false, isSessionRestored: true });
     }
   },
 
