@@ -1,0 +1,93 @@
+# Render blueprint — the API that both the mobile app and the web site talk to.
+#
+# Create it: Render dashboard → New → Blueprint → connect this repo → Apply.
+# Render reads this file and creates the web service and the database together.
+#
+# Two values are deliberately left for you to fill in after the first deploy
+# (they are marked `sync: false`, so Render prompts for them):
+#   PUBLIC_API_URL  — the service's own https URL, which does not exist until
+#                     Render has created the service. Paste it, then redeploy.
+#   The STORAGE_*   — your S3-compatible bucket (Cloudflare R2, Backblaze B2,
+#                     AWS S3). Until it is set, recordings and generated PDFs
+#                     are written to the container's disk, which Render wipes
+#                     on every deploy. Fine for a first smoke test, not for
+#                     real users.
+#
+# Redis is intentionally absent. The queue degrades to synchronous execution
+# when REDIS_URL is missing (packages/server/src/lib/queue.ts), so the API runs
+# correctly without it — add a Key Value instance later if broadcasts and
+# digests grow heavy.
+services:
+  - type: web
+    name: quran-review-api
+    runtime: docker
+    plan: free # free spins down when idle; the first request after that is slow
+    region: frankfurt # closest Render region to the Gulf
+    dockerfilePath: ./packages/server/Dockerfile
+    dockerContext: . # the Dockerfile copies from the monorepo root
+    healthCheckPath: /api/health
+    autoDeploy: true
+    # Migrations run as part of startup so a fresh database is never served by
+    # an app expecting tables that do not exist. `migrate deploy` only applies
+    # committed migrations — it never generates or resets anything.
+    dockerCommand: sh -c "npx prisma migrate deploy && node dist/server.js"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: quran-review-db
+          property: connectionString
+      # Generated once by Render and never shown to anyone. Changing it later
+      # invalidates every issued access and refresh token.
+      - key: JWT_SECRET
+        generateValue: true
+      # CORS: the browser origin the web app is served from. This must match
+      # the site exactly or every request from the browser is rejected.
+      - key: CLIENT_URL
+        value: https://haskhrccna.github.io
+      # Absolute origin of THIS service, e.g. https://quran-review-api.onrender.com
+      # Used to build absolute og:image URLs for shared certificates.
+      - key: PUBLIC_API_URL
+        sync: false
+      # The 604 Mushaf page images are ~51MB and are not in git or in the
+      # image, and the server refuses to start in production without them
+      # (packages/server/src/server.ts). This lets it boot; the Quran reader
+      # stays unavailable until the pages are served from object storage or a
+      # persistent disk. See docs/DEPLOYMENT.md §12.
+      - key: ALLOW_MISSING_MUSHAF_PAGES
+        value: "1"
+      # Object storage — one bucket serves both the app and the web site.
+      # Set STORAGE_ENABLED to 1 once the rest are filled in.
+      - key: STORAGE_ENABLED
+        sync: false
+      - key: STORAGE_ENDPOINT
+        sync: false
+      - key: STORAGE_ACCESS_KEY
+        sync: false
+      - key: STORAGE_SECRET_KEY
+        sync: false
+      - key: STORAGE_BUCKET
+        value: quran-review-media
+      - key: STORAGE_USE_SSL
+        value: "true"
+      # SMTP — password reset and approval emails silently no-op without it.
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+
+databases:
+  - name: quran-review-db
+    databaseName: quran_review
+    user: quran_review
+    plan: free # Render's free Postgres expires after 30 days — move to Basic before launch
+    region: frankfurt
