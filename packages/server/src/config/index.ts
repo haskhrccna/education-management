@@ -62,7 +62,15 @@ export const config = {
   // og:image (WhatsApp/Facebook crawlers need an absolute URL, and the
   // Host header must not be trusted to build one). Optional in dev, where
   // we fall back to localhost.
-  publicApiUrl: process.env.PUBLIC_API_URL,
+  //
+  // RENDER_EXTERNAL_URL is injected by Render for every web service and holds
+  // exactly this value (https://<service>.onrender.com). Without the fallback
+  // there is a chicken-and-egg on the first deploy: the URL does not exist
+  // until the service is created, the service refuses to boot in production
+  // without it, and the platform reports that refusal as a failed deploy
+  // rather than as missing configuration. An explicit PUBLIC_API_URL still
+  // wins, which is what a custom domain needs.
+  publicApiUrl: process.env.PUBLIC_API_URL || process.env.RENDER_EXTERNAL_URL,
 };
 
 // Validate CLIENT_URL in production to prevent silent CORS failures

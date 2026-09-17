@@ -25,16 +25,15 @@ $7/month each at the time of writing.
 Migrations run automatically at startup (`prisma migrate deploy` in the
 service's start command), so the schema is created on the first boot.
 
-## 2. Point the service at itself
+## 2. Check that it is alive
 
-When the service is live, copy its URL — something like
-`https://quran-review-api.onrender.com`.
+Nothing to configure here: the server reads Render's own `RENDER_EXTERNAL_URL`
+for its public origin, so the first deploy boots on its own. Set
+`PUBLIC_API_URL` explicitly only when the API moves to a custom domain.
 
-1. Service → **Environment** → set `PUBLIC_API_URL` to that URL (no trailing
-   slash) → Save. The service redeploys.
-2. Check it: `https://<your-service>.onrender.com/api/health` should return
-   JSON with `"status": "healthy"` (or `"degraded"` — that just means Redis is
-   absent, which is expected).
+Open `https://<your-service>.onrender.com/api/health`. It should return JSON
+with `"status": "healthy"` — or `"degraded"`, which only means Redis is absent
+and is expected here.
 
 If the service refuses to start, read the log line before the crash. The two
 designed-in refusals are a missing `CLIENT_URL`/`PUBLIC_API_URL` in production

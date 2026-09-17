@@ -48,10 +48,10 @@ services:
       # the site exactly or every request from the browser is rejected.
       - key: CLIENT_URL
         value: https://haskhrccna.github.io
-      # Absolute origin of THIS service, e.g. https://quran-review-api.onrender.com
-      # Used to build absolute og:image URLs for shared certificates.
-      - key: PUBLIC_API_URL
-        sync: false
+      # Absolute origin of THIS service. Left unset on purpose: the server
+      # falls back to RENDER_EXTERNAL_URL, which Render injects with exactly
+      # this value, so the first deploy boots without a manual step. Set it
+      # explicitly only when the API moves to a custom domain.
       # The 604 Mushaf page images are ~51MB and are not in git or in the
       # image, and the server refuses to start in production without them
       # (packages/server/src/server.ts). This lets it boot; the Quran reader
