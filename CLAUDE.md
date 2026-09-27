@@ -60,9 +60,12 @@ packages/
   server/src/
     app.ts              ← Express app, middleware stack, route mounts
     config/index.ts     ← All env vars (DATABASE_URL, JWT, FCM, SMTP)
-    controllers/        ← Thin handlers — delegate everything to services
+    modules/*/*.module.ts ← Route + handler layer, one dir per domain (32 files).
+                            Wired via defineRoute/buildContractRouter (lib/contract-router.ts);
+                            handlers should be thin and delegate to services/
     services/           ← Business logic, DB access
-    routes/             ← Router definitions
+    routes/             ← A handful of auxiliary routers only (docs, metrics, verify) —
+                            NOT the main route layer, that's modules/ above
     middleware/         ← auth, validate, paginate, sanitize, rate-limit
     lib/                ← logger, storage, queue, health, response helpers
     prisma/client.ts    ← Singleton PrismaClient
@@ -94,13 +97,13 @@ mobile/
 
 ## Adding Code
 
-**API flow:** `routes/` → `controllers/` → `services/` → Prisma. Controllers are thin; all logic lives in services.
+**API flow:** `modules/<domain>/<domain>.module.ts` (route + handler, via `defineRoute`/`buildContractRouter`) → `services/` → Prisma. Handlers are thin; all logic lives in services.
 
 **Validation:** use `validate(SomeZodSchema)` middleware from `@quran-review/shared` on all POST/PUT routes. For multipart form routes (file upload), multer **must run before** `validate()` — otherwise `req.body` is empty during validation.
 
 **Errors:** throw `new AppError(statusCode, message)` — never throw raw errors. The centralized `errorHandler` in `app.ts` handles all errors.
 
-**Pagination:** use `paginate()` middleware on list endpoints. Controllers receive `req.pagination` (`{ page, limit, skip }`). Return `paginatedResponse(items, total, page, limit)` from `lib/response.ts`.
+**Pagination:** use `paginate()` middleware on list endpoints. Handlers receive `req.pagination` (`{ page, limit, skip }`). Return `paginatedResponse(items, total, page, limit)` from `lib/response.ts`.
 
 **New shared type or validator:** add to `packages/shared/src/` and re-export from `index.ts`.
 
@@ -160,9 +163,11 @@ Both paths are abstracted through `LocalStorageAdapter` in `lib/storage.ts`.
 
 ## Testing
 
-All server tests live in `src/controllers/__tests__/` and `src/services/__tests__/`. Test setup (`src/__tests__/setup.ts`) globally mocks:
+Server unit tests live in `src/services/__tests__/` and `src/middleware/__tests__/`; supertest integration tests live in `src/__integration__/`. Test setup (`src/__tests__/setup.ts`) globally mocks:
 - `prisma` client via `mockDeep<PrismaClient>()` from `jest-mock-extended`
 - `lib/queue` (all job functions return `null`)
+
+Route modules (`src/modules/*/*.module.ts`) have no dedicated unit tests — they're thin wiring over `defineRoute`/`buildContractRouter` and are exercised via the `__integration__` supertest suite instead. Test the underlying service directly for business-logic coverage.
 
 Run a single test file:
 ```bash
@@ -183,3 +188,13 @@ Emails use the `@quran-review.com` domain (see `packages/server/src/prisma/seed.
 | student@quran-review.com | Student1234! | STUDENT | Omar Demo | ACTIVE |
 
 `ali@quran-review.com` (Ali) has an **ACCEPTED** appointment with `teacher@quran-review.com` (Ahmad) — use this pair for teacher-student messaging and relationship-guard tests. `student@quran-review.com` (Omar) has a **REQUESTED** (not-yet-accepted) appointment with `sarah@quran-review.com` (Sarah). `fatima@quran-review.com` is a PENDING (unapproved) student.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).

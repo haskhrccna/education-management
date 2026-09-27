@@ -39,7 +39,7 @@ export const mmkvStorage = {
       getMMKV().set(key, value);
     } else {
       memCache[key] = value;
-      AsyncStorage.setItem(key, value);
+      AsyncStorage.setItem(key, value).catch(() => {});
     }
   },
   getItem: (key: string): string | null => {
@@ -53,7 +53,7 @@ export const mmkvStorage = {
       getMMKV().remove(key);
     } else {
       delete memCache[key];
-      AsyncStorage.removeItem(key);
+      AsyncStorage.removeItem(key).catch(() => {});
     }
   },
 };
