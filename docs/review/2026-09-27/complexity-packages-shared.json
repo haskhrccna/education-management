@@ -1,0 +1,380 @@
+
+{
+  "files": [
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/api-base.ts",
+      "cyclomatic": 9,
+      "cognitive": 14,
+      "loc": 59,
+      "commentDensity": 0.43283582089552236,
+      "rating": "Moderate",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/client.ts",
+      "cyclomatic": 9,
+      "cognitive": 29,
+      "loc": 64,
+      "commentDensity": 0.027777777777777776,
+      "rating": "Moderate",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/types.ts",
+      "cyclomatic": 6,
+      "cognitive": 4,
+      "loc": 97,
+      "commentDensity": 0.24778761061946902,
+      "rating": "Moderate",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/admin.contracts.ts",
+      "cyclomatic": 5,
+      "cognitive": 10,
+      "loc": 271,
+      "commentDensity": 0.014035087719298246,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/parent-links.contracts.ts",
+      "cyclomatic": 5,
+      "cognitive": 6,
+      "loc": 44,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/media.contracts.ts",
+      "cyclomatic": 3,
+      "cognitive": 6,
+      "loc": 189,
+      "commentDensity": 0.010101010101010102,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/mushaf.contracts.ts",
+      "cyclomatic": 3,
+      "cognitive": 6,
+      "loc": 127,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/public.contracts.ts",
+      "cyclomatic": 3,
+      "cognitive": 3,
+      "loc": 32,
+      "commentDensity": 0.02857142857142857,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/account.contracts.ts",
+      "cyclomatic": 2,
+      "cognitive": 3,
+      "loc": 36,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/auth.contracts.ts",
+      "cyclomatic": 2,
+      "cognitive": 1,
+      "loc": 104,
+      "commentDensity": 0.027522935779816515,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/curriculum-plans.contracts.ts",
+      "cyclomatic": 2,
+      "cognitive": 3,
+      "loc": 61,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/halaqa.contracts.ts",
+      "cyclomatic": 2,
+      "cognitive": 3,
+      "loc": 78,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/ijazahs.contracts.ts",
+      "cyclomatic": 2,
+      "cognitive": 3,
+      "loc": 77,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/scheduling.contracts.ts",
+      "cyclomatic": 2,
+      "cognitive": 1,
+      "loc": 119,
+      "commentDensity": 0.008064516129032258,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/users.contracts.ts",
+      "cyclomatic": 2,
+      "cognitive": 1,
+      "loc": 73,
+      "commentDensity": 0.01282051282051282,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/weak-ayahs.contracts.ts",
+      "cyclomatic": 2,
+      "cognitive": 3,
+      "loc": 39,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/validators/common.ts",
+      "cyclomatic": 2,
+      "cognitive": 2,
+      "loc": 141,
+      "commentDensity": 0.04294478527607362,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/validators/mushaf.ts",
+      "cyclomatic": 2,
+      "cognitive": 2,
+      "loc": 11,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/certificates.contracts.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 43,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/communication.contracts.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 127,
+      "commentDensity": 0.014925373134328358,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/health.contracts.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 23,
+      "commentDensity": 0.037037037037037035,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/learning.contracts.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 144,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/milestones.contracts.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 53,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/progress.contracts.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 173,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/recurring-slots.contracts.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 89,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/registry.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 47,
+      "commentDensity": 0.04081632653061224,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/contracts/roster.contracts.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 25,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/enums/appointmentStatus.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 8,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/enums/gradeType.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 7,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/enums/messageType.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 5,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/enums/roles.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 9,
+      "commentDensity": 0.08333333333333333,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/index.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 44,
+      "commentDensity": 0.08333333333333333,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/types/appointment.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 25,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/types/ayah.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 24,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/types/grade.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 26,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/types/message.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 17,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/types/recording.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 19,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/types/report.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 13,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/types/user.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 30,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/validators/auth.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 11,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    },
+    {
+      "file": "/home/haskhr/Documents/education-management/packages/shared/src/validators/teacherChange.ts",
+      "cyclomatic": 1,
+      "cognitive": 0,
+      "loc": 14,
+      "commentDensity": 0,
+      "rating": "Simple",
+      "flagged": false
+    }
+  ],
+  "summary": {
+    "total": 41,
+    "flagged": 0,
+    "avgComplexity": 2.097560975609756,
+    "threshold": 10
+  }
+}

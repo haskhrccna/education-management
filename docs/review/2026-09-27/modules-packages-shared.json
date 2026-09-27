@@ -1,0 +1,94 @@
+
+{
+  "communities": [
+    {
+      "id": 0,
+      "members": [
+        "src/api-base.ts",
+        "src/contracts/client.ts",
+        "src/contracts/registry.ts",
+        "src/enums/appointmentStatus.ts",
+        "src/enums/gradeType.ts",
+        "src/enums/messageType.ts",
+        "src/index.ts",
+        "src/types/appointment.ts",
+        "src/types/ayah.ts",
+        "src/types/grade.ts",
+        "src/types/message.ts",
+        "src/types/recording.ts",
+        "src/types/report.ts",
+        "src/types/user.ts"
+      ],
+      "cohesion": 0.17582417582417584,
+      "centralNode": "src/index.ts",
+      "suggestedName": "index"
+    },
+    {
+      "id": 1,
+      "members": [
+        "src/contracts/account.contracts.ts",
+        "src/contracts/admin.contracts.ts",
+        "src/contracts/certificates.contracts.ts",
+        "src/contracts/curriculum-plans.contracts.ts",
+        "src/contracts/halaqa.contracts.ts",
+        "src/contracts/health.contracts.ts",
+        "src/contracts/ijazahs.contracts.ts",
+        "src/contracts/learning.contracts.ts",
+        "src/contracts/media.contracts.ts",
+        "src/contracts/milestones.contracts.ts",
+        "src/contracts/parent-links.contracts.ts",
+        "src/contracts/progress.contracts.ts",
+        "src/contracts/public.contracts.ts",
+        "src/contracts/recurring-slots.contracts.ts",
+        "src/contracts/roster.contracts.ts",
+        "src/contracts/types.ts",
+        "src/contracts/weak-ayahs.contracts.ts",
+        "src/enums/roles.ts"
+      ],
+      "cohesion": 0.1895424836601307,
+      "centralNode": "src/contracts/types.ts",
+      "suggestedName": "src"
+    },
+    {
+      "id": 2,
+      "members": [
+        "src/contracts/auth.contracts.ts",
+        "src/contracts/communication.contracts.ts",
+        "src/contracts/users.contracts.ts",
+        "src/validators/auth.ts",
+        "src/validators/common.ts"
+      ],
+      "cohesion": 0.5,
+      "centralNode": "src/validators/common.ts",
+      "suggestedName": "src"
+    },
+    {
+      "id": 3,
+      "members": [
+        "src/contracts/mushaf.contracts.ts",
+        "src/validators/mushaf.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "src/contracts/mushaf.contracts.ts",
+      "suggestedName": "src"
+    },
+    {
+      "id": 4,
+      "members": [
+        "src/contracts/scheduling.contracts.ts",
+        "src/validators/teacherChange.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "src/contracts/scheduling.contracts.ts",
+      "suggestedName": "src"
+    }
+  ],
+  "statistics": {
+    "nodeCount": 41,
+    "edgeCount": 73,
+    "avgDegree": 3.5609756097560976,
+    "maxDegree": 25,
+    "density": 0.08902439024390243,
+    "componentCount": 1
+  }
+}

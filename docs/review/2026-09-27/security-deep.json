@@ -1,0 +1,410 @@
+{
+  "target": ".",
+  "depth": "deep",
+  "type": "all",
+  "summary": {
+    "critical": 0,
+    "high": 32,
+    "medium": 34,
+    "low": 0,
+    "total": 66
+  },
+  "findings": [
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:@expo/cli",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:@expo/config",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:@expo/config-plugins",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:@expo/metro-config",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:@expo/prebuild-config",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:@google-cloud/firestore",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:@google-cloud/storage",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Dependency CVE",
+      "location": "package.json:@prisma/config",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:autocannon",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:decode-uri-component",
+      "description": "decode-uri-component: Denial of ser"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Dependency CVE",
+      "location": "package.json:deepmerge-ts",
+      "description": "DeepmergeTS has stack exhaustion wh"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:expo",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:expo-asset",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:expo-constants",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:expo-dev-client",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:expo-dev-launcher",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:expo-linking",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:expo-manifests",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:expo-notifications",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:expo-router",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:expo-splash-screen",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:express",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:firebase-admin",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:gaxios",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:google-gax",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:hyperid",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Dependency CVE",
+      "location": "package.json:image-size",
+      "description": "image-size: JXL and HEIF parsers al"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:minio",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:morgan",
+      "description": "morgan vulnerable to Log Forging vi"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Dependency CVE",
+      "location": "package.json:postcss",
+      "description": "PostCSS has XSS via Unescaped </sty"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Dependency CVE",
+      "location": "package.json:prisma",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:qs",
+      "description": "qs array-limit bypass via bracket-k"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:query-string",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:retry-request",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:stream-json",
+      "description": "stream-json: pick/ignore/filter/rep"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:teeny-request",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:uuid",
+      "description": "uuid: Missing buffer bounds check i"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "Dependency CVE",
+      "location": "package.json:xcode",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "mobile/e2e/flows/journeys/01-registration-approval.yaml:93",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "mobile/e2e/flows/journeys/01-registration-approval.yaml:127",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "mobile/e2e/flows/journeys/01-registration-approval.yaml:185",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "mobile/src/i18n/index.ts:18",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "mobile/src/i18n/index.ts:19",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "mobile/src/i18n/index.ts:37",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "mobile/src/i18n/index.ts:38",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "mobile/src/i18n/index.ts:39",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "mobile/src/i18n/index.ts:40",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "mobile/src/i18n/index.ts:556",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "mobile/src/i18n/index.ts:557",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "mobile/src/i18n/index.ts:575",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "mobile/src/i18n/index.ts:576",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "mobile/src/i18n/index.ts:577",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "mobile/src/i18n/index.ts:578",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "packages/server/src/__integration__/activation.itest.ts:31",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "packages/server/src/__integration__/activation.itest.ts:32",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "packages/server/src/__integration__/auth-flows.itest.ts:71",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "packages/server/src/__integration__/auth-flows.itest.ts:154",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "packages/server/src/__integration__/auth-flows.itest.ts:160",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "packages/server/src/__integration__/auth-flows.itest.ts:167",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "packages/server/src/__integration__/health.itest.ts:21",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "packages/server/src/__integration__/users-flows.itest.ts:60",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "packages/server/src/__integration__/users-flows.itest.ts:70",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "packages/server/src/__integration__/users-flows.itest.ts:76",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "packages/server/src/middleware/__tests__/sanitize.middleware.test.ts:15",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "React XSS",
+      "location": "mobile/app/+html.tsx:66",
+      "description": "React XSS risk"
+    },
+    {
+      "severity": "HIGH",
+      "type": "SQL Injection",
+      "location": "packages/server/src/lib/test-database.ts:32",
+      "description": "Possible SQL injection"
+    }
+  ]
+}

@@ -1,0 +1,5328 @@
+{
+  "nodes": [
+    {
+      "id": "__integration__/academy-health.itest.ts",
+      "path": "__integration__/academy-health.itest.ts",
+      "name": "academy-health.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "./factory",
+        "./db",
+        "../lib/redis"
+      ],
+      "exports": [],
+      "size": 4999,
+      "complexity": 5
+    },
+    {
+      "id": "__integration__/account.itest.ts",
+      "path": "__integration__/account.itest.ts",
+      "name": "account.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 2431,
+      "complexity": 1
+    },
+    {
+      "id": "__integration__/activation.itest.ts",
+      "path": "__integration__/activation.itest.ts",
+      "name": "activation.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 1649,
+      "complexity": 1
+    },
+    {
+      "id": "__integration__/admin-flows.itest.ts",
+      "path": "__integration__/admin-flows.itest.ts",
+      "name": "admin-flows.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 11296,
+      "complexity": 5
+    },
+    {
+      "id": "__integration__/audit-log.itest.ts",
+      "path": "__integration__/audit-log.itest.ts",
+      "name": "audit-log.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "./factory",
+        "./db",
+        "../prisma/client"
+      ],
+      "exports": [],
+      "size": 7939,
+      "complexity": 9
+    },
+    {
+      "id": "__integration__/auth-flows.itest.ts",
+      "path": "__integration__/auth-flows.itest.ts",
+      "name": "auth-flows.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "crypto",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 7677,
+      "complexity": 1
+    },
+    {
+      "id": "__integration__/authz-matrix.itest.ts",
+      "path": "__integration__/authz-matrix.itest.ts",
+      "name": "authz-matrix.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "../app",
+        "@prisma/client",
+        "./endpoint-manifest",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 2789,
+      "complexity": 15
+    },
+    {
+      "id": "__integration__/communication-flows.itest.ts",
+      "path": "__integration__/communication-flows.itest.ts",
+      "name": "communication-flows.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 11239,
+      "complexity": 9
+    },
+    {
+      "id": "__integration__/completeness.itest.ts",
+      "path": "__integration__/completeness.itest.ts",
+      "name": "completeness.itest",
+      "type": "file",
+      "imports": [
+        "./route-inventory",
+        "./endpoint-manifest"
+      ],
+      "exports": [],
+      "size": 681,
+      "complexity": 1
+    },
+    {
+      "id": "__integration__/contract-router.itest.ts",
+      "path": "__integration__/contract-router.itest.ts",
+      "name": "contract-router.itest",
+      "type": "file",
+      "imports": [
+        "express",
+        "supertest",
+        "zod",
+        "@prisma/client",
+        "@quran-review/shared",
+        "../lib/contract-router",
+        "../middleware/error.middleware",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 7349,
+      "complexity": 4
+    },
+    {
+      "id": "__integration__/curriculum-plans.itest.ts",
+      "path": "__integration__/curriculum-plans.itest.ts",
+      "name": "curriculum-plans.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 6888,
+      "complexity": 2
+    },
+    {
+      "id": "__integration__/db.ts",
+      "path": "__integration__/db.ts",
+      "name": "db",
+      "type": "file",
+      "imports": [
+        "../prisma/client"
+      ],
+      "exports": [],
+      "size": 613,
+      "complexity": 2
+    },
+    {
+      "id": "__integration__/digest.itest.ts",
+      "path": "__integration__/digest.itest.ts",
+      "name": "digest.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db",
+        "../services/digest.service"
+      ],
+      "exports": [],
+      "size": 7546,
+      "complexity": 1
+    },
+    {
+      "id": "__integration__/endpoint-manifest.ts",
+      "path": "__integration__/endpoint-manifest.ts",
+      "name": "endpoint-manifest",
+      "type": "file",
+      "imports": [],
+      "exports": [
+        "HttpMethod",
+        "Access",
+        "EndpointSpec",
+        "endpointManifest"
+      ],
+      "size": 12265,
+      "complexity": 2
+    },
+    {
+      "id": "__integration__/env.ts",
+      "path": "__integration__/env.ts",
+      "name": "env",
+      "type": "file",
+      "imports": [
+        "../lib/test-database"
+      ],
+      "exports": [],
+      "size": 824,
+      "complexity": 1
+    },
+    {
+      "id": "__integration__/envelope.itest.ts",
+      "path": "__integration__/envelope.itest.ts",
+      "name": "envelope.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "../app",
+        "@prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 2656,
+      "complexity": 2
+    },
+    {
+      "id": "__integration__/factory.itest.ts",
+      "path": "__integration__/factory.itest.ts",
+      "name": "factory.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db",
+        "@prisma/client"
+      ],
+      "exports": [],
+      "size": 1987,
+      "complexity": 1
+    },
+    {
+      "id": "__integration__/factory.ts",
+      "path": "__integration__/factory.ts",
+      "name": "factory",
+      "type": "file",
+      "imports": [
+        "bcryptjs",
+        "jsonwebtoken",
+        "@prisma/client",
+        "../prisma/client",
+        "../config"
+      ],
+      "exports": [
+        "TestUser",
+        "tokenFor"
+      ],
+      "size": 1296,
+      "complexity": 4
+    },
+    {
+      "id": "__integration__/global-setup.ts",
+      "path": "__integration__/global-setup.ts",
+      "name": "global-setup",
+      "type": "file",
+      "imports": [
+        "child_process",
+        "path",
+        "../lib/test-database"
+      ],
+      "exports": [
+        "default"
+      ],
+      "size": 691,
+      "complexity": 1
+    },
+    {
+      "id": "__integration__/guardian-consent.itest.ts",
+      "path": "__integration__/guardian-consent.itest.ts",
+      "name": "guardian-consent.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db",
+        "../services/recording.service"
+      ],
+      "exports": [],
+      "size": 10341,
+      "complexity": 8
+    },
+    {
+      "id": "__integration__/halaqa-flows.itest.ts",
+      "path": "__integration__/halaqa-flows.itest.ts",
+      "name": "halaqa-flows.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 6554,
+      "complexity": 3
+    },
+    {
+      "id": "__integration__/halaqa-groups.itest.ts",
+      "path": "__integration__/halaqa-groups.itest.ts",
+      "name": "halaqa-groups.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 5435,
+      "complexity": 4
+    },
+    {
+      "id": "__integration__/halaqa-socket.itest.ts",
+      "path": "__integration__/halaqa-socket.itest.ts",
+      "name": "halaqa-socket.itest",
+      "type": "file",
+      "imports": [
+        "http",
+        "net",
+        "socket.io-client",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "../services/socket.service",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 6648,
+      "complexity": 7
+    },
+    {
+      "id": "__integration__/health.itest.ts",
+      "path": "__integration__/health.itest.ts",
+      "name": "health.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "../app",
+        "./db"
+      ],
+      "exports": [],
+      "size": 769,
+      "complexity": 2
+    },
+    {
+      "id": "__integration__/hifz-engine.itest.ts",
+      "path": "__integration__/hifz-engine.itest.ts",
+      "name": "hifz-engine.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 8379,
+      "complexity": 4
+    },
+    {
+      "id": "__integration__/ijazahs.itest.ts",
+      "path": "__integration__/ijazahs.itest.ts",
+      "name": "ijazahs.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 7732,
+      "complexity": 1
+    },
+    {
+      "id": "__integration__/learning-flows.itest.ts",
+      "path": "__integration__/learning-flows.itest.ts",
+      "name": "learning-flows.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 13085,
+      "complexity": 4
+    },
+    {
+      "id": "__integration__/media-flows.itest.ts",
+      "path": "__integration__/media-flows.itest.ts",
+      "name": "media-flows.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 13014,
+      "complexity": 4
+    },
+    {
+      "id": "__integration__/milestones.itest.ts",
+      "path": "__integration__/milestones.itest.ts",
+      "name": "milestones.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db",
+        "../services/gamification.service"
+      ],
+      "exports": [],
+      "size": 6517,
+      "complexity": 4
+    },
+    {
+      "id": "__integration__/mushaf-flows.itest.ts",
+      "path": "__integration__/mushaf-flows.itest.ts",
+      "name": "mushaf-flows.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 4254,
+      "complexity": 1
+    },
+    {
+      "id": "__integration__/parent-media.itest.ts",
+      "path": "__integration__/parent-media.itest.ts",
+      "name": "parent-media.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 11313,
+      "complexity": 8
+    },
+    {
+      "id": "__integration__/progress-flows.itest.ts",
+      "path": "__integration__/progress-flows.itest.ts",
+      "name": "progress-flows.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 23400,
+      "complexity": 8
+    },
+    {
+      "id": "__integration__/public-surface.itest.ts",
+      "path": "__integration__/public-surface.itest.ts",
+      "name": "public-surface.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 6363,
+      "complexity": 1
+    },
+    {
+      "id": "__integration__/recitation-scoring.itest.ts",
+      "path": "__integration__/recitation-scoring.itest.ts",
+      "name": "recitation-scoring.itest",
+      "type": "file",
+      "imports": [
+        "@prisma/client",
+        "../prisma/client",
+        "./factory",
+        "./db",
+        "../services/recitation-scorer.service"
+      ],
+      "exports": [],
+      "size": 1589,
+      "complexity": 1
+    },
+    {
+      "id": "__integration__/recurring-slots.itest.ts",
+      "path": "__integration__/recurring-slots.itest.ts",
+      "name": "recurring-slots.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db",
+        "../services/recurring-slot.service"
+      ],
+      "exports": [],
+      "size": 9199,
+      "complexity": 2
+    },
+    {
+      "id": "__integration__/registry-parity.itest.ts",
+      "path": "__integration__/registry-parity.itest.ts",
+      "name": "registry-parity.itest",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./endpoint-manifest"
+      ],
+      "exports": [],
+      "size": 816,
+      "complexity": 3
+    },
+    {
+      "id": "__integration__/roster-health.itest.ts",
+      "path": "__integration__/roster-health.itest.ts",
+      "name": "roster-health.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 7956,
+      "complexity": 1
+    },
+    {
+      "id": "__integration__/route-inventory.ts",
+      "path": "__integration__/route-inventory.ts",
+      "name": "route-inventory",
+      "type": "file",
+      "imports": [
+        "fs",
+        "path",
+        "@quran-review/shared"
+      ],
+      "exports": [
+        "DiscoveredEndpoint",
+        "discoverEndpoints"
+      ],
+      "size": 3134,
+      "complexity": 16
+    },
+    {
+      "id": "__integration__/scheduling-flows.itest.ts",
+      "path": "__integration__/scheduling-flows.itest.ts",
+      "name": "scheduling-flows.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 18491,
+      "complexity": 5
+    },
+    {
+      "id": "__integration__/setup-mushaf-assets.ts",
+      "path": "__integration__/setup-mushaf-assets.ts",
+      "name": "setup-mushaf-assets",
+      "type": "file",
+      "imports": [
+        "fs",
+        "os",
+        "path"
+      ],
+      "exports": [],
+      "size": 448,
+      "complexity": 1
+    },
+    {
+      "id": "__integration__/shared-database.itest.ts",
+      "path": "__integration__/shared-database.itest.ts",
+      "name": "shared-database.itest",
+      "type": "file",
+      "imports": [
+        "fs",
+        "path",
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../config",
+        "../prisma/client",
+        "./factory",
+        "./db",
+        "@quran-review/shared",
+        "../lib/test-database"
+      ],
+      "exports": [],
+      "size": 4697,
+      "complexity": 2
+    },
+    {
+      "id": "__integration__/users-flows.itest.ts",
+      "path": "__integration__/users-flows.itest.ts",
+      "name": "users-flows.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 4493,
+      "complexity": 1
+    },
+    {
+      "id": "__integration__/verification.itest.ts",
+      "path": "__integration__/verification.itest.ts",
+      "name": "verification.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 6410,
+      "complexity": 1
+    },
+    {
+      "id": "__integration__/weak-ayahs.itest.ts",
+      "path": "__integration__/weak-ayahs.itest.ts",
+      "name": "weak-ayahs.itest",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "@prisma/client",
+        "../app",
+        "../prisma/client",
+        "./factory",
+        "./db"
+      ],
+      "exports": [],
+      "size": 7702,
+      "complexity": 2
+    },
+    {
+      "id": "__tests__/config-boot.test.ts",
+      "path": "__tests__/config-boot.test.ts",
+      "name": "config-boot.test",
+      "type": "file",
+      "imports": [
+        "../config"
+      ],
+      "exports": [],
+      "size": 2715,
+      "complexity": 2
+    },
+    {
+      "id": "__tests__/contract-client.test.ts",
+      "path": "__tests__/contract-client.test.ts",
+      "name": "contract-client.test",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared"
+      ],
+      "exports": [],
+      "size": 3757,
+      "complexity": 5
+    },
+    {
+      "id": "__tests__/contract-dsl.test.ts",
+      "path": "__tests__/contract-dsl.test.ts",
+      "name": "contract-dsl.test",
+      "type": "file",
+      "imports": [
+        "zod",
+        "@quran-review/shared",
+        "@quran-review/shared"
+      ],
+      "exports": [],
+      "size": 2373,
+      "complexity": 1
+    },
+    {
+      "id": "__tests__/contract-schemas.test.ts",
+      "path": "__tests__/contract-schemas.test.ts",
+      "name": "contract-schemas.test",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared"
+      ],
+      "exports": [],
+      "size": 4796,
+      "complexity": 1
+    },
+    {
+      "id": "__tests__/files-s3.test.ts",
+      "path": "__tests__/files-s3.test.ts",
+      "name": "files-s3.test",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "../services/storage.service",
+        "../services/recording.service",
+        "@quran-review/shared",
+        "express",
+        "../app"
+      ],
+      "exports": [],
+      "size": 4194,
+      "complexity": 2
+    },
+    {
+      "id": "__tests__/mushaf-assets.test.ts",
+      "path": "__tests__/mushaf-assets.test.ts",
+      "name": "mushaf-assets.test",
+      "type": "file",
+      "imports": [
+        "fs",
+        "os",
+        "path",
+        "../lib/mushaf-assets"
+      ],
+      "exports": [],
+      "size": 751,
+      "complexity": 1
+    },
+    {
+      "id": "__tests__/pdf-object-storage.test.ts",
+      "path": "__tests__/pdf-object-storage.test.ts",
+      "name": "pdf-object-storage.test",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "../services/storage.service",
+        "../services/file.service",
+        "../middleware/error.middleware",
+        "../prisma/client",
+        "../app"
+      ],
+      "exports": [],
+      "size": 6816,
+      "complexity": 2
+    },
+    {
+      "id": "__tests__/security.test.ts",
+      "path": "__tests__/security.test.ts",
+      "name": "security.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "supertest",
+        "express",
+        "../prisma/client",
+        "../middleware/auth.middleware",
+        "@quran-review/shared",
+        "../services/appointment.service",
+        "../services/message.service",
+        "../services/recording.service"
+      ],
+      "exports": [],
+      "size": 6000,
+      "complexity": 1
+    },
+    {
+      "id": "__tests__/setup.ts",
+      "path": "__tests__/setup.ts",
+      "name": "setup",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client"
+      ],
+      "exports": [],
+      "size": 373,
+      "complexity": 1
+    },
+    {
+      "id": "__tests__/test-app.ts",
+      "path": "__tests__/test-app.ts",
+      "name": "test-app",
+      "type": "file",
+      "imports": [
+        "supertest",
+        "express",
+        "@quran-review/shared",
+        "../app"
+      ],
+      "exports": [
+        "createTestApp",
+        "testUsers"
+      ],
+      "size": 1454,
+      "complexity": 4
+    },
+    {
+      "id": "app.ts",
+      "path": "app.ts",
+      "name": "app",
+      "type": "file",
+      "imports": [
+        "express",
+        "cors",
+        "helmet",
+        "./routes/docs.routes",
+        "./routes/metrics.routes",
+        "./routes/verify.routes",
+        "./middleware/error.middleware",
+        "./middleware/auth.middleware",
+        "@quran-review/shared",
+        "./middleware/request-id.middleware",
+        "./middleware/timeout.middleware",
+        "./middleware/cache.middleware",
+        "./middleware/sanitize.middleware",
+        "./middleware/rate-limit.middleware",
+        "./lib/logger",
+        "./config",
+        "./modules/health/health.module",
+        "./modules/auth/auth.module",
+        "./modules/users/users.module",
+        "./modules/admin/admin.module",
+        "./modules/appointments/appointments.module",
+        "./modules/attendance/attendance.module",
+        "./modules/teacher-change/teacher-change.module",
+        "./modules/grades/grades.module",
+        "./modules/surahs/surahs.module",
+        "./modules/memorization/memorization.module",
+        "./modules/revisions/revisions.module",
+        "./modules/mushaf/mushaf.module",
+        "./modules/roster/roster.module",
+        "./modules/parent-links/parent-links.module",
+        "./modules/recurring-slots/recurring-slots.module",
+        "./modules/weak-ayahs/weak-ayahs.module",
+        "./modules/curriculum-plans/curriculum-plans.module",
+        "./modules/milestones/milestones.module",
+        "./modules/ijazahs/ijazahs.module",
+        "./modules/certificates/certificates.module",
+        "./modules/account/account.module",
+        "./modules/recordings/recordings.module",
+        "./modules/reports/reports.module",
+        "./modules/files/files.module",
+        "./modules/exports/exports.module",
+        "./modules/messages/messages.module",
+        "./modules/notifications/notifications.module",
+        "./modules/gamification/gamification.module",
+        "./modules/analytics/analytics.module",
+        "./modules/parents/parents.module",
+        "./modules/halaqa/halaqa.module",
+        "./modules/public/public.module",
+        "./lib/response",
+        "./lib/mushaf-assets",
+        "./types/express"
+      ],
+      "exports": [
+        "default"
+      ],
+      "size": 8066,
+      "complexity": 3
+    },
+    {
+      "id": "config/index.ts",
+      "path": "config/index.ts",
+      "name": "index",
+      "type": "file",
+      "imports": [
+        "path",
+        "dotenv",
+        "crypto"
+      ],
+      "exports": [
+        "config"
+      ],
+      "size": 4006,
+      "complexity": 24
+    },
+    {
+      "id": "lib/audit.ts",
+      "path": "lib/audit.ts",
+      "name": "audit",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "./logger"
+      ],
+      "exports": [
+        "AuditLogEntry"
+      ],
+      "size": 1094,
+      "complexity": 3
+    },
+    {
+      "id": "lib/cache.ts",
+      "path": "lib/cache.ts",
+      "name": "cache",
+      "type": "file",
+      "imports": [],
+      "exports": [
+        "userCache",
+        "teacherListCache",
+        "gradeCache",
+        "revisionQueueCache",
+        "revisionQueueKey",
+        "invalidateRevisionQueue"
+      ],
+      "size": 1925,
+      "complexity": 6
+    },
+    {
+      "id": "lib/contract-router.ts",
+      "path": "lib/contract-router.ts",
+      "name": "contract-router",
+      "type": "file",
+      "imports": [
+        "express",
+        "@quran-review/shared",
+        "../middleware/auth.middleware",
+        "../middleware/validate.middleware",
+        "../config",
+        "../types/express"
+      ],
+      "exports": [
+        "HandlerCtx",
+        "ContractHandler",
+        "ContractRoute",
+        "defineRoute",
+        "buildContractRouter"
+      ],
+      "size": 3976,
+      "complexity": 18
+    },
+    {
+      "id": "lib/health.ts",
+      "path": "lib/health.ts",
+      "name": "health",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "./logger"
+      ],
+      "exports": [],
+      "size": 1228,
+      "complexity": 4
+    },
+    {
+      "id": "lib/logger.ts",
+      "path": "lib/logger.ts",
+      "name": "logger",
+      "type": "file",
+      "imports": [
+        "express",
+        "pino",
+        "../config"
+      ],
+      "exports": [
+        "logger",
+        "requestLogger"
+      ],
+      "size": 1732,
+      "complexity": 5
+    },
+    {
+      "id": "lib/mushaf-assets.ts",
+      "path": "lib/mushaf-assets.ts",
+      "name": "mushaf-assets",
+      "type": "file",
+      "imports": [
+        "fs",
+        "path",
+        "../config"
+      ],
+      "exports": [
+        "TOTAL_MUSHAF_PAGES",
+        "getMushafPagesDir",
+        "verifyMushafAssets"
+      ],
+      "size": 609,
+      "complexity": 3
+    },
+    {
+      "id": "lib/queue.ts",
+      "path": "lib/queue.ts",
+      "name": "queue",
+      "type": "file",
+      "imports": [
+        "bullmq",
+        "./logger",
+        "../services/notification.service",
+        "../prisma/client",
+        "../services/email.service",
+        "../services/notification.service",
+        "../services/digest.service",
+        "../services/streak-nudge.service",
+        "../services/recitation-scorer.service",
+        "../services/recurring-slot.service"
+      ],
+      "exports": [
+        "broadcastQueue",
+        "reportQueue",
+        "emailQueue",
+        "notificationQueue",
+        "digestQueue",
+        "streakNudgeQueue",
+        "scoringQueue",
+        "recurringSlotsQueue",
+        "closeQueues"
+      ],
+      "size": 9129,
+      "complexity": 26
+    },
+    {
+      "id": "lib/redis.ts",
+      "path": "lib/redis.ts",
+      "name": "redis",
+      "type": "file",
+      "imports": [
+        "ioredis",
+        "./logger"
+      ],
+      "exports": [
+        "getRedis"
+      ],
+      "size": 2282,
+      "complexity": 12
+    },
+    {
+      "id": "lib/response.ts",
+      "path": "lib/response.ts",
+      "name": "response",
+      "type": "file",
+      "imports": [],
+      "exports": [
+        "ApiResponse",
+        "errorResponse"
+      ],
+      "size": 496,
+      "complexity": 1
+    },
+    {
+      "id": "lib/storage.ts",
+      "path": "lib/storage.ts",
+      "name": "storage",
+      "type": "file",
+      "imports": [
+        "fs/promises",
+        "path",
+        "../middleware/error.middleware"
+      ],
+      "exports": [
+        "StorageAdapter",
+        "uploadStorage",
+        "reportStorage",
+        "certificateStorage",
+        "shareImageStorage"
+      ],
+      "size": 2438,
+      "complexity": 3
+    },
+    {
+      "id": "lib/test-database.ts",
+      "path": "lib/test-database.ts",
+      "name": "test-database",
+      "type": "file",
+      "imports": [],
+      "exports": [
+        "SHARED_TEST_DATABASE_URL",
+        "resolveTestDatabaseUrl",
+        "assertSharedTestDatabase"
+      ],
+      "size": 1754,
+      "complexity": 6
+    },
+    {
+      "id": "lib/transaction.ts",
+      "path": "lib/transaction.ts",
+      "name": "transaction",
+      "type": "file",
+      "imports": [
+        "../prisma/client"
+      ],
+      "exports": [],
+      "size": 209,
+      "complexity": 1
+    },
+    {
+      "id": "metrics/index.ts",
+      "path": "metrics/index.ts",
+      "name": "index",
+      "type": "file",
+      "imports": [
+        "prom-client"
+      ],
+      "exports": [
+        "httpRequestDuration",
+        "httpRequestsTotal",
+        "register"
+      ],
+      "size": 544,
+      "complexity": 1
+    },
+    {
+      "id": "middleware/__tests__/auth.middleware.test.ts",
+      "path": "middleware/__tests__/auth.middleware.test.ts",
+      "name": "auth.middleware.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "supertest",
+        "express",
+        "jsonwebtoken",
+        "../../prisma/client",
+        "../../config",
+        "../auth.middleware",
+        "@quran-review/shared"
+      ],
+      "exports": [],
+      "size": 6882,
+      "complexity": 6
+    },
+    {
+      "id": "middleware/__tests__/cache.middleware.test.ts",
+      "path": "middleware/__tests__/cache.middleware.test.ts",
+      "name": "cache.middleware.test",
+      "type": "file",
+      "imports": [
+        "express",
+        "supertest",
+        "../cache.middleware"
+      ],
+      "exports": [],
+      "size": 1642,
+      "complexity": 1
+    },
+    {
+      "id": "middleware/__tests__/sanitize.middleware.test.ts",
+      "path": "middleware/__tests__/sanitize.middleware.test.ts",
+      "name": "sanitize.middleware.test",
+      "type": "file",
+      "imports": [
+        "express",
+        "supertest",
+        "../sanitize.middleware"
+      ],
+      "exports": [],
+      "size": 2170,
+      "complexity": 1
+    },
+    {
+      "id": "middleware/auth.middleware.ts",
+      "path": "middleware/auth.middleware.ts",
+      "name": "auth.middleware",
+      "type": "file",
+      "imports": [
+        "express",
+        "jsonwebtoken",
+        "../prisma/client",
+        "../config",
+        "@quran-review/shared",
+        "./error.middleware"
+      ],
+      "exports": [
+        "authenticate",
+        "fileAuthenticate",
+        "authorize"
+      ],
+      "size": 2887,
+      "complexity": 21
+    },
+    {
+      "id": "middleware/cache.middleware.ts",
+      "path": "middleware/cache.middleware.ts",
+      "name": "cache.middleware",
+      "type": "file",
+      "imports": [
+        "crypto",
+        "express"
+      ],
+      "exports": [
+        "withContentCache"
+      ],
+      "size": 1671,
+      "complexity": 4
+    },
+    {
+      "id": "middleware/error.middleware.ts",
+      "path": "middleware/error.middleware.ts",
+      "name": "error.middleware",
+      "type": "file",
+      "imports": [
+        "express",
+        "../lib/logger",
+        "../lib/response"
+      ],
+      "exports": [
+        "AppError",
+        "errorHandler"
+      ],
+      "size": 970,
+      "complexity": 3
+    },
+    {
+      "id": "middleware/logging.middleware.ts",
+      "path": "middleware/logging.middleware.ts",
+      "name": "logging.middleware",
+      "type": "file",
+      "imports": [
+        "express"
+      ],
+      "exports": [
+        "requestLogger"
+      ],
+      "size": 382,
+      "complexity": 1
+    },
+    {
+      "id": "middleware/pagination.middleware.ts",
+      "path": "middleware/pagination.middleware.ts",
+      "name": "pagination.middleware",
+      "type": "file",
+      "imports": [
+        "express"
+      ],
+      "exports": [
+        "PaginatedRequest",
+        "paginate",
+        "paginatedResponse"
+      ],
+      "size": 898,
+      "complexity": 3
+    },
+    {
+      "id": "middleware/rate-limit.middleware.ts",
+      "path": "middleware/rate-limit.middleware.ts",
+      "name": "rate-limit.middleware",
+      "type": "file",
+      "imports": [
+        "express-rate-limit"
+      ],
+      "exports": [
+        "standardLimiter",
+        "authLimiter",
+        "adminLimiter",
+        "uploadLimiter",
+        "broadcastLimiter",
+        "passwordResetLimiter"
+      ],
+      "size": 2266,
+      "complexity": 16
+    },
+    {
+      "id": "middleware/request-id.middleware.ts",
+      "path": "middleware/request-id.middleware.ts",
+      "name": "request-id.middleware",
+      "type": "file",
+      "imports": [
+        "express",
+        "crypto"
+      ],
+      "exports": [
+        "requestId"
+      ],
+      "size": 339,
+      "complexity": 2
+    },
+    {
+      "id": "middleware/sanitize.middleware.ts",
+      "path": "middleware/sanitize.middleware.ts",
+      "name": "sanitize.middleware",
+      "type": "file",
+      "imports": [
+        "express"
+      ],
+      "exports": [
+        "sanitizeRequestBody",
+        "sanitizeResponse"
+      ],
+      "size": 1644,
+      "complexity": 13
+    },
+    {
+      "id": "middleware/timeout.middleware.ts",
+      "path": "middleware/timeout.middleware.ts",
+      "name": "timeout.middleware",
+      "type": "file",
+      "imports": [
+        "express",
+        "./error.middleware"
+      ],
+      "exports": [
+        "timeout"
+      ],
+      "size": 609,
+      "complexity": 3
+    },
+    {
+      "id": "middleware/validate.middleware.ts",
+      "path": "middleware/validate.middleware.ts",
+      "name": "validate.middleware",
+      "type": "file",
+      "imports": [
+        "express",
+        "zod",
+        "./error.middleware"
+      ],
+      "exports": [
+        "validate"
+      ],
+      "size": 629,
+      "complexity": 3
+    },
+    {
+      "id": "middleware/zod.middleware.ts",
+      "path": "middleware/zod.middleware.ts",
+      "name": "zod.middleware",
+      "type": "file",
+      "imports": [
+        "zod",
+        "express",
+        "./error.middleware"
+      ],
+      "exports": [
+        "validate"
+      ],
+      "size": 778,
+      "complexity": 3
+    },
+    {
+      "id": "modules/account/account.module.ts",
+      "path": "modules/account/account.module.ts",
+      "name": "account.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/account.service",
+        "../../prisma/client",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "accountRouter"
+      ],
+      "size": 1635,
+      "complexity": 2
+    },
+    {
+      "id": "modules/admin/admin.module.ts",
+      "path": "modules/admin/admin.module.ts",
+      "name": "admin.module",
+      "type": "file",
+      "imports": [
+        "zod",
+        "@quran-review/shared",
+        "../../prisma/client",
+        "../../services/admin.service",
+        "../../services/academy-profile.service",
+        "../../services/academy-health.service",
+        "../../lib/audit",
+        "../../middleware/pagination.middleware",
+        "../../middleware/rate-limit.middleware",
+        "../../lib/contract-router",
+        "../../middleware/error.middleware"
+      ],
+      "exports": [
+        "adminRouter"
+      ],
+      "size": 8734,
+      "complexity": 15
+    },
+    {
+      "id": "modules/analytics/analytics.module.ts",
+      "path": "modules/analytics/analytics.module.ts",
+      "name": "analytics.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/analytics.service",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "analyticsRouter"
+      ],
+      "size": 773,
+      "complexity": 1
+    },
+    {
+      "id": "modules/appointments/appointments.module.ts",
+      "path": "modules/appointments/appointments.module.ts",
+      "name": "appointments.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/appointment.service",
+        "../../services/attendance.service",
+        "../../services/attendance.service",
+        "../../middleware/error.middleware",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "appointmentsRouter"
+      ],
+      "size": 2441,
+      "complexity": 7
+    },
+    {
+      "id": "modules/attendance/attendance.module.ts",
+      "path": "modules/attendance/attendance.module.ts",
+      "name": "attendance.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/attendance.service",
+        "../../middleware/error.middleware",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "attendanceRouter"
+      ],
+      "size": 1005,
+      "complexity": 5
+    },
+    {
+      "id": "modules/auth/auth.module.ts",
+      "path": "modules/auth/auth.module.ts",
+      "name": "auth.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../prisma/client",
+        "../../middleware/error.middleware",
+        "../../services/email.service",
+        "../../lib/logger",
+        "../../middleware/rate-limit.middleware",
+        "../../services/auth.service",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "authRouter"
+      ],
+      "size": 5789,
+      "complexity": 15
+    },
+    {
+      "id": "modules/certificates/certificates.module.ts",
+      "path": "modules/certificates/certificates.module.ts",
+      "name": "certificates.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/verification.service",
+        "../../services/certificate.service",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "certificatesRouter"
+      ],
+      "size": 1067,
+      "complexity": 2
+    },
+    {
+      "id": "modules/curriculum-plans/curriculum-plans.module.ts",
+      "path": "modules/curriculum-plans/curriculum-plans.module.ts",
+      "name": "curriculum-plans.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/curriculum-plan.service",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "curriculumPlansRouter"
+      ],
+      "size": 1493,
+      "complexity": 1
+    },
+    {
+      "id": "modules/exports/exports.module.ts",
+      "path": "modules/exports/exports.module.ts",
+      "name": "exports.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/export.service",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "exportsRouter"
+      ],
+      "size": 1648,
+      "complexity": 1
+    },
+    {
+      "id": "modules/files/files.module.ts",
+      "path": "modules/files/files.module.ts",
+      "name": "files.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/file.service",
+        "../../services/storage.service",
+        "../../services/recording.service",
+        "../../services/academy-health.service",
+        "../../services/academy-health-pdf.service",
+        "../../lib/contract-router",
+        "../../lib/audit",
+        "../../middleware/error.middleware"
+      ],
+      "exports": [
+        "filesRouter"
+      ],
+      "size": 7666,
+      "complexity": 14
+    },
+    {
+      "id": "modules/gamification/gamification.module.ts",
+      "path": "modules/gamification/gamification.module.ts",
+      "name": "gamification.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/gamification.service",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "gamificationRouter"
+      ],
+      "size": 972,
+      "complexity": 4
+    },
+    {
+      "id": "modules/grades/grades.module.ts",
+      "path": "modules/grades/grades.module.ts",
+      "name": "grades.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/grade.service",
+        "../../lib/audit",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "gradesRouter"
+      ],
+      "size": 1465,
+      "complexity": 1
+    },
+    {
+      "id": "modules/halaqa/halaqa.module.ts",
+      "path": "modules/halaqa/halaqa.module.ts",
+      "name": "halaqa.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/halaqa.service",
+        "../../middleware/error.middleware",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "halaqaRouter"
+      ],
+      "size": 3325,
+      "complexity": 13
+    },
+    {
+      "id": "modules/health/health.module.ts",
+      "path": "modules/health/health.module.ts",
+      "name": "health.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../lib/health",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "healthRouter"
+      ],
+      "size": 687,
+      "complexity": 2
+    },
+    {
+      "id": "modules/ijazahs/ijazahs.module.ts",
+      "path": "modules/ijazahs/ijazahs.module.ts",
+      "name": "ijazahs.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/ijazah.service",
+        "../../services/verification.service",
+        "../../lib/audit",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "ijazahsRouter"
+      ],
+      "size": 2084,
+      "complexity": 1
+    },
+    {
+      "id": "modules/memorization/memorization.module.ts",
+      "path": "modules/memorization/memorization.module.ts",
+      "name": "memorization.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/memorization.service",
+        "../../middleware/error.middleware",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "memorizationRouter"
+      ],
+      "size": 1565,
+      "complexity": 5
+    },
+    {
+      "id": "modules/messages/messages.module.ts",
+      "path": "modules/messages/messages.module.ts",
+      "name": "messages.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/message.service",
+        "../../middleware/pagination.middleware",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "messagesRouter"
+      ],
+      "size": 1874,
+      "complexity": 4
+    },
+    {
+      "id": "modules/milestones/milestones.module.ts",
+      "path": "modules/milestones/milestones.module.ts",
+      "name": "milestones.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/milestone.service",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "milestonesRouter"
+      ],
+      "size": 831,
+      "complexity": 1
+    },
+    {
+      "id": "modules/mushaf/mushaf.module.ts",
+      "path": "modules/mushaf/mushaf.module.ts",
+      "name": "mushaf.module",
+      "type": "file",
+      "imports": [
+        "zod",
+        "@quran-review/shared",
+        "../../services/mushaf.service",
+        "../../services/page-memorization.service",
+        "../../services/revision-queue.service",
+        "../../middleware/error.middleware",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "mushafRouter"
+      ],
+      "size": 3689,
+      "complexity": 5
+    },
+    {
+      "id": "modules/notifications/notifications.module.ts",
+      "path": "modules/notifications/notifications.module.ts",
+      "name": "notifications.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/notification.service",
+        "../../middleware/error.middleware",
+        "../../middleware/pagination.middleware",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "notificationsRouter"
+      ],
+      "size": 2038,
+      "complexity": 5
+    },
+    {
+      "id": "modules/parent-links/parent-links.module.ts",
+      "path": "modules/parent-links/parent-links.module.ts",
+      "name": "parent-links.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/digest.service",
+        "../../services/guardian-consent.service",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "parentLinksRouter"
+      ],
+      "size": 1079,
+      "complexity": 1
+    },
+    {
+      "id": "modules/parents/parents.module.ts",
+      "path": "modules/parents/parents.module.ts",
+      "name": "parents.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/parent.service",
+        "../../middleware/error.middleware",
+        "../../lib/contract-router",
+        "../../lib/audit"
+      ],
+      "exports": [
+        "parentsRouter"
+      ],
+      "size": 3924,
+      "complexity": 15
+    },
+    {
+      "id": "modules/public/public.module.ts",
+      "path": "modules/public/public.module.ts",
+      "name": "public.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/academy-profile.service",
+        "../../services/share-image.service",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "publicRouter"
+      ],
+      "size": 1026,
+      "complexity": 1
+    },
+    {
+      "id": "modules/recordings/recordings.module.ts",
+      "path": "modules/recordings/recordings.module.ts",
+      "name": "recordings.module",
+      "type": "file",
+      "imports": [
+        "express",
+        "multer",
+        "path",
+        "@quran-review/shared",
+        "../../services/recording.service",
+        "../../middleware/error.middleware",
+        "../../middleware/pagination.middleware",
+        "../../lib/audit",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "recordingsRouter"
+      ],
+      "size": 4419,
+      "complexity": 13
+    },
+    {
+      "id": "modules/recurring-slots/recurring-slots.module.ts",
+      "path": "modules/recurring-slots/recurring-slots.module.ts",
+      "name": "recurring-slots.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/recurring-slot.service",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "recurringSlotsRouter"
+      ],
+      "size": 1603,
+      "complexity": 1
+    },
+    {
+      "id": "modules/reports/reports.module.ts",
+      "path": "modules/reports/reports.module.ts",
+      "name": "reports.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/report.service",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "reportsRouter"
+      ],
+      "size": 779,
+      "complexity": 1
+    },
+    {
+      "id": "modules/revisions/revisions.module.ts",
+      "path": "modules/revisions/revisions.module.ts",
+      "name": "revisions.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/revision.service",
+        "../../services/revision.service",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "revisionsRouter"
+      ],
+      "size": 2627,
+      "complexity": 11
+    },
+    {
+      "id": "modules/roster/roster.module.ts",
+      "path": "modules/roster/roster.module.ts",
+      "name": "roster.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/roster.service",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "rosterRouter"
+      ],
+      "size": 509,
+      "complexity": 1
+    },
+    {
+      "id": "modules/surahs/surahs.module.ts",
+      "path": "modules/surahs/surahs.module.ts",
+      "name": "surahs.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/memorization.service",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "surahsRouter"
+      ],
+      "size": 496,
+      "complexity": 1
+    },
+    {
+      "id": "modules/teacher-change/teacher-change.module.ts",
+      "path": "modules/teacher-change/teacher-change.module.ts",
+      "name": "teacher-change.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/teacherChange.service",
+        "../../lib/contract-router",
+        "../../lib/audit"
+      ],
+      "exports": [
+        "teacherChangeRouter"
+      ],
+      "size": 1786,
+      "complexity": 3
+    },
+    {
+      "id": "modules/users/users.module.ts",
+      "path": "modules/users/users.module.ts",
+      "name": "users.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../prisma/client",
+        "../../middleware/error.middleware",
+        "../../services/auth.service",
+        "../../lib/logger",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "usersRouter"
+      ],
+      "size": 3359,
+      "complexity": 6
+    },
+    {
+      "id": "modules/weak-ayahs/weak-ayahs.module.ts",
+      "path": "modules/weak-ayahs/weak-ayahs.module.ts",
+      "name": "weak-ayahs.module",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "../../services/weak-ayah.service",
+        "../../lib/contract-router"
+      ],
+      "exports": [
+        "weakAyahsRouter"
+      ],
+      "size": 835,
+      "complexity": 1
+    },
+    {
+      "id": "prisma/audit.middleware.ts",
+      "path": "prisma/audit.middleware.ts",
+      "name": "audit.middleware",
+      "type": "file",
+      "imports": [
+        "@prisma/client",
+        "../lib/logger"
+      ],
+      "exports": [
+        "auditExtension"
+      ],
+      "size": 3424,
+      "complexity": 23
+    },
+    {
+      "id": "prisma/client.ts",
+      "path": "prisma/client.ts",
+      "name": "client",
+      "type": "file",
+      "imports": [
+        "@prisma/client",
+        "./audit.middleware"
+      ],
+      "exports": [
+        "prisma"
+      ],
+      "size": 563,
+      "complexity": 4
+    },
+    {
+      "id": "prisma/import-ayahs.ts",
+      "path": "prisma/import-ayahs.ts",
+      "name": "import-ayahs",
+      "type": "file",
+      "imports": [
+        "@prisma/client"
+      ],
+      "exports": [],
+      "size": 4417,
+      "complexity": 17
+    },
+    {
+      "id": "prisma/seed-e2e.ts",
+      "path": "prisma/seed-e2e.ts",
+      "name": "seed-e2e",
+      "type": "file",
+      "imports": [
+        "@prisma/client",
+        "bcryptjs",
+        "./seed"
+      ],
+      "exports": [],
+      "size": 5975,
+      "complexity": 6
+    },
+    {
+      "id": "prisma/seed.ts",
+      "path": "prisma/seed.ts",
+      "name": "seed",
+      "type": "file",
+      "imports": [
+        "@prisma/client",
+        "bcryptjs",
+        "./import-ayahs"
+      ],
+      "exports": [],
+      "size": 19187,
+      "complexity": 17
+    },
+    {
+      "id": "routes/docs.routes.ts",
+      "path": "routes/docs.routes.ts",
+      "name": "docs.routes",
+      "type": "file",
+      "imports": [
+        "express",
+        "swagger-ui-express",
+        "../openapi.json"
+      ],
+      "exports": [
+        "default"
+      ],
+      "size": 261,
+      "complexity": 1
+    },
+    {
+      "id": "routes/metrics.routes.ts",
+      "path": "routes/metrics.routes.ts",
+      "name": "metrics.routes",
+      "type": "file",
+      "imports": [
+        "express",
+        "../metrics",
+        "../middleware/auth.middleware",
+        "@quran-review/shared"
+      ],
+      "exports": [
+        "default"
+      ],
+      "size": 416,
+      "complexity": 1
+    },
+    {
+      "id": "routes/verify.routes.ts",
+      "path": "routes/verify.routes.ts",
+      "name": "verify.routes",
+      "type": "file",
+      "imports": [
+        "express",
+        "../config",
+        "../services/verification.service",
+        "../services/academy-profile.service"
+      ],
+      "exports": [
+        "default"
+      ],
+      "size": 5951,
+      "complexity": 13
+    },
+    {
+      "id": "server.ts",
+      "path": "server.ts",
+      "name": "server",
+      "type": "file",
+      "imports": [
+        "./app",
+        "./config",
+        "./services/socket.service",
+        "./lib/queue",
+        "./services/fcm.service",
+        "./prisma/client",
+        "./lib/logger",
+        "./lib/mushaf-assets",
+        "http",
+        "./types/express"
+      ],
+      "exports": [
+        "default"
+      ],
+      "size": 2893,
+      "complexity": 9
+    },
+    {
+      "id": "services/__tests__/academy-health-pdf.service.test.ts",
+      "path": "services/__tests__/academy-health-pdf.service.test.ts",
+      "name": "academy-health-pdf.service.test",
+      "type": "file",
+      "imports": [
+        "../academy-health-pdf.service",
+        "../academy-health.service"
+      ],
+      "exports": [],
+      "size": 1030,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/academy-health.service.test.ts",
+      "path": "services/__tests__/academy-health.service.test.ts",
+      "name": "academy-health.service.test",
+      "type": "file",
+      "imports": [
+        "../../prisma/client",
+        "../academy-health.service",
+        "../../lib/redis",
+        "../academy-health.service"
+      ],
+      "exports": [],
+      "size": 6750,
+      "complexity": 14
+    },
+    {
+      "id": "services/__tests__/admin.service.extended.test.ts",
+      "path": "services/__tests__/admin.service.extended.test.ts",
+      "name": "admin.service.extended.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../admin.service"
+      ],
+      "exports": [],
+      "size": 7440,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/admin.service.test.ts",
+      "path": "services/__tests__/admin.service.test.ts",
+      "name": "admin.service.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../admin.service",
+        "../../middleware/error.middleware"
+      ],
+      "exports": [],
+      "size": 7059,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/appointment.service.test.ts",
+      "path": "services/__tests__/appointment.service.test.ts",
+      "name": "appointment.service.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../appointment.service",
+        "../socket.service"
+      ],
+      "exports": [],
+      "size": 5111,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/attendance.service.test.ts",
+      "path": "services/__tests__/attendance.service.test.ts",
+      "name": "attendance.service.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../attendance.service",
+        "../../middleware/error.middleware"
+      ],
+      "exports": [],
+      "size": 7553,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/auth.service.extended.test.ts",
+      "path": "services/__tests__/auth.service.extended.test.ts",
+      "name": "auth.service.extended.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../auth.service",
+        "../email.service"
+      ],
+      "exports": [],
+      "size": 5055,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/auth.service.test.ts",
+      "path": "services/__tests__/auth.service.test.ts",
+      "name": "auth.service.test",
+      "type": "file",
+      "imports": [
+        "jsonwebtoken",
+        "../auth.service",
+        "../../config"
+      ],
+      "exports": [],
+      "size": 2055,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/export.service.test.ts",
+      "path": "services/__tests__/export.service.test.ts",
+      "name": "export.service.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../export.service"
+      ],
+      "exports": [],
+      "size": 3841,
+      "complexity": 2
+    },
+    {
+      "id": "services/__tests__/gamification.test.ts",
+      "path": "services/__tests__/gamification.test.ts",
+      "name": "gamification.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../gamification.service"
+      ],
+      "exports": [],
+      "size": 12954,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/grade.service.test.ts",
+      "path": "services/__tests__/grade.service.test.ts",
+      "name": "grade.service.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../grade.service"
+      ],
+      "exports": [],
+      "size": 7094,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/halaqa.service.test.ts",
+      "path": "services/__tests__/halaqa.service.test.ts",
+      "name": "halaqa.service.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../halaqa.service"
+      ],
+      "exports": [],
+      "size": 5835,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/memorization.service.extended.test.ts",
+      "path": "services/__tests__/memorization.service.extended.test.ts",
+      "name": "memorization.service.extended.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../memorization.service",
+        "../revision.service",
+        "../gamification.service"
+      ],
+      "exports": [],
+      "size": 7130,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/memorization.service.test.ts",
+      "path": "services/__tests__/memorization.service.test.ts",
+      "name": "memorization.service.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../memorization.service"
+      ],
+      "exports": [],
+      "size": 2448,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/message.service.test.ts",
+      "path": "services/__tests__/message.service.test.ts",
+      "name": "message.service.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../message.service"
+      ],
+      "exports": [],
+      "size": 5732,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/mushaf.service.test.ts",
+      "path": "services/__tests__/mushaf.service.test.ts",
+      "name": "mushaf.service.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../mushaf.service"
+      ],
+      "exports": [],
+      "size": 3488,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/notification.service.test.ts",
+      "path": "services/__tests__/notification.service.test.ts",
+      "name": "notification.service.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../notification.service"
+      ],
+      "exports": [],
+      "size": 5394,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/page-memorization.service.test.ts",
+      "path": "services/__tests__/page-memorization.service.test.ts",
+      "name": "page-memorization.service.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../page-memorization.service"
+      ],
+      "exports": [],
+      "size": 4315,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/parent.service.test.ts",
+      "path": "services/__tests__/parent.service.test.ts",
+      "name": "parent.service.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../parent.service"
+      ],
+      "exports": [],
+      "size": 11176,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/recording.service.test.ts",
+      "path": "services/__tests__/recording.service.test.ts",
+      "name": "recording.service.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "fs/promises",
+        "../../prisma/client",
+        "../recording.service",
+        "../recitation-scorer.service",
+        "../../middleware/error.middleware"
+      ],
+      "exports": [],
+      "size": 9577,
+      "complexity": 2
+    },
+    {
+      "id": "services/__tests__/report.service.test.ts",
+      "path": "services/__tests__/report.service.test.ts",
+      "name": "report.service.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "fs",
+        "../../prisma/client",
+        "../storage.service",
+        "../report.service"
+      ],
+      "exports": [],
+      "size": 8522,
+      "complexity": 5
+    },
+    {
+      "id": "services/__tests__/revision-queue.service.test.ts",
+      "path": "services/__tests__/revision-queue.service.test.ts",
+      "name": "revision-queue.service.test",
+      "type": "file",
+      "imports": [
+        "../revision-queue.service"
+      ],
+      "exports": [],
+      "size": 3473,
+      "complexity": 2
+    },
+    {
+      "id": "services/__tests__/revision.service.test.ts",
+      "path": "services/__tests__/revision.service.test.ts",
+      "name": "revision.service.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../revision.service"
+      ],
+      "exports": [],
+      "size": 12161,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/share-image.service.test.ts",
+      "path": "services/__tests__/share-image.service.test.ts",
+      "name": "share-image.service.test",
+      "type": "file",
+      "imports": [
+        "../share-image.service",
+        "../verification.service"
+      ],
+      "exports": [],
+      "size": 1506,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/sm2.test.ts",
+      "path": "services/__tests__/sm2.test.ts",
+      "name": "sm2.test",
+      "type": "file",
+      "imports": [
+        "../revision.service"
+      ],
+      "exports": [],
+      "size": 3498,
+      "complexity": 3
+    },
+    {
+      "id": "services/__tests__/streak-nudge.service.test.ts",
+      "path": "services/__tests__/streak-nudge.service.test.ts",
+      "name": "streak-nudge.service.test",
+      "type": "file",
+      "imports": [
+        "../streak-nudge.service"
+      ],
+      "exports": [],
+      "size": 984,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/teacherChange.service.extended.test.ts",
+      "path": "services/__tests__/teacherChange.service.extended.test.ts",
+      "name": "teacherChange.service.extended.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../teacherChange.service"
+      ],
+      "exports": [],
+      "size": 6702,
+      "complexity": 1
+    },
+    {
+      "id": "services/__tests__/teacherChange.service.test.ts",
+      "path": "services/__tests__/teacherChange.service.test.ts",
+      "name": "teacherChange.service.test",
+      "type": "file",
+      "imports": [
+        "jest-mock-extended",
+        "@prisma/client",
+        "../../prisma/client",
+        "../teacherChange.service"
+      ],
+      "exports": [],
+      "size": 2733,
+      "complexity": 1
+    },
+    {
+      "id": "services/academy-health-pdf.service.ts",
+      "path": "services/academy-health-pdf.service.ts",
+      "name": "academy-health-pdf.service",
+      "type": "file",
+      "imports": [
+        "pdfkit",
+        "./academy-health.service"
+      ],
+      "exports": [],
+      "size": 1972,
+      "complexity": 3
+    },
+    {
+      "id": "services/academy-health.service.ts",
+      "path": "services/academy-health.service.ts",
+      "name": "academy-health.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../lib/redis",
+        "./roster.service"
+      ],
+      "exports": [
+        "AcademyHealthMetrics"
+      ],
+      "size": 6530,
+      "complexity": 18
+    },
+    {
+      "id": "services/academy-profile.service.ts",
+      "path": "services/academy-profile.service.ts",
+      "name": "academy-profile.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "@quran-review/shared"
+      ],
+      "exports": [
+        "DEFAULT_SLUG",
+        "getPublicProfile",
+        "getActiveDefaultProfile",
+        "getAdminProfile",
+        "upsertProfile"
+      ],
+      "size": 1940,
+      "complexity": 9
+    },
+    {
+      "id": "services/account.service.ts",
+      "path": "services/account.service.ts",
+      "name": "account.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "./admin.service"
+      ],
+      "exports": [
+        "exportMyData",
+        "deleteMyAccount"
+      ],
+      "size": 2893,
+      "complexity": 2
+    },
+    {
+      "id": "services/admin.service.ts",
+      "path": "services/admin.service.ts",
+      "name": "admin.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "./auth.service",
+        "../middleware/error.middleware",
+        "./email.service",
+        "./notification.service",
+        "./email.service"
+      ],
+      "exports": [
+        "listUsers",
+        "listUsersPaginated",
+        "createTeacher",
+        "approveStudent",
+        "deactivateUser",
+        "getTeacherProgress",
+        "getStudentProgress",
+        "broadcastMessage",
+        "bulkApproveStudents",
+        "getUserById",
+        "updateUser",
+        "deleteUser",
+        "bulkDeactivateUsers"
+      ],
+      "size": 14074,
+      "complexity": 45
+    },
+    {
+      "id": "services/analytics.service.ts",
+      "path": "services/analytics.service.ts",
+      "name": "analytics.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client"
+      ],
+      "exports": [],
+      "size": 3028,
+      "complexity": 6
+    },
+    {
+      "id": "services/appointment.service.ts",
+      "path": "services/appointment.service.ts",
+      "name": "appointment.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "./notification.service",
+        "./socket.service"
+      ],
+      "exports": [
+        "createAppointment",
+        "getMyAppointments",
+        "manageAppointment"
+      ],
+      "size": 6151,
+      "complexity": 25
+    },
+    {
+      "id": "services/attendance.service.ts",
+      "path": "services/attendance.service.ts",
+      "name": "attendance.service",
+      "type": "file",
+      "imports": [
+        "@prisma/client",
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "./notification.service"
+      ],
+      "exports": [
+        "AttendanceStatusInput",
+        "recordAttendance",
+        "getStudentAttendance"
+      ],
+      "size": 5093,
+      "complexity": 14
+    },
+    {
+      "id": "services/auth.service.ts",
+      "path": "services/auth.service.ts",
+      "name": "auth.service",
+      "type": "file",
+      "imports": [
+        "bcryptjs",
+        "jsonwebtoken",
+        "crypto",
+        "../config",
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "./email.service",
+        "../lib/logger"
+      ],
+      "exports": [
+        "hashPassword",
+        "comparePassword",
+        "generateToken",
+        "verifyToken",
+        "generateRefreshToken",
+        "hashRefreshToken",
+        "verifyRefreshToken",
+        "forgotPassword",
+        "resetPassword"
+      ],
+      "size": 3186,
+      "complexity": 6
+    },
+    {
+      "id": "services/certificate.service.ts",
+      "path": "services/certificate.service.ts",
+      "name": "certificate.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware"
+      ],
+      "exports": [
+        "listCertificates"
+      ],
+      "size": 787,
+      "complexity": 5
+    },
+    {
+      "id": "services/curriculum-plan.service.ts",
+      "path": "services/curriculum-plan.service.ts",
+      "name": "curriculum-plan.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "./gamification.service"
+      ],
+      "exports": [
+        "PlanPace",
+        "CreatePlanItemInput",
+        "createPlan",
+        "getPlan",
+        "listPlans",
+        "checkAndCompletePlans"
+      ],
+      "size": 5061,
+      "complexity": 18
+    },
+    {
+      "id": "services/digest.service.ts",
+      "path": "services/digest.service.ts",
+      "name": "digest.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "./notification.service",
+        "./revision-queue.service",
+        "../lib/logger"
+      ],
+      "exports": [
+        "WeeklyDigestContent",
+        "buildWeeklyDigest",
+        "sendWeeklyDigests",
+        "setDigestOptOut"
+      ],
+      "size": 6325,
+      "complexity": 16
+    },
+    {
+      "id": "services/email-templates.ts",
+      "path": "services/email-templates.ts",
+      "name": "email-templates",
+      "type": "file",
+      "imports": [],
+      "exports": [
+        "templates"
+      ],
+      "size": 5023,
+      "complexity": 15
+    },
+    {
+      "id": "services/email.service.ts",
+      "path": "services/email.service.ts",
+      "name": "email.service",
+      "type": "file",
+      "imports": [
+        "nodemailer",
+        "../config",
+        "../lib/logger",
+        "./email-templates"
+      ],
+      "exports": [
+        "verifyEmailConnection",
+        "sendEmail",
+        "sendWelcomeEmail",
+        "sendAccountApprovedEmail",
+        "sendAppointmentNotification",
+        "sendNewGradeEmail",
+        "sendPasswordChangedEmail",
+        "sendPasswordResetEmail"
+      ],
+      "size": 4827,
+      "complexity": 18
+    },
+    {
+      "id": "services/export.service.ts",
+      "path": "services/export.service.ts",
+      "name": "export.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware"
+      ],
+      "exports": [
+        "exportGradesCsv",
+        "exportUsersCsv",
+        "exportAppointmentsCsv"
+      ],
+      "size": 4520,
+      "complexity": 24
+    },
+    {
+      "id": "services/fcm.service.ts",
+      "path": "services/fcm.service.ts",
+      "name": "fcm.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../lib/logger",
+        "../config",
+        "firebase-admin"
+      ],
+      "exports": [
+        "initFCM",
+        "saveDeviceToken",
+        "sendPushNotification",
+        "sendPushToUser",
+        "sendScheduleNotification"
+      ],
+      "size": 4334,
+      "complexity": 17
+    },
+    {
+      "id": "services/file.service.ts",
+      "path": "services/file.service.ts",
+      "name": "file.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "../lib/storage",
+        "./parent.service"
+      ],
+      "exports": [
+        "ResolvedDownload",
+        "resolveRecordingDownload",
+        "resolveRecordingStorageBlob",
+        "isLikelyS3Url",
+        "isObjectStoragePdfUrl",
+        "s3UrlToKey",
+        "resolveReportDownload",
+        "resolveCertificateDownload",
+        "resolveReportStorageBlob",
+        "resolveCertificateStorageBlob"
+      ],
+      "size": 8191,
+      "complexity": 53
+    },
+    {
+      "id": "services/gamification.service.ts",
+      "path": "services/gamification.service.ts",
+      "name": "gamification.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "./notification.service"
+      ],
+      "exports": [
+        "utcDateString",
+        "StreakOutcome",
+        "classifyStreakUpdate",
+        "recordActivity",
+        "awardBadge",
+        "evaluateMilestones",
+        "getMyGamification",
+        "getLeaderboard"
+      ],
+      "size": 8692,
+      "complexity": 22
+    },
+    {
+      "id": "services/grade.service.ts",
+      "path": "services/grade.service.ts",
+      "name": "grade.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "./gamification.service",
+        "./notification.service"
+      ],
+      "exports": [
+        "createGrade",
+        "getMyGrades",
+        "getStudentGrades"
+      ],
+      "size": 3485,
+      "complexity": 13
+    },
+    {
+      "id": "services/guardian-consent.service.ts",
+      "path": "services/guardian-consent.service.ts",
+      "name": "guardian-consent.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware"
+      ],
+      "exports": [
+        "initializeConsentIfNeeded",
+        "decideConsent",
+        "isRecordingBlockedByConsent"
+      ],
+      "size": 2211,
+      "complexity": 9
+    },
+    {
+      "id": "services/halaqa.service.ts",
+      "path": "services/halaqa.service.ts",
+      "name": "halaqa.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware"
+      ],
+      "exports": [
+        "createGroup",
+        "listGroups",
+        "getGroup",
+        "createRoom",
+        "listRooms",
+        "getRoom",
+        "startRoom",
+        "endRoom",
+        "recordJoin",
+        "recordLeave"
+      ],
+      "size": 5845,
+      "complexity": 23
+    },
+    {
+      "id": "services/ijazah.service.ts",
+      "path": "services/ijazah.service.ts",
+      "name": "ijazah.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "./gamification.service"
+      ],
+      "exports": [
+        "IjazahScope",
+        "issueIjazah",
+        "listIjazahs",
+        "getIjazah"
+      ],
+      "size": 4831,
+      "complexity": 26
+    },
+    {
+      "id": "services/memorization.service.ts",
+      "path": "services/memorization.service.ts",
+      "name": "memorization.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "./revision.service",
+        "./gamification.service",
+        "./report.service",
+        "../lib/logger",
+        "./curriculum-plan.service"
+      ],
+      "exports": [
+        "getSurahs",
+        "getProgress",
+        "updateProgress"
+      ],
+      "size": 5550,
+      "complexity": 23
+    },
+    {
+      "id": "services/message.service.ts",
+      "path": "services/message.service.ts",
+      "name": "message.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "./notification.service"
+      ],
+      "exports": [
+        "getConversations",
+        "getMessagesWithUser",
+        "sendMessage",
+        "markAsRead"
+      ],
+      "size": 5935,
+      "complexity": 34
+    },
+    {
+      "id": "services/milestone.service.ts",
+      "path": "services/milestone.service.ts",
+      "name": "milestone.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware"
+      ],
+      "exports": [
+        "MilestoneTriggerType",
+        "createMilestone",
+        "listMilestones"
+      ],
+      "size": 1652,
+      "complexity": 4
+    },
+    {
+      "id": "services/mushaf.service.ts",
+      "path": "services/mushaf.service.ts",
+      "name": "mushaf.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "./gamification.service"
+      ],
+      "exports": [
+        "getSurahWithAyahs",
+        "getPage",
+        "logAyahMemorization"
+      ],
+      "size": 2170,
+      "complexity": 8
+    },
+    {
+      "id": "services/notification.service.ts",
+      "path": "services/notification.service.ts",
+      "name": "notification.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../lib/logger",
+        "./socket.service",
+        "./email.service",
+        "./fcm.service"
+      ],
+      "exports": [
+        "notifyUser",
+        "NotificationFeedItem",
+        "listNotifications",
+        "markRead",
+        "markAllRead",
+        "unreadCount",
+        "notifyAppointmentUpdate",
+        "notifyNewGrade",
+        "notifyNewMessage",
+        "notifyTeacherChangeDecision"
+      ],
+      "size": 7989,
+      "complexity": 32
+    },
+    {
+      "id": "services/page-memorization.service.ts",
+      "path": "services/page-memorization.service.ts",
+      "name": "page-memorization.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "../lib/cache"
+      ],
+      "exports": [],
+      "size": 3477,
+      "complexity": 26
+    },
+    {
+      "id": "services/parent.service.ts",
+      "path": "services/parent.service.ts",
+      "name": "parent.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "./notification.service",
+        "./guardian-consent.service"
+      ],
+      "exports": [
+        "requestLink",
+        "approveLink",
+        "denyLink",
+        "revokeLink",
+        "listLinks",
+        "getChildren",
+        "getChildDashboard",
+        "getChildReports",
+        "getChildRecordings",
+        "findStudentByEmail"
+      ],
+      "size": 12766,
+      "complexity": 32
+    },
+    {
+      "id": "services/recitation-scorer.service.ts",
+      "path": "services/recitation-scorer.service.ts",
+      "name": "recitation-scorer.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client"
+      ],
+      "exports": [
+        "RecitationScoreResult",
+        "RecitationScorer",
+        "StubRecitationScorer",
+        "getRecitationScorer",
+        "scoreRecording"
+      ],
+      "size": 1680,
+      "complexity": 2
+    },
+    {
+      "id": "services/recording.service.ts",
+      "path": "services/recording.service.ts",
+      "name": "recording.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "crypto",
+        "fs/promises",
+        "path",
+        "../middleware/error.middleware",
+        "./gamification.service",
+        "../lib/queue",
+        "./recitation-scorer.service",
+        "./guardian-consent.service",
+        "./storage.service",
+        "./file.service"
+      ],
+      "exports": [
+        "ensureUploadDir",
+        "uploadRecording",
+        "completeRecordingUpload",
+        "listRecordings",
+        "reviewRecording",
+        "deleteRecording"
+      ],
+      "size": 7575,
+      "complexity": 30
+    },
+    {
+      "id": "services/recurring-slot.service.ts",
+      "path": "services/recurring-slot.service.ts",
+      "name": "recurring-slot.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "./appointment.service"
+      ],
+      "exports": [
+        "GeneratedOccurrence",
+        "createRecurringSlot",
+        "listRecurringSlots",
+        "updateRecurringSlot",
+        "cancelRecurringSlot",
+        "extendActiveRecurringSlots"
+      ],
+      "size": 5546,
+      "complexity": 20
+    },
+    {
+      "id": "services/report.service.ts",
+      "path": "services/report.service.ts",
+      "name": "report.service",
+      "type": "file",
+      "imports": [
+        "pdfkit",
+        "fs",
+        "path",
+        "../prisma/client",
+        "../lib/logger",
+        "../middleware/error.middleware",
+        "./storage.service"
+      ],
+      "exports": [
+        "ensureReportsDir",
+        "generatePDFReport",
+        "createReport",
+        "listMyReports",
+        "ensureCertsDir",
+        "generateCertificatePDF"
+      ],
+      "size": 9948,
+      "complexity": 19
+    },
+    {
+      "id": "services/revision-queue.service.ts",
+      "path": "services/revision-queue.service.ts",
+      "name": "revision-queue.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "./page-memorization.service",
+        "../lib/cache"
+      ],
+      "exports": [
+        "RevisionBand",
+        "RevisionQueueItem",
+        "RevisionQueueResult",
+        "RevisionQueueInput",
+        "buildRevisionQueue"
+      ],
+      "size": 4835,
+      "complexity": 16
+    },
+    {
+      "id": "services/revision.service.ts",
+      "path": "services/revision.service.ts",
+      "name": "revision.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "./notification.service",
+        "./gamification.service"
+      ],
+      "exports": [
+        "RevisionStatus",
+        "RevisionQuality",
+        "computeSm2",
+        "getRevisions",
+        "createRevision",
+        "updateRevision",
+        "deleteRevision"
+      ],
+      "size": 11744,
+      "complexity": 36
+    },
+    {
+      "id": "services/roster.service.ts",
+      "path": "services/roster.service.ts",
+      "name": "roster.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client"
+      ],
+      "exports": [
+        "CONSECUTIVE_MISSED_THRESHOLD",
+        "STREAK_BROKEN_WINDOW_DAYS",
+        "GRADE_GAP_THRESHOLD_DAYS",
+        "AtRiskReason",
+        "RosterHealthRow",
+        "getRosterHealth"
+      ],
+      "size": 3393,
+      "complexity": 14
+    },
+    {
+      "id": "services/share-image.service.ts",
+      "path": "services/share-image.service.ts",
+      "name": "share-image.service",
+      "type": "file",
+      "imports": [
+        "fs/promises",
+        "@resvg/resvg-js",
+        "../middleware/error.middleware",
+        "../lib/storage",
+        "../config",
+        "./verification.service",
+        "./academy-profile.service"
+      ],
+      "exports": [
+        "buildShareSvg"
+      ],
+      "size": 4066,
+      "complexity": 11
+    },
+    {
+      "id": "services/socket.service.ts",
+      "path": "services/socket.service.ts",
+      "name": "socket.service",
+      "type": "file",
+      "imports": [
+        "socket.io",
+        "http",
+        "jsonwebtoken",
+        "../config",
+        "../lib/logger",
+        "./halaqa.service",
+        "./fcm.service"
+      ],
+      "exports": [
+        "setupSocketIO",
+        "sendToUser",
+        "closeSocketIO",
+        "notifyNewMessage",
+        "notifyScheduleChange",
+        "sendPushNotification"
+      ],
+      "size": 4658,
+      "complexity": 11
+    },
+    {
+      "id": "services/storage.service.ts",
+      "path": "services/storage.service.ts",
+      "name": "storage.service",
+      "type": "file",
+      "imports": [
+        "crypto",
+        "path",
+        "minio",
+        "../middleware/error.middleware",
+        "../lib/logger",
+        "express"
+      ],
+      "exports": [
+        "isStorageEnabled",
+        "sanitizeObjectKey",
+        "PresignResult",
+        "presignUpload",
+        "CompleteResult",
+        "completeUpload",
+        "putFile",
+        "removeObject",
+        "streamObject",
+        "assertObjectExists",
+        "__resetStorageForTests"
+      ],
+      "size": 6696,
+      "complexity": 33
+    },
+    {
+      "id": "services/streak-nudge.service.ts",
+      "path": "services/streak-nudge.service.ts",
+      "name": "streak-nudge.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "./notification.service",
+        "../lib/logger"
+      ],
+      "exports": [
+        "STREAK_NUDGE_TYPE",
+        "shouldNudge"
+      ],
+      "size": 2355,
+      "complexity": 8
+    },
+    {
+      "id": "services/teacherChange.service.ts",
+      "path": "services/teacherChange.service.ts",
+      "name": "teacherChange.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "./notification.service"
+      ],
+      "exports": [
+        "submitTeacherChangeRequest",
+        "getTeacherChangeRequests",
+        "decideTeacherChangeRequest"
+      ],
+      "size": 4418,
+      "complexity": 15
+    },
+    {
+      "id": "services/verification.service.ts",
+      "path": "services/verification.service.ts",
+      "name": "verification.service",
+      "type": "file",
+      "imports": [
+        "crypto",
+        "../prisma/client",
+        "../middleware/error.middleware",
+        "../lib/storage"
+      ],
+      "exports": [
+        "PROGRAM_NAME",
+        "VerificationResult",
+        "verifyToken",
+        "regenerateCertificateLink",
+        "regenerateIjazahLink"
+      ],
+      "size": 3834,
+      "complexity": 13
+    },
+    {
+      "id": "services/weak-ayah.service.ts",
+      "path": "services/weak-ayah.service.ts",
+      "name": "weak-ayah.service",
+      "type": "file",
+      "imports": [
+        "../prisma/client",
+        "../middleware/error.middleware"
+      ],
+      "exports": [
+        "flagWeakAyah",
+        "listWeakAyahFlags"
+      ],
+      "size": 2688,
+      "complexity": 10
+    },
+    {
+      "id": "types/express.ts",
+      "path": "types/express.ts",
+      "name": "express",
+      "type": "file",
+      "imports": [
+        "express"
+      ],
+      "exports": [],
+      "size": 147,
+      "complexity": 1
+    }
+  ],
+  "edges": [
+    {
+      "source": "__integration__/academy-health.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/academy-health.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/academy-health.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/academy-health.itest.ts",
+      "target": "lib/redis.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/account.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/account.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/account.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/account.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/activation.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/activation.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/activation.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/admin-flows.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/admin-flows.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/admin-flows.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/admin-flows.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/audit-log.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/audit-log.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/audit-log.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/audit-log.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/auth-flows.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/auth-flows.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/auth-flows.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/auth-flows.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/authz-matrix.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/authz-matrix.itest.ts",
+      "target": "__integration__/endpoint-manifest.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/authz-matrix.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/authz-matrix.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/communication-flows.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/communication-flows.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/communication-flows.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/communication-flows.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/completeness.itest.ts",
+      "target": "__integration__/route-inventory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/completeness.itest.ts",
+      "target": "__integration__/endpoint-manifest.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/contract-router.itest.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/contract-router.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/contract-router.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/curriculum-plans.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/curriculum-plans.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/curriculum-plans.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/curriculum-plans.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/db.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/digest.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/digest.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/digest.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/digest.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/env.ts",
+      "target": "lib/test-database.ts",
+      "type": "require",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/envelope.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/envelope.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/envelope.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/factory.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/factory.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/factory.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/factory.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/factory.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/factory.ts",
+      "target": "config/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/global-setup.ts",
+      "target": "lib/test-database.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/guardian-consent.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/guardian-consent.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/guardian-consent.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/guardian-consent.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/halaqa-flows.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/halaqa-flows.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/halaqa-flows.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/halaqa-groups.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/halaqa-groups.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/halaqa-groups.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/halaqa-groups.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/halaqa-socket.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/halaqa-socket.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/halaqa-socket.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/halaqa-socket.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/health.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/health.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/hifz-engine.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/hifz-engine.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/hifz-engine.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/hifz-engine.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/ijazahs.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/ijazahs.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/ijazahs.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/ijazahs.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/learning-flows.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/learning-flows.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/learning-flows.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/learning-flows.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/media-flows.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/media-flows.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/media-flows.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/media-flows.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/milestones.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/milestones.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/milestones.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/milestones.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/mushaf-flows.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/mushaf-flows.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/mushaf-flows.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/mushaf-flows.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/parent-media.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/parent-media.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/parent-media.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/parent-media.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/progress-flows.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/progress-flows.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/progress-flows.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/progress-flows.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/public-surface.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/public-surface.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/public-surface.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/public-surface.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/recitation-scoring.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/recitation-scoring.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/recitation-scoring.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/recurring-slots.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/recurring-slots.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/recurring-slots.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/recurring-slots.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/registry-parity.itest.ts",
+      "target": "__integration__/endpoint-manifest.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/roster-health.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/roster-health.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/roster-health.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/roster-health.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/scheduling-flows.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/scheduling-flows.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/scheduling-flows.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/scheduling-flows.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/shared-database.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/shared-database.itest.ts",
+      "target": "config/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/shared-database.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/shared-database.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/shared-database.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/shared-database.itest.ts",
+      "target": "lib/test-database.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/users-flows.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/users-flows.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/users-flows.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/verification.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/verification.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/verification.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/verification.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/weak-ayahs.itest.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/weak-ayahs.itest.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/weak-ayahs.itest.ts",
+      "target": "__integration__/factory.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__integration__/weak-ayahs.itest.ts",
+      "target": "__integration__/db.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__tests__/config-boot.test.ts",
+      "target": "config/index.ts",
+      "type": "require",
+      "weight": 1
+    },
+    {
+      "source": "__tests__/files-s3.test.ts",
+      "target": "app.ts",
+      "type": "dynamic",
+      "weight": 1
+    },
+    {
+      "source": "__tests__/mushaf-assets.test.ts",
+      "target": "lib/mushaf-assets.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__tests__/pdf-object-storage.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__tests__/pdf-object-storage.test.ts",
+      "target": "app.ts",
+      "type": "dynamic",
+      "weight": 1
+    },
+    {
+      "source": "__tests__/security.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "__tests__/test-app.ts",
+      "target": "app.ts",
+      "type": "require",
+      "weight": 1
+    },
+    {
+      "source": "app.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "app.ts",
+      "target": "config/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "app.ts",
+      "target": "lib/response.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "app.ts",
+      "target": "lib/mushaf-assets.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "app.ts",
+      "target": "types/express.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "lib/audit.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "lib/audit.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "lib/contract-router.ts",
+      "target": "config/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "lib/contract-router.ts",
+      "target": "types/express.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "lib/health.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "lib/health.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "lib/logger.ts",
+      "target": "config/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "lib/mushaf-assets.ts",
+      "target": "config/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "lib/queue.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "lib/queue.ts",
+      "target": "prisma/client.ts",
+      "type": "dynamic",
+      "weight": 1
+    },
+    {
+      "source": "lib/redis.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "lib/transaction.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "middleware/__tests__/auth.middleware.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "middleware/__tests__/auth.middleware.test.ts",
+      "target": "config/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "middleware/auth.middleware.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "middleware/auth.middleware.ts",
+      "target": "config/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "middleware/error.middleware.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "middleware/error.middleware.ts",
+      "target": "lib/response.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/account/account.module.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/account/account.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/admin/admin.module.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/admin/admin.module.ts",
+      "target": "lib/audit.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/admin/admin.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/analytics/analytics.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/appointments/appointments.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/attendance/attendance.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/auth/auth.module.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/auth/auth.module.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/auth/auth.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/certificates/certificates.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/curriculum-plans/curriculum-plans.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/exports/exports.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/files/files.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/files/files.module.ts",
+      "target": "lib/audit.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/gamification/gamification.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/grades/grades.module.ts",
+      "target": "lib/audit.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/grades/grades.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/halaqa/halaqa.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/health/health.module.ts",
+      "target": "lib/health.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/health/health.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/ijazahs/ijazahs.module.ts",
+      "target": "lib/audit.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/ijazahs/ijazahs.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/memorization/memorization.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/messages/messages.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/milestones/milestones.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/mushaf/mushaf.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/notifications/notifications.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/parent-links/parent-links.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/parents/parents.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/parents/parents.module.ts",
+      "target": "lib/audit.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/public/public.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/recordings/recordings.module.ts",
+      "target": "lib/audit.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/recordings/recordings.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/recurring-slots/recurring-slots.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/reports/reports.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/revisions/revisions.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/roster/roster.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/surahs/surahs.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/teacher-change/teacher-change.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/teacher-change/teacher-change.module.ts",
+      "target": "lib/audit.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/users/users.module.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/users/users.module.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/users/users.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "modules/weak-ayahs/weak-ayahs.module.ts",
+      "target": "lib/contract-router.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "prisma/audit.middleware.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "prisma/seed-e2e.ts",
+      "target": "prisma/seed.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "prisma/seed.ts",
+      "target": "prisma/import-ayahs.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "routes/metrics.routes.ts",
+      "target": "metrics/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "routes/verify.routes.ts",
+      "target": "config/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "server.ts",
+      "target": "app.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "server.ts",
+      "target": "config/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "server.ts",
+      "target": "lib/queue.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "server.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "server.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "server.ts",
+      "target": "lib/mushaf-assets.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "server.ts",
+      "target": "types/express.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/academy-health.service.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/academy-health.service.test.ts",
+      "target": "lib/redis.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/admin.service.extended.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/admin.service.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/appointment.service.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/attendance.service.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/auth.service.extended.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/auth.service.test.ts",
+      "target": "config/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/export.service.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/gamification.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/grade.service.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/halaqa.service.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/memorization.service.extended.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/memorization.service.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/message.service.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/mushaf.service.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/notification.service.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/page-memorization.service.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/parent.service.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/recording.service.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/report.service.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/revision.service.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/teacherChange.service.extended.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/__tests__/teacherChange.service.test.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/academy-health.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/academy-health.service.ts",
+      "target": "lib/redis.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/academy-profile.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/account.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/admin.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/analytics.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/appointment.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/attendance.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/auth.service.ts",
+      "target": "config/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/auth.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/auth.service.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/certificate.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/curriculum-plan.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/digest.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/digest.service.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/email.service.ts",
+      "target": "config/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/email.service.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/email.service.ts",
+      "target": "services/email-templates.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/export.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/fcm.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/fcm.service.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/fcm.service.ts",
+      "target": "config/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/file.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/file.service.ts",
+      "target": "lib/storage.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/gamification.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/grade.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/guardian-consent.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/halaqa.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/ijazah.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/memorization.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/memorization.service.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/message.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/milestone.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/mushaf.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/notification.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/notification.service.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/page-memorization.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/page-memorization.service.ts",
+      "target": "lib/cache.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/parent.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/recitation-scorer.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/recording.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/recording.service.ts",
+      "target": "lib/queue.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/recurring-slot.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/report.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/report.service.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/revision-queue.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/revision-queue.service.ts",
+      "target": "lib/cache.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/revision.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/roster.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/share-image.service.ts",
+      "target": "lib/storage.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/share-image.service.ts",
+      "target": "config/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/socket.service.ts",
+      "target": "config/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/socket.service.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/storage.service.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/streak-nudge.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/streak-nudge.service.ts",
+      "target": "lib/logger.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/teacherChange.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/verification.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/verification.service.ts",
+      "target": "lib/storage.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "services/weak-ayah.service.ts",
+      "target": "prisma/client.ts",
+      "type": "import",
+      "weight": 1
+    }
+  ],
+  "metadata": {
+    "rootDir": "/home/haskhr/Documents/education-management/packages/server/src",
+    "totalFiles": 196,
+    "totalEdges": 314,
+    "buildTime": 26036
+  },
+  "circularDependencies": []
+}

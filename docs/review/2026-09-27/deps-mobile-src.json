@@ -1,0 +1,2216 @@
+{
+  "nodes": [
+    {
+      "id": "api/academyHealth.ts",
+      "path": "api/academyHealth.ts",
+      "name": "academyHealth",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "TeacherLoadRow",
+        "AcademyHealthMetrics",
+        "academyHealthApi"
+      ],
+      "size": 1058,
+      "complexity": 2
+    },
+    {
+      "id": "api/academyProfile.ts",
+      "path": "api/academyProfile.ts",
+      "name": "academyProfile",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "AcademyProfile",
+        "academyProfileApi"
+      ],
+      "size": 932,
+      "complexity": 2
+    },
+    {
+      "id": "api/account.ts",
+      "path": "api/account.ts",
+      "name": "account",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "accountApi"
+      ],
+      "size": 788,
+      "complexity": 1
+    },
+    {
+      "id": "api/analytics.ts",
+      "path": "api/analytics.ts",
+      "name": "analytics",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "SurahMissRate",
+        "TeacherLoad",
+        "WeeklyActiveStudents",
+        "AdminAnalytics",
+        "analyticsApi"
+      ],
+      "size": 1009,
+      "complexity": 1
+    },
+    {
+      "id": "api/apiBase.ts",
+      "path": "api/apiBase.ts",
+      "name": "apiBase",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared"
+      ],
+      "exports": [
+        "DEFAULT_API_BASE",
+        "resolveApiBase",
+        "resolveSocketOrigin",
+        "isApiUnreachableByConfig"
+      ],
+      "size": 827,
+      "complexity": 1
+    },
+    {
+      "id": "api/appointments.ts",
+      "path": "api/appointments.ts",
+      "name": "appointments",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "Appointment",
+        "appointmentsApi"
+      ],
+      "size": 1370,
+      "complexity": 1
+    },
+    {
+      "id": "api/attendance.ts",
+      "path": "api/attendance.ts",
+      "name": "attendance",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "AttendanceStatus",
+        "SessionRecord",
+        "attendanceApi"
+      ],
+      "size": 1430,
+      "complexity": 2
+    },
+    {
+      "id": "api/auditLogs.ts",
+      "path": "api/auditLogs.ts",
+      "name": "auditLogs",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "AuditLogRow",
+        "AuditLogFilters",
+        "AuditLogPage",
+        "auditLogsApi"
+      ],
+      "size": 1460,
+      "complexity": 1
+    },
+    {
+      "id": "api/auth.ts",
+      "path": "api/auth.ts",
+      "name": "auth",
+      "type": "file",
+      "imports": [
+        "./client"
+      ],
+      "exports": [
+        "AuthUser",
+        "authApi"
+      ],
+      "size": 1553,
+      "complexity": 1
+    },
+    {
+      "id": "api/certificates.ts",
+      "path": "api/certificates.ts",
+      "name": "certificates",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "Certificate",
+        "certificatesApi"
+      ],
+      "size": 1278,
+      "complexity": 3
+    },
+    {
+      "id": "api/client.ts",
+      "path": "api/client.ts",
+      "name": "client",
+      "type": "file",
+      "imports": [
+        "axios",
+        "react-native",
+        "./interceptors",
+        "./apiBase"
+      ],
+      "exports": [
+        "apiClient",
+        "default"
+      ],
+      "size": 1751,
+      "complexity": 7
+    },
+    {
+      "id": "api/contract.ts",
+      "path": "api/contract.ts",
+      "name": "contract",
+      "type": "file",
+      "imports": [
+        "react-native",
+        "@quran-review/shared",
+        "../storage/secureStorage",
+        "./apiBase"
+      ],
+      "exports": [
+        "API_ORIGIN",
+        "contractClient",
+        "expectStatus"
+      ],
+      "size": 2951,
+      "complexity": 15
+    },
+    {
+      "id": "api/curriculumPlans.ts",
+      "path": "api/curriculumPlans.ts",
+      "name": "curriculumPlans",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "PlanItem",
+        "CurriculumPlan",
+        "curriculumPlansApi"
+      ],
+      "size": 1138,
+      "complexity": 1
+    },
+    {
+      "id": "api/gamification.ts",
+      "path": "api/gamification.ts",
+      "name": "gamification",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "Streak",
+        "BadgeAward",
+        "MyGamification",
+        "LeaderboardEntry",
+        "gamificationApi"
+      ],
+      "size": 1150,
+      "complexity": 1
+    },
+    {
+      "id": "api/grades.ts",
+      "path": "api/grades.ts",
+      "name": "grades",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "GradeSurah",
+        "Grade",
+        "gradesApi"
+      ],
+      "size": 1196,
+      "complexity": 1
+    },
+    {
+      "id": "api/halaqa.ts",
+      "path": "api/halaqa.ts",
+      "name": "halaqa",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "HalaqaStatus",
+        "HalaqaRoom",
+        "HalaqaGroup",
+        "halaqaApi",
+        "halaqaGroupsApi"
+      ],
+      "size": 2858,
+      "complexity": 2
+    },
+    {
+      "id": "api/ijazahs.ts",
+      "path": "api/ijazahs.ts",
+      "name": "ijazahs",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "IjazahScope",
+        "Ijazah",
+        "ijazahsApi"
+      ],
+      "size": 1712,
+      "complexity": 1
+    },
+    {
+      "id": "api/index.ts",
+      "path": "api/index.ts",
+      "name": "index",
+      "type": "file",
+      "imports": [
+        "./client",
+        "./auth",
+        "./appointments",
+        "./grades",
+        "./messages",
+        "./recordings",
+        "./users",
+        "./memorization",
+        "./reports",
+        "./revisions",
+        "./roster",
+        "./recurringSlots",
+        "./weakAyahs",
+        "./curriculumPlans",
+        "./auditLogs"
+      ],
+      "exports": [
+        "apiClient",
+        "authApi",
+        "appointmentsApi",
+        "gradesApi",
+        "messagesApi",
+        "recordingsApi",
+        "getRecordingStatus",
+        "usersApi",
+        "memorizationApi",
+        "reportsApi",
+        "revisionsApi",
+        "rosterApi",
+        "recurringSlotsApi",
+        "weakAyahsApi",
+        "curriculumPlansApi",
+        "auditLogsApi"
+      ],
+      "size": 1435,
+      "complexity": 1
+    },
+    {
+      "id": "api/interceptors.ts",
+      "path": "api/interceptors.ts",
+      "name": "interceptors",
+      "type": "file",
+      "imports": [
+        "axios",
+        "../storage/secureStorage"
+      ],
+      "exports": [
+        "installRequestInterceptor",
+        "installErrorMessageInterceptor",
+        "installAuthRefreshInterceptor"
+      ],
+      "size": 3639,
+      "complexity": 16
+    },
+    {
+      "id": "api/memorization.ts",
+      "path": "api/memorization.ts",
+      "name": "memorization",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "MemorizationEntry",
+        "Surah",
+        "memorizationApi"
+      ],
+      "size": 1732,
+      "complexity": 1
+    },
+    {
+      "id": "api/messages.ts",
+      "path": "api/messages.ts",
+      "name": "messages",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "Message",
+        "messagesApi"
+      ],
+      "size": 1936,
+      "complexity": 3
+    },
+    {
+      "id": "api/milestones.ts",
+      "path": "api/milestones.ts",
+      "name": "milestones",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "MilestoneTriggerType",
+        "MilestoneDefinition",
+        "milestonesApi"
+      ],
+      "size": 1222,
+      "complexity": 1
+    },
+    {
+      "id": "api/mushaf.ts",
+      "path": "api/mushaf.ts",
+      "name": "mushaf",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "mushafApi"
+      ],
+      "size": 1055,
+      "complexity": 1
+    },
+    {
+      "id": "api/mushafPages.ts",
+      "path": "api/mushafPages.ts",
+      "name": "mushafPages",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "PageStatus",
+        "PageMemorizationRow",
+        "mushafPagesApi"
+      ],
+      "size": 1049,
+      "complexity": 2
+    },
+    {
+      "id": "api/notifications.ts",
+      "path": "api/notifications.ts",
+      "name": "notifications",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "Notification",
+        "PaginatedNotifications",
+        "notificationsApi"
+      ],
+      "size": 1635,
+      "complexity": 1
+    },
+    {
+      "id": "api/parents.ts",
+      "path": "api/parents.ts",
+      "name": "parents",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "ParentLinkStatus",
+        "ParentLinkPerson",
+        "ParentLink",
+        "GuardianConsentStatus",
+        "ChildSummary",
+        "ChildDashboard",
+        "ParentChildReport",
+        "ParentChildRecording",
+        "StudentSearchResult",
+        "parentsApi"
+      ],
+      "size": 6029,
+      "complexity": 1
+    },
+    {
+      "id": "api/public.ts",
+      "path": "api/public.ts",
+      "name": "public",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "AcademyProfilePublic",
+        "publicApi"
+      ],
+      "size": 610,
+      "complexity": 1
+    },
+    {
+      "id": "api/recordings.ts",
+      "path": "api/recordings.ts",
+      "name": "recordings",
+      "type": "file",
+      "imports": [
+        "expo-web-browser",
+        "@quran-review/shared",
+        "./client",
+        "./contract",
+        "../storage/secureStorage"
+      ],
+      "exports": [
+        "RecordingStatus",
+        "Recording",
+        "RecordingListParams",
+        "ReviewRecordingBody",
+        "getRecordingStatus",
+        "recordingsApi"
+      ],
+      "size": 6114,
+      "complexity": 15
+    },
+    {
+      "id": "api/recurringSlots.ts",
+      "path": "api/recurringSlots.ts",
+      "name": "recurringSlots",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "RecurringSlot",
+        "GeneratedOccurrence",
+        "recurringSlotsApi"
+      ],
+      "size": 1427,
+      "complexity": 1
+    },
+    {
+      "id": "api/reports.ts",
+      "path": "api/reports.ts",
+      "name": "reports",
+      "type": "file",
+      "imports": [
+        "expo-web-browser",
+        "@quran-review/shared",
+        "./contract",
+        "../storage/secureStorage"
+      ],
+      "exports": [
+        "Report",
+        "CreateReportInput",
+        "reportsApi"
+      ],
+      "size": 1910,
+      "complexity": 5
+    },
+    {
+      "id": "api/revisionQueue.ts",
+      "path": "api/revisionQueue.ts",
+      "name": "revisionQueue",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "RevisionBand",
+        "RevisionQueueItem",
+        "RevisionQueueResult",
+        "revisionQueueApi"
+      ],
+      "size": 994,
+      "complexity": 2
+    },
+    {
+      "id": "api/revisions.ts",
+      "path": "api/revisions.ts",
+      "name": "revisions",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "Revision",
+        "revisionsApi"
+      ],
+      "size": 1511,
+      "complexity": 1
+    },
+    {
+      "id": "api/roster.ts",
+      "path": "api/roster.ts",
+      "name": "roster",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "AtRiskReason",
+        "RosterHealthRow",
+        "rosterApi"
+      ],
+      "size": 587,
+      "complexity": 1
+    },
+    {
+      "id": "api/teacherChange.ts",
+      "path": "api/teacherChange.ts",
+      "name": "teacherChange",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "teacherChangeApi"
+      ],
+      "size": 1361,
+      "complexity": 2
+    },
+    {
+      "id": "api/users.ts",
+      "path": "api/users.ts",
+      "name": "users",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "UserProfile",
+        "usersApi"
+      ],
+      "size": 1392,
+      "complexity": 1
+    },
+    {
+      "id": "api/weakAyahs.ts",
+      "path": "api/weakAyahs.ts",
+      "name": "weakAyahs",
+      "type": "file",
+      "imports": [
+        "@quran-review/shared",
+        "./contract"
+      ],
+      "exports": [
+        "WeakAyahFlag",
+        "weakAyahsApi"
+      ],
+      "size": 841,
+      "complexity": 1
+    },
+    {
+      "id": "auth/biometric.ts",
+      "path": "auth/biometric.ts",
+      "name": "biometric",
+      "type": "file",
+      "imports": [
+        "expo-local-authentication",
+        "react-native",
+        "../i18n",
+        "../storage/secureStorage"
+      ],
+      "exports": [
+        "BIOMETRIC_ENABLED_KEY",
+        "BiometricStatus",
+        "biometricText"
+      ],
+      "size": 3810,
+      "complexity": 13
+    },
+    {
+      "id": "auth/store.ts",
+      "path": "auth/store.ts",
+      "name": "store",
+      "type": "file",
+      "imports": [
+        "zustand",
+        "../api/client",
+        "../api/auth",
+        "../api/interceptors",
+        "../storage/secureStorage",
+        "../storage/mmkvStorage",
+        "../lib/queryClient",
+        "./biometric",
+        "../api/auth"
+      ],
+      "exports": [
+        "useAuthStore"
+      ],
+      "size": 8262,
+      "complexity": 30
+    },
+    {
+      "id": "components/AppText.tsx",
+      "path": "components/AppText.tsx",
+      "name": "AppText",
+      "type": "file",
+      "imports": [
+        "react",
+        "react-native",
+        "@/src/components/SettingsContext",
+        "@/constants/theme",
+        "@/src/i18n/useIsRTL",
+        "@/src/hooks/useTheme"
+      ],
+      "exports": [
+        "AppTextVariant",
+        "AppText"
+      ],
+      "size": 1606,
+      "complexity": 5
+    },
+    {
+      "id": "components/BottomNav.tsx",
+      "path": "components/BottomNav.tsx",
+      "name": "BottomNav",
+      "type": "file",
+      "imports": [
+        "react",
+        "react-native",
+        "expo-router",
+        "react-native-safe-area-context",
+        "@expo/vector-icons",
+        "react-i18next",
+        "@/constants/theme",
+        "@/src/hooks/useNotifications",
+        "@/src/hooks/useTheme"
+      ],
+      "exports": [
+        "BottomNav"
+      ],
+      "size": 8506,
+      "complexity": 14
+    },
+    {
+      "id": "components/OfflineBanner.tsx",
+      "path": "components/OfflineBanner.tsx",
+      "name": "OfflineBanner",
+      "type": "file",
+      "imports": [
+        "react",
+        "react-native",
+        "react-native-safe-area-context",
+        "react-i18next",
+        "@expo/vector-icons",
+        "../hooks/useIsOnline",
+        "./design"
+      ],
+      "exports": [
+        "OfflineBanner"
+      ],
+      "size": 1474,
+      "complexity": 3
+    },
+    {
+      "id": "components/SettingsContext.tsx",
+      "path": "components/SettingsContext.tsx",
+      "name": "SettingsContext",
+      "type": "file",
+      "imports": [
+        "react",
+        "@/src/settings/store"
+      ],
+      "exports": [
+        "SettingsProvider",
+        "useSettingsScales"
+      ],
+      "size": 915,
+      "complexity": 4
+    },
+    {
+      "id": "components/SkeletonCard.tsx",
+      "path": "components/SkeletonCard.tsx",
+      "name": "SkeletonCard",
+      "type": "file",
+      "imports": [
+        "react",
+        "react-native",
+        "@/constants/theme",
+        "@/src/hooks/useTheme"
+      ],
+      "exports": [
+        "SkeletonCard"
+      ],
+      "size": 1509,
+      "complexity": 3
+    },
+    {
+      "id": "components/design.tsx",
+      "path": "components/design.tsx",
+      "name": "design",
+      "type": "file",
+      "imports": [
+        "react",
+        "@expo/vector-icons",
+        "./AppText",
+        "./SettingsContext",
+        "react-native",
+        "@/constants/theme",
+        "@/src/hooks/useTheme",
+        "./AppText"
+      ],
+      "exports": [
+        "Colors",
+        "AppCard",
+        "IconButton",
+        "Avatar",
+        "MetricTile",
+        "SectionHeader",
+        "StatusPill",
+        "ProgressBar",
+        "EmptyState",
+        "SegmentedControl",
+        "avatarColor",
+        "AppText"
+      ],
+      "size": 12296,
+      "complexity": 38
+    },
+    {
+      "id": "hooks/useAcademyHealth.ts",
+      "path": "hooks/useAcademyHealth.ts",
+      "name": "useAcademyHealth",
+      "type": "file",
+      "imports": [
+        "@tanstack/react-query",
+        "../api/academyHealth"
+      ],
+      "exports": [
+        "useAcademyHealth"
+      ],
+      "size": 620,
+      "complexity": 3
+    },
+    {
+      "id": "hooks/useAcademyProfile.ts",
+      "path": "hooks/useAcademyProfile.ts",
+      "name": "useAcademyProfile",
+      "type": "file",
+      "imports": [
+        "@tanstack/react-query",
+        "../api/academyProfile",
+        "@quran-review/shared"
+      ],
+      "exports": [
+        "useAcademyProfile"
+      ],
+      "size": 667,
+      "complexity": 2
+    },
+    {
+      "id": "hooks/useAnalytics.ts",
+      "path": "hooks/useAnalytics.ts",
+      "name": "useAnalytics",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api/analytics"
+      ],
+      "exports": [
+        "useAnalytics"
+      ],
+      "size": 568,
+      "complexity": 3
+    },
+    {
+      "id": "hooks/useAppointments.ts",
+      "path": "hooks/useAppointments.ts",
+      "name": "useAppointments",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api",
+        "./useSocket"
+      ],
+      "exports": [
+        "useAppointments"
+      ],
+      "size": 1572,
+      "complexity": 6
+    },
+    {
+      "id": "hooks/useAuditLogs.ts",
+      "path": "hooks/useAuditLogs.ts",
+      "name": "useAuditLogs",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api/auditLogs"
+      ],
+      "exports": [
+        "useAuditLogs"
+      ],
+      "size": 1570,
+      "complexity": 4
+    },
+    {
+      "id": "hooks/useAuth.ts",
+      "path": "hooks/useAuth.ts",
+      "name": "useAuth",
+      "type": "file",
+      "imports": [
+        "react",
+        "../api",
+        "../storage/secureStorage"
+      ],
+      "exports": [
+        "useAuth"
+      ],
+      "size": 1423,
+      "complexity": 4
+    },
+    {
+      "id": "hooks/useCertificates.ts",
+      "path": "hooks/useCertificates.ts",
+      "name": "useCertificates",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api/certificates",
+        "../storage/secureStorage"
+      ],
+      "exports": [
+        "useCertificates"
+      ],
+      "size": 1388,
+      "complexity": 6
+    },
+    {
+      "id": "hooks/useConversation.ts",
+      "path": "hooks/useConversation.ts",
+      "name": "useConversation",
+      "type": "file",
+      "imports": [
+        "react",
+        "../api/messages",
+        "../auth/store",
+        "./useSocket"
+      ],
+      "exports": [
+        "useConversation"
+      ],
+      "size": 2687,
+      "complexity": 13
+    },
+    {
+      "id": "hooks/useCurriculumPlans.ts",
+      "path": "hooks/useCurriculumPlans.ts",
+      "name": "useCurriculumPlans",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api"
+      ],
+      "exports": [
+        "useCurriculumPlans"
+      ],
+      "size": 851,
+      "complexity": 3
+    },
+    {
+      "id": "hooks/useGamification.ts",
+      "path": "hooks/useGamification.ts",
+      "name": "useGamification",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api/gamification"
+      ],
+      "exports": [
+        "useGamification"
+      ],
+      "size": 1207,
+      "complexity": 6
+    },
+    {
+      "id": "hooks/useGrades.ts",
+      "path": "hooks/useGrades.ts",
+      "name": "useGrades",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api"
+      ],
+      "exports": [
+        "useGrades"
+      ],
+      "size": 489,
+      "complexity": 3
+    },
+    {
+      "id": "hooks/useHalaqa.ts",
+      "path": "hooks/useHalaqa.ts",
+      "name": "useHalaqa",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api/halaqa"
+      ],
+      "exports": [
+        "useHalaqa"
+      ],
+      "size": 1653,
+      "complexity": 7
+    },
+    {
+      "id": "hooks/useHalaqaGroups.ts",
+      "path": "hooks/useHalaqaGroups.ts",
+      "name": "useHalaqaGroups",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api/halaqa"
+      ],
+      "exports": [
+        "useHalaqaGroups",
+        "useHalaqaGroup"
+      ],
+      "size": 1184,
+      "complexity": 4
+    },
+    {
+      "id": "hooks/useIjazahs.ts",
+      "path": "hooks/useIjazahs.ts",
+      "name": "useIjazahs",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api/ijazahs"
+      ],
+      "exports": [
+        "useIjazahs"
+      ],
+      "size": 1279,
+      "complexity": 3
+    },
+    {
+      "id": "hooks/useIsOnline.ts",
+      "path": "hooks/useIsOnline.ts",
+      "name": "useIsOnline",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query"
+      ],
+      "exports": [
+        "useIsOnline"
+      ],
+      "size": 381,
+      "complexity": 1
+    },
+    {
+      "id": "hooks/useMemorization.ts",
+      "path": "hooks/useMemorization.ts",
+      "name": "useMemorization",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api"
+      ],
+      "exports": [
+        "useMemorization"
+      ],
+      "size": 1453,
+      "complexity": 6
+    },
+    {
+      "id": "hooks/useMessages.ts",
+      "path": "hooks/useMessages.ts",
+      "name": "useMessages",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api",
+        "../auth/store",
+        "./useSocket"
+      ],
+      "exports": [
+        "useMessages"
+      ],
+      "size": 1663,
+      "complexity": 7
+    },
+    {
+      "id": "hooks/useMushaf.ts",
+      "path": "hooks/useMushaf.ts",
+      "name": "useMushaf",
+      "type": "file",
+      "imports": [
+        "react",
+        "../api/mushaf",
+        "@quran-review/shared"
+      ],
+      "exports": [
+        "useMushaf"
+      ],
+      "size": 1933,
+      "complexity": 8
+    },
+    {
+      "id": "hooks/useMushafPages.ts",
+      "path": "hooks/useMushafPages.ts",
+      "name": "useMushafPages",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api/mushafPages"
+      ],
+      "exports": [
+        "derivePageProgress",
+        "useMushafPages"
+      ],
+      "size": 2282,
+      "complexity": 12
+    },
+    {
+      "id": "hooks/useNotifications.ts",
+      "path": "hooks/useNotifications.ts",
+      "name": "useNotifications",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api/notifications"
+      ],
+      "exports": [
+        "useNotifications"
+      ],
+      "size": 2890,
+      "complexity": 11
+    },
+    {
+      "id": "hooks/useParent.ts",
+      "path": "hooks/useParent.ts",
+      "name": "useParent",
+      "type": "file",
+      "imports": [
+        "react",
+        "../api/parents"
+      ],
+      "exports": [
+        "useParent"
+      ],
+      "size": 3914,
+      "complexity": 12
+    },
+    {
+      "id": "hooks/usePushNotifications.ts",
+      "path": "hooks/usePushNotifications.ts",
+      "name": "usePushNotifications",
+      "type": "file",
+      "imports": [
+        "react",
+        "expo-notifications",
+        "react-native",
+        "../api/client",
+        "expo-device"
+      ],
+      "exports": [
+        "usePushNotifications"
+      ],
+      "size": 2217,
+      "complexity": 8
+    },
+    {
+      "id": "hooks/useRecordings.ts",
+      "path": "hooks/useRecordings.ts",
+      "name": "useRecordings",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api"
+      ],
+      "exports": [
+        "useRecordings"
+      ],
+      "size": 2185,
+      "complexity": 12
+    },
+    {
+      "id": "hooks/useRecurringSlots.ts",
+      "path": "hooks/useRecurringSlots.ts",
+      "name": "useRecurringSlots",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api"
+      ],
+      "exports": [
+        "useRecurringSlots"
+      ],
+      "size": 1446,
+      "complexity": 4
+    },
+    {
+      "id": "hooks/useRequiredParam.ts",
+      "path": "hooks/useRequiredParam.ts",
+      "name": "useRequiredParam",
+      "type": "file",
+      "imports": [
+        "expo-router"
+      ],
+      "exports": [
+        "useRequiredParam"
+      ],
+      "size": 303,
+      "complexity": 3
+    },
+    {
+      "id": "hooks/useResponsive.ts",
+      "path": "hooks/useResponsive.ts",
+      "name": "useResponsive",
+      "type": "file",
+      "imports": [
+        "react-native"
+      ],
+      "exports": [
+        "Responsive",
+        "useResponsive",
+        "DESKTOP_CONTENT_MAX_WIDTH",
+        "AUTH_CONTENT_MAX_WIDTH"
+      ],
+      "size": 1504,
+      "complexity": 5
+    },
+    {
+      "id": "hooks/useRevisionQueue.ts",
+      "path": "hooks/useRevisionQueue.ts",
+      "name": "useRevisionQueue",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api/revisionQueue"
+      ],
+      "exports": [
+        "useRevisionQueue"
+      ],
+      "size": 1491,
+      "complexity": 6
+    },
+    {
+      "id": "hooks/useRevisions.ts",
+      "path": "hooks/useRevisions.ts",
+      "name": "useRevisions",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api"
+      ],
+      "exports": [
+        "useRevisions"
+      ],
+      "size": 1508,
+      "complexity": 6
+    },
+    {
+      "id": "hooks/useRosterHealth.ts",
+      "path": "hooks/useRosterHealth.ts",
+      "name": "useRosterHealth",
+      "type": "file",
+      "imports": [
+        "@tanstack/react-query",
+        "../api"
+      ],
+      "exports": [
+        "useRosterHealth"
+      ],
+      "size": 489,
+      "complexity": 4
+    },
+    {
+      "id": "hooks/useSocket.ts",
+      "path": "hooks/useSocket.ts",
+      "name": "useSocket",
+      "type": "file",
+      "imports": [
+        "react",
+        "socket.io-client",
+        "react-native",
+        "../auth/store",
+        "../storage/secureStorage",
+        "../api/apiBase"
+      ],
+      "exports": [
+        "useSocket"
+      ],
+      "size": 3123,
+      "complexity": 19
+    },
+    {
+      "id": "hooks/useTeacherChange.ts",
+      "path": "hooks/useTeacherChange.ts",
+      "name": "useTeacherChange",
+      "type": "file",
+      "imports": [
+        "react",
+        "@tanstack/react-query",
+        "../api/teacherChange"
+      ],
+      "exports": [
+        "useTeacherChange"
+      ],
+      "size": 1356,
+      "complexity": 4
+    },
+    {
+      "id": "hooks/useTheme.ts",
+      "path": "hooks/useTheme.ts",
+      "name": "useTheme",
+      "type": "file",
+      "imports": [
+        "react",
+        "@/constants/theme",
+        "../i18n/useIsRTL",
+        "../settings/store"
+      ],
+      "exports": [
+        "ThemeColors",
+        "useTheme"
+      ],
+      "size": 867,
+      "complexity": 1
+    },
+    {
+      "id": "hooks/useWebRTC.ts",
+      "path": "hooks/useWebRTC.ts",
+      "name": "useWebRTC",
+      "type": "file",
+      "imports": [
+        "react",
+        "socket.io-client"
+      ],
+      "exports": [
+        "WebRTCState",
+        "useWebRTC"
+      ],
+      "size": 3809,
+      "complexity": 11
+    },
+    {
+      "id": "i18n/index.ts",
+      "path": "i18n/index.ts",
+      "name": "index",
+      "type": "file",
+      "imports": [
+        "i18next",
+        "react-i18next",
+        "intl-pluralrules"
+      ],
+      "exports": [
+        "TransKeys",
+        "default"
+      ],
+      "size": 45753,
+      "complexity": 9
+    },
+    {
+      "id": "i18n/useIsRTL.ts",
+      "path": "i18n/useIsRTL.ts",
+      "name": "useIsRTL",
+      "type": "file",
+      "imports": [
+        "i18next",
+        "react"
+      ],
+      "exports": [
+        "useIsRTL"
+      ],
+      "size": 440,
+      "complexity": 1
+    },
+    {
+      "id": "lib/mushafAssets.ts",
+      "path": "lib/mushafAssets.ts",
+      "name": "mushafAssets",
+      "type": "file",
+      "imports": [
+        "react-native",
+        "../api/apiBase"
+      ],
+      "exports": [
+        "TOTAL_MUSHAF_PAGES",
+        "IMAGE_ORIGIN",
+        "mushafPageUri"
+      ],
+      "size": 638,
+      "complexity": 2
+    },
+    {
+      "id": "lib/onlineManager.ts",
+      "path": "lib/onlineManager.ts",
+      "name": "onlineManager",
+      "type": "file",
+      "imports": [
+        "react-native",
+        "@react-native-community/netinfo",
+        "@tanstack/react-query"
+      ],
+      "exports": [
+        "setupOnlineManager"
+      ],
+      "size": 1440,
+      "complexity": 3
+    },
+    {
+      "id": "lib/queryClient.ts",
+      "path": "lib/queryClient.ts",
+      "name": "queryClient",
+      "type": "file",
+      "imports": [
+        "@tanstack/react-query",
+        "@tanstack/query-sync-storage-persister",
+        "../storage/mmkvStorage"
+      ],
+      "exports": [
+        "queryClient",
+        "QUERY_PERSISTER_KEY",
+        "queryPersister"
+      ],
+      "size": 1418,
+      "complexity": 1
+    },
+    {
+      "id": "settings/store.ts",
+      "path": "settings/store.ts",
+      "name": "store",
+      "type": "file",
+      "imports": [
+        "i18next",
+        "zustand",
+        "../storage/mmkvStorage"
+      ],
+      "exports": [
+        "ThemeColor",
+        "FontSize",
+        "useSettingsStore",
+        "useThemeSettings",
+        "FONT_SCALE",
+        "SPACING_SCALE"
+      ],
+      "size": 3086,
+      "complexity": 4
+    },
+    {
+      "id": "storage/mmkvStorage.ts",
+      "path": "storage/mmkvStorage.ts",
+      "name": "mmkvStorage",
+      "type": "file",
+      "imports": [
+        "react-native-mmkv",
+        "@react-native-async-storage/async-storage"
+      ],
+      "exports": [
+        "mmkvStorage"
+      ],
+      "size": 1672,
+      "complexity": 9
+    },
+    {
+      "id": "storage/persist.ts",
+      "path": "storage/persist.ts",
+      "name": "persist",
+      "type": "file",
+      "imports": [
+        "zustand",
+        "./mmkvStorage"
+      ],
+      "exports": [
+        "persist"
+      ],
+      "size": 675,
+      "complexity": 2
+    },
+    {
+      "id": "storage/secureStorage.ts",
+      "path": "storage/secureStorage.ts",
+      "name": "secureStorage",
+      "type": "file",
+      "imports": [
+        "expo-secure-store",
+        "react-native"
+      ],
+      "exports": [
+        "secureStorage"
+      ],
+      "size": 921,
+      "complexity": 6
+    },
+    {
+      "id": "styles/logical.ts",
+      "path": "styles/logical.ts",
+      "name": "logical",
+      "type": "file",
+      "imports": [
+        "@/src/i18n/useIsRTL"
+      ],
+      "exports": [
+        "LogicalStyle",
+        "useLogicalMargin",
+        "useLogicalPadding"
+      ],
+      "size": 1446,
+      "complexity": 14
+    },
+    {
+      "id": "utils/date.ts",
+      "path": "utils/date.ts",
+      "name": "date",
+      "type": "file",
+      "imports": [],
+      "exports": [
+        "isTodayDate"
+      ],
+      "size": 330,
+      "complexity": 4
+    }
+  ],
+  "edges": [
+    {
+      "source": "api/academyHealth.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/academyProfile.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/account.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/analytics.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/appointments.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/attendance.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/auditLogs.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/auth.ts",
+      "target": "api/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/certificates.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/client.ts",
+      "target": "api/interceptors.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/client.ts",
+      "target": "api/apiBase.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/contract.ts",
+      "target": "storage/secureStorage.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/contract.ts",
+      "target": "api/apiBase.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/curriculumPlans.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/gamification.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/grades.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/halaqa.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/ijazahs.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/index.ts",
+      "target": "api/client.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "api/index.ts",
+      "target": "api/auth.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "api/index.ts",
+      "target": "api/appointments.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "api/index.ts",
+      "target": "api/grades.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "api/index.ts",
+      "target": "api/messages.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "api/index.ts",
+      "target": "api/recordings.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "api/index.ts",
+      "target": "api/users.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "api/index.ts",
+      "target": "api/memorization.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "api/index.ts",
+      "target": "api/reports.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "api/index.ts",
+      "target": "api/revisions.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "api/index.ts",
+      "target": "api/roster.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "api/index.ts",
+      "target": "api/recurringSlots.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "api/index.ts",
+      "target": "api/weakAyahs.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "api/index.ts",
+      "target": "api/curriculumPlans.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "api/index.ts",
+      "target": "api/auditLogs.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "api/interceptors.ts",
+      "target": "storage/secureStorage.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/memorization.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/messages.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/milestones.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/mushaf.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/mushafPages.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/notifications.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/parents.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/public.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/recordings.ts",
+      "target": "api/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/recordings.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/recordings.ts",
+      "target": "storage/secureStorage.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/recurringSlots.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/reports.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/reports.ts",
+      "target": "storage/secureStorage.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/revisionQueue.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/revisions.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/roster.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/teacherChange.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/users.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "api/weakAyahs.ts",
+      "target": "api/contract.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "auth/biometric.ts",
+      "target": "i18n/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "auth/biometric.ts",
+      "target": "storage/secureStorage.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "auth/store.ts",
+      "target": "api/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "auth/store.ts",
+      "target": "api/auth.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "auth/store.ts",
+      "target": "api/interceptors.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "auth/store.ts",
+      "target": "storage/secureStorage.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "auth/store.ts",
+      "target": "storage/mmkvStorage.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "auth/store.ts",
+      "target": "lib/queryClient.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "auth/store.ts",
+      "target": "auth/biometric.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "auth/store.ts",
+      "target": "api/auth.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "components/OfflineBanner.tsx",
+      "target": "hooks/useIsOnline.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "components/OfflineBanner.tsx",
+      "target": "components/design.tsx",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "components/design.tsx",
+      "target": "components/AppText.tsx",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "components/design.tsx",
+      "target": "components/SettingsContext.tsx",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "components/design.tsx",
+      "target": "components/AppText.tsx",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "hooks/useAcademyHealth.ts",
+      "target": "api/academyHealth.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useAcademyProfile.ts",
+      "target": "api/academyProfile.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useAnalytics.ts",
+      "target": "api/analytics.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useAppointments.ts",
+      "target": "api/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useAppointments.ts",
+      "target": "hooks/useSocket.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useAuditLogs.ts",
+      "target": "api/auditLogs.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useAuth.ts",
+      "target": "api/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useAuth.ts",
+      "target": "storage/secureStorage.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useCertificates.ts",
+      "target": "api/certificates.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useCertificates.ts",
+      "target": "storage/secureStorage.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useConversation.ts",
+      "target": "api/messages.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useConversation.ts",
+      "target": "auth/store.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useConversation.ts",
+      "target": "hooks/useSocket.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useCurriculumPlans.ts",
+      "target": "api/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useGamification.ts",
+      "target": "api/gamification.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useGrades.ts",
+      "target": "api/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useHalaqa.ts",
+      "target": "api/halaqa.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useHalaqaGroups.ts",
+      "target": "api/halaqa.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useIjazahs.ts",
+      "target": "api/ijazahs.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useMemorization.ts",
+      "target": "api/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useMessages.ts",
+      "target": "api/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useMessages.ts",
+      "target": "auth/store.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useMessages.ts",
+      "target": "hooks/useSocket.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useMushaf.ts",
+      "target": "api/mushaf.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useMushafPages.ts",
+      "target": "api/mushafPages.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useNotifications.ts",
+      "target": "api/notifications.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useParent.ts",
+      "target": "api/parents.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/usePushNotifications.ts",
+      "target": "api/client.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useRecordings.ts",
+      "target": "api/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useRecurringSlots.ts",
+      "target": "api/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useRevisionQueue.ts",
+      "target": "api/revisionQueue.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useRevisions.ts",
+      "target": "api/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useRosterHealth.ts",
+      "target": "api/index.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useSocket.ts",
+      "target": "auth/store.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useSocket.ts",
+      "target": "storage/secureStorage.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useSocket.ts",
+      "target": "api/apiBase.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useTeacherChange.ts",
+      "target": "api/teacherChange.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useTheme.ts",
+      "target": "i18n/useIsRTL.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "hooks/useTheme.ts",
+      "target": "settings/store.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "lib/mushafAssets.ts",
+      "target": "api/apiBase.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "lib/queryClient.ts",
+      "target": "storage/mmkvStorage.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "settings/store.ts",
+      "target": "storage/mmkvStorage.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "storage/persist.ts",
+      "target": "storage/mmkvStorage.ts",
+      "type": "import",
+      "weight": 1
+    }
+  ],
+  "metadata": {
+    "rootDir": "/home/haskhr/Documents/education-management/mobile/src",
+    "totalFiles": 88,
+    "totalEdges": 112,
+    "buildTime": 87
+  },
+  "circularDependencies": []
+}

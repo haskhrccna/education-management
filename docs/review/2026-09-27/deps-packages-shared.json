@@ -1,0 +1,1199 @@
+{
+  "nodes": [
+    {
+      "id": "src/api-base.ts",
+      "path": "src/api-base.ts",
+      "name": "api-base",
+      "type": "file",
+      "imports": [],
+      "exports": [
+        "DEFAULT_API_BASE",
+        "AppPlatform",
+        "ApiBaseInput",
+        "resolveApiBase",
+        "resolveSocketOrigin",
+        "isApiUnreachableByConfig"
+      ],
+      "size": 2959,
+      "complexity": 13
+    },
+    {
+      "id": "src/contracts/account.contracts.ts",
+      "path": "src/contracts/account.contracts.ts",
+      "name": "account.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types"
+      ],
+      "exports": [
+        "accountContracts"
+      ],
+      "size": 1331,
+      "complexity": 1
+    },
+    {
+      "id": "src/contracts/admin.contracts.ts",
+      "path": "src/contracts/admin.contracts.ts",
+      "name": "admin.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types",
+        "../enums/roles",
+        "../validators/common"
+      ],
+      "exports": [
+        "PaginationMeta",
+        "adminContracts"
+      ],
+      "size": 9826,
+      "complexity": 5
+    },
+    {
+      "id": "src/contracts/auth.contracts.ts",
+      "path": "src/contracts/auth.contracts.ts",
+      "name": "auth.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types",
+        "../validators/common",
+        "../validators/auth"
+      ],
+      "exports": [
+        "authContracts"
+      ],
+      "size": 3627,
+      "complexity": 1
+    },
+    {
+      "id": "src/contracts/certificates.contracts.ts",
+      "path": "src/contracts/certificates.contracts.ts",
+      "name": "certificates.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types",
+        "../enums/roles"
+      ],
+      "exports": [
+        "certificatesContracts"
+      ],
+      "size": 1368,
+      "complexity": 2
+    },
+    {
+      "id": "src/contracts/client.ts",
+      "path": "src/contracts/client.ts",
+      "name": "client",
+      "type": "file",
+      "imports": [
+        "./types"
+      ],
+      "exports": [
+        "ContractClientError",
+        "ContractClientOptions",
+        "CallArgs",
+        "createContractClient"
+      ],
+      "size": 2563,
+      "complexity": 15
+    },
+    {
+      "id": "src/contracts/communication.contracts.ts",
+      "path": "src/contracts/communication.contracts.ts",
+      "name": "communication.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types",
+        "../validators/common"
+      ],
+      "exports": [
+        "communicationContracts"
+      ],
+      "size": 3992,
+      "complexity": 2
+    },
+    {
+      "id": "src/contracts/curriculum-plans.contracts.ts",
+      "path": "src/contracts/curriculum-plans.contracts.ts",
+      "name": "curriculum-plans.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types",
+        "../enums/roles"
+      ],
+      "exports": [
+        "curriculumPlansContracts"
+      ],
+      "size": 1963,
+      "complexity": 1
+    },
+    {
+      "id": "src/contracts/halaqa.contracts.ts",
+      "path": "src/contracts/halaqa.contracts.ts",
+      "name": "halaqa.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types"
+      ],
+      "exports": [
+        "halaqaContracts"
+      ],
+      "size": 3015,
+      "complexity": 2
+    },
+    {
+      "id": "src/contracts/health.contracts.ts",
+      "path": "src/contracts/health.contracts.ts",
+      "name": "health.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types"
+      ],
+      "exports": [
+        "healthContracts"
+      ],
+      "size": 929,
+      "complexity": 1
+    },
+    {
+      "id": "src/contracts/ijazahs.contracts.ts",
+      "path": "src/contracts/ijazahs.contracts.ts",
+      "name": "ijazahs.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types",
+        "../enums/roles"
+      ],
+      "exports": [
+        "ijazahsContracts"
+      ],
+      "size": 2473,
+      "complexity": 1
+    },
+    {
+      "id": "src/contracts/learning.contracts.ts",
+      "path": "src/contracts/learning.contracts.ts",
+      "name": "learning.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types",
+        "../enums/roles",
+        "../validators/common"
+      ],
+      "exports": [
+        "learningContracts"
+      ],
+      "size": 4968,
+      "complexity": 3
+    },
+    {
+      "id": "src/contracts/media.contracts.ts",
+      "path": "src/contracts/media.contracts.ts",
+      "name": "media.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types",
+        "../enums/roles",
+        "../validators/common"
+      ],
+      "exports": [
+        "mediaContracts"
+      ],
+      "size": 6918,
+      "complexity": 7
+    },
+    {
+      "id": "src/contracts/milestones.contracts.ts",
+      "path": "src/contracts/milestones.contracts.ts",
+      "name": "milestones.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types",
+        "../enums/roles"
+      ],
+      "exports": [
+        "milestonesContracts"
+      ],
+      "size": 1635,
+      "complexity": 1
+    },
+    {
+      "id": "src/contracts/mushaf.contracts.ts",
+      "path": "src/contracts/mushaf.contracts.ts",
+      "name": "mushaf.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types",
+        "../validators/mushaf"
+      ],
+      "exports": [
+        "mushafContracts"
+      ],
+      "size": 4408,
+      "complexity": 3
+    },
+    {
+      "id": "src/contracts/parent-links.contracts.ts",
+      "path": "src/contracts/parent-links.contracts.ts",
+      "name": "parent-links.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types",
+        "../enums/roles"
+      ],
+      "exports": [
+        "parentLinksContracts"
+      ],
+      "size": 1458,
+      "complexity": 1
+    },
+    {
+      "id": "src/contracts/progress.contracts.ts",
+      "path": "src/contracts/progress.contracts.ts",
+      "name": "progress.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types",
+        "../enums/roles"
+      ],
+      "exports": [
+        "progressContracts"
+      ],
+      "size": 5893,
+      "complexity": 4
+    },
+    {
+      "id": "src/contracts/public.contracts.ts",
+      "path": "src/contracts/public.contracts.ts",
+      "name": "public.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types"
+      ],
+      "exports": [
+        "AcademyProfilePublic",
+        "publicContracts"
+      ],
+      "size": 1205,
+      "complexity": 1
+    },
+    {
+      "id": "src/contracts/recurring-slots.contracts.ts",
+      "path": "src/contracts/recurring-slots.contracts.ts",
+      "name": "recurring-slots.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types",
+        "../enums/roles"
+      ],
+      "exports": [
+        "recurringSlotsContracts"
+      ],
+      "size": 2997,
+      "complexity": 1
+    },
+    {
+      "id": "src/contracts/registry.ts",
+      "path": "src/contracts/registry.ts",
+      "name": "registry",
+      "type": "file",
+      "imports": [
+        "./types",
+        "./health.contracts",
+        "./auth.contracts",
+        "./users.contracts",
+        "./admin.contracts",
+        "./scheduling.contracts",
+        "./learning.contracts",
+        "./mushaf.contracts",
+        "./roster.contracts",
+        "./parent-links.contracts",
+        "./recurring-slots.contracts",
+        "./weak-ayahs.contracts",
+        "./curriculum-plans.contracts",
+        "./milestones.contracts",
+        "./ijazahs.contracts",
+        "./certificates.contracts",
+        "./account.contracts",
+        "./media.contracts",
+        "./communication.contracts",
+        "./progress.contracts",
+        "./halaqa.contracts",
+        "./public.contracts"
+      ],
+      "exports": [
+        "contractRegistry"
+      ],
+      "size": 2323,
+      "complexity": 1
+    },
+    {
+      "id": "src/contracts/roster.contracts.ts",
+      "path": "src/contracts/roster.contracts.ts",
+      "name": "roster.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types",
+        "../enums/roles"
+      ],
+      "exports": [
+        "rosterContracts"
+      ],
+      "size": 882,
+      "complexity": 1
+    },
+    {
+      "id": "src/contracts/scheduling.contracts.ts",
+      "path": "src/contracts/scheduling.contracts.ts",
+      "name": "scheduling.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types",
+        "../enums/roles",
+        "../validators/common",
+        "../validators/teacherChange"
+      ],
+      "exports": [
+        "schedulingContracts"
+      ],
+      "size": 4672,
+      "complexity": 3
+    },
+    {
+      "id": "src/contracts/types.ts",
+      "path": "src/contracts/types.ts",
+      "name": "types",
+      "type": "file",
+      "imports": [
+        "zod",
+        "../enums/roles"
+      ],
+      "exports": [
+        "HttpMethod",
+        "ContractAccess",
+        "ErrorEnvelope",
+        "DateOut",
+        "RawResponseMarker",
+        "rawResponse",
+        "isRawResponse",
+        "ResponseSchema",
+        "RouteContract",
+        "AnyRouteContract",
+        "defineContract",
+        "ContractResponse",
+        "ContractClientResponse",
+        "ContractBody",
+        "ContractParams",
+        "ContractQuery"
+      ],
+      "size": 4826,
+      "complexity": 12
+    },
+    {
+      "id": "src/contracts/users.contracts.ts",
+      "path": "src/contracts/users.contracts.ts",
+      "name": "users.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types",
+        "../validators/common",
+        "../validators/auth"
+      ],
+      "exports": [
+        "usersContracts"
+      ],
+      "size": 2734,
+      "complexity": 1
+    },
+    {
+      "id": "src/contracts/weak-ayahs.contracts.ts",
+      "path": "src/contracts/weak-ayahs.contracts.ts",
+      "name": "weak-ayahs.contracts",
+      "type": "file",
+      "imports": [
+        "zod",
+        "./types",
+        "../enums/roles"
+      ],
+      "exports": [
+        "weakAyahsContracts"
+      ],
+      "size": 1310,
+      "complexity": 1
+    },
+    {
+      "id": "src/enums/appointmentStatus.ts",
+      "path": "src/enums/appointmentStatus.ts",
+      "name": "appointmentStatus",
+      "type": "file",
+      "imports": [],
+      "exports": [
+        "AppointmentStatus"
+      ],
+      "size": 188,
+      "complexity": 1
+    },
+    {
+      "id": "src/enums/gradeType.ts",
+      "path": "src/enums/gradeType.ts",
+      "name": "gradeType",
+      "type": "file",
+      "imports": [],
+      "exports": [
+        "GradeType"
+      ],
+      "size": 141,
+      "complexity": 1
+    },
+    {
+      "id": "src/enums/messageType.ts",
+      "path": "src/enums/messageType.ts",
+      "name": "messageType",
+      "type": "file",
+      "imports": [],
+      "exports": [
+        "MessageType"
+      ],
+      "size": 83,
+      "complexity": 1
+    },
+    {
+      "id": "src/enums/roles.ts",
+      "path": "src/enums/roles.ts",
+      "name": "roles",
+      "type": "file",
+      "imports": [],
+      "exports": [
+        "UserRole",
+        "PrismaRole",
+        "toPrismaRole"
+      ],
+      "size": 320,
+      "complexity": 1
+    },
+    {
+      "id": "src/index.ts",
+      "path": "src/index.ts",
+      "name": "index",
+      "type": "file",
+      "imports": [
+        "./enums/roles",
+        "./enums/appointmentStatus",
+        "./enums/gradeType",
+        "./enums/messageType",
+        "./types/user",
+        "./types/appointment",
+        "./types/grade",
+        "./types/recording",
+        "./types/message",
+        "./types/report",
+        "./types/ayah",
+        "./validators/common",
+        "./validators/teacherChange",
+        "./validators/auth",
+        "./validators/mushaf",
+        "./contracts/types",
+        "./contracts/health.contracts",
+        "./contracts/auth.contracts",
+        "./contracts/registry",
+        "./contracts/users.contracts",
+        "./contracts/admin.contracts",
+        "./contracts/scheduling.contracts",
+        "./contracts/learning.contracts",
+        "./contracts/mushaf.contracts",
+        "./contracts/roster.contracts",
+        "./contracts/parent-links.contracts",
+        "./contracts/recurring-slots.contracts",
+        "./contracts/weak-ayahs.contracts",
+        "./contracts/curriculum-plans.contracts",
+        "./contracts/milestones.contracts",
+        "./contracts/ijazahs.contracts",
+        "./contracts/certificates.contracts",
+        "./contracts/account.contracts",
+        "./contracts/media.contracts",
+        "./contracts/communication.contracts",
+        "./contracts/progress.contracts",
+        "./contracts/halaqa.contracts",
+        "./contracts/public.contracts",
+        "./contracts/client",
+        "./api-base"
+      ],
+      "exports": [],
+      "size": 1729,
+      "complexity": 1
+    },
+    {
+      "id": "src/types/appointment.ts",
+      "path": "src/types/appointment.ts",
+      "name": "appointment",
+      "type": "file",
+      "imports": [
+        "../enums/appointmentStatus"
+      ],
+      "exports": [
+        "Appointment",
+        "CreateAppointmentInput",
+        "AmendAppointmentInput"
+      ],
+      "size": 689,
+      "complexity": 1
+    },
+    {
+      "id": "src/types/ayah.ts",
+      "path": "src/types/ayah.ts",
+      "name": "ayah",
+      "type": "file",
+      "imports": [],
+      "exports": [
+        "AyahDTO",
+        "MushafPageDTO",
+        "SurahWithAyahsDTO"
+      ],
+      "size": 419,
+      "complexity": 1
+    },
+    {
+      "id": "src/types/grade.ts",
+      "path": "src/types/grade.ts",
+      "name": "grade",
+      "type": "file",
+      "imports": [
+        "../enums/gradeType"
+      ],
+      "exports": [
+        "SurahSummary",
+        "Grade",
+        "CreateGradeInput"
+      ],
+      "size": 529,
+      "complexity": 1
+    },
+    {
+      "id": "src/types/message.ts",
+      "path": "src/types/message.ts",
+      "name": "message",
+      "type": "file",
+      "imports": [
+        "../enums/messageType"
+      ],
+      "exports": [
+        "Message",
+        "SendMessageInput"
+      ],
+      "size": 403,
+      "complexity": 1
+    },
+    {
+      "id": "src/types/recording.ts",
+      "path": "src/types/recording.ts",
+      "name": "recording",
+      "type": "file",
+      "imports": [],
+      "exports": [
+        "Recording",
+        "CreateRecordingInput"
+      ],
+      "size": 426,
+      "complexity": 1
+    },
+    {
+      "id": "src/types/report.ts",
+      "path": "src/types/report.ts",
+      "name": "report",
+      "type": "file",
+      "imports": [],
+      "exports": [
+        "Report",
+        "GenerateReportInput"
+      ],
+      "size": 245,
+      "complexity": 1
+    },
+    {
+      "id": "src/types/user.ts",
+      "path": "src/types/user.ts",
+      "name": "user",
+      "type": "file",
+      "imports": [
+        "../enums/roles"
+      ],
+      "exports": [
+        "UserStatus",
+        "User",
+        "LoginInput",
+        "RegisterInput"
+      ],
+      "size": 596,
+      "complexity": 1
+    },
+    {
+      "id": "src/validators/auth.ts",
+      "path": "src/validators/auth.ts",
+      "name": "auth",
+      "type": "file",
+      "imports": [
+        "zod"
+      ],
+      "exports": [
+        "ForgotPasswordSchema",
+        "ResetPasswordSchema",
+        "DeviceTokenSchema"
+      ],
+      "size": 321,
+      "complexity": 1
+    },
+    {
+      "id": "src/validators/common.ts",
+      "path": "src/validators/common.ts",
+      "name": "common",
+      "type": "file",
+      "imports": [
+        "zod",
+        "../enums/gradeType",
+        "../enums/messageType"
+      ],
+      "exports": [
+        "uuidSchema",
+        "passwordSchema",
+        "emailSchema",
+        "nameSchema",
+        "fileNameSchema",
+        "timeSchema",
+        "dateSchema",
+        "LoginSchema",
+        "RegisterSchema",
+        "CreateAppointmentSchema",
+        "ManageAppointmentSchema",
+        "CreateGradeSchema",
+        "SendMessageSchema",
+        "CreateRecordingSchema",
+        "FilePresignBodySchema",
+        "FileCompleteBodySchema",
+        "GenerateReportSchema",
+        "BroadcastMessageSchema",
+        "CreateTeacherSchema",
+        "UpdateProfileSchema",
+        "RefreshTokenSchema",
+        "ChangePasswordSchema",
+        "UpdateUserSchema",
+        "BulkApproveSchema",
+        "BulkDeactivateSchema",
+        "UpsertAcademyProfileSchema",
+        "ZodLoginInput",
+        "ZodRegisterInput",
+        "ZodCreateAppointmentInput",
+        "ZodManageAppointmentInput",
+        "ZodCreateGradeInput",
+        "ZodSendMessageInput",
+        "ZodCreateRecordingInput",
+        "ZodGenerateReportInput",
+        "ZodBroadcastMessageInput",
+        "ZodCreateTeacherInput",
+        "ZodUpdateProfileInput",
+        "ZodRefreshTokenInput",
+        "ZodChangePasswordInput",
+        "ZodUpdateUserInput",
+        "ZodUpsertAcademyProfileInput"
+      ],
+      "size": 6158,
+      "complexity": 1
+    },
+    {
+      "id": "src/validators/mushaf.ts",
+      "path": "src/validators/mushaf.ts",
+      "name": "mushaf",
+      "type": "file",
+      "imports": [
+        "zod"
+      ],
+      "exports": [
+        "logAyahMemorizationSchema",
+        "PageStatusEnum",
+        "setPageStatusSchema"
+      ],
+      "size": 447,
+      "complexity": 1
+    },
+    {
+      "id": "src/validators/teacherChange.ts",
+      "path": "src/validators/teacherChange.ts",
+      "name": "teacherChange",
+      "type": "file",
+      "imports": [
+        "zod"
+      ],
+      "exports": [
+        "SubmitTeacherChangeSchema",
+        "DecideTeacherChangeSchema"
+      ],
+      "size": 536,
+      "complexity": 2
+    }
+  ],
+  "edges": [
+    {
+      "source": "src/contracts/account.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/admin.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/admin.contracts.ts",
+      "target": "src/enums/roles.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/admin.contracts.ts",
+      "target": "src/validators/common.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/auth.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/auth.contracts.ts",
+      "target": "src/validators/common.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/auth.contracts.ts",
+      "target": "src/validators/auth.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/certificates.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/certificates.contracts.ts",
+      "target": "src/enums/roles.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/client.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/communication.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/communication.contracts.ts",
+      "target": "src/validators/common.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/curriculum-plans.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/curriculum-plans.contracts.ts",
+      "target": "src/enums/roles.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/halaqa.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/health.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/ijazahs.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/ijazahs.contracts.ts",
+      "target": "src/enums/roles.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/learning.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/learning.contracts.ts",
+      "target": "src/enums/roles.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/learning.contracts.ts",
+      "target": "src/validators/common.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/media.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/media.contracts.ts",
+      "target": "src/enums/roles.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/media.contracts.ts",
+      "target": "src/validators/common.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/milestones.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/milestones.contracts.ts",
+      "target": "src/enums/roles.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/mushaf.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/mushaf.contracts.ts",
+      "target": "src/validators/mushaf.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/parent-links.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/parent-links.contracts.ts",
+      "target": "src/enums/roles.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/progress.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/progress.contracts.ts",
+      "target": "src/enums/roles.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/public.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/recurring-slots.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/recurring-slots.contracts.ts",
+      "target": "src/enums/roles.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/registry.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/roster.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/roster.contracts.ts",
+      "target": "src/enums/roles.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/scheduling.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/scheduling.contracts.ts",
+      "target": "src/enums/roles.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/scheduling.contracts.ts",
+      "target": "src/validators/common.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/scheduling.contracts.ts",
+      "target": "src/validators/teacherChange.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/types.ts",
+      "target": "src/enums/roles.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/users.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/users.contracts.ts",
+      "target": "src/validators/common.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/users.contracts.ts",
+      "target": "src/validators/auth.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/weak-ayahs.contracts.ts",
+      "target": "src/contracts/types.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/contracts/weak-ayahs.contracts.ts",
+      "target": "src/enums/roles.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/enums/roles.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/enums/appointmentStatus.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/enums/gradeType.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/enums/messageType.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/types/user.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/types/appointment.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/types/grade.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/types/recording.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/types/message.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/types/report.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/types/ayah.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/validators/common.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/validators/teacherChange.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/validators/auth.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/validators/mushaf.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/contracts/types.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/contracts/registry.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/contracts/client.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/index.ts",
+      "target": "src/api-base.ts",
+      "type": "re-export",
+      "weight": 2
+    },
+    {
+      "source": "src/types/appointment.ts",
+      "target": "src/enums/appointmentStatus.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/types/grade.ts",
+      "target": "src/enums/gradeType.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/types/message.ts",
+      "target": "src/enums/messageType.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/types/user.ts",
+      "target": "src/enums/roles.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/validators/common.ts",
+      "target": "src/enums/gradeType.ts",
+      "type": "import",
+      "weight": 1
+    },
+    {
+      "source": "src/validators/common.ts",
+      "target": "src/enums/messageType.ts",
+      "type": "import",
+      "weight": 1
+    }
+  ],
+  "metadata": {
+    "rootDir": "/home/haskhr/Documents/education-management/packages/shared",
+    "totalFiles": 41,
+    "totalEdges": 73,
+    "buildTime": 11
+  },
+  "circularDependencies": []
+}

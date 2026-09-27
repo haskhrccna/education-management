@@ -14,7 +14,8 @@ app.get('/nested', (_req: Request, res: Response) => {
     user: {
       password: 'secret123',
       passwordHash: 'abc',
-      tokenHash: 'xyz',
+      refreshTokenHash: 'xyz',
+      passwordResetToken: 'reset-xyz',
       email: 'a@b.com',
       passwordChangedAt: new Date('2024-01-15T08:30:00Z'),
     },
@@ -42,7 +43,8 @@ describe('sanitizeResponse middleware', () => {
     expect(res.status).toBe(200);
     expect(res.body.user.password).toBe('[REDACTED]');
     expect(res.body.user.passwordHash).toBe('[REDACTED]');
-    expect(res.body.user.tokenHash).toBe('[REDACTED]');
+    expect(res.body.user.refreshTokenHash).toBe('[REDACTED]');
+    expect(res.body.user.passwordResetToken).toBe('[REDACTED]');
     expect(res.body.user.email).toBe('a@b.com');
     expect(res.body.user.passwordChangedAt).toBe('2024-01-15T08:30:00.000Z');
   });

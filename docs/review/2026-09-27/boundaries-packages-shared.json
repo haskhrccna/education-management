@@ -1,0 +1,126 @@
+{
+  "boundaries": [
+    {
+      "cutValue": 1,
+      "partition1": [
+        "src/api-base.ts",
+        "src/index.ts",
+        "src/contracts/client.ts",
+        "src/contracts/types.ts",
+        "src/contracts/registry.ts",
+        "src/enums/roles.ts",
+        "src/types/user.ts",
+        "src/contracts/admin.contracts.ts",
+        "src/validators/common.ts",
+        "src/contracts/learning.contracts.ts",
+        "src/contracts/media.contracts.ts",
+        "src/contracts/scheduling.contracts.ts",
+        "src/enums/gradeType.ts",
+        "src/enums/messageType.ts",
+        "src/types/grade.ts",
+        "src/types/message.ts",
+        "src/validators/teacherChange.ts",
+        "src/contracts/auth.contracts.ts",
+        "src/validators/auth.ts",
+        "src/contracts/users.contracts.ts",
+        "src/contracts/certificates.contracts.ts",
+        "src/contracts/communication.contracts.ts",
+        "src/contracts/curriculum-plans.contracts.ts",
+        "src/contracts/ijazahs.contracts.ts",
+        "src/contracts/milestones.contracts.ts",
+        "src/contracts/parent-links.contracts.ts",
+        "src/contracts/progress.contracts.ts",
+        "src/contracts/recurring-slots.contracts.ts",
+        "src/contracts/roster.contracts.ts",
+        "src/contracts/weak-ayahs.contracts.ts",
+        "src/enums/appointmentStatus.ts",
+        "src/types/appointment.ts",
+        "src/types/ayah.ts",
+        "src/types/recording.ts",
+        "src/types/report.ts",
+        "src/validators/mushaf.ts",
+        "src/contracts/mushaf.contracts.ts",
+        "src/contracts/account.contracts.ts",
+        "src/contracts/halaqa.contracts.ts",
+        "src/contracts/health.contracts.ts"
+      ],
+      "partition2": [
+        "src/contracts/public.contracts.ts"
+      ],
+      "cutEdges": [
+        {
+          "source": "src/contracts/public.contracts.ts",
+          "target": "src/contracts/types.ts",
+          "type": "import",
+          "weight": 1
+        }
+      ],
+      "suggestion": "Consider extracting 1 files into a separate module. They have minimal coupling to the rest."
+    },
+    {
+      "cutValue": 1,
+      "partition1": [
+        "src/api-base.ts",
+        "src/index.ts",
+        "src/contracts/client.ts",
+        "src/contracts/types.ts",
+        "src/contracts/registry.ts",
+        "src/enums/roles.ts",
+        "src/types/user.ts",
+        "src/contracts/admin.contracts.ts",
+        "src/validators/common.ts",
+        "src/contracts/learning.contracts.ts",
+        "src/contracts/media.contracts.ts",
+        "src/contracts/scheduling.contracts.ts",
+        "src/enums/gradeType.ts",
+        "src/enums/messageType.ts",
+        "src/types/grade.ts",
+        "src/types/message.ts",
+        "src/validators/teacherChange.ts",
+        "src/contracts/auth.contracts.ts",
+        "src/validators/auth.ts",
+        "src/contracts/users.contracts.ts",
+        "src/contracts/certificates.contracts.ts",
+        "src/contracts/communication.contracts.ts",
+        "src/contracts/curriculum-plans.contracts.ts",
+        "src/contracts/ijazahs.contracts.ts",
+        "src/contracts/milestones.contracts.ts",
+        "src/contracts/parent-links.contracts.ts",
+        "src/contracts/progress.contracts.ts",
+        "src/contracts/recurring-slots.contracts.ts",
+        "src/contracts/roster.contracts.ts",
+        "src/contracts/weak-ayahs.contracts.ts",
+        "src/enums/appointmentStatus.ts",
+        "src/types/appointment.ts",
+        "src/types/ayah.ts",
+        "src/types/recording.ts",
+        "src/types/report.ts",
+        "src/validators/mushaf.ts",
+        "src/contracts/mushaf.contracts.ts",
+        "src/contracts/account.contracts.ts",
+        "src/contracts/halaqa.contracts.ts"
+      ],
+      "partition2": [
+        "src/contracts/health.contracts.ts"
+      ],
+      "cutEdges": [
+        {
+          "source": "src/contracts/health.contracts.ts",
+          "target": "src/contracts/types.ts",
+          "type": "import",
+          "weight": 1
+        }
+      ],
+      "suggestion": "Consider extracting 1 files into a separate module. They have minimal coupling to the rest."
+    }
+  ],
+  "statistics": {
+    "nodeCount": 41,
+    "edgeCount": 73,
+    "avgDegree": 3.5609756097560976,
+    "maxDegree": 25,
+    "density": 0.08902439024390243,
+    "componentCount": 1
+  },
+  "circularDependencies": []
+}

@@ -23,6 +23,16 @@ const workerConnection = { ...redisAddress, maxRetriesPerRequest: null };
 
 const workers: Worker[] = [];
 
+// Mirrors createQueue's error handler: BullMQ Workers emit 'error' on
+// connection problems the same way Queues do (not just "absent at startup"),
+// and an unhandled 'error' listener on an EventEmitter throws — which would
+// crash the process on a transient Redis blip after workers are already
+// running.
+function registerWorker(worker: Worker, name: string) {
+  worker.on('error', (err) => logger.warn({ err, worker: name }, 'Worker connection error'));
+  return worker;
+}
+
 function createQueue<T>(name: string) {
   try {
     const queue = new Queue<T>(name, { connection });
@@ -111,74 +121,86 @@ export const closeQueues = async (): Promise<void> => {
 if (process.env.ENABLE_WORKERS === 'true') {
   if (broadcastQueue) {
     workers.push(
-      new Worker(
-        'broadcast',
-        async (job) => {
-          const { notifyUser } = await import('../services/notification.service');
-          const { prisma } = await import('../prisma/client');
-          const { message, targetRole } = job.data;
-          const where = targetRole ? { role: targetRole.toUpperCase() as any } : {};
-          const users = await prisma.user.findMany({ where, select: { id: true } });
-          const sentAt = new Date().toISOString();
-          // Persist a durable notification per recipient (notifyUser also emits
-          // the socket event + best-effort push) so broadcasts land in the
-          // /notifications feed, not just as an ephemeral socket event.
-          await Promise.all(
-            users.map((user) =>
-              notifyUser({
-                userId: user.id,
-                event: 'broadcast',
-                data: { message, sentAt },
-                push: { title: 'Broadcast', body: message },
-              })
-            )
-          );
-          logger.info({ recipients: users.length }, 'Broadcast job completed');
-        },
-        { connection: workerConnection }
+      registerWorker(
+        new Worker(
+          'broadcast',
+          async (job) => {
+            const { notifyUser } = await import('../services/notification.service');
+            const { prisma } = await import('../prisma/client');
+            const { message, targetRole } = job.data;
+            const where = targetRole ? { role: targetRole.toUpperCase() as any } : {};
+            const users = await prisma.user.findMany({ where, select: { id: true } });
+            const sentAt = new Date().toISOString();
+            // Persist a durable notification per recipient (notifyUser also emits
+            // the socket event + best-effort push) so broadcasts land in the
+            // /notifications feed, not just as an ephemeral socket event.
+            await Promise.all(
+              users.map((user) =>
+                notifyUser({
+                  userId: user.id,
+                  event: 'broadcast',
+                  data: { message, sentAt },
+                  push: { title: 'Broadcast', body: message },
+                })
+              )
+            );
+            logger.info({ recipients: users.length }, 'Broadcast job completed');
+          },
+          { connection: workerConnection }
+        ),
+        'broadcast'
       )
     );
   }
 
   if (emailQueue) {
     workers.push(
-      new Worker(
-        'email',
-        async (job) => {
-          const { sendEmail } = await import('../services/email.service');
-          const { to, subject, html, text } = job.data;
-          await sendEmail({ to, subject, html, text });
-          logger.info({ to, subject }, 'Email job completed');
-        },
-        { connection: workerConnection }
+      registerWorker(
+        new Worker(
+          'email',
+          async (job) => {
+            const { sendEmail } = await import('../services/email.service');
+            const { to, subject, html, text } = job.data;
+            await sendEmail({ to, subject, html, text });
+            logger.info({ to, subject }, 'Email job completed');
+          },
+          { connection: workerConnection }
+        ),
+        'email'
       )
     );
   }
 
   if (notificationQueue) {
     workers.push(
-      new Worker(
-        'notification',
-        async (job) => {
-          const { notifyUser } = await import('../services/notification.service');
-          await notifyUser(job.data);
-          logger.info({ userId: job.data.userId, event: job.data.event }, 'Notification job completed');
-        },
-        { connection: workerConnection }
+      registerWorker(
+        new Worker(
+          'notification',
+          async (job) => {
+            const { notifyUser } = await import('../services/notification.service');
+            await notifyUser(job.data);
+            logger.info({ userId: job.data.userId, event: job.data.event }, 'Notification job completed');
+          },
+          { connection: workerConnection }
+        ),
+        'notification'
       )
     );
   }
 
   if (digestQueue) {
     workers.push(
-      new Worker(
-        'weekly-digest',
-        async () => {
-          const { sendWeeklyDigests } = await import('../services/digest.service');
-          const sent = await sendWeeklyDigests();
-          logger.info({ sent }, 'Weekly digest job completed');
-        },
-        { connection: workerConnection }
+      registerWorker(
+        new Worker(
+          'weekly-digest',
+          async () => {
+            const { sendWeeklyDigests } = await import('../services/digest.service');
+            const sent = await sendWeeklyDigests();
+            logger.info({ sent }, 'Weekly digest job completed');
+          },
+          { connection: workerConnection }
+        ),
+        'weekly-digest'
       )
     );
     // Registers the recurring trigger once at startup. BullMQ dedupes
@@ -192,14 +214,17 @@ if (process.env.ENABLE_WORKERS === 'true') {
 
   if (streakNudgeQueue) {
     workers.push(
-      new Worker(
-        'streak-nudge',
-        async () => {
-          const { sendStreakNudges } = await import('../services/streak-nudge.service');
-          const sent = await sendStreakNudges();
-          logger.info({ sent }, 'Streak nudge job completed');
-        },
-        { connection: workerConnection }
+      registerWorker(
+        new Worker(
+          'streak-nudge',
+          async () => {
+            const { sendStreakNudges } = await import('../services/streak-nudge.service');
+            const sent = await sendStreakNudges();
+            logger.info({ sent }, 'Streak nudge job completed');
+          },
+          { connection: workerConnection }
+        ),
+        'streak-nudge'
       )
     );
     // Daily 20:00 server-local (F7): evening streak-risk reminder. Same
@@ -211,28 +236,34 @@ if (process.env.ENABLE_WORKERS === 'true') {
 
   if (scoringQueue) {
     workers.push(
-      new Worker(
-        'recitation-scoring',
-        async (job) => {
-          const { scoreRecording } = await import('../services/recitation-scorer.service');
-          await scoreRecording(job.data.recordingId);
-          logger.info({ recordingId: job.data.recordingId }, 'Recitation scoring job completed');
-        },
-        { connection: workerConnection }
+      registerWorker(
+        new Worker(
+          'recitation-scoring',
+          async (job) => {
+            const { scoreRecording } = await import('../services/recitation-scorer.service');
+            await scoreRecording(job.data.recordingId);
+            logger.info({ recordingId: job.data.recordingId }, 'Recitation scoring job completed');
+          },
+          { connection: workerConnection }
+        ),
+        'recitation-scoring'
       )
     );
   }
 
   if (recurringSlotsQueue) {
     workers.push(
-      new Worker(
-        'recurring-slots-extend',
-        async () => {
-          const { extendActiveRecurringSlots } = await import('../services/recurring-slot.service');
-          const generated = await extendActiveRecurringSlots();
-          logger.info({ generated }, 'Recurring slots extension job completed');
-        },
-        { connection: workerConnection }
+      registerWorker(
+        new Worker(
+          'recurring-slots-extend',
+          async () => {
+            const { extendActiveRecurringSlots } = await import('../services/recurring-slot.service');
+            const generated = await extendActiveRecurringSlots();
+            logger.info({ generated }, 'Recurring slots extension job completed');
+          },
+          { connection: workerConnection }
+        ),
+        'recurring-slots-extend'
       )
     );
     // Weekly Monday 06:00 — extends every active slot's rolling window by

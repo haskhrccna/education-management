@@ -1,0 +1,245 @@
+
+{
+  "communities": [
+    {
+      "id": 0,
+      "members": [
+        "__integration__/db.ts",
+        "lib/transaction.ts",
+        "prisma/client.ts",
+        "services/academy-profile.service.ts",
+        "services/account.service.ts",
+        "services/admin.service.ts",
+        "services/analytics.service.ts",
+        "services/appointment.service.ts",
+        "services/attendance.service.ts",
+        "services/certificate.service.ts",
+        "services/curriculum-plan.service.ts",
+        "services/export.service.ts",
+        "services/gamification.service.ts",
+        "services/grade.service.ts",
+        "services/guardian-consent.service.ts",
+        "services/halaqa.service.ts",
+        "services/ijazah.service.ts",
+        "services/message.service.ts",
+        "services/milestone.service.ts",
+        "services/mushaf.service.ts",
+        "services/parent.service.ts",
+        "services/recitation-scorer.service.ts",
+        "services/recurring-slot.service.ts",
+        "services/revision.service.ts",
+        "services/roster.service.ts",
+        "services/teacherChange.service.ts",
+        "services/weak-ayah.service.ts"
+      ],
+      "cohesion": 0.07407407407407407,
+      "centralNode": "prisma/client.ts",
+      "suggestedName": "client"
+    },
+    {
+      "id": 2,
+      "members": [
+        "__integration__/env.ts",
+        "__integration__/global-setup.ts",
+        "lib/test-database.ts"
+      ],
+      "cohesion": 0.6666666666666666,
+      "centralNode": "lib/test-database.ts",
+      "suggestedName": "test-database"
+    },
+    {
+      "id": 3,
+      "members": [
+        "__integration__/factory.ts",
+        "config/index.ts",
+        "middleware/auth.middleware.ts",
+        "routes/verify.routes.ts",
+        "services/auth.service.ts",
+        "services/fcm.service.ts",
+        "services/socket.service.ts"
+      ],
+      "cohesion": 0.2857142857142857,
+      "centralNode": "config/index.ts",
+      "suggestedName": "index"
+    },
+    {
+      "id": 6,
+      "members": [
+        "app.ts",
+        "lib/mushaf-assets.ts",
+        "server.ts",
+        "types/express.ts"
+      ],
+      "cohesion": 0.8333333333333334,
+      "centralNode": "app.ts",
+      "suggestedName": "app"
+    },
+    {
+      "id": 7,
+      "members": [
+        "lib/audit.ts",
+        "modules/admin/admin.module.ts",
+        "modules/files/files.module.ts",
+        "modules/grades/grades.module.ts",
+        "modules/ijazahs/ijazahs.module.ts",
+        "modules/parents/parents.module.ts",
+        "modules/recordings/recordings.module.ts",
+        "modules/teacher-change/teacher-change.module.ts"
+      ],
+      "cohesion": 0.25,
+      "centralNode": "lib/audit.ts",
+      "suggestedName": "audit"
+    },
+    {
+      "id": 8,
+      "members": [
+        "lib/cache.ts",
+        "services/page-memorization.service.ts",
+        "services/revision-queue.service.ts"
+      ],
+      "cohesion": 0.6666666666666666,
+      "centralNode": "lib/cache.ts",
+      "suggestedName": "cache"
+    },
+    {
+      "id": 9,
+      "members": [
+        "lib/contract-router.ts",
+        "modules/account/account.module.ts",
+        "modules/analytics/analytics.module.ts",
+        "modules/appointments/appointments.module.ts",
+        "modules/attendance/attendance.module.ts",
+        "modules/certificates/certificates.module.ts",
+        "modules/curriculum-plans/curriculum-plans.module.ts",
+        "modules/exports/exports.module.ts",
+        "modules/gamification/gamification.module.ts",
+        "modules/halaqa/halaqa.module.ts",
+        "modules/memorization/memorization.module.ts",
+        "modules/messages/messages.module.ts",
+        "modules/milestones/milestones.module.ts",
+        "modules/mushaf/mushaf.module.ts",
+        "modules/notifications/notifications.module.ts",
+        "modules/parent-links/parent-links.module.ts",
+        "modules/public/public.module.ts",
+        "modules/recurring-slots/recurring-slots.module.ts",
+        "modules/reports/reports.module.ts",
+        "modules/revisions/revisions.module.ts",
+        "modules/roster/roster.module.ts",
+        "modules/surahs/surahs.module.ts",
+        "modules/weak-ayahs/weak-ayahs.module.ts"
+      ],
+      "cohesion": 0.08695652173913043,
+      "centralNode": "lib/contract-router.ts",
+      "suggestedName": "contract-router"
+    },
+    {
+      "id": 10,
+      "members": [
+        "lib/health.ts",
+        "modules/health/health.module.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "lib/health.ts",
+      "suggestedName": "health"
+    },
+    {
+      "id": 11,
+      "members": [
+        "lib/logger.ts",
+        "modules/auth/auth.module.ts",
+        "modules/users/users.module.ts",
+        "prisma/audit.middleware.ts",
+        "services/digest.service.ts",
+        "services/memorization.service.ts",
+        "services/notification.service.ts",
+        "services/report.service.ts",
+        "services/storage.service.ts",
+        "services/streak-nudge.service.ts"
+      ],
+      "cohesion": 0.2,
+      "centralNode": "lib/logger.ts",
+      "suggestedName": "logger"
+    },
+    {
+      "id": 12,
+      "members": [
+        "lib/queue.ts",
+        "services/recording.service.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "lib/queue.ts",
+      "suggestedName": "queue"
+    },
+    {
+      "id": 13,
+      "members": [
+        "lib/redis.ts",
+        "services/academy-health.service.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "lib/redis.ts",
+      "suggestedName": "redis"
+    },
+    {
+      "id": 14,
+      "members": [
+        "lib/response.ts",
+        "middleware/error.middleware.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "lib/response.ts",
+      "suggestedName": "response"
+    },
+    {
+      "id": 15,
+      "members": [
+        "lib/storage.ts",
+        "services/file.service.ts",
+        "services/share-image.service.ts",
+        "services/verification.service.ts"
+      ],
+      "cohesion": 0.5,
+      "centralNode": "lib/storage.ts",
+      "suggestedName": "storage"
+    },
+    {
+      "id": 16,
+      "members": [
+        "metrics/index.ts",
+        "routes/metrics.routes.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "metrics/index.ts",
+      "suggestedName": "index"
+    },
+    {
+      "id": 26,
+      "members": [
+        "prisma/import-ayahs.ts",
+        "prisma/seed-e2e.ts",
+        "prisma/seed.ts"
+      ],
+      "cohesion": 0.6666666666666666,
+      "centralNode": "prisma/seed.ts",
+      "suggestedName": "seed"
+    },
+    {
+      "id": 29,
+      "members": [
+        "services/email-templates.ts",
+        "services/email.service.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "services/email-templates.ts",
+      "suggestedName": "email-templates"
+    }
+  ],
+  "statistics": {
+    "nodeCount": 118,
+    "edgeCount": 144,
+    "avgDegree": 2.440677966101695,
+    "maxDegree": 49,
+    "density": 0.020860495436766623,
+    "componentCount": 18
+  }
+}

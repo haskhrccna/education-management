@@ -1,0 +1,269 @@
+
+{
+  "communities": [
+    {
+      "id": 0,
+      "members": [
+        "api/academyHealth.ts",
+        "hooks/useAcademyHealth.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "api/academyHealth.ts",
+      "suggestedName": "academyHealth"
+    },
+    {
+      "id": 1,
+      "members": [
+        "api/academyProfile.ts",
+        "hooks/useAcademyProfile.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "api/academyProfile.ts",
+      "suggestedName": "academyProfile"
+    },
+    {
+      "id": 2,
+      "members": [
+        "api/account.ts",
+        "api/attendance.ts",
+        "api/contract.ts",
+        "api/milestones.ts",
+        "api/public.ts"
+      ],
+      "cohesion": 0.4,
+      "centralNode": "api/contract.ts",
+      "suggestedName": "contract"
+    },
+    {
+      "id": 3,
+      "members": [
+        "api/analytics.ts",
+        "hooks/useAnalytics.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "api/analytics.ts",
+      "suggestedName": "analytics"
+    },
+    {
+      "id": 4,
+      "members": [
+        "api/apiBase.ts",
+        "lib/mushafAssets.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "api/apiBase.ts",
+      "suggestedName": "apiBase"
+    },
+    {
+      "id": 5,
+      "members": [
+        "api/appointments.ts",
+        "api/auditLogs.ts",
+        "api/curriculumPlans.ts",
+        "api/grades.ts",
+        "api/index.ts",
+        "api/memorization.ts",
+        "api/recurringSlots.ts",
+        "api/reports.ts",
+        "api/revisions.ts",
+        "api/roster.ts",
+        "api/users.ts",
+        "api/weakAyahs.ts",
+        "hooks/useAuditLogs.ts",
+        "hooks/useCurriculumPlans.ts",
+        "hooks/useGrades.ts",
+        "hooks/useMemorization.ts",
+        "hooks/useRecordings.ts",
+        "hooks/useRecurringSlots.ts",
+        "hooks/useRevisions.ts",
+        "hooks/useRosterHealth.ts"
+      ],
+      "cohesion": 0.1,
+      "centralNode": "api/index.ts",
+      "suggestedName": "index"
+    },
+    {
+      "id": 6,
+      "members": [
+        "api/auth.ts",
+        "api/client.ts",
+        "api/interceptors.ts",
+        "api/recordings.ts",
+        "auth/biometric.ts",
+        "auth/store.ts",
+        "hooks/useAuth.ts",
+        "hooks/usePushNotifications.ts",
+        "i18n/index.ts",
+        "storage/secureStorage.ts"
+      ],
+      "cohesion": 0.3333333333333333,
+      "centralNode": "auth/store.ts",
+      "suggestedName": "store"
+    },
+    {
+      "id": 7,
+      "members": [
+        "api/certificates.ts",
+        "hooks/useCertificates.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "api/certificates.ts",
+      "suggestedName": "certificates"
+    },
+    {
+      "id": 8,
+      "members": [
+        "api/gamification.ts",
+        "hooks/useGamification.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "api/gamification.ts",
+      "suggestedName": "gamification"
+    },
+    {
+      "id": 9,
+      "members": [
+        "api/halaqa.ts",
+        "hooks/useHalaqa.ts",
+        "hooks/useHalaqaGroups.ts"
+      ],
+      "cohesion": 0.6666666666666666,
+      "centralNode": "api/halaqa.ts",
+      "suggestedName": "halaqa"
+    },
+    {
+      "id": 10,
+      "members": [
+        "api/ijazahs.ts",
+        "hooks/useIjazahs.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "api/ijazahs.ts",
+      "suggestedName": "ijazahs"
+    },
+    {
+      "id": 11,
+      "members": [
+        "api/messages.ts",
+        "hooks/useAppointments.ts",
+        "hooks/useConversation.ts",
+        "hooks/useMessages.ts",
+        "hooks/useSocket.ts"
+      ],
+      "cohesion": 0.4,
+      "centralNode": "hooks/useSocket.ts",
+      "suggestedName": "useSocket"
+    },
+    {
+      "id": 12,
+      "members": [
+        "api/mushaf.ts",
+        "hooks/useMushaf.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "api/mushaf.ts",
+      "suggestedName": "mushaf"
+    },
+    {
+      "id": 13,
+      "members": [
+        "api/mushafPages.ts",
+        "hooks/useMushafPages.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "api/mushafPages.ts",
+      "suggestedName": "mushafPages"
+    },
+    {
+      "id": 14,
+      "members": [
+        "api/notifications.ts",
+        "hooks/useNotifications.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "api/notifications.ts",
+      "suggestedName": "notifications"
+    },
+    {
+      "id": 15,
+      "members": [
+        "api/parents.ts",
+        "hooks/useParent.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "api/parents.ts",
+      "suggestedName": "parents"
+    },
+    {
+      "id": 16,
+      "members": [
+        "api/revisionQueue.ts",
+        "hooks/useRevisionQueue.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "api/revisionQueue.ts",
+      "suggestedName": "revisionQueue"
+    },
+    {
+      "id": 17,
+      "members": [
+        "api/teacherChange.ts",
+        "hooks/useTeacherChange.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "api/teacherChange.ts",
+      "suggestedName": "teacherChange"
+    },
+    {
+      "id": 18,
+      "members": [
+        "components/AppText.tsx",
+        "components/SettingsContext.tsx",
+        "components/design.tsx"
+      ],
+      "cohesion": 1,
+      "centralNode": "components/design.tsx",
+      "suggestedName": "design"
+    },
+    {
+      "id": 20,
+      "members": [
+        "components/OfflineBanner.tsx",
+        "hooks/useIsOnline.ts"
+      ],
+      "cohesion": 1,
+      "centralNode": "components/OfflineBanner.tsx",
+      "suggestedName": "OfflineBanner"
+    },
+    {
+      "id": 24,
+      "members": [
+        "hooks/useTheme.ts",
+        "i18n/useIsRTL.ts",
+        "settings/store.ts"
+      ],
+      "cohesion": 0.6666666666666666,
+      "centralNode": "hooks/useTheme.ts",
+      "suggestedName": "useTheme"
+    },
+    {
+      "id": 27,
+      "members": [
+        "lib/queryClient.ts",
+        "storage/mmkvStorage.ts",
+        "storage/persist.ts"
+      ],
+      "cohesion": 0.6666666666666666,
+      "centralNode": "storage/mmkvStorage.ts",
+      "suggestedName": "mmkvStorage"
+    }
+  ],
+  "statistics": {
+    "nodeCount": 88,
+    "edgeCount": 112,
+    "avgDegree": 2.5454545454545454,
+    "maxDegree": 32,
+    "density": 0.029258098223615466,
+    "componentCount": 10
+  }
+}
