@@ -6,6 +6,50 @@ import { notifyUser } from './notification.service';
 
 const MAX_BULK_IDS = 1000;
 
+const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+const parseFilterDate = (raw: unknown, field: 'dateFrom' | 'dateTo'): Date | undefined => {
+  if (raw === undefined || raw === '') return undefined;
+  let str = String(raw);
+  // A date-only dateTo (e.g. "2026-07-29") parses as midnight UTC, which as an
+  // `lte` bound excludes the entire day it names. dateFrom needs no such
+  // adjustment — midnight UTC is already the correct start-of-day lower bound.
+  if (field === 'dateTo' && DATE_ONLY_RE.test(str)) {
+    str = `${str}T23:59:59.999Z`;
+  }
+  const parsed = new Date(str);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new AppError(400, `${field} must be an ISO-8601 date string`);
+  }
+  return parsed;
+};
+
+export const listAuditLogs = async (
+  filters: { userId?: string; action?: string; resourceType?: string; dateFrom?: unknown; dateTo?: unknown },
+  skip = 0,
+  take = 20
+) => {
+  const gte = parseFilterDate(filters.dateFrom, 'dateFrom');
+  const lte = parseFilterDate(filters.dateTo, 'dateTo');
+  const where = {
+    ...(filters.userId ? { userId: filters.userId } : {}),
+    ...(filters.action ? { action: filters.action } : {}),
+    ...(filters.resourceType ? { resourceType: filters.resourceType } : {}),
+    ...(gte || lte ? { createdAt: { ...(gte ? { gte } : {}), ...(lte ? { lte } : {}) } } : {}),
+  };
+  const [rows, total] = await Promise.all([
+    prisma.auditLog.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take,
+      include: { user: { select: { id: true, firstName: true, lastName: true, email: true } } },
+    }),
+    prisma.auditLog.count({ where }),
+  ]);
+  return { rows, total };
+};
+
 export const listUsers = async (roleFilter?: string) => {
   return await prisma.user.findMany({
     where: {

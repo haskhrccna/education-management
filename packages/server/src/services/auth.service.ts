@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { config } from '../config';
 import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
-import { sendPasswordResetEmail } from './email.service';
+import { sendPasswordResetEmail, sendWelcomeEmail } from './email.service';
 import { logger } from '../lib/logger';
 
 export const hashPassword = async (password: string): Promise<string> => {
@@ -45,6 +45,66 @@ export const verifyRefreshToken = (token: string, storedHash: string | null): bo
   } catch {
     return false;
   }
+};
+
+export const registerUser = async (
+  email: string,
+  password: string,
+  role: 'STUDENT' | 'TEACHER',
+  firstName: string,
+  lastName: string
+) => {
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing && !existing.deletedAt) throw new AppError(409, 'Email already registered');
+  if (existing?.deletedAt) throw new AppError(409, 'This email has been used by a deleted account. Contact support.');
+  const passwordHash = await hashPassword(password);
+  const user = await prisma.user.create({
+    data: { email, passwordHash, role, firstName, lastName },
+    select: { id: true, email: true, role: true, firstName: true, lastName: true, status: true },
+  });
+  sendWelcomeEmail(user.email, user.firstName).catch((err) => logger.error({ err }, 'Welcome email failed'));
+  return user;
+};
+
+export const loginUser = async (email: string, password: string) => {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user || !(await comparePassword(password, user.passwordHash))) {
+    throw new AppError(401, 'Invalid credentials');
+  }
+  if (user.deletedAt) throw new AppError(403, 'Account has been deleted. Contact support.');
+  if (user.status !== 'ACTIVE') throw new AppError(403, 'Account is not active. Please wait for admin approval.');
+  const token = generateToken(user.id, user.role);
+  const refreshToken = generateRefreshToken();
+  await prisma.user.update({ where: { id: user.id }, data: { refreshTokenHash: hashRefreshToken(refreshToken) } });
+  return { user, token, refreshToken };
+};
+
+export const refreshSession = async (refreshToken: string) => {
+  const refreshTokenHash = hashRefreshToken(refreshToken);
+  const user = await prisma.user.findFirst({ where: { refreshTokenHash } });
+  if (!user || !verifyRefreshToken(refreshToken, user.refreshTokenHash)) {
+    throw new AppError(401, 'Invalid refresh token');
+  }
+  if (user.deletedAt) throw new AppError(401, 'Account has been deleted');
+  if (user.status !== 'ACTIVE') throw new AppError(401, 'Account is not active');
+  const token = generateToken(user.id, user.role);
+  const newRefreshToken = generateRefreshToken();
+  await prisma.user.update({ where: { id: user.id }, data: { refreshTokenHash: hashRefreshToken(newRefreshToken) } });
+  return { token, refreshToken: newRefreshToken };
+};
+
+export const logoutUser = async (userId: string): Promise<void> => {
+  await prisma.user.update({ where: { id: userId }, data: { refreshTokenHash: null } });
+};
+
+export const verifyUserEmail = async (userId: string) => {
+  return prisma.user.update({ where: { id: userId }, data: { emailVerifiedAt: new Date() } });
+};
+
+export const resendVerificationEmail = async (userId: string): Promise<void> => {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, firstName: true } });
+  if (!user) throw new AppError(404, 'User not found');
+  await sendWelcomeEmail(user.email, user.firstName);
 };
 
 export const forgotPassword = async (email: string): Promise<void> => {

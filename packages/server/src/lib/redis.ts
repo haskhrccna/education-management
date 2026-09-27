@@ -30,6 +30,10 @@ export const getRedis = (): Redis | null => {
 
     redis.on('error', (err) => {
       logger.warn({ err }, 'Redis connection error');
+      // Force the errored client closed before dropping the reference —
+      // otherwise the socket/timers are never released and a fresh client
+      // is lazily created on the next getRedis() call, leaking one per error.
+      redis?.disconnect();
       redis = null;
     });
 

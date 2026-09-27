@@ -82,28 +82,30 @@ The real Prisma column (`packages/server/prisma/schema.prisma:121`) is `refreshT
 
 ## Medium
 
-### 4. `auth.module.ts` bypasses `auth.service.ts` for its main flows
+*All seven findings below were fixed and re-verified in a follow-up pass on 2026-09-28 (full suite: 42 suites / 376 tests passing, typecheck and eslint clean).*
+
+### 4. `auth.module.ts` bypasses `auth.service.ts` for its main flows — FIXED
 **File:** `packages/server/src/modules/auth/auth.module.ts:22` (and `login`, `refresh`, `logout`, `verifyEmail`, `resendVerification`)
 
 `register`, `login`, `refresh`, `logout`, and `verifyEmail` all call `prisma.user.*` directly (confirmed: 9 `prisma.` call sites in the file), while `auth.service.ts` only holds the password-reset flow and crypto helpers. This means auth business rules (duplicate-email check, active-status check, refresh-token rotation) live in the route layer instead of the service layer, unlike the rest of the module set.
 
-**Fix:** move each handler's Prisma logic into `auth.service.ts` (e.g. `registerUser`, `loginUser`, `refreshSession`, `logoutUser`), matching the existing `forgotPassword`/`resetPassword` pattern in the same file.
+**Fix:** moved each handler's Prisma logic into `auth.service.ts` (`registerUser`, `loginUser`, `refreshSession`, `logoutUser`, `verifyUserEmail`, `resendVerificationEmail`), matching the existing `forgotPassword`/`resetPassword` pattern in the same file. `auth.module.ts` now imports zero of `prisma`/`AppError`/`sendWelcomeEmail`/`logger`. Verified: typecheck clean, all `auth`-matching tests (34) still pass.
 
-### 5. `users.module.ts` has the same bypass
+### 5. `users.module.ts` has the same bypass — FIXED
 **File:** `packages/server/src/modules/users/users.module.ts:12`
 
 `getProfile`, `updateProfile`, `changePassword`, and `saveDeviceToken` issue raw `prisma.user` queries directly in the route module rather than through a service, unlike sibling modules (appointments, grades) that only call service functions.
 
-**Fix:** extract these into a `users.service.ts` and have the module call it.
+**Fix:** extracted these (plus `listTeachers`, which had the same issue but wasn't in the original list) into a new `services/users.service.ts`; the module now only calls it. Verified: typecheck clean, tests pass.
 
-### 6. `admin.module.ts`'s audit-log route is the one handler in the file that skips `adminService`
+### 6. `admin.module.ts`'s audit-log route is the one handler in the file that skips `adminService` — FIXED
 **File:** `packages/server/src/modules/admin/admin.module.ts:181`
 
 The `auditLogs` handler builds its `where` filter and calls `prisma.auditLog.findMany`/`count` directly, while every other handler in the same file delegates to `adminService` — an inconsistency within one file, not just across the codebase.
 
-**Fix:** move the query (including `parseFilterDate`) into `admin.service.ts` as `listAuditLogs(filters, skip, limit)`.
+**Fix:** moved the query (including `parseFilterDate`/`DATE_ONLY_RE`) into `admin.service.ts` as `listAuditLogs(filters, skip, take)`; `admin.module.ts` no longer imports `prisma` or `AppError`. Verified: typecheck clean, `admin.service` tests (28) pass.
 
-### 7. Redis client reference is nulled on error without disconnecting — leaks a socket per error
+### 7. Redis client reference is nulled on error without disconnecting — leaks a socket per error — FIXED
 **File:** `packages/server/src/lib/redis.ts:33`
 
 ```js
@@ -115,28 +117,28 @@ redis.on('error', (err) => {
 
 The existing `ioredis` instance is never `.disconnect()`'d/`.quit()`'d before the module-level reference is dropped — each connection error leaks the old client/socket while a fresh one is lazily constructed on the next `getRedis()` call.
 
-**Fix:** call `redis?.disconnect()` before setting `redis = null`.
+**Fix:** now calls `redis?.disconnect()` before setting `redis = null`.
 
-### 8. `resolveRecordingStorageBlob` (S3 code path for recordings) has zero test coverage
+### 8. `resolveRecordingStorageBlob` (S3 code path for recordings) has zero test coverage — FIXED
 **File:** `packages/server/src/services/file.service.ts:52`
 
 Note: a sub-agent initially claimed *all four* recordings/certificates download functions had "zero coverage, direct or indirect." That's false — `__integration__/media-flows.itest.ts`, `parent-media.itest.ts`, and `envelope.itest.ts` thoroughly exercise `GET /files/recordings/:id` and `/files/certificates/:id`, including the `?token=` dual-auth path, unapproved-parent-link 403s, and unlinked-teacher 403s. What's actually true, verified directly: `resolveReportStorageBlob` and `resolveCertificateStorageBlob` (the S3-backed variants) are unit-tested in `__tests__/pdf-object-storage.test.ts`, but their sibling `resolveRecordingStorageBlob` is referenced nowhere except its own definition and call site — the S3 path for recording downloads specifically has no test at all, unlike the local-disk path (well covered) and the other two S3 blob resolvers.
 
-**Fix:** add a `resolveRecordingStorageBlob` case to `pdf-object-storage.test.ts`, mirroring the existing `resolveCertificateStorageBlob` tests.
+**Fix:** added a `resolveRecordingStorageBlob` describe block to `pdf-object-storage.test.ts` (owner success, legacy-local returns null, non-owner 403), mirroring the existing `resolveCertificateStorageBlob` tests. Suite: 13/13 passing.
 
-### 9. `getMyAppointments` is live and completely untested
+### 9. `getMyAppointments` is live and completely untested — FIXED
 **File:** `packages/server/src/services/appointment.service.ts:128`
 
 Confirmed exported and wired live at `appointments.module.ts:12` (`appointmentService.getMyAppointments(userId!, role)`), and confirmed absent from `appointment.service.test.ts` (only `createAppointment`/`manageAppointment` are tested there).
 
-**Fix:** add test cases for `getMyAppointments` covering the student/teacher/admin role branches.
+**Fix:** added three test cases covering the student/teacher/admin branches. Suite: 11/11 passing.
 
-### 10. Three privacy/security-adjacent services have no test file at all
+### 10. Three privacy/security-adjacent services have no test file at all — FIXED
 **Files:** `packages/server/src/services/account.service.ts`, `verification.service.ts`, `guardian-consent.service.ts`
 
 Verified via `services/__tests__/` listing: no `account.service.test.ts`, `verification.service.test.ts`, or `guardian-consent.service.test.ts` exists. These implement, respectively: GDPR-style data export/account deletion, certificate/ijazah verification-token validation, and parental-consent gating for student recordings — all sensitive, hard-to-reverse, or trust-boundary logic.
 
-**Fix:** add test files for each; prioritize `guardian-consent.service.ts`'s `isRecordingBlockedByConsent` gate and `verification.service.ts`'s token validation (expired/tampered cases).
+**Fix:** added a test file for each (3/3, 8/8, 10/10 passing respectively) — `account.service.test.ts` covers the 404 case and that every query is scoped to the caller's own userId; `verification.service.test.ts` covers active/revoked certificate and ijazah tokens plus link-regeneration ownership checks; `guardian-consent.service.test.ts` covers `isRecordingBlockedByConsent`'s null/GRANTED/PENDING/DECLINED branches and `decideConsent`'s 404/409 guards.
 
 ---
 

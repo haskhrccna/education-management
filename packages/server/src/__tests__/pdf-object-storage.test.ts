@@ -47,6 +47,7 @@ import { prisma } from '../prisma/client';
 const prismaMock = prisma as unknown as {
   report: { findUnique: jest.Mock };
   certificate: { findUnique: jest.Mock };
+  recording: { findUnique: jest.Mock };
 };
 
 describe('generated-PDF durability', () => {
@@ -126,6 +127,43 @@ describe('generated-PDF durability', () => {
         pdfUrl: 'certificates/certificate-someone-else-9.pdf',
       });
       await expect(fileService.resolveCertificateStorageBlob('student-1', 'STUDENT', 'c1')).rejects.toMatchObject({
+        statusCode: 403,
+      });
+    });
+  });
+
+  describe('resolveRecordingStorageBlob', () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    it('returns the object key for a bucket-stored recording the student owns', async () => {
+      prismaMock.recording.findUnique.mockResolvedValue({
+        id: 'rec1',
+        studentId: 'student-1',
+        url: 'recordings/student-1/9-take.m4a',
+        fileName: 'take.m4a',
+      });
+      const blob = await fileService.resolveRecordingStorageBlob('student-1', 'STUDENT', 'rec1');
+      expect(blob).toEqual({ storageKey: 'recordings/student-1/9-take.m4a', fileName: 'take.m4a' });
+    });
+
+    it('returns null for a legacy local row so the caller falls back to disk', async () => {
+      prismaMock.recording.findUnique.mockResolvedValue({
+        id: 'rec1',
+        studentId: 'student-1',
+        url: '/uploads/student-1-9.m4a',
+        fileName: 'student-1-9.m4a',
+      });
+      expect(await fileService.resolveRecordingStorageBlob('student-1', 'STUDENT', 'rec1')).toBeNull();
+    });
+
+    it('still refuses an unrelated student — the bucket path must not widen access', async () => {
+      prismaMock.recording.findUnique.mockResolvedValue({
+        id: 'rec1',
+        studentId: 'someone-else',
+        url: 'recordings/someone-else/9-take.m4a',
+        fileName: 'take.m4a',
+      });
+      await expect(fileService.resolveRecordingStorageBlob('student-1', 'STUDENT', 'rec1')).rejects.toMatchObject({
         statusCode: 403,
       });
     });

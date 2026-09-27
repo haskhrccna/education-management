@@ -12,7 +12,7 @@ jest.mock('../socket.service', () => ({
 }));
 
 import { prisma } from '../../prisma/client';
-import { createAppointment, manageAppointment } from '../appointment.service';
+import { createAppointment, manageAppointment, getMyAppointments } from '../appointment.service';
 import { notifyScheduleChange } from '../socket.service';
 
 const mockedPrisma = prisma as unknown as DeepMockProxy<PrismaClient>;
@@ -123,6 +123,46 @@ describe('appointment.service', () => {
 
       const result = await manageAppointment('appt-1', 'admin-1', 'ADMIN', 'REJECTED');
       expect(result.status).toBe('REJECTED');
+    });
+  });
+
+  describe('getMyAppointments', () => {
+    it('should query by studentId and include the teacher for a student', async () => {
+      mockedPrisma.appointment.findMany.mockResolvedValue([{ id: 'appt-1', studentId: 'student-1' }] as any);
+
+      const result = await getMyAppointments('student-1', 'STUDENT');
+
+      expect(mockedPrisma.appointment.findMany).toHaveBeenCalledWith({
+        where: { studentId: 'student-1' },
+        include: { teacher: { select: { id: true, firstName: true, lastName: true, email: true } } },
+        orderBy: { requestedDate: 'desc' },
+      });
+      expect(result).toEqual([{ id: 'appt-1', studentId: 'student-1' }]);
+    });
+
+    it('should query by teacherId and include the student for a teacher', async () => {
+      mockedPrisma.appointment.findMany.mockResolvedValue([{ id: 'appt-1', teacherId: 'teacher-1' }] as any);
+
+      const result = await getMyAppointments('teacher-1', 'TEACHER');
+
+      expect(mockedPrisma.appointment.findMany).toHaveBeenCalledWith({
+        where: { teacherId: 'teacher-1' },
+        include: { student: { select: { id: true, firstName: true, lastName: true, email: true } } },
+        orderBy: { requestedDate: 'desc' },
+      });
+      expect(result).toEqual([{ id: 'appt-1', teacherId: 'teacher-1' }]);
+    });
+
+    it('should treat ADMIN the same as TEACHER for the query shape', async () => {
+      mockedPrisma.appointment.findMany.mockResolvedValue([]);
+
+      await getMyAppointments('admin-1', 'ADMIN');
+
+      expect(mockedPrisma.appointment.findMany).toHaveBeenCalledWith({
+        where: { teacherId: 'admin-1' },
+        include: { student: { select: { id: true, firstName: true, lastName: true, email: true } } },
+        orderBy: { requestedDate: 'desc' },
+      });
     });
   });
 });
