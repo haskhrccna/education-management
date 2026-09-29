@@ -15,6 +15,7 @@ import { defaultShouldDehydrateQuery } from '@tanstack/react-query';
 import { queryClient, queryPersister } from '@/src/lib/queryClient';
 import { setupOnlineManager } from '@/src/lib/onlineManager';
 import { OfflineBanner } from '@/src/components/OfflineBanner';
+import { usePushNotifications } from '@/src/hooks/usePushNotifications';
 
 setupOnlineManager();
 
@@ -38,6 +39,9 @@ export default function RootLayout() {
   const { loadSession, user, isLoading: authLoading, isSessionRestored } = useAuthStore();
   const router = useRouter();
   const segments = useSegments();
+
+  // Register this phone for push once signed in (no-op on web).
+  usePushNotifications(user?.id ?? null);
 
   // Cairo: Arabic-first UI font per design spec
   const [fontsLoaded] = useFonts({

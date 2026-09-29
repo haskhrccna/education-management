@@ -68,6 +68,9 @@ export const changeUserPassword = async (userId: string, currentPassword: string
 };
 
 export const saveDeviceToken = async (userId: string, deviceToken: string): Promise<void> => {
+  // One phone, one owner: on a shared device, the previous user must stop
+  // getting this device's pushes once someone else signs in.
+  await prisma.user.updateMany({ where: { deviceToken, id: { not: userId } }, data: { deviceToken: null } });
   await prisma.user.update({ where: { id: userId }, data: { deviceToken } });
   logger.info({ userId }, 'Device token saved to DB');
 };

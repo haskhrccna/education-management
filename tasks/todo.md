@@ -610,3 +610,40 @@ Native (SecureStore) is unchanged.
       server + mobile tsc clean; web export OK (bundle uses sessionStorage).
       Updated: admin unit-test socket mocks; the pinned relay test now joins the
       room first, as the real app does.
+
+# Push notifications + halaqa live audio (2026-09-30)
+
+Both were unfinished (assessment "Dangling or unfinished paths").
+
+**Push.** `usePushNotifications` was never mounted, so `User.deviceToken` was
+never set. Even if it had been, the app requests an *Expo* push token while
+the server sent through Firebase Admin, which rejects Expo tokens. Plan:
+- Server `fcm.service`: Expo tokens (`ExponentPushToken[…]`) go to the Expo
+  push API (optional `EXPO_ACCESS_TOKEN`); raw FCM tokens keep using Firebase.
+  A `DeviceNotRegistered` receipt clears the stored token.
+- `saveDeviceToken` moves a token to the latest signed-in user (shared phone);
+  logout clears it.
+- App: mount after sign-in; token from the EAS projectId; skip on web; a tap
+  opens /notifications.
+- Needs from the owner (outside the code): `eas init` (projectId), and FCM V1
+  + APNs credentials in EAS (`eas credentials`).
+
+**Halaqa audio.** `useWebRTC` was a stub (TODO handlers, `answer: null`, read
+`offer`/`answer` while the server relays `sdp`). Plan: full-mesh WebRTC,
+audio only. The existing member offers to each newcomer on
+`participant-joined`. Trickle ICE, with candidates queued until the remote
+description is set. Mute toggles the local track. A missing mic still joins
+listen-only. Native uses `react-native-webrtc` (config plugin 13.x = Expo 54,
+needs a dev/EAS build, not Expo Go); web uses browser WebRTC plus hidden
+`<audio>`. ICE: Google STUN plus optional TURN from `EXPO_PUBLIC_TURN_*`.
+
+- [x] Push: server unit tests first (`push.test.ts`, 5 of 7 red before)
+- [x] Push: server + app wiring (dead `fcm.service.saveDeviceToken` removed)
+- [x] Audio: platform WebRTC adapter (`lib/webrtc.ts` / `.native.ts`) + real `useWebRTC`
+- [x] Proof: server unit 384/384 (7 new); integration 1052/1052; server + mobile tsc
+      clean; `expo config --type prebuild` resolves the WebRTC plugin (RECORD_AUDIO,
+      MODIFY_AUDIO_SETTINGS, iOS mic string); web export OK. Two Chromium browsers
+      (fake mics) on the web build against a local API: teacher Ahmad and student
+      Ali in one LIVE room each got a live remote audio track whose playback
+      advanced 1.5 s per 1.5 s sample. Not verifiable here: native audio on a
+      device, and real push delivery (needs `eas init` + EAS credentials).

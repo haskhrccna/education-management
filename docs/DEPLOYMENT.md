@@ -29,6 +29,35 @@ only when both are pointed at the same deployed API, which has exactly one
 6. **Verify**: open the web site, log in, upload a recording, download a
    report. Then log in as the same user in the app — the data must match.
 
+### Push notifications (phones only)
+
+The app registers an **Expo push token** after sign-in, and the server sends it
+through Expo's push service (`services/fcm.service.ts`). Raw FCM tokens still
+go through Firebase Admin if `FIREBASE_*` is set. One-time owner setup:
+
+1. `cd mobile && eas init`: writes `expo.extra.eas.projectId` into
+   `app.json`. Without it the app skips registration (logged as a warning).
+2. `eas credentials`: upload an **FCM V1 service-account key** (Android) and
+   an **APNs key** (iOS) to the EAS project. Expo relays pushes with these.
+3. Optional: if "enhanced push security" is on for the Expo project, set
+   `EXPO_ACCESS_TOKEN` on the API (Render → Environment).
+4. Rebuild the app (`eas build`); Expo Go cannot receive this project's pushes.
+
+The web site does not register for push. A token moves to whoever signed in
+last on that phone and is cleared on logout. A token Expo reports as
+`DeviceNotRegistered` is dropped.
+
+### Halaqa live audio
+
+Audio-only WebRTC between everyone in a room (a full mesh, which suits halaqa-sized
+groups). The phone app uses `react-native-webrtc` (a native module, so use a
+dev client or EAS build, not Expo Go). The web site uses the browser's WebRTC.
+Peers connect over STUN (`stun.l.google.com`) by default, which works for most
+home Wi-Fi. For phones on mobile data or strict NAT, add a TURN relay at build
+time: `EXPO_PUBLIC_TURN_URL` (e.g. `turns:turn.example.com:443`),
+`EXPO_PUBLIC_TURN_USERNAME`, `EXPO_PUBLIC_TURN_CREDENTIAL`. These are baked into
+the bundle, so use a TURN service that restricts its credentials to this app.
+
 ### Object storage covers every file the database references
 
 `STORAGE_ENABLED=1` (§1) is not optional on an ephemeral host. With it set,

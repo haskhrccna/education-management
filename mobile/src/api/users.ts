@@ -39,4 +39,9 @@ export const usersApi = {
     );
     return res.body as unknown;
   },
+
+  /** Register this phone's Expo push token for the signed-in user. */
+  saveDeviceToken: async (deviceToken: string) => {
+    expectStatus(await contractClient.call(usersContracts.saveDeviceToken, { body: { deviceToken } as never }), 200);
+  },
 };
