@@ -21,11 +21,15 @@
       "bundleIdentifier": "com.quranreview.app",
       "buildNumber": "1",
       "infoPlist": {
-        "UIBackgroundModes": ["audio"],
+        "UIBackgroundModes": [
+          "audio"
+        ],
         "NSFaceIDUsageDescription": "يستخدم التطبيق Face ID لتسجيل الدخول إلى حسابك بأمان.",
         "NSMicrophoneUsageDescription": "يحتاج التطبيق إلى الميكروفون لتسجيل التلاوة القرآنية.",
         "NSDocumentsFolderUsageDescription": "يحتاج التطبيق إلى الوصول للملفات لرفع تسجيلات التلاوة.",
-        "LSApplicationQueriesSchemes": ["whatsapp"]
+        "LSApplicationQueriesSchemes": [
+          "whatsapp"
+        ]
       }
     },
     "android": {
@@ -73,6 +77,12 @@
           "icon": "./assets/icon.png",
           "color": "#1B5E20",
           "defaultChannel": "default"
+        }
+      ],
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "microphonePermission": "يحتاج التطبيق إلى الميكروفون لتسجيل التلاوة القرآنية."
         }
       ]
     ]

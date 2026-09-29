@@ -48,6 +48,8 @@ export const config = {
   firebaseProjectId: process.env.FIREBASE_PROJECT_ID || '',
   firebaseClientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
   firebasePrivateKey: process.env.FIREBASE_PRIVATE_KEY || '',
+  // Optional: only needed when "enhanced push security" is on in the Expo project.
+  expoAccessToken: process.env.EXPO_ACCESS_TOKEN || '',
   // Mushaf page images (604 WebPs) served statically; populated by
   // scripts/extract_mushaf_pages.py. Env-overridable for tests/deploys.
   mushafPagesDir: process.env.MUSHAF_PAGES_DIR || path.join(__dirname, '..', '..', 'mushaf-pages'),

@@ -63,18 +63,47 @@ export const initFCM = async (): Promise<void> => {
 };
 
 // Save device token mapping
-export const saveDeviceToken = async (userId: string, deviceToken: string) => {
-  await prisma.user.update({
-    where: { id: userId },
-    data: { deviceToken },
-  });
-  logger.info({ userId }, 'Device token saved');
-};
 
 /**
  * Send a push notification to a single device token via FCM.
  * Returns gracefully (no throw) if FCM is not initialized or the token is empty.
  */
+const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
+const isExpoToken = (token: string) => /^Expo(nent)?PushToken\[.+\]$/.test(token);
+
+/**
+ * The app registers with `getExpoPushTokenAsync`, which yields an Expo token
+ * that Firebase Admin rejects. Those go through Expo's push service, which
+ * relays to FCM (Android) and APNs (iOS) using the credentials stored in EAS.
+ * EXPO_ACCESS_TOKEN is optional: needed only if "enhanced push security" is on.
+ */
+async function sendViaExpo(token: string, title: string, body: string, data?: Record<string, string>): Promise<void> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', Accept: 'application/json' };
+  if (config.expoAccessToken) headers.Authorization = `Bearer ${config.expoAccessToken}`;
+  try {
+    const res = await fetch(EXPO_PUSH_URL, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ to: token, title, body, data: data ?? {}, sound: 'default' }),
+    });
+    const json = (await res.json().catch(() => ({}))) as {
+      data?: { status?: string; message?: string; details?: { error?: string } };
+    };
+    const ticket = json.data;
+    if (ticket?.status === 'error') {
+      // The app was uninstalled or the token rotated: stop sending to it.
+      if (ticket.details?.error === 'DeviceNotRegistered') {
+        await prisma.user.updateMany({ where: { deviceToken: token }, data: { deviceToken: null } });
+      }
+      logger.warn({ title, error: ticket.details?.error, message: ticket.message }, 'Expo push rejected');
+      return;
+    }
+    logger.info({ title }, 'Push notification sent (Expo)');
+  } catch (err) {
+    logger.error({ err, title }, 'Expo push failed');
+  }
+}
+
 export const sendPushNotification = async (
   deviceToken: string,
   title: string,
@@ -83,6 +112,10 @@ export const sendPushNotification = async (
 ): Promise<void> => {
   if (!deviceToken) {
     logger.debug('sendPushNotification called without a deviceToken — skipping');
+    return;
+  }
+  if (isExpoToken(deviceToken)) {
+    await sendViaExpo(deviceToken, title, body, data);
     return;
   }
   if (!messaging) {

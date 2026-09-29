@@ -95,7 +95,8 @@ export const refreshSession = async (refreshToken: string) => {
 };
 
 export const logoutUser = async (userId: string): Promise<void> => {
-  await prisma.user.update({ where: { id: userId }, data: { refreshTokenHash: null } });
+  // Clearing deviceToken too: a signed-out phone must not keep receiving this user's pushes.
+  await prisma.user.update({ where: { id: userId }, data: { refreshTokenHash: null, deviceToken: null } });
 };
 
 export const verifyUserEmail = async (userId: string) => {
