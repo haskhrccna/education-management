@@ -513,3 +513,22 @@ placeholder host.
       the site origin → 204. Seeded trial roster (production-guarded passwords, kept
       in `~/.config/quran-trial-users.txt`): 5 ACTIVE logins OK against the live
       API, Fatima correctly PENDING, and Ahmad sees his ACCEPTED appointment with Ali.
+
+# Close the three PARENT data leaks (2026-09-30)
+
+From `analysis/review/ASSESSMENT.md` security #1–#3. `GET /revisions`,
+`GET /weak-ayahs` and `GET /attendance` are `access: 'authenticated'`, and
+their services only branch on STUDENT/TEACHER. A PARENT fell through with no
+filter: every student's revisions and weak-ayah flags, and any student's
+attendance by ID. The parent app doesn't use these endpoints; it reads its own
+children's data through `parent.service` (dashboard).
+
+- [x] Failing integration test first (`parent-access.itest.ts`): as a PARENT
+      with no link to the seeded student, all three return 403 and leak no rows.
+      Controls: the student still sees their own data, the linked teacher still
+      sees their student's. Red before the fix: all three returned 200 to an
+      unlinked parent.
+- [x] Deny by default in each service: STUDENT/TEACHER/ADMIN keep current
+      behaviour, any other role → `AppError(403)`.
+- [x] Proof: new itest 5/5 green; server unit 376/376; integration 1037/1037
+      (1032 + 5 new); `tsc --noEmit` clean.

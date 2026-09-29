@@ -43,7 +43,7 @@ export const flagWeakAyah = async (studentId: string, ayahId: number, flaggedByT
 };
 
 /** A teacher's flagged-weak ayahs for their own students; a student sees only their own; admin sees all. */
-export const listWeakAyahFlags = async (userId: string, userRole: 'STUDENT' | 'TEACHER' | 'ADMIN') => {
+export const listWeakAyahFlags = async (userId: string, userRole: string) => {
   let where: Record<string, unknown> = { status: 'ACTIVE' };
 
   if (userRole === 'STUDENT') {
@@ -56,6 +56,9 @@ export const listWeakAyahFlags = async (userId: string, userRole: 'STUDENT' | 'T
     const studentIds = appointments.map((a) => a.studentId);
     if (studentIds.length === 0) return [];
     where = { ...where, studentId: { in: studentIds } };
+  } else if (userRole !== 'ADMIN') {
+    // Deny by default: any other role (PARENT) used to get every student's flags.
+    throw new AppError(403, 'Not allowed to list weak-ayah flags');
   }
 
   return prisma.weakAyahFlag.findMany({
