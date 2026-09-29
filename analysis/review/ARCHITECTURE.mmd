@@ -1,0 +1,64 @@
+graph TD
+  subgraph Clients
+    MOB["Mobile app (Expo)"]
+    WEB["Website (Expo web export)"]
+  end
+  subgraph API
+    CR["app.ts + contract-router"]
+  end
+  subgraph Domains
+    IAM["Identity & Access"]
+    SCHED["Scheduling & Relationships"]
+    CONT["Quran Content & Mushaf"]
+    LEARN["Memorization & Revision"]
+    ASSESS["Assessment & Media"]
+    CRED["Credentials"]
+    ENG["Engagement & Gamification"]
+    COMM["Communication & Notifications"]
+    PAR["Parent / Guardian"]
+    HAL["Live Halaqa"]
+    ACAD["Academy Admin & Analytics"]
+  end
+  subgraph Infrastructure
+    PG[("PostgreSQL / Prisma")]
+    Q["Redis + BullMQ"]
+    SOCK["Socket.IO"]
+    FCM["FCM push"]
+    SMTP["SMTP email"]
+    ST["Local / S3 storage"]
+  end
+  MOB --> CR
+  WEB --> CR
+  MOB -. "socket" .-> SOCK
+  CR --> Domains
+  IAM --> COMM
+  SCHED --> COMM
+  SCHED --> SOCK
+  LEARN --> CONT
+  LEARN --> ENG
+  LEARN --> ASSESS
+  LEARN --> CRED
+  LEARN --> COMM
+  CONT --> ENG
+  ASSESS --> ENG
+  ASSESS --> PAR
+  ASSESS --> ST
+  ASSESS --> Q
+  CRED --> ENG
+  CRED --> ACAD
+  CRED --> ST
+  ENG --> COMM
+  PAR --> COMM
+  PAR -. "reads RevisionSchedule" .-> LEARN
+  ACAD --> SCHED
+  LEARN -. "Appointment guard" .-> SCHED
+  ASSESS -. "Appointment guard" .-> SCHED
+  CRED -. "Appointment guard" .-> SCHED
+  COMM -. "ParentLink/Appointment" .-> PAR
+  COMM --> SOCK
+  COMM --> FCM
+  COMM --> SMTP
+  SOCK --> HAL
+  Q -- "digest, nudge, broadcast workers" --> COMM
+  Q -- "weekly slot extension" --> SCHED
+  Domains --> PG
