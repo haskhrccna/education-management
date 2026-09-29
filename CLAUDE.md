@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Workflow
 
-- Enter Plan Mode for any non-trivial task (3+ steps). Write specs to `tasks/todo.md` before coding.
+- For feature work, write the spec to `tasks/todo.md` before coding.
 - After any user correction, update `tasks/lessons.md` with a rule to prevent recurrence.
 - Never mark a task complete without proof (tests, logs, or diffs).
 
@@ -44,7 +44,7 @@ npm start                            # Expo dev server
 | Mobile | Expo SDK 54 · React Native · expo-router (file-based routing) |
 | State | Zustand (`src/auth/store`, `src/settings/store`) |
 | i18n | i18next · Arabic RTL primary, English secondary |
-| API client | Axios (`mobile/src/api/client.ts`) |
+| API client | Typed contract client (`mobile/src/api/contract.ts`); Axios (`client.ts`) only for auth and multipart upload |
 | Server | Express 4 · TypeScript |
 | ORM | Prisma 6 · PostgreSQL |
 | Auth | JWT access + refresh tokens · bcrypt |
@@ -69,9 +69,9 @@ packages/
     middleware/         ← auth, validate, paginate, sanitize, rate-limit
     lib/                ← logger, storage, queue, health, response helpers
     prisma/client.ts    ← Singleton PrismaClient
+    prisma/seed.ts      ← Seed script (test users)
   server/prisma/
     schema.prisma
-    seed.ts
   shared/src/
     enums/              ← UserRole, AppointmentStatus, GradeType, MessageType
     types/              ← Shared TS types
@@ -86,8 +86,13 @@ mobile/
     teacher/            ← Teacher screens (home, appointments, recordings, reports, grade-form)
     student/            ← Student screens (home, appointments, grades, recordings, reports, teacher-change)
     messages/           ← Shared: conversation list + thread (all roles)
+    parent/             ← Parent screens
+    halaqa/             ← Group halaqa (live session) screens
+    onboarding/         ← Per-role first-run wizards
+    (public)/           ← Public routes (no auth)
+    account.tsx, notifications.tsx ← Shared screens
   src/
-    api/                ← Typed Axios clients (one file per domain)
+    api/                ← Typed contract-client wrappers (one file per domain)
     hooks/              ← Custom React hooks (one per API resource)
     auth/store.ts       ← Zustand auth store (user, token, login/logout)
     settings/store.ts   ← Zustand settings (theme, language, darkMode)
@@ -99,11 +104,11 @@ mobile/
 
 **API flow:** `modules/<domain>/<domain>.module.ts` (route + handler, via `defineRoute`/`buildContractRouter`) → `services/` → Prisma. Handlers are thin; all logic lives in services.
 
-**Validation:** use `validate(SomeZodSchema)` middleware from `@quran-review/shared` on all POST/PUT routes. For multipart form routes (file upload), multer **must run before** `validate()` — otherwise `req.body` is empty during validation.
+**Validation:** declare the body schema (from `@quran-review/shared`) in the route's contract; `buildContractRouter` applies `validate()` (`middleware/validate.middleware.ts`) automatically. For multipart routes (file upload), put multer in the route's `pre` array. `pre` runs before `validate()`; otherwise `req.body` would be empty during validation.
 
 **Errors:** throw `new AppError(statusCode, message)` — never throw raw errors. The centralized `errorHandler` in `app.ts` handles all errors.
 
-**Pagination:** use `paginate()` middleware on list endpoints. Handlers receive `req.pagination` (`{ page, limit, skip }`). Return `paginatedResponse(items, total, page, limit)` from `lib/response.ts`.
+**Pagination:** use `paginate()` middleware on list endpoints. Handlers receive `req.pagination` (`{ page, limit, skip }`). Return `paginatedResponse(items, total, page, limit)` from `middleware/pagination.middleware.ts`.
 
 **New shared type or validator:** add to `packages/shared/src/` and re-export from `index.ts`.
 
@@ -125,7 +130,7 @@ mobile/
 
 ### Teacher-Student Relationship Guard
 
-`assertTeacherCanAccessStudent(teacherId, studentId)` is duplicated in each service that needs it (grades, recordings, memorization, revision, export). It requires an `ACCEPTED` appointment between the two users. This guard must be called before any teacher writes to student data.
+`assertTeacherCanAccessStudent(teacherId, studentId)` is duplicated in each service where a teacher writes student data (grade, recording, memorization, revision, export, attendance, weak-ayah, ijazah, curriculum-plan); a new service of that kind needs its own copy. It requires an `ACCEPTED` appointment between the two users. This guard must be called before any teacher writes to student data.
 
 Message service uses `assertCanCommunicate` instead — which **bypasses the check entirely when either party is ADMIN**.
 
@@ -140,7 +145,7 @@ Mobile consumers must handle the conversation summary shape — do not treat it 
 
 ### File Download Authentication
 
-`authenticate()` middleware accepts JWT via **either** `Authorization: Bearer <token>` header **or** `?token=<jwt>` query param. The query param path exists for file downloads opened in a browser (`/files/reports/:id`, `/files/recordings/:id`) where setting headers is not possible. Do not remove this fallback.
+`authenticate()` accepts only an `Authorization: Bearer <token>` header. File-download routes use `fileAuthenticate()` instead, which also accepts `?token=<jwt>`, because a browser opening `/files/reports/:id` or `/files/recordings/:id` can't set headers. A contract opts in with `authVia: 'headerOrQueryToken'` (see `lib/contract-router.ts`). Do not remove this fallback.
 
 ### Teacher Change Approval Side Effects
 
@@ -151,11 +156,11 @@ Mobile consumers must handle the conversation summary shape — do not treat it 
 
 ### File Storage
 
-Files are stored locally relative to `packages/server/`:
+By default, files are stored locally relative to `packages/server/`:
 - Audio recordings: `uploads/` (served via `GET /files/recordings/:id`)
 - Report PDFs: `reports/` (served via `GET /files/reports/:id`)
 
-Both paths are abstracted through `LocalStorageAdapter` in `lib/storage.ts`.
+Local storage goes through `LocalStorageAdapter` in `lib/storage.ts`. With `STORAGE_ENABLED=1`, uploads use object storage via `services/storage.service.ts` (see `modules/files/files.module.ts`); the download resolvers in `services/file.service.ts` handle both.
 
 ### Background Queue
 
@@ -191,10 +196,7 @@ Emails use the `@quran-review.com` domain (see `packages/server/src/prisma/seed.
 
 ## graphify
 
-This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
-
-Rules:
-- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
-- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
-- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
-- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+The `graphify` CLI can build a knowledge graph of this codebase into `graphify-out/` (git-ignored, so it exists only after a local build). When `graphify-out/graph.json` exists:
+- `graphify query "<question>"`, `graphify path "<A>" "<B>"`, and `graphify explain "<concept>"` return a scoped subgraph, usually smaller than `GRAPH_REPORT.md` or raw grep output. Use them when that's faster than searching the code.
+- `graphify-out/wiki/index.md` is a navigation index; `graphify-out/GRAPH_REPORT.md` is the broad architecture overview.
+- After changing code, run `graphify update .` (AST-only, no API cost) so the graph doesn't go stale.
