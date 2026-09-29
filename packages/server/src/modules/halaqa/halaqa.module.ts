@@ -24,9 +24,9 @@ const getGroup = defineRoute(halaqaContracts.getGroup, async ({ userId, userRole
   return { status: 200 as const, body: { success: true as const, data: group } };
 });
 
-const listRooms = defineRoute(halaqaContracts.listRooms, async ({ query }) => {
+const listRooms = defineRoute(halaqaContracts.listRooms, async ({ query, userId, userRole }) => {
   const status = typeof query.status === 'string' ? query.status : undefined;
-  const rooms = await halaqaService.listRooms(status);
+  const rooms = await halaqaService.listRooms(userId!, userRole!, status);
   return { status: 200 as const, body: { success: true as const, data: rooms } };
 });
 
@@ -38,8 +38,8 @@ const createRoom = defineRoute(halaqaContracts.createRoom, async ({ userId, user
   return { status: 201 as const, body: { success: true as const, data: room } };
 });
 
-const getRoom = defineRoute(halaqaContracts.getRoom, async ({ params }) => {
-  const room = await halaqaService.getRoom(String(params.id));
+const getRoom = defineRoute(halaqaContracts.getRoom, async ({ params, userId, userRole }) => {
+  const room = await halaqaService.getRoom(String(params.id), userId!, userRole!);
   return { status: 200 as const, body: { success: true as const, data: room } };
 });
 

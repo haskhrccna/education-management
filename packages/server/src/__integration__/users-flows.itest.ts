@@ -69,7 +69,12 @@ describe('PUT /api/v1/users/change-password', () => {
       .set('Authorization', `Bearer ${u.token}`)
       .send({ currentPassword: PW, newPassword: 'N3wPass!word' });
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ message: 'Password changed successfully' });
+    // A fresh session for this device; every other device is signed out.
+    expect(res.body).toEqual({
+      message: 'Password changed successfully',
+      token: expect.any(String),
+      refreshToken: expect.any(String),
+    });
 
     const oldLogin = await request(app).post('/api/v1/auth/login').send({ email: u.email, password: PW });
     expect(oldLogin.status).toBe(401);

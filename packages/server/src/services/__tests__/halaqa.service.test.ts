@@ -127,10 +127,14 @@ describe('halaqa.service', () => {
   });
 
   describe('recordJoin', () => {
-    it('rejects joining an ENDED room', async () => {
-      mockedPrisma.halaqaRoom.findUnique.mockResolvedValue({ status: 'ENDED' } as any);
+    // Joining needs an ACCEPTED appointment with the room's teacher (or being that teacher / an admin).
+    const linked = () => mockedPrisma.appointment.findFirst.mockResolvedValue({ id: 'appt-1' } as any);
 
-      await expect(recordJoin('room-1', 'student-1')).rejects.toMatchObject({
+    it('rejects joining an ENDED room', async () => {
+      mockedPrisma.halaqaRoom.findUnique.mockResolvedValue({ status: 'ENDED', teacherId: 'teacher-1' } as any);
+      linked();
+
+      await expect(recordJoin('room-1', 'student-1', 'STUDENT')).rejects.toMatchObject({
         statusCode: 410,
         message: 'Room has ended',
       });
@@ -140,16 +144,26 @@ describe('halaqa.service', () => {
     it('rejects joining an unknown room', async () => {
       mockedPrisma.halaqaRoom.findUnique.mockResolvedValue(null);
 
-      await expect(recordJoin('room-missing', 'student-1')).rejects.toMatchObject({
+      await expect(recordJoin('room-missing', 'student-1', 'STUDENT')).rejects.toMatchObject({
         statusCode: 404,
       });
     });
 
+    it('rejects a student with no ACCEPTED appointment with the room teacher, and a parent', async () => {
+      mockedPrisma.halaqaRoom.findUnique.mockResolvedValue({ status: 'LIVE', teacherId: 'teacher-1' } as any);
+      mockedPrisma.appointment.findFirst.mockResolvedValue(null);
+
+      await expect(recordJoin('room-1', 'student-1', 'STUDENT')).rejects.toMatchObject({ statusCode: 403 });
+      await expect(recordJoin('room-1', 'parent-1', 'PARENT')).rejects.toMatchObject({ statusCode: 403 });
+      expect(mockedPrisma.halaqaParticipant.upsert).not.toHaveBeenCalled();
+    });
+
     it('re-joining reopens the participation record (clears leftAt)', async () => {
-      mockedPrisma.halaqaRoom.findUnique.mockResolvedValue({ status: 'LIVE' } as any);
+      mockedPrisma.halaqaRoom.findUnique.mockResolvedValue({ status: 'LIVE', teacherId: 'teacher-1' } as any);
+      linked();
       mockedPrisma.halaqaParticipant.upsert.mockResolvedValue({ id: 'part-1' } as any);
 
-      await recordJoin('room-1', 'student-1');
+      await recordJoin('room-1', 'student-1', 'STUDENT');
 
       expect(mockedPrisma.halaqaParticipant.upsert).toHaveBeenCalledWith({
         where: { roomId_userId: { roomId: 'room-1', userId: 'student-1' } },

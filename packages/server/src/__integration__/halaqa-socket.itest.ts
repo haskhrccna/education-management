@@ -58,6 +58,13 @@ async function liveRoom(teacher: TestUser) {
   return room.id;
 }
 
+/** Rooms are open only to the teacher, admins and students with an ACCEPTED appointment. */
+async function linkAccepted(studentId: string, teacherId: string) {
+  await prisma.appointment.create({
+    data: { studentId, teacherId, requestedDate: new Date(), requestedTime: '10:00', status: 'ACCEPTED' },
+  });
+}
+
 describe('handshake auth (pinned)', () => {
   it('rejects missing token with Authentication required', async () => {
     await expect(connect()).rejects.toMatchObject({ message: 'Authentication required' });
@@ -78,6 +85,7 @@ describe('presence: join/leave record attendance and broadcast (pinned)', () => 
   it('join upserts a participant row and notifies existing members; leave sets leftAt and notifies', async () => {
     const teacher = await createUser({ role: Role.TEACHER });
     const student = await createUser({ role: Role.STUDENT });
+    await linkAccepted(student.id, teacher.id);
     const roomId = await liveRoom(teacher);
 
     const teacherSock = await connect(teacher.token);
@@ -115,6 +123,7 @@ describe('presence: join/leave record attendance and broadcast (pinned)', () => 
   it('disconnect auto-leaves: participant row closed and others notified', async () => {
     const teacher = await createUser({ role: Role.TEACHER });
     const student = await createUser({ role: Role.STUDENT });
+    await linkAccepted(student.id, teacher.id);
     const roomId = await liveRoom(teacher);
     const teacherSock = await connect(teacher.token);
     teacherSock.emit('halaqa:join', { roomId });
@@ -134,6 +143,7 @@ describe('WebRTC signaling: pure relay stamped with fromUserId (pinned)', () => 
   it('offer, answer and ICE are forwarded to the target personal room without payload inspection', async () => {
     const teacher = await createUser({ role: Role.TEACHER });
     const student = await createUser({ role: Role.STUDENT });
+    await linkAccepted(student.id, teacher.id);
     const roomId = await liveRoom(teacher);
     const a = await connect(teacher.token);
     const b = await connect(student.token);

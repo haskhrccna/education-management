@@ -151,7 +151,7 @@ Baseline evidence: 379/379 server unit tests pass (2026-07-05). 127 manifest end
 - [ ] M10 UX mini-brainstorm (user) — student cluster, 10 screens: per spec §6 the UX rethink is fenced into a brainstorm with the user, not open-ended. Run `superpowers:brainstorming` together, then plan+execute the agreed changes.
 - [ ] M11 UX mini-brainstorm (user) — teacher cluster, 7 screens (same fence).
 - [ ] M12 UX mini-brainstorm (user) — admin + parent + shared, 12 screens (same fence).
-Note: absorbs PR 3 below (TanStack migration continues inside M9–M12).
+      Note: absorbs PR 3 below (TanStack migration continues inside M9–M12).
 
 ---
 
@@ -162,6 +162,7 @@ Replaces hand-rolled fetch hooks (useState + manual MMKV cache) with React Query
 fixes the 6 pre-existing `mmkvStorage.getItem` async-vs-sync errors.
 
 ## Done (batch 1 — foundation + the 4 buggy hooks)
+
 - [x] `mmkvStorage.getItem` → synchronous (MMKV is sync; AsyncStorage fallback mirrored to an in-memory cache). Fixes settings/store + persist.ts errors.
 - [x] `src/lib/queryClient.ts`: QueryClient (staleTime 1m, gcTime 24h) + MMKV `createSyncStoragePersister`.
 - [x] `app/_layout.tsx`: wrap tree in `PersistQueryClientProvider`.
@@ -169,12 +170,15 @@ fixes the 6 pre-existing `mmkvStorage.getItem` async-vs-sync errors.
 - [x] `tsc --noEmit` → **0 errors** (all 6 pre-existing mmkv errors gone).
 
 ## Done (batch 2 — clean-fit hooks)
+
 - [x] Migrate useAnalytics, useCertificates, useMemorization, useGamification, useMessages, useHalaqa, useTeacherChange to React Query (APIs preserved; list filters via internal state + invalidate; socket → invalidate). tsc 0 errors.
 
 ## Done (batch 3)
+
 - [x] useNotifications → `useInfiniteQuery` (list) + `useQuery` (unread), optimistic markRead/markAllRead via setQueryData. Also fixes the old latent bug where load-more only ever re-fetched page 2. tsc 0 errors.
 
 ## Intentionally left on the old pattern (NOT broken; poor declarative-cache fit)
+
 - useConversation — live socket-managed message thread, not a cached resource.
 - useParent — multi-resource (links/children/dashboard) with a derived dashboard + imperative child selection.
 - useMushaf — imperative page/surah navigation (fetch-on-demand), not declarative keys.
@@ -187,6 +191,7 @@ Branch: `fix/gamification-rewards-a11y`. Scope: mobile. Gate: `cd mobile && npx 
 From `/impeccable critique app/student/gamification.tsx` (24/40). Fixes the reward screen + shared MetricTile.
 
 ## Tasks
+
 1. **colorize — MetricTile contrast + reward semantics**
    - [ ] `src/components/design.tsx`: MetricTile value → `colors.textPrimary` (was accent on same-hue tint → 1.5–1.9:1 fail). App-wide fix.
    - [ ] `app/student/gamification.tsx`: currentStreak tone `warning`→`gold`; longestStreak `gold`→`primary` (Rationed-Gold: gold marks the live streak).
@@ -203,6 +208,7 @@ From `/impeccable critique app/student/gamification.tsx` (24/40). Fixes the rewa
    - [x] **Add missing i18n keys (ar+en):** gamification, streak, currentStreak, longestStreak, badgeWall, noBadgesYet, noBadgesYetDesc, leaderboard, leaderboardAll, leaderboardMyTeacher, leaderboardEmpty, leaderboardError, back. — DONE (verified 2026-09-17: every key present in both `ar` and `en` in `src/i18n/index.ts`; `npm run check-i18n` reports ar 489 / en 485 with no missing used key).
 
 ## Verify
+
 - [x] `tsc --noEmit`: 0 new errors (only the same 6 pre-existing mmkv async-read errors; none in PR2's 4 files). All 5 steps done.
 - [ ] Re-run `/impeccable critique` → score climbs from 24 (pending).
 
@@ -214,32 +220,42 @@ Branch: `refactor/api-cycle-interceptors-theme`
 Scope: mobile only. No behavior change — pure structure + perf. Gate: `cd mobile && npx tsc --noEmit`.
 
 Motivation (from graphify graph of `mobile/`):
+
 - `apiClient` bridges the API layer into 8 screen communities; coupling concentrates above it.
 - Import cycle: `api/index.ts → reports.ts → auth/store.ts → api/index.ts`.
-- `useSettingsStore` is the #1 god node (79 edges): ~35 screens read the *whole* store, re-rendering on any setting change.
+- `useSettingsStore` is the #1 god node (79 edges): ~35 screens read the _whole_ store, re-rendering on any setting change.
 - Interceptors split-brain: request-auth in `client.ts`, 401-refresh in `auth/store.ts`.
 
 ## Tasks
+
 ### 1. Break import cycle
+
 - [x] `src/auth/store.ts`: import `authApi` from `./auth` (not the `../api` barrel).
 - [x] `src/api/reports.ts`: drop `useAuthStore`; read token from `secureStorage` in `downloadReport`.
+
 ### 2. Consolidate interceptors
+
 - [x] New `src/api/interceptors.ts`: `installRequestInterceptor`, `installErrorMessageInterceptor`, `installAuthRefreshInterceptor(client, onAuthFailure)` (logout via callback → no new cycle).
 - [x] `src/api/client.ts`: use the installers; gate baseURL `console.log` behind `__DEV__`.
 - [x] `src/auth/store.ts`: call `installAuthRefreshInterceptor`; remove inline 401 block; preserve order.
+
 ### 3. Theme selectors
+
 - [x] `src/settings/store.ts`: add `useThemeSettings()` (`{ theme, darkMode }` via selectors).
 - [x] `src/hooks/useTheme.ts`: memoized `{ colors, isRTL, theme, darkMode }` for future adoption.
 - [x] Migrate 37 `const { theme, darkMode } = useSettingsStore()` → `useThemeSettings()`.
 
 ## Verification
+
 - [x] `cd mobile && npx tsc --noEmit`: my 40 changed/created files add **0** new errors. 6 errors remain, all pre-existing on `main` (proven via stash baseline) — `mmkvStorage.getItem` async-vs-sync in the fetch hooks + `persist.ts` + `loadSettings`. Out of scope; fixed by PR 2's hook rewrite.
 - [x] Graph rebuild: import cycles 0 (was 1). No api/* module imports any store.
 
 ## Discovered (fold into PR 2)
+
 - `mmkvStorage.getItem` is `async` but `useGrades`/`useAppointments`/`useRecordings`/`useRevisions`/`persist.ts`/`loadSettings` call it synchronously → cache reads are currently broken at the type level. TanStack Query migration removes these call sites entirely.
 
 ## Out of scope (follow-ups)
+
 - PR 2: TanStack Query migration of the 15 fetch hooks.
 - PR 3: adopt `useTheme().colors`, drop per-screen `getColors` + shared `createStyles`.
 
@@ -333,7 +349,7 @@ Final commit: `ae53ef9`.
 
 - [x] H3 F9 — Academy Health One-Pager (2026-07-27, branch feat/academy-health) — plan `docs/superpowers/plans/2026-07-26-f9-academy-health.md`. Gates: 320 unit + 965 integration green, tsc clean ×3, check-i18n OK (321 keys, ar/en 402), migration ledger green (no schema change — pure read). AC proof map:
   - AC9.1 `GET /api/v1/admin/academy-health` returns all 7 required metrics (total students, active this week + rate, pages memorized this week, revision adherence %, at-risk count, teacher load, completion rate) — every field's presence and correctness itested; every Prisma field/relation/enum name independently verified against `schema.prisma` (no invented names)
-  - AC9.2 1h Redis cache-aside via the now-fixed `lib/redis.ts` (see prerequisite fix below), graceful fallback to a live DB computation when Redis is absent; cache-hit itest guarded by a runtime `getRedis().ping()` check (CI's integration job has no Redis service, so this degrades to a logged skip there rather than flaking — the underlying cache-aside *logic* is separately proven by mocked unit tests regardless of Redis availability)
+  - AC9.2 1h Redis cache-aside via the now-fixed `lib/redis.ts` (see prerequisite fix below), graceful fallback to a live DB computation when Redis is absent; cache-hit itest guarded by a runtime `getRedis().ping()` check (CI's integration job has no Redis service, so this degrades to a logged skip there rather than flaking — the underlying cache-aside _logic_ is separately proven by mocked unit tests regardless of Redis availability)
   - AC9.3 in-memory PDF export via `pdfkit` — no disk persistence (grep-confirmed zero `fs`/path usage); a reviewer decompressed the generated PDF's actual content stream and confirmed all 9 metric fields render as real text, not just inferred from source
   - AC9.4 board-meeting-usable screen: large stat cards (not a dense table), high-contrast text throughout (a real WCAG AA failure was caught and fixed twice in this pass — see below)
   - **Documented interpretation (flagged, not yet confirmed by user):** "completion rate" = academy-wide attendance completion rate (`PRESENT`+`LATE` ÷ all session records) over the last 7 days — no existing metric definition covered this; a different definition (e.g. % reaching a memorization milestone) may have been intended.
@@ -532,3 +548,32 @@ children's data through `parent.service` (dashboard).
       behaviour, any other role → `AppError(403)`.
 - [x] Proof: new itest 5/5 green; server unit 376/376; integration 1037/1037
       (1032 + 5 new); `tsc --noEmit` clean.
+
+# Halaqa room membership + revoke sessions on password change (2026-09-30)
+
+From `analysis/review/ASSESSMENT.md` security #7 and #9.
+
+**Halaqa (CWE-862).** `listRooms`, `getRoom` and the socket `halaqa:join`
+(`recordJoin`) never checked the caller, so any signed-in user (a parent, an
+unlinked student, another teacher) could list, read and join any teacher's
+live room. Rule, one helper for all three: the room's teacher, an ADMIN, or a
+STUDENT with an ACCEPTED appointment with that teacher. `listRooms` returns only
+rooms the caller may join; `getRoom` gives 404 otherwise (no existence leak);
+join is rejected with 403 over the socket.
+
+**Password change (CWE-613).** `changeUserPassword` set `passwordChangedAt`,
+which kills old _access_ tokens, but left `refreshTokenHash`. Another device
+could keep minting new access tokens for 7 days. Only one refresh hash is
+stored per user, so the change now issues a fresh token pair to the caller
+(the new hash replaces the old one, which revokes every other device) and
+returns it. The response gains optional `token`/`refreshToken`; the app stores
+them.
+
+- [x] Failing integration tests first: `halaqa-access.itest.ts`,
+      `password-session.itest.ts`. Red before the fix: outsiders listed, read
+      and joined the room; change-password returned no fresh session.
+- [x] Fix the services and socket; the contract gets optional fields; the mobile store saves the new tokens.
+      Updated 4 older tests that pinned the open behaviour (students now get an
+      ACCEPTED appointment first; change-password body now includes the pair).
+- [x] Proof: new itests 5/5; server unit 377/377; integration 1042/1042;
+      server + mobile `tsc --noEmit` clean.

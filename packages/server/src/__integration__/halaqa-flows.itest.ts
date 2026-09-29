@@ -2,6 +2,7 @@ import request from 'supertest';
 import { Role } from '@prisma/client';
 import app from '../app';
 import { createUser } from './factory';
+import { prisma } from '../prisma/client';
 import { truncateAll, disconnect } from './db';
 
 beforeEach(truncateAll);
@@ -45,6 +46,16 @@ describe('halaqa rooms', () => {
   it('GET /: default lists WAITING+LIVE only; ?status=ENDED filters; _count.participants present', async () => {
     const teacher = await createUser({ role: Role.TEACHER });
     const student = await createUser({ role: Role.STUDENT });
+    // Students see only rooms of teachers they have an ACCEPTED appointment with.
+    await prisma.appointment.create({
+      data: {
+        studentId: student.id,
+        teacherId: teacher.id,
+        requestedDate: new Date(),
+        requestedTime: '10:00',
+        status: 'ACCEPTED',
+      },
+    });
     const mk = (title: string) =>
       agent.post('/api/v1/halaqa').set('Authorization', `Bearer ${teacher.token}`).send({ title });
     const a = await mk('a');
