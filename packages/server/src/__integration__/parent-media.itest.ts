@@ -24,7 +24,7 @@ describe('GET /api/v1/parents/children/:studentId/reports', () => {
     const admin = await createUser({ role: Role.ADMIN });
     await approvedLink(parent.id, student.id, admin.token);
     await prisma.report.create({
-      data: { teacherId: teacher.id, studentId: student.id, pdfUrl: 'reports/x.pdf', summary: 'Q1' },
+      data: { teacherId: teacher.id, studentId: student.id, pdfUrl: '/reports/x.pdf', summary: 'Q1' },
     });
 
     const res = await request(app)
@@ -60,7 +60,7 @@ describe('GET /api/v1/parents/children/:studentId/reports', () => {
     await Promise.all(
       Array.from({ length: 101 }, (_, i) =>
         prisma.report.create({
-          data: { teacherId: teacher.id, studentId: student.id, pdfUrl: `reports/${i}.pdf`, summary: `r${i}` },
+          data: { teacherId: teacher.id, studentId: student.id, pdfUrl: `/reports/${i}.pdf`, summary: `r${i}` },
         })
       )
     );
@@ -142,7 +142,7 @@ describe('file downloads — parent authorization', () => {
     const admin = await createUser({ role: Role.ADMIN });
     await approvedLink(parent.id, student.id, admin.token);
     const report = await prisma.report.create({
-      data: { teacherId: teacher.id, studentId: student.id, pdfUrl: 'reports/does-not-exist.pdf', summary: 'x' },
+      data: { teacherId: teacher.id, studentId: student.id, pdfUrl: '/reports/does-not-exist.pdf', summary: 'x' },
     });
 
     const res = await request(app).get(`/api/v1/files/reports/${report.id}?token=${parent.token}`);
@@ -158,7 +158,7 @@ describe('file downloads — parent authorization', () => {
     const student = await createUser({ role: Role.STUDENT });
     const parent = await createUser({ role: Role.PARENT });
     const report = await prisma.report.create({
-      data: { teacherId: teacher.id, studentId: student.id, pdfUrl: 'reports/does-not-exist.pdf', summary: 'x' },
+      data: { teacherId: teacher.id, studentId: student.id, pdfUrl: '/reports/does-not-exist.pdf', summary: 'x' },
     });
 
     const res = await request(app).get(`/api/v1/files/reports/${report.id}?token=${parent.token}`);

@@ -30,31 +30,42 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Configure GitHub Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
       - name: Check the production API URL
         env:
           WEB_API: ${{ vars.EXPO_PUBLIC_API_URL }}
+          CLIENT: ${{ vars.CLIENT_URL }}
+          SITE_ORIGIN: ${{ steps.pages.outputs.origin }}
         run: |
           # EXPO_PUBLIC_API_URL is baked into the bundle at build time. When it
           # is unset the client falls back to http://localhost:4000/api/v1
-          # (mobile/src/api/client.ts), so the published site points at the
+          # (mobile/src/api/apiBase.ts), so the published site points at the
           # visitor's own machine — it renders, but it can never sign anyone
-          # in. That is the current state, and it is worth saying out loud on
-          # every deploy rather than shipping it silently.
+          # in, and it does not share the app's database. Refuse to publish.
           if [ -z "$WEB_API" ]; then
-            echo "::warning::Repository variable EXPO_PUBLIC_API_URL is not set — publishing a site with NO backend (the bundle falls back to localhost). Set it to the deployed API base URL (e.g. https://api.example.com/api/v1) under Settings → Secrets and variables → Actions → Variables."
-            exit 0
+            echo "::error::Repository variable EXPO_PUBLIC_API_URL is not set. Publishing would bake http://localhost:4000/api/v1 into the site, so it would call the visitor's own machine instead of the database the app uses. Set it to the deployed API base URL (e.g. https://api.example.com/api/v1) under Settings → Secrets and variables → Actions → Variables."
+            exit 1
           fi
-          # A wrong value is worse than none: https is not optional, because
-          # Pages is served over HTTPS and a plain-HTTP API is blocked as
-          # mixed content in every browser.
           case "$WEB_API" in
             https://*) ;;
             *) echo "::error::EXPO_PUBLIC_API_URL must be an https:// URL (got: $WEB_API). GitHub Pages is served over HTTPS, so a plain-HTTP API is blocked as mixed content."; exit 1 ;;
           esac
-          echo "Building the web app against $WEB_API"
-
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
+          # The server's CORS allows exactly one browser origin: its CLIENT_URL
+          # (render.yaml). That must be this site's origin, not the API's. The
+          # API lives on another host, so the two origins normally differ.
+          # Keep vars.CLIENT_URL equal to the server's CLIENT_URL.
+          if [ -z "$CLIENT" ]; then
+            echo "::error::CLIENT_URL is not set. Set it to this site's origin ($SITE_ORIGIN), the same value as CLIENT_URL on the API server, or the server's CORS rejects the site."
+            exit 1
+          fi
+          if [ "${CLIENT%/}" != "$SITE_ORIGIN" ]; then
+            echo "::error::CLIENT_URL ($CLIENT) is not this site's origin ($SITE_ORIGIN). The server's CORS would reject every request from the site."
+            exit 1
+          fi
+          echo "Building the web app against $WEB_API for site origin $SITE_ORIGIN."
 
       - name: Build Expo web app
         run: npm run build:web

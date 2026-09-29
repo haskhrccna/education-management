@@ -20,7 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SHADOWS, RADIUS, SPACING } from '@/constants/theme';
 import { useTheme } from '@/src/hooks/useTheme';
 import { useResponsive, AUTH_CONTENT_MAX_WIDTH } from '@/src/hooks/useResponsive';
-import { isApiUnreachableByConfig } from '@/src/api/client';
+import { isApiUnreachableByConfig } from '@/src/api/apiBase';
 export default function LoginPage() {
   const { isWideWeb } = useResponsive();
   const authWidth = isWideWeb
@@ -64,7 +64,13 @@ export default function LoginPage() {
    * Name the real cause instead.
    */
   const describeLoginError = (err: unknown): string => {
-    if (isApiUnreachableByConfig()) return t('serverUnavailable');
+    if (
+      isApiUnreachableByConfig({
+        os: Platform.OS,
+        hostname: typeof window !== 'undefined' ? window.location?.hostname : '',
+      })
+    )
+      return t('serverUnavailable');
     return err instanceof Error ? err.message : t('loginFailed');
   };
 

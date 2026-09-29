@@ -56,7 +56,14 @@
 - A build-time env var that falls back to `localhost` must be enforced in the
   workflow, not documented. An unset `EXPO_PUBLIC_API_URL` published a site
   pointing at the visitor's own machine, and the CI consistency check skipped
-  itself in exactly that case.
+  itself in exactly that case. The Pages workflow now fails the build unless
+  the variable is an https URL and `CLIENT_URL` equals the site's own origin.
+- `CLIENT_URL` is the browser origin the server's CORS allows (the site), never
+  the API's origin. The two differ whenever the API has its own host, so a
+  check that requires them to match blocks every correct deploy. (2026-09-29)
+- A green image build is not a working deploy: boot the image with
+  `NODE_ENV=production` against a throwaway Postgres and hit `/api/health`.
+  Nested workspace deps and a TS `main` both passed the build and crashed on start.
 - Files the database references and cannot regenerate (report PDFs,
   certificates) need object storage before the first real deploy; a render
   cache (share images) does not.

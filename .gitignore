@@ -47,3 +47,9 @@ lib/l10n/app_localizations*.dart
 # Usually good to ignore the lock file if this is a library, 
 # but keep it if it's an app. If you want it gone:
 # pubspec.lock
+
+# Ruflo local secrets and runtime data
+.env.*.local
+.claude-flow/data/
+.claude-flow/logs/
+.claude-flow/sessions/

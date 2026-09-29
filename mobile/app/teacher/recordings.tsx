@@ -21,6 +21,7 @@ import { useRecordings } from '@/src/hooks/useRecordings';
 import { Recording, getRecordingStatus } from '@/src/api';
 import { Image } from 'expo-image';
 import { mushafPageUri } from '@/src/lib/mushafAssets';
+import { API_ORIGIN } from '@/src/api/contract';
 import { mushafApi } from '@/src/api/mushaf';
 import { weakAyahsApi } from '@/src/api/weakAyahs';
 import type { AyahDTO } from '@quran-review/shared';
@@ -32,9 +33,7 @@ type AnyColors = ThemeColors;
 type FilterStatus = 'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED';
 type AudioModule = typeof import('expo-av');
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-// Strip trailing /api/vX from base to get the server host serving /uploads
-const API_HOST = API_BASE.replace(/\/api\/v\d+\/?$/, '');
+const API_HOST = API_ORIGIN;
 
 const formatBytes = (bytes: number): string => {
   if (!bytes) return '0 B';

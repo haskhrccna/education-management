@@ -3,18 +3,12 @@ import { io, Socket } from 'socket.io-client';
 import { Platform } from 'react-native';
 import { useAuthStore } from '../auth/store';
 import { secureStorage } from '../storage/secureStorage';
+import { resolveSocketOrigin } from '../api/apiBase';
 
-function getSocketUrl(): string {
-  if (process.env.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL.replace(/\/api\/v1\/?$/, '');
-  }
-  if (Platform.OS === 'android') {
-    return 'http://10.0.2.2:4000';
-  }
-  return 'http://localhost:4000';
-}
-
-const SOCKET_URL = getSocketUrl();
+const SOCKET_URL = resolveSocketOrigin({
+  os: Platform.OS,
+  hostname: typeof window !== 'undefined' ? window.location?.hostname : undefined,
+});
 const subscribers = new Set<(socket: Socket | null) => void>();
 
 let sharedSocket: Socket | null = null;

@@ -15,8 +15,11 @@ RUN npm ci --workspace=@quran-review/server --workspace=@quran-review/shared
 RUN cd packages/server && npx prisma generate
 RUN npm run build --workspace=@quran-review/server
 
-# Compile shared package so runner gets JS (not raw TS source)
-RUN cd packages/shared && npx tsc --outDir dist --rootDir src 2>/dev/null || true
+# Compile the shared package and point its entry at the JS. package.json keeps
+# "main": "src/index.ts" for Metro, ts-node and jest, which read the source.
+# Production node can't load that: it crashed on start with ERR_MODULE_NOT_FOUND
+# for src/enums/roles. A failed compile must fail the build, not be swallowed.
+RUN cd packages/shared && npx tsc --outDir dist --rootDir src && npm pkg set main=dist/index.js
 
 # ─── Production runner ────────────────────────────────────────────────────────
 FROM node:22-alpine AS runner
@@ -37,6 +40,11 @@ COPY --from=builder /app/packages/shared ./packages/shared
 
 # Production node_modules (includes Prisma client + @quran-review/shared symlink)
 COPY --from=builder /app/node_modules ./node_modules
+# npm nests the server's copies of deps whose versions clash with another
+# workspace (multer, nodemailer) under packages/server/node_modules. dist/ runs
+# from /app, so lay them over the root copy, or the API dies on start with
+# "Cannot find module 'nodemailer'".
+COPY --from=builder /app/packages/server/node_modules ./node_modules
 
 # Mushaf page images (604 WebPs, ~51MB) are not in git and not baked into the
 # image — mount them here (docker-compose does this) or point
