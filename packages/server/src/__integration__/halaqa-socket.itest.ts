@@ -140,13 +140,17 @@ describe('presence: join/leave record attendance and broadcast (pinned)', () => 
 });
 
 describe('WebRTC signaling: pure relay stamped with fromUserId (pinned)', () => {
-  it('offer, answer and ICE are forwarded to the target personal room without payload inspection', async () => {
+  it('offer, answer and ICE are forwarded to the target in the same room without payload inspection', async () => {
     const teacher = await createUser({ role: Role.TEACHER });
     const student = await createUser({ role: Role.STUDENT });
     await linkAccepted(student.id, teacher.id);
     const roomId = await liveRoom(teacher);
     const a = await connect(teacher.token);
     const b = await connect(student.token);
+    // Signalling is relayed only between sockets that joined the same room.
+    a.emit('halaqa:join', { roomId });
+    b.emit('halaqa:join', { roomId });
+    await until(async () => (await prisma.halaqaParticipant.count({ where: { roomId, leftAt: null } })) === 2);
 
     const offer = waitFor<{ roomId: string; fromUserId: string; sdp: unknown }>(b, 'halaqa:offer');
     a.emit('halaqa:offer', { roomId, targetUserId: student.id, sdp: { type: 'offer', blob: 'x' } });

@@ -1,7 +1,7 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import http from 'http';
-import jwt from 'jsonwebtoken';
 import { config } from '../config';
+import { validateAccessToken } from '../middleware/auth.middleware';
 import { logger } from '../lib/logger';
 import { recordJoin, recordLeave } from './halaqa.service';
 
@@ -12,16 +12,19 @@ export const setupSocketIO = (server: http.Server) => {
     cors: { origin: config.env === 'production' ? process.env.CLIENT_URL || false : '*', methods: ['GET', 'POST'] },
   });
 
-  io.use((socket: Socket, next) => {
+  // Same account check as HTTP: a valid signature alone is not enough. A
+  // banned, deleted or password-changed account is refused here.
+  io.use(async (socket: Socket, next) => {
     const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.replace('Bearer ', '');
     if (!token) return next(new Error('Authentication required'));
     try {
-      const payload = jwt.verify(token, config.jwtSecret) as { userId: string; role: string };
-      socket.data.userId = payload.userId;
-      socket.data.userRole = payload.role;
+      const { userId, role, expiresAt } = await validateAccessToken(token);
+      socket.data.userId = userId;
+      socket.data.userRole = role;
+      socket.data.expiresAt = expiresAt;
       next();
-    } catch {
-      next(new Error('Invalid or expired token'));
+    } catch (err) {
+      next(new Error((err as Error).message || 'Invalid or expired token'));
     }
   });
 
@@ -29,6 +32,14 @@ export const setupSocketIO = (server: http.Server) => {
     const userId = socket.data.userId as string;
     logger.info({ socketId: socket.id, userId }, 'Socket connected');
     if (userId) socket.join(userId);
+
+    // A connection must not outlive its token. The client reconnects with its
+    // latest token (mobile/src/hooks/useSocket.ts).
+    const expiresAt = socket.data.expiresAt as number | undefined;
+    const expiryTimer = expiresAt
+      ? setTimeout(() => socket.disconnect(true), Math.max(0, expiresAt * 1000 - Date.now()))
+      : undefined;
+    socket.on('disconnect', () => clearTimeout(expiryTimer));
 
     // ── Halaqa WebRTC signaling ──────────────────────────────────────────────
     // The server is a pure relay: it never inspects SDP or ICE candidates.
@@ -56,26 +67,33 @@ export const setupSocketIO = (server: http.Server) => {
       }
     });
 
-    // WebRTC offer/answer/ICE — relay to the target peer's personal room (userId)
-    socket.on(
-      'halaqa:offer',
-      ({ roomId, targetUserId, sdp }: { roomId: string; targetUserId: string; sdp: unknown }) => {
-        io.to(targetUserId).emit('halaqa:offer', { roomId, fromUserId: userId, sdp });
+    // WebRTC offer/answer/ICE. Relayed only between two sockets in the same
+    // halaqa room: the sender must have joined `halaqa:<roomId>`, and the
+    // envelope goes only to the target user's sockets in that room. Anything
+    // else (an outsider, a target outside the room, a room name used as the
+    // target to broadcast) is dropped.
+    const relay = async (event: string, roomId: unknown, targetUserId: unknown, body: Record<string, unknown>) => {
+      if (typeof roomId !== 'string' || typeof targetUserId !== 'string') return;
+      const room = `halaqa:${roomId}`;
+      if (!socket.rooms.has(room)) return;
+      const peers = await io.in(room).fetchSockets();
+      for (const peer of peers) {
+        if (peer.data.userId === targetUserId) peer.emit(event, { roomId, fromUserId: userId, ...body });
       }
-    );
+    };
 
+    socket.on('halaqa:offer', ({ roomId, targetUserId, sdp }: { roomId: string; targetUserId: string; sdp: unknown }) =>
+      relay('halaqa:offer', roomId, targetUserId, { sdp })
+    );
     socket.on(
       'halaqa:answer',
-      ({ roomId, targetUserId, sdp }: { roomId: string; targetUserId: string; sdp: unknown }) => {
-        io.to(targetUserId).emit('halaqa:answer', { roomId, fromUserId: userId, sdp });
-      }
+      ({ roomId, targetUserId, sdp }: { roomId: string; targetUserId: string; sdp: unknown }) =>
+        relay('halaqa:answer', roomId, targetUserId, { sdp })
     );
-
     socket.on(
       'halaqa:ice-candidate',
-      ({ roomId, targetUserId, candidate }: { roomId: string; targetUserId: string; candidate: unknown }) => {
-        io.to(targetUserId).emit('halaqa:ice-candidate', { roomId, fromUserId: userId, candidate });
-      }
+      ({ roomId, targetUserId, candidate }: { roomId: string; targetUserId: string; candidate: unknown }) =>
+        relay('halaqa:ice-candidate', roomId, targetUserId, { candidate })
     );
 
     // 'disconnecting' (not 'disconnect'): socket.rooms is already emptied by the
@@ -101,6 +119,15 @@ export const setupSocketIO = (server: http.Server) => {
 
 export const sendToUser = (userId: string, event: string, data: unknown) => {
   io?.to(userId).emit(event, data);
+};
+
+/**
+ * End every live connection a user has: on ban, delete, password change or
+ * reset. Their next connect runs the handshake check again. No-op when
+ * Socket.IO isn't running (tests, workers).
+ */
+export const disconnectUserSockets = (userId: string) => {
+  io?.in(userId).disconnectSockets(true);
 };
 
 export const closeSocketIO = async (): Promise<void> => {

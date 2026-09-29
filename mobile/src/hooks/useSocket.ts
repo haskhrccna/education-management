@@ -56,6 +56,18 @@ async function ensureSocket(userId: string): Promise<Socket | null> {
       console.error('[Socket] Connection error:', error.message);
     });
 
+    // The server ends a connection when its token expires or the password
+    // changes. Reconnect once with the latest stored token. If that token is
+    // no longer valid (e.g. a ban), the handshake refuses it via connect_error
+    // and nothing loops.
+    socket.on('disconnect', async (reason) => {
+      if (reason !== 'io server disconnect' || generation !== connectionGeneration) return;
+      const latest = await secureStorage.getItem('auth_token');
+      if (!latest || generation !== connectionGeneration) return;
+      socket.auth = { token: latest };
+      socket.connect();
+    });
+
     sharedSocket = socket;
     publishSocket(socket);
     return socket;
