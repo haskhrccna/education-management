@@ -440,8 +440,9 @@ Fixed (each with proof):
       `STORAGE_ENABLED=1`, with legacy rows still served from disk. 13 tests.
 - [x] `prepare-github-pages.js` release guards (no title / no description / no
       manifest / no sw.js / base-path mismatch fails the build).
-- [x] Pages deploy refuses to publish without `EXPO_PUBLIC_API_URL`; CI fails
-      when only one of `EXPO_PUBLIC_API_URL` / `CLIENT_URL` is set.
+- [x] Pages deploy refuses to publish unless `EXPO_PUBLIC_API_URL` is an
+      https URL whose origin equals `CLIENT_URL`. An unset value no longer
+      publishes a site pointed at the visitor's own machine.
 - [x] Pre-commit hook could never run (lint-staged v16 spawns without a shell).
 - [x] Docs drift: README/CLAUDE test counts (131/17 → 344/38) and Express
       version (5 → 4).
@@ -453,3 +454,55 @@ Remaining, and owner-blocked (needs accounts/credentials, not code):
 - [ ] Set repo variables `EXPO_PUBLIC_API_URL` + `CLIENT_URL`, and the same
       URL in `mobile/eas.json` for the app build.
 - [ ] Privacy policy + terms at public URLs (App Store submission gate).
+
+# Shared-backend verification — current-state audit (2026-09-22)
+
+Scope: preserve existing work; prove mobile/web resolve one API without putting
+application data at risk. API unit tests alone are not a web/native release gate.
+
+- [x] Server `tsc --noEmit` failed (TS6059): the cross-client integration test
+      imported `mobile/src/api/apiBase.ts`, which sits outside the server
+      package's rootDir. Fixed by moving the resolver into
+      `packages/shared/src/api-base.ts` (no react-native/expo imports),
+      re-exporting it from `mobile/src/api/apiBase.ts` for mobile callers, and
+      importing `@quran-review/shared` in the test. Build exit 0; shared
+      package + mobile `tsc --noEmit` clean.
+- [x] Server unit 349/349 (39 suites); shared-database integration 5/5; mobile
+      i18n/route checks OK. Full integration run + web bundle rebuilt from the
+      shared-package import chain recorded in this session.
+- [x] Full integration 1032/1032 (37 suites) and server unit 349/349 green with
+      the shared-package import. Web export rebuilt from the new import chain:
+      `EXPO_PUBLIC_API_URL=https://…/education-management-api/api/v1` inlined in
+      the bundle, release guards OK (base path, title, 404.html, .nojekyll,
+      manifest), shared resolver code confirmed present in the entry bundle.
+
+# Connect the live site and the app to one deployed API (2026-09-29)
+
+Preflight (`analysis/review/PREFLIGHT.md`) found the live Pages bundle calling
+`http://localhost:4000/api/v1`: the repo has 0 Actions variables, and the
+committed `pages.yml` only warned. Mobile production (`eas.json`) points at a
+placeholder host.
+
+- [x] Fix the CORS guard in `pages.yml` and `ci.yml`. Both require the API
+      origin to equal `CLIENT_URL`, but `CLIENT_URL` is the **site** origin the
+      server allows in CORS (`render.yaml`: `https://haskhrccna.github.io`), so a
+      real Render API could never pass. New rule: `EXPO_PUBLIC_API_URL` is
+      https, and `CLIENT_URL` equals the Pages site origin (from
+      `actions/configure-pages`'s `origin` output). CI checks that both are
+      set, https, and end in `/api/v1` where applicable. Proof: 11/11 guard
+      cases (real setup passes; unset/http/missing CLIENT_URL/API-origin-as-
+      CLIENT_URL/path in CLIENT_URL fail); both workflows parse as YAML.
+- [x] The API image crashed on start, so Render could never have served. Two
+      Dockerfile bugs: (1) `@quran-review/shared` `main` pointed at
+      `src/index.ts` → `ERR_MODULE_NOT_FOUND src/enums/roles` (the compile ran,
+      but `|| true` hid failures and `main` was never repointed); (2) `multer`
+      and `nodemailer` are nested in `packages/server/node_modules`, which the
+      runner never copied. Proof: image built, booted with NODE_ENV=production
+      on throwaway Postgres 17. All 33 migrations applied, `/api/health` →
+      healthy with database up, CORS allows `https://haskhrccna.github.io`,
+      POST /auth/login → 401 Invalid credentials (DB-backed route).
+- [ ] Deploy the API from `render.yaml` (user: Render dashboard → Blueprint).
+- [ ] Set Actions variables `EXPO_PUBLIC_API_URL` and `CLIENT_URL`.
+- [ ] Point the `eas.json` production/preview profiles at the same API.
+- [ ] Proof: `/api/health` 200; the live bundle contains the API URL and not
+      `localhost:4000`; a sign-in from the site reaches the same DB as the app.

@@ -1,19 +1,16 @@
 import { Platform } from 'react-native';
 import { createContractClient } from '@quran-review/shared';
 import { secureStorage } from '../storage/secureStorage';
+import { resolveSocketOrigin } from './apiBase';
 
 /**
  * Contract paths are full canonical ('/api/v1/...'), so the client needs the
- * ORIGIN only — strip the /api/v1 suffix the axios base includes.
+ * ORIGIN only — the same origin the axios client, sockets and mushaf images use.
  */
-function getOrigin(): string {
-  const base =
-    process.env.EXPO_PUBLIC_API_URL ??
-    (Platform.OS === 'android' ? 'http://10.0.2.2:4000/api/v1' : 'http://localhost:4000/api/v1');
-  return base.replace(/\/api\/v1\/?$/, '');
-}
-
-const ORIGIN = getOrigin();
+const ORIGIN = resolveSocketOrigin({
+  os: Platform.OS,
+  hostname: typeof window !== 'undefined' ? window.location?.hostname : undefined,
+});
 
 /** Server origin (no /api/v1 suffix) for building browser/download URLs. */
 export const API_ORIGIN = ORIGIN;

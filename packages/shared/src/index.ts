@@ -44,3 +44,4 @@ export * from './contracts/progress.contracts';
 export * from './contracts/halaqa.contracts';
 export * from './contracts/public.contracts';
 export * from './contracts/client';
+export * from './api-base';

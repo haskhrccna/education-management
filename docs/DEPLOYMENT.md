@@ -2,8 +2,10 @@
 
 ## Go-live: one database behind both the app and the web site
 
-The mobile app and the web export are the same client. They share a database
-only when both are pointed at the same deployed API. In order:
+The mobile app and the web export are the same client, and they resolve their
+API origin from one module (`mobile/src/api/apiBase.ts`). They share a database
+only when both are pointed at the same deployed API, which has exactly one
+`DATABASE_URL`. In order:
 
 1. **Deploy the API** (§1–§3 below) — Node service + managed Postgres +
    Redis + an S3-compatible bucket. Set `CLIENT_URL` to the web site's origin
@@ -15,10 +17,11 @@ only when both are pointed at the same deployed API. In order:
    variables → Actions → *Variables*):
    - `EXPO_PUBLIC_API_URL` = `https://api.<your-domain>/api/v1`
    - `CLIENT_URL` = the site origin, matching the server's `CLIENT_URL`
-   The Pages workflow **refuses to publish** without `EXPO_PUBLIC_API_URL`,
-   because an unset value bakes `http://localhost:4000/api/v1` into the
-   bundle and the published site silently talks to the visitor's own machine.
-   CI fails if only one of the two is set.
+   The Pages workflow **refuses to publish** unless `EXPO_PUBLIC_API_URL` is an
+   `https://` URL and `CLIENT_URL` equals the site's own origin (the two origins
+   differ: the API is on its own host). An unset value used to bake
+   `http://localhost:4000/api/v1` into the bundle, and the published site
+   silently talked to the visitor's own machine instead of the app's database.
 4. **Build the mobile app** against the same origin: `mobile/eas.json` →
    `build.production.env.EXPO_PUBLIC_API_URL`. Same value as step 3.
 5. **Seed one real admin** (not the demo seed) and rotate the documented
