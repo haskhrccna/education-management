@@ -501,8 +501,15 @@ placeholder host.
       on throwaway Postgres 17. All 33 migrations applied, `/api/health` →
       healthy with database up, CORS allows `https://haskhrccna.github.io`,
       POST /auth/login → 401 Invalid credentials (DB-backed route).
-- [ ] Deploy the API from `render.yaml` (user: Render dashboard → Blueprint).
-- [ ] Set Actions variables `EXPO_PUBLIC_API_URL` and `CLIENT_URL`.
-- [ ] Point the `eas.json` production/preview profiles at the same API.
-- [ ] Proof: `/api/health` 200; the live bundle contains the API URL and not
-      `localhost:4000`; a sign-in from the site reaches the same DB as the app.
+- [x] Deploy the API. `quran-review-api` + `quran-review-db` already existed on Render;
+      every deploy since 2026-09-27 was `update_failed` (the image crash). The merge
+      of PR #8 is the first live deploy: `/api/health` → healthy, database up.
+- [x] Set Actions variables `EXPO_PUBLIC_API_URL=https://quran-review-api.onrender.com/api/v1`,
+      `CLIENT_URL=https://haskhrccna.github.io`; Pages run 36620088714 green.
+- [x] Point the `eas.json` production profile at the same API (preview keeps its
+      staging placeholder by choice, so test builds don't write to real data).
+- [x] Proof: `/api/health` 200; the live bundle inlines the Render API URL (the one
+      `localhost:4000` left is the unused fallback constant); CORS preflight from
+      the site origin → 204. Seeded trial roster (production-guarded passwords, kept
+      in `~/.config/quran-trial-users.txt`): 5 ACTIVE logins OK against the live
+      API, Fatima correctly PENDING, and Ahmad sees his ACCEPTED appointment with Ali.

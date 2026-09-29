@@ -30,7 +30,7 @@
         "resourceClass": "m-medium"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.your-domain.com/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://quran-review-api.onrender.com/api/v1"
       }
     }
   },
