@@ -4,7 +4,7 @@ import { AppError } from '../../middleware/error.middleware';
 import { defineRoute, buildContractRouter } from '../../lib/contract-router';
 
 const listAttendance = defineRoute(schedulingContracts.listAttendance, async ({ query, userId, userRole }) => {
-  const callerRole = userRole as 'STUDENT' | 'TEACHER' | 'ADMIN';
+  const callerRole = userRole!;
   const studentId =
     (typeof query.studentId === 'string' && query.studentId) || (callerRole === 'STUDENT' ? userId! : null);
   if (!studentId) {

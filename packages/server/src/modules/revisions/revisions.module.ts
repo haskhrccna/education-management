@@ -11,7 +11,7 @@ const listRevisions = defineRoute(learningContracts.listRevisions, async ({ quer
     // single writer of the response — no double-send.
     return { status: 400 as const, body: { success: false as const, error: 'Invalid surahId' } };
   }
-  const revisions = await revisionService.getRevisions(userId!, userRole as 'STUDENT' | 'TEACHER', surahId);
+  const revisions = await revisionService.getRevisions(userId!, userRole!, surahId);
   return { status: 200 as const, body: revisions };
 });
 

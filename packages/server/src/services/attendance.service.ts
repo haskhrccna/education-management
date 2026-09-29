@@ -110,17 +110,15 @@ export const recordAttendance = async (
  *   - ADMIN: any student
  *   - TEACHER: any student with whom they have an ACCEPTED appointment
  *   - STUDENT: themselves only
+ *   - anyone else (PARENT): denied; parents read attendance on the parent dashboard
  */
-export const getStudentAttendance = async (
-  callerId: string,
-  callerRole: 'STUDENT' | 'TEACHER' | 'ADMIN',
-  studentId: string
-) => {
-  if (callerRole === 'STUDENT' && callerId !== studentId) {
-    throw new AppError(403, 'You can only view your own attendance');
-  }
-  if (callerRole === 'TEACHER') {
+export const getStudentAttendance = async (callerId: string, callerRole: string, studentId: string) => {
+  if (callerRole === 'STUDENT') {
+    if (callerId !== studentId) throw new AppError(403, 'You can only view your own attendance');
+  } else if (callerRole === 'TEACHER') {
     await assertTeacherCanAccessStudent(callerId, studentId);
+  } else if (callerRole !== 'ADMIN') {
+    throw new AppError(403, 'Not allowed to view attendance');
   }
 
   return prisma.sessionRecord.findMany({

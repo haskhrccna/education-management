@@ -91,7 +91,7 @@ export async function seedRevisionForCompletion(
  */
 export const getRevisions = async (
   userId: string,
-  userRole: 'STUDENT' | 'TEACHER',
+  userRole: string,
   surahId?: number,
   opts: { due?: boolean } = {}
 ) => {
@@ -107,6 +107,11 @@ export const getRevisions = async (
     const studentIds = appointments.map((a) => a.studentId);
     if (studentIds.length === 0) return [];
     where.userId = { in: studentIds };
+  } else if (userRole !== 'ADMIN') {
+    // Deny by default. Any other role (PARENT) used to fall through with no
+    // filter and read every student's schedule. Parents see their children
+    // through the parent dashboard instead.
+    throw new AppError(403, 'Not allowed to list revisions');
   }
 
   if (surahId) {

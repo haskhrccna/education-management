@@ -8,7 +8,7 @@ const flag = defineRoute(weakAyahsContracts.flag, async ({ body, userId }) => {
 });
 
 const list = defineRoute(weakAyahsContracts.list, async ({ userId, userRole }) => {
-  const data = await weakAyahService.listWeakAyahFlags(userId!, userRole as 'STUDENT' | 'TEACHER' | 'ADMIN');
+  const data = await weakAyahService.listWeakAyahFlags(userId!, userRole!);
   return { status: 200 as const, body: { success: true as const, data } };
 });
 
