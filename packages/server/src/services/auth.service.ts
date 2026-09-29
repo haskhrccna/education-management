@@ -6,6 +6,7 @@ import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
 import { sendPasswordResetEmail, sendWelcomeEmail } from './email.service';
 import { logger } from '../lib/logger';
+import { disconnectUserSockets } from './socket.service';
 
 export const hashPassword = async (password: string): Promise<string> => {
   return bcrypt.hash(password, 12);
@@ -159,6 +160,7 @@ export const resetPassword = async (token: string, newPassword: string) => {
       refreshTokenHash: null,
     },
   });
+  disconnectUserSockets(user.id); // a reset ends every live session too
 
   return { message: 'Password reset successfully' };
 };

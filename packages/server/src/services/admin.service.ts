@@ -3,6 +3,7 @@ import { hashPassword } from './auth.service';
 import { AppError } from '../middleware/error.middleware';
 import { sendAccountApprovedEmail } from './email.service';
 import { notifyUser } from './notification.service';
+import { disconnectUserSockets } from './socket.service';
 
 const MAX_BULK_IDS = 1000;
 
@@ -112,11 +113,13 @@ export const deactivateUser = async (userId: string) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new AppError(404, 'User not found');
 
-  return await prisma.user.update({
+  const banned = await prisma.user.update({
     where: { id: userId },
     data: { status: 'BANNED' },
     select: { id: true, email: true, firstName: true, lastName: true, role: true, status: true },
   });
+  disconnectUserSockets(userId); // a ban takes effect on live connections too
+  return banned;
 };
 
 export const getTeacherProgress = async (teacherId?: string) => {
@@ -413,6 +416,7 @@ export const deleteUser = async (userId: string) => {
       deletedAt: new Date(),
     },
   });
+  disconnectUserSockets(userId);
 
   return { id: userId, deleted: true };
 };
@@ -425,7 +429,7 @@ export const bulkDeactivateUsers = async (userIds: string[]) => {
     throw new AppError(400, `Maximum ${MAX_BULK_IDS} users per request`);
   }
 
-  return await prisma.$transaction(async (tx) => {
+  const outcome = await prisma.$transaction(async (tx) => {
     const users = await tx.user.findMany({
       where: { id: { in: userIds }, deletedAt: null },
       select: { id: true },
@@ -446,4 +450,7 @@ export const bulkDeactivateUsers = async (userIds: string[]) => {
 
     return results;
   });
+  // After commit: end each banned user's live connections.
+  for (const r of outcome) if (r.success) disconnectUserSockets(r.id);
+  return outcome;
 };

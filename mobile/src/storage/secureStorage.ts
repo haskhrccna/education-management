@@ -1,9 +1,30 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
+// On web there is no secure enclave, so keep tokens per tab: sessionStorage is
+// cleared when the tab closes, unlike localStorage, which kept a 7-day refresh
+// token on disk for any injected script to find. Reloading the tab keeps the
+// sign-in; a new tab or a restarted browser signs in again.
+const TOKEN_KEYS = ['auth_token', 'refresh_token'];
+let migrated = false;
+
 function getWebStorage(): Storage | null {
   if (Platform.OS !== 'web' || typeof window === 'undefined') return null;
-  return window.localStorage;
+  if (!migrated) {
+    migrated = true;
+    try {
+      // Builds before this change wrote tokens to localStorage. Move them into
+      // this tab once, then remove them from disk.
+      for (const key of TOKEN_KEYS) {
+        const legacy = window.localStorage.getItem(key);
+        if (legacy !== null && window.sessionStorage.getItem(key) === null) window.sessionStorage.setItem(key, legacy);
+        window.localStorage.removeItem(key);
+      }
+    } catch {
+      /* storage blocked (private mode): nothing to migrate */
+    }
+  }
+  return window.sessionStorage;
 }
 
 export const secureStorage = {

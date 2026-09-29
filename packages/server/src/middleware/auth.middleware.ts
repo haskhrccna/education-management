@@ -5,37 +5,47 @@ import { config } from '../config';
 import { UserRole } from '@quran-review/shared';
 import { AppError } from './error.middleware';
 
+/**
+ * The one account check behind every access token, shared by HTTP
+ * (authenticate / fileAuthenticate) and the Socket.IO handshake: a valid
+ * signature is not enough. The user must still exist, not be deleted or
+ * banned, and the token must postdate the last password change.
+ * Throws AppError(401) otherwise.
+ */
+export async function validateAccessToken(
+  token: string
+): Promise<{ userId: string; role: UserRole | string; expiresAt?: number }> {
+  let payload: JwtPayload;
+  try {
+    payload = jwt.verify(token, config.jwtSecret) as JwtPayload;
+  } catch (err) {
+    throw err instanceof JsonWebTokenError ? new AppError(401, 'Invalid or expired token') : err;
+  }
+  const userId = payload.sub || payload.userId;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, role: true, status: true, deletedAt: true, passwordChangedAt: true },
+  });
+  if (!user) throw new AppError(401, 'User not found');
+  if (user.deletedAt) throw new AppError(401, 'Account has been deleted');
+  if (user.status === 'BANNED') throw new AppError(401, 'Account has been banned');
+  if (payload.iat && user.passwordChangedAt && Math.floor(user.passwordChangedAt.getTime() / 1000) > payload.iat) {
+    throw new AppError(401, 'Token invalidated by password change');
+  }
+  // Role comes from the DB row, never the token's claim: a demoted account
+  // must lose its old authority on the next request, not at token expiry.
+  return { userId: user.id, role: user.role, expiresAt: payload.exp };
+}
+
 async function resolveAndValidateToken(token: string, req: Request, next: NextFunction): Promise<boolean> {
   try {
-    const payload = jwt.verify(token, config.jwtSecret) as JwtPayload;
-    req.userId = payload.sub || payload.userId;
-
-    const user = await prisma.user.findUnique({
-      where: { id: req.userId },
-      select: { id: true, role: true, status: true, deletedAt: true, passwordChangedAt: true },
-    });
-    if (!user) {
-      next(new AppError(401, 'User not found'));
-      return false;
-    }
-    if (user.deletedAt) {
-      next(new AppError(401, 'Account has been deleted'));
-      return false;
-    }
-    if (user.status === 'BANNED') {
-      next(new AppError(401, 'Account has been banned'));
-      return false;
-    }
-    if (payload.iat && user.passwordChangedAt && Math.floor(user.passwordChangedAt.getTime() / 1000) > payload.iat) {
-      next(new AppError(401, 'Token invalidated by password change'));
-      return false;
-    }
-    // Sourced from the DB row, never the token's role claim: a demoted account
-    // must lose its old authority on the next request, not at token expiry.
-    req.userRole = user.role;
+    const { userId, role } = await validateAccessToken(token);
+    req.userId = userId;
+    req.userRole = role as typeof req.userRole;
     return true;
   } catch (err) {
-    next(err instanceof JsonWebTokenError ? new AppError(401, 'Invalid or expired token') : err);
+    next(err);
     return false;
   }
 }

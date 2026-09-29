@@ -2,6 +2,7 @@ import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
 import { hashPassword, comparePassword, generateToken, generateRefreshToken, hashRefreshToken } from './auth.service';
 import { logger } from '../lib/logger';
+import { disconnectUserSockets } from './socket.service';
 
 export const getProfile = async (userId: string) => {
   const user = await prisma.user.findUnique({
@@ -61,6 +62,8 @@ export const changeUserPassword = async (userId: string, currentPassword: string
     where: { id: userId },
     data: { passwordHash, passwordChangedAt, refreshTokenHash: hashRefreshToken(refreshToken) },
   });
+  // Live connections too. The caller's app reconnects with the new token.
+  disconnectUserSockets(userId);
   return { token, refreshToken };
 };
 

@@ -8,6 +8,7 @@ jest.mock('../../prisma/client', () => ({
 
 jest.mock('../socket.service', () => ({
   sendToUser: jest.fn(),
+  disconnectUserSockets: jest.fn(),
 }));
 
 import { prisma } from '../../prisma/client';
@@ -100,6 +101,8 @@ describe('admin.service', () => {
 
       const result = await deactivateUser('user-1');
       expect(result.status).toBe('BANNED');
+      // The ban ends the user's live socket connections too.
+      expect(jest.requireMock('../socket.service').disconnectUserSockets).toHaveBeenCalledWith('user-1');
     });
 
     it('should reject unknown user', async () => {

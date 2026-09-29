@@ -577,3 +577,36 @@ them.
       ACCEPTED appointment first; change-password body now includes the pair).
 - [x] Proof: new itests 5/5; server unit 377/377; integration 1042/1042;
       server + mobile `tsc --noEmit` clean.
+
+# Socket auth + halaqa signalling scope + web token storage (2026-09-30)
+
+From `analysis/review/ASSESSMENT.md` security #6, #8 and #10.
+
+**Signalling (CWE-285).** `halaqa:offer/answer/ice-candidate` relayed to any
+`targetUserId` (even a room name), with no shared-room check. Now: the sender's
+socket must be in `halaqa:<roomId>`, and the envelope goes only to the target's
+sockets in that same room. Otherwise it is dropped.
+
+**Socket auth (CWE-613).** The handshake only verified the JWT signature: a
+banned, deleted or password-changed user could still connect, and a connection
+outlived its token. Now: the handshake runs the same DB check as HTTP (one
+shared `validateAccessToken`). The socket is disconnected at token expiry, and
+`disconnectUserSockets` runs on ban (single + bulk), delete (admin + self),
+password change and password reset. The app reconnects once with its latest
+token when the server ends the connection.
+
+**Web tokens (CWE-922).** User chose session-tab storage: on web the tokens
+live in `sessionStorage` (cleared when the tab closes) instead of
+`localStorage`. Existing `localStorage` tokens move over once and are removed.
+Native (SecureStore) is unchanged.
+
+- [x] Failing integration tests first (`socket-security.itest.ts`). Red before: 9/10
+      (banned, deleted and stale-password tokens connected; nothing disconnected
+      on expiry, ban or password change; outsider, off-room and room-name
+      offers were delivered).
+- [x] Server: shared validator, handshake, expiry timer, disconnect hooks, relay scope.
+- [x] Mobile: sessionStorage + migration; reconnect on server disconnect.
+- [x] Proof: new itests 10/10; server unit 377/377; integration 1052/1052;
+      server + mobile tsc clean; web export OK (bundle uses sessionStorage).
+      Updated: admin unit-test socket mocks; the pinned relay test now joins the
+      room first, as the real app does.

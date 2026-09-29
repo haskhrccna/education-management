@@ -8,6 +8,7 @@ jest.mock('../../prisma/client', () => ({
 
 jest.mock('../socket.service', () => ({
   sendToUser: jest.fn(),
+  disconnectUserSockets: jest.fn(),
 }));
 
 import { prisma } from '../../prisma/client';
