@@ -215,7 +215,17 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   changePassword: async (currentPassword: string, newPassword: string) => {
-    await apiClient.put('/users/change-password', { currentPassword, newPassword });
+    // The server signs out every other device and hands this one a fresh pair.
+    // Keep it, or the next refresh fails and this device is signed out too.
+    const { data } = await apiClient.put<{ token?: string; refreshToken?: string }>('/users/change-password', {
+      currentPassword,
+      newPassword,
+    });
+    if (data.token && data.refreshToken) {
+      await secureStorage.setItem('auth_token', data.token);
+      await secureStorage.setItem('refresh_token', data.refreshToken);
+      set({ token: data.token });
+    }
   },
 
   markOnboarded: () => {

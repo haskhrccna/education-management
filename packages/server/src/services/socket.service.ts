@@ -37,7 +37,7 @@ export const setupSocketIO = (server: http.Server) => {
 
     socket.on('halaqa:join', async ({ roomId }: { roomId: string }) => {
       try {
-        await recordJoin(roomId, userId);
+        await recordJoin(roomId, userId, socket.data.userRole as string);
         socket.join(`halaqa:${roomId}`);
         socket.to(`halaqa:${roomId}`).emit('halaqa:participant-joined', { roomId, userId });
         logger.info({ roomId, userId }, 'Halaqa join');

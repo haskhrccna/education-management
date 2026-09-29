@@ -40,10 +40,42 @@ export const createRoom = async (teacherId: string, title: string, groupId?: str
   });
 };
 
-export const listRooms = async (status?: string) => {
-  const where = status
+/**
+ * Who may see and join a teacher's room: the teacher, an admin, or a student
+ * with an ACCEPTED appointment with that teacher. Everyone else (parents,
+ * unlinked students, other teachers) is out.
+ */
+async function canAccessRoom(roomTeacherId: string, callerId: string, callerRole: string): Promise<boolean> {
+  if (callerRole === 'ADMIN' || roomTeacherId === callerId) return true;
+  if (callerRole !== 'STUDENT') return false;
+  const link = await prisma.appointment.findFirst({
+    where: { teacherId: roomTeacherId, studentId: callerId, status: 'ACCEPTED' },
+    select: { id: true },
+  });
+  return link !== null;
+}
+
+/** Only the rooms the caller may join (see canAccessRoom). */
+export const listRooms = async (callerId: string, callerRole: string, status?: string) => {
+  const statusFilter = status
     ? { status: status as 'WAITING' | 'LIVE' | 'ENDED' }
     : { status: { in: ['WAITING', 'LIVE'] as ('WAITING' | 'LIVE')[] } };
+
+  let teacherFilter: { teacherId?: string | { in: string[] } } = {};
+  if (callerRole === 'TEACHER') {
+    teacherFilter = { teacherId: callerId };
+  } else if (callerRole === 'STUDENT') {
+    const links = await prisma.appointment.findMany({
+      where: { studentId: callerId, status: 'ACCEPTED' },
+      select: { teacherId: true },
+    });
+    if (links.length === 0) return [];
+    teacherFilter = { teacherId: { in: [...new Set(links.map((l) => l.teacherId))] } };
+  } else if (callerRole !== 'ADMIN') {
+    return [];
+  }
+
+  const where = { ...statusFilter, ...teacherFilter };
   return prisma.halaqaRoom.findMany({
     where,
     include: {
@@ -54,7 +86,7 @@ export const listRooms = async (status?: string) => {
   });
 };
 
-export const getRoom = async (roomId: string) => {
+export const getRoom = async (roomId: string, callerId: string, callerRole: string) => {
   const room = await prisma.halaqaRoom.findUnique({
     where: { id: roomId },
     include: {
@@ -65,7 +97,10 @@ export const getRoom = async (roomId: string) => {
       },
     },
   });
-  if (!room) throw new AppError(404, 'Room not found');
+  // 404, not 403, for outsiders: don't confirm that a room ID exists.
+  if (!room || !(await canAccessRoom(room.teacherId, callerId, callerRole))) {
+    throw new AppError(404, 'Room not found');
+  }
   return room;
 };
 
@@ -126,9 +161,12 @@ async function recomputeGroupStreak(groupId: string, roomId: string): Promise<vo
   });
 }
 
-export const recordJoin = async (roomId: string, userId: string) => {
-  const room = await prisma.halaqaRoom.findUnique({ where: { id: roomId }, select: { status: true } });
+export const recordJoin = async (roomId: string, userId: string, userRole: string) => {
+  const room = await prisma.halaqaRoom.findUnique({ where: { id: roomId }, select: { status: true, teacherId: true } });
   if (!room) throw new AppError(404, 'Room not found');
+  if (!(await canAccessRoom(room.teacherId, userId, userRole))) {
+    throw new AppError(403, 'You are not a member of this halaqa');
+  }
   if (room.status === 'ENDED') throw new AppError(410, 'Room has ended');
 
   return prisma.halaqaParticipant.upsert({

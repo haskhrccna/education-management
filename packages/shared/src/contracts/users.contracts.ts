@@ -60,7 +60,9 @@ export const usersContracts = {
     access: 'authenticated',
     request: { body: ChangePasswordSchema },
     responses: {
-      200: z.object({ message: z.string() }),
+      // token/refreshToken: a fresh session for this device. Every other
+      // device is signed out. Optional so older clients keep parsing.
+      200: z.object({ message: z.string(), token: z.string().optional(), refreshToken: z.string().optional() }),
       400: ErrorEnvelope,
       401: ErrorEnvelope,
       404: ErrorEnvelope,

@@ -28,8 +28,9 @@ const updateProfile = defineRoute(usersContracts.updateProfile, async ({ body, u
 });
 
 const changePassword = defineRoute(usersContracts.changePassword, async ({ body, userId }) => {
-  await usersService.changeUserPassword(userId!, body.currentPassword, body.newPassword);
-  return { status: 200 as const, body: { message: 'Password changed successfully' } };
+  // Other devices are signed out; this one continues with the fresh pair.
+  const session = await usersService.changeUserPassword(userId!, body.currentPassword, body.newPassword);
+  return { status: 200 as const, body: { message: 'Password changed successfully', ...session } };
 });
 
 const saveDeviceToken = defineRoute(usersContracts.saveDeviceToken, async ({ body, userId }) => {
