@@ -19,7 +19,6 @@ const loadConfig = (env: Record<string, string | undefined>) => {
   const previous = process.env;
   process.env = { ...BASE_ENV, ...env } as NodeJS.ProcessEnv;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     return require('../config').config;
   } finally {
     process.env = previous;

@@ -48,7 +48,6 @@ export function defineRoute<C extends AnyRouteContract>(
 // Array<ContractRoute<any>> (not ContractRoute[]): handler is contravariant in C,
 // so ContractRoute<SpecificContract> is not assignable to ContractRoute<AnyRouteContract>
 // under strictFunctionTypes.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function buildContractRouter(routes: Array<ContractRoute<any>>, opts: { mountPrefix: string }): Router {
   const router = Router();
   for (const { contract, handler, pre } of routes) {
