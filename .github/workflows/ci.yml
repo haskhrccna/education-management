@@ -125,6 +125,32 @@ jobs:
             // 8.x, breaking major). Real fix is the major upgrades —
             // tracked as separate work, not silently exempted:
             'expo', 'metro', 'prisma',
+            // 2026-10-07: advisories published after the 2026-09-30 run. Each
+            // chain was re-checked with `npm ls <pkg>`; all of these reach the
+            // tree through the Expo/React Native build toolchain, the jest
+            // test toolchain, or the dev server — none is loaded by the API at
+            // runtime, and none ships in the app bundle:
+            //   react-native, react-native-reanimated  -> high only VIA their
+            //     dev-time deps (@react-native/community-cli-plugin, babel-jest)
+            //   @jest/environment, @jest/fake-timers, @jest/transform,
+            //   jest-environment-node, jest-haste-map, jest-message-util,
+            //   babel-jest, metro-file-map, micromatch, braces  -> test/build
+            //   chokidar, ts-node-dev                  -> `npm run dev` only
+            //   shell-quote (CRITICAL)                 -> react-native ->
+            //     react-devtools-core; devtools, never shipped
+            //   node-forge, @expo/code-signing-certificates,
+            //   @config-plugins/react-native-webrtc, source-map-js -> expo CLI
+            // The two advisories that WERE runtime — nodemailer (cross-tenant
+            // SMTP credential disclosure) and firebase-admin (node-forge
+            // signature verification) — were upgraded rather than exempted.
+            // Re-review on the next Expo SDK or jest major.
+            'react-native', 'react-native-reanimated', '@react-native/community-cli-plugin',
+            '@jest/environment', '@jest/fake-timers', '@jest/transform',
+            'jest-environment-node', 'jest-haste-map', 'jest-message-util',
+            'babel-jest', 'metro-file-map', 'micromatch', 'braces',
+            'chokidar', 'ts-node-dev', 'shell-quote', 'node-forge',
+            '@expo/code-signing-certificates', '@config-plugins/react-native-webrtc',
+            'source-map-js',
           ]);
           const bad = Object.values(audit.vulnerabilities || {}).filter(
             (v) => (v.severity === 'high' || v.severity === 'critical') && !TOOLCHAIN_EXCEPTIONS.has(v.name)

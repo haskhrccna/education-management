@@ -33,28 +33,39 @@ export const initFCM = async (): Promise<void> => {
   }
 
   try {
-    // Dynamic import so the server still boots if firebase-admin isn't installed.
+    // Dynamic imports so the server still boots if firebase-admin isn't installed.
+    //
+    // These are the modular entry points ('firebase-admin/app',
+    // 'firebase-admin/messaging'). The old code used the root namespace —
+    // admin.credential.cert() and admin.messaging() — which firebase-admin 14
+    // no longer exposes on the CJS root export: both read as undefined, the
+    // TypeError lands in the catch below, and push turns itself off with only
+    // a log line. The modular form works on 12, 13 and 14.
     // @ts-ignore — firebase-admin is an optional dependency; install it to enable real FCM.
-    const adminModule: any = await import('firebase-admin').catch(() => null);
-    if (!adminModule) {
+    const appModule: any = await import('firebase-admin/app').catch(() => null);
+    // @ts-ignore — optional dependency, see above.
+    const messagingModule: any = await import('firebase-admin/messaging').catch(() => null);
+    if (!appModule || !messagingModule) {
       logger.warn(
         'firebase-admin package not installed — push notifications disabled. Run: npm install firebase-admin'
       );
       return;
     }
-    const admin = adminModule.default ?? adminModule;
+    const { initializeApp, getApps, cert } = appModule;
+    const { getMessaging } = messagingModule;
 
-    if (!admin.apps?.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId: config.firebaseProjectId,
-          clientEmail: config.firebaseClientEmail,
-          // Private keys in env vars commonly arrive with literal "\n" — normalize.
-          privateKey: config.firebasePrivateKey.replace(/\\n/g, '\n'),
-        }),
-      });
-    }
-    messaging = admin.messaging();
+    const app =
+      getApps().length > 0
+        ? getApps()[0]
+        : initializeApp({
+            credential: cert({
+              projectId: config.firebaseProjectId,
+              clientEmail: config.firebaseClientEmail,
+              // Private keys in env vars commonly arrive with literal "\n" — normalize.
+              privateKey: config.firebasePrivateKey.replace(/\\n/g, '\n'),
+            }),
+          });
+    messaging = getMessaging(app);
     logger.info('FCM initialized');
   } catch (err) {
     logger.error({ err }, 'FCM init failed — push notifications disabled');
