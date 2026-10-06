@@ -1,5 +1,6 @@
 import { prisma } from '../prisma/client';
 import { logger } from '../lib/logger';
+import { AppError } from '../middleware/error.middleware';
 
 function escapeHtml(text: string | undefined | null): string {
   const safe = text ?? '';
@@ -115,7 +116,7 @@ export const markRead = async (id: string, userId: string): Promise<Notification
   // findUnique first so we can 404 if it doesn't exist OR doesn't belong to the user
   const existing = await prisma.notification.findUnique({ where: { id } });
   if (!existing || existing.userId !== userId) {
-    throw new Error('Notification not found');
+    throw new AppError(404, 'Notification not found');
   }
   return prisma.notification.update({
     where: { id },

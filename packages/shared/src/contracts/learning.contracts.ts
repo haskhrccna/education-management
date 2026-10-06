@@ -3,6 +3,18 @@ import { defineContract, ErrorEnvelope, DateOut } from './types';
 import { UserRole } from '../enums/roles';
 import { CreateGradeSchema } from '../validators/common';
 
+/** Body of POST /revisions. `scheduledFor` arrives as an ISO string. */
+const CreateRevisionSchema = z.object({
+  studentId: z.string().min(1),
+  surahId: z.number().int().positive(),
+  scheduledFor: z.string().min(1),
+});
+
+/** Body of PUT /revisions/:id — closing a card, or re-opening it. */
+const MarkRevisionSchema = z.object({
+  status: z.enum(['PENDING', 'COMPLETED', 'MISSED']),
+});
+
 const SurahRow = z.looseObject({
   id: z.number(),
   number: z.number(),
@@ -105,15 +117,18 @@ export const learningContracts = {
   createRevision: defineContract({
     method: 'POST',
     path: '/api/v1/revisions',
-    summary: 'Teacher schedules a revision (NO Zod body — plain-Error 500 quirk pinned)',
+    summary: 'Teacher schedules a revision for a linked student',
     access: [UserRole.TEACHER],
+    // Validated like every other mutation. The handler used to check these by
+    // hand and `throw new Error`, which the error handler turns into a 500 —
+    // so a client sending a bad body was told the server had failed.
+    request: { body: CreateRevisionSchema },
     responses: {
       201: RevisionRow,
       400: ErrorEnvelope,
       401: ErrorEnvelope,
       403: ErrorEnvelope,
       404: ErrorEnvelope,
-      500: ErrorEnvelope,
     },
   }),
   markRevision: defineContract({
@@ -122,14 +137,13 @@ export const learningContracts = {
     summary:
       'Close a card (COMPLETED/MISSED); SM-2 schedules the next PENDING card. ADMIN is 403 (legacy authorize quirk)',
     access: [UserRole.STUDENT, UserRole.TEACHER],
-    request: { params: z.object({ id: z.string() }) },
+    request: { params: z.object({ id: z.string() }), body: MarkRevisionSchema },
     responses: {
       200: RevisionRow,
       400: ErrorEnvelope,
       401: ErrorEnvelope,
       403: ErrorEnvelope,
       404: ErrorEnvelope,
-      500: ErrorEnvelope,
     },
   }),
   deleteRevision: defineContract({

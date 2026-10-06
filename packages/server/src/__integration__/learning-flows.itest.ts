@@ -200,14 +200,27 @@ describe('revisions', () => {
     expect(res.body).toEqual({ success: false, error: 'Invalid surahId' });
   });
 
-  it("POST with missing studentId → 500 'Internal server error' (plain Error, pinned quirk)", async () => {
+  // Was pinned at 500 while the handler validated by hand and threw a plain
+  // Error: a client sending a bad body was told the server had failed. The
+  // contract now carries a Zod body, so this is an ordinary 400 like every
+  // other mutation in the API.
+  it('POST with missing studentId → 400 from the contract body schema', async () => {
     const teacher = await createUser({ role: Role.TEACHER });
     const res = await request(app)
       .post('/api/v1/revisions')
       .set('Authorization', `Bearer ${teacher.token}`)
       .send({ surahId: 1, scheduledFor: '2027-01-15' });
-    expect(res.status).toBe(500);
-    expect(res.body.error).toBe('Internal server error');
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('PUT with no status → 400 from the contract body schema', async () => {
+    const student = await createUser({ role: Role.STUDENT });
+    const res = await request(app)
+      .put(`/api/v1/revisions/00000000-0000-0000-0000-000000000000`)
+      .set('Authorization', `Bearer ${student.token}`)
+      .send({});
+    expect(res.status).toBe(400);
   });
 
   it('POST 201 raw revision with surah include; teacher without link → 403', async () => {

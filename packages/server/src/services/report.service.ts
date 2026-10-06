@@ -62,7 +62,7 @@ export const generatePDFReport = async (teacherId: string, studentId: string, su
     ]);
   });
 
-  if (!student) throw new Error('Student not found');
+  if (!student) throw new AppError(404, 'Student not found');
 
   const fileName = `report-${studentId}-${Date.now()}.pdf`;
   const docPath = path.join(REPORTS_DIR, fileName);
@@ -192,7 +192,7 @@ export const generateCertificatePDF = async (studentId: string): Promise<string>
     where: { id: studentId },
     select: { firstName: true, lastName: true, email: true },
   });
-  if (!student) throw new Error('Student not found');
+  if (!student) throw new AppError(404, 'Student not found');
 
   const fileName = `certificate-${studentId}-${Date.now()}.pdf`;
   const docPath = path.join(CERTS_DIR, fileName);
