@@ -77,3 +77,29 @@ export const exportMyData = async (userId: string) => {
 
 /** Reuses the existing admin anonymization exactly — self-triggered on the caller's own account. */
 export const deleteMyAccount = async (userId: string) => deleteUser(userId);
+
+/**
+ * Stamp the onboarding wizard as finished, once.
+ *
+ * Idempotent and race-free: `updateMany` with `onboardingCompletedAt: null` in
+ * the WHERE clause means the database decides the winner, so two calls
+ * arriving together (double tap, retry, two tabs) cannot both stamp. The
+ * handler used to read then write, which could stamp twice and move the date.
+ * Returns the stamp that stands, whoever set it.
+ */
+export const completeOnboarding = async (userId: string): Promise<Date> => {
+  const stampedAt = new Date();
+  const { count } = await prisma.user.updateMany({
+    where: { id: userId, onboardingCompletedAt: null },
+    data: { onboardingCompletedAt: stampedAt },
+  });
+  if (count > 0) return stampedAt;
+
+  const existing = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { onboardingCompletedAt: true },
+  });
+  if (!existing) throw new AppError(404, 'User not found');
+  // Non-null: count === 0 means the row already carried a stamp.
+  return existing.onboardingCompletedAt!;
+};
