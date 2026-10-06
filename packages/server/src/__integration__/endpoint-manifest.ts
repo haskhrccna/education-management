@@ -102,15 +102,15 @@ const v1: EndpointSpec[] = [
   { method: 'GET', path: '/api/v1/weak-ayahs', access: 'authenticated' },
   // curriculum-plans (new capability — structured memorization plans with pace)
   { method: 'POST', path: '/api/v1/curriculum-plans', access: ['TEACHER'] },
-  { method: 'GET', path: '/api/v1/curriculum-plans', access: 'authenticated' },
-  { method: 'GET', path: '/api/v1/curriculum-plans/:id', access: 'authenticated' },
+  { method: 'GET', path: '/api/v1/curriculum-plans', access: ['STUDENT', 'TEACHER', 'ADMIN'] },
+  { method: 'GET', path: '/api/v1/curriculum-plans/:id', access: ['STUDENT', 'TEACHER', 'ADMIN'] },
   // milestones (new capability — admin-managed milestone catalog)
   { method: 'POST', path: '/api/v1/milestones', access: ['ADMIN'] },
   { method: 'GET', path: '/api/v1/milestones', access: ['ADMIN'] },
   // ijazahs (new capability — sanad/chain-of-transmission tracking)
   { method: 'POST', path: '/api/v1/ijazahs', access: ['TEACHER'] },
-  { method: 'GET', path: '/api/v1/ijazahs', access: 'authenticated' },
-  { method: 'GET', path: '/api/v1/ijazahs/:id', access: 'authenticated' },
+  { method: 'GET', path: '/api/v1/ijazahs', access: ['STUDENT', 'TEACHER', 'ADMIN'] },
+  { method: 'GET', path: '/api/v1/ijazahs/:id', access: ['STUDENT', 'TEACHER', 'ADMIN'] },
   { method: 'PATCH', path: '/api/v1/ijazahs/:id/regenerate-link', access: ['STUDENT'] },
   // certificates regenerate-link (new capability — shareable verified certificates)
   { method: 'PATCH', path: '/api/v1/certificates/:id/regenerate-link', access: ['STUDENT'] },

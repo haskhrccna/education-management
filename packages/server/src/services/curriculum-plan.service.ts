@@ -4,11 +4,18 @@ import { AppError } from '../middleware/error.middleware';
 export type PlanPace = 'ON_PACE' | 'BEHIND' | 'AHEAD';
 
 async function assertTeacherCanAccessStudent(teacherId: string, studentId: string) {
-  const appointment = await prisma.appointment.findFirst({
-    where: { teacherId, studentId, status: 'ACCEPTED' },
-    select: { id: true },
-  });
-  if (!appointment) throw new AppError(403, 'No accepted appointment with this student');
+  // Matches the other six copies of this guard: an ACCEPTED appointment is not
+  // enough on its own, because a soft-deleted student keeps their appointments.
+  // Deleted teachers are already rejected at auth.middleware.ts, but nothing
+  // stopped a teacher writing against a deleted student through this path.
+  const [appointment, teacher, student] = await Promise.all([
+    prisma.appointment.findFirst({ where: { teacherId, studentId, status: 'ACCEPTED' }, select: { id: true } }),
+    prisma.user.findUnique({ where: { id: teacherId }, select: { deletedAt: true } }),
+    prisma.user.findUnique({ where: { id: studentId }, select: { deletedAt: true } }),
+  ]);
+  if (!appointment || teacher?.deletedAt || student?.deletedAt) {
+    throw new AppError(403, 'No accepted appointment with this student');
+  }
 }
 
 export interface CreatePlanItemInput {
@@ -66,19 +73,36 @@ async function attachPace<T extends { studentId: string; items: { surahId: numbe
   return { ...plan, pace };
 }
 
-export const getPlan = async (planId: string, callerId: string, callerRole: 'STUDENT' | 'TEACHER' | 'ADMIN') => {
+/**
+ * Deny by default. The role is whatever the authenticated caller actually has,
+ * not the three this function used to assume: a PARENT (or any role added
+ * later) previously matched neither `if` and received the plan, whoever it
+ * belonged to. Parents read their children through the parent dashboard.
+ */
+export const getPlan = async (planId: string, callerId: string, callerRole: string) => {
   const plan = await prisma.curriculumPlan.findUnique({
     where: { id: planId },
     include: { items: { include: { surah: true }, orderBy: { order: 'asc' } } },
   });
   if (!plan) throw new AppError(404, 'Plan not found');
-  if (callerRole === 'STUDENT' && plan.studentId !== callerId) throw new AppError(404, 'Plan not found');
-  if (callerRole === 'TEACHER' && plan.teacherId !== callerId) throw new AppError(404, 'Plan not found');
+  if (callerRole === 'STUDENT') {
+    if (plan.studentId !== callerId) throw new AppError(404, 'Plan not found');
+  } else if (callerRole === 'TEACHER') {
+    if (plan.teacherId !== callerId) throw new AppError(404, 'Plan not found');
+  } else if (callerRole !== 'ADMIN') {
+    throw new AppError(403, 'Not allowed to view curriculum plans');
+  }
 
   return attachPace(plan);
 };
 
-export const listPlans = async (userId: string, userRole: 'STUDENT' | 'TEACHER' | 'ADMIN') => {
+export const listPlans = async (userId: string, userRole: string) => {
+  // Explicit per role rather than "everyone else is a teacher": the old
+  // fallback happened to return nothing for a PARENT, which is the right
+  // outcome reached by accident. Deny instead, like getPlan above.
+  if (userRole !== 'ADMIN' && userRole !== 'STUDENT' && userRole !== 'TEACHER') {
+    throw new AppError(403, 'Not allowed to list curriculum plans');
+  }
   const where = userRole === 'ADMIN' ? {} : userRole === 'STUDENT' ? { studentId: userId } : { teacherId: userId };
 
   const plans = await prisma.curriculumPlan.findMany({
