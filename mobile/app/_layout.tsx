@@ -12,12 +12,16 @@ import { useAuthStore } from '@/src/auth/store';
 import { SettingsProvider } from '@/src/components/SettingsContext';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { defaultShouldDehydrateQuery } from '@tanstack/react-query';
-import { queryClient, queryPersister } from '@/src/lib/queryClient';
+import { queryClient, queryPersister, purgeLegacyWebCache } from '@/src/lib/queryClient';
 import { setupOnlineManager } from '@/src/lib/onlineManager';
 import { OfflineBanner } from '@/src/components/OfflineBanner';
 import { usePushNotifications } from '@/src/hooks/usePushNotifications';
 
 setupOnlineManager();
+
+// One-time cleanup: earlier web builds persisted the query cache to
+// localStorage, where it outlived the tab. Remove that copy on first load.
+purgeLegacyWebCache();
 
 /**
  * Deployment base path for the web build ('/' on a root domain,

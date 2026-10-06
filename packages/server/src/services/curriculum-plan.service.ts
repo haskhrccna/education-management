@@ -74,6 +74,53 @@ async function attachPace<T extends { studentId: string; items: { surahId: numbe
 }
 
 /**
+ * Pace for a whole list in ONE query instead of one per plan.
+ *
+ * listPlans used to be `Promise.all(plans.map(attachPace))`, and attachPace
+ * queries memorizationProgress — so an admin listing every plan in the academy
+ * issued one query per plan. Here the (student, surah) pairs of every plan are
+ * fetched together and matched in memory.
+ */
+async function attachPaceToMany<T extends { studentId: string; items: { surahId: number; targetDate: Date }[] }>(
+  plans: T[]
+): Promise<(T & { pace: PlanPace })[]> {
+  if (plans.length === 0) return [];
+
+  const completed = await prisma.memorizationProgress.findMany({
+    where: {
+      status: 'COMPLETE',
+      userId: { in: [...new Set(plans.map((p) => p.studentId))] },
+      surahId: { in: [...new Set(plans.flatMap((p) => p.items.map((i) => i.surahId)))] },
+    },
+    select: { userId: true, surahId: true },
+  });
+
+  // One row per (student, surah) the student has finished.
+  const completedByStudent = new Map<string, Set<number>>();
+  for (const row of completed) {
+    const set = completedByStudent.get(row.userId) ?? new Set<number>();
+    set.add(row.surahId);
+    completedByStudent.set(row.userId, set);
+  }
+
+  const now = new Date();
+  return plans.map((plan) => {
+    const done = completedByStudent.get(plan.studentId) ?? new Set<number>();
+    const completedCount = plan.items.filter((i) => done.has(i.surahId)).length;
+    const expectedByNowCount = plan.items.filter((i) => i.targetDate <= now).length;
+    const pace: PlanPace =
+      plan.items.length === 0
+        ? 'ON_PACE'
+        : completedCount < expectedByNowCount
+          ? 'BEHIND'
+          : completedCount > expectedByNowCount
+            ? 'AHEAD'
+            : 'ON_PACE';
+    return { ...plan, pace };
+  });
+}
+
+/**
  * Deny by default. The role is whatever the authenticated caller actually has,
  * not the three this function used to assume: a PARENT (or any role added
  * later) previously matched neither `if` and received the plan, whoever it
@@ -111,7 +158,7 @@ export const listPlans = async (userId: string, userRole: string) => {
     orderBy: { createdAt: 'desc' },
   });
 
-  return Promise.all(plans.map(attachPace));
+  return attachPaceToMany(plans);
 };
 
 /**
