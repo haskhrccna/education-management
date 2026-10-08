@@ -7,6 +7,7 @@
   ],
   "scripts": {
     "start": "npm start --workspace=mobile",
+    "postinstall": "node scripts/patch-expo-constants-podspec.js",
     "prepare": "husky || true",
     "test:server": "npm run test --workspace=@quran-review/server",
     "build:web": "npm run build:web --workspace=mobile",
