@@ -53,3 +53,12 @@ lib/l10n/app_localizations*.dart
 .claude-flow/data/
 .claude-flow/logs/
 .claude-flow/sessions/
+
+# Expo's generated cache — never committed. A root .expo (or a root app.json)
+# makes the repo root look like an Expo project, so `npx expo start` run here
+# starts a project with no entry point instead of the app in mobile/.
+.expo/
+mobile/.expo/
+
+# Render Postgres connection string, written by hand during deploy setup
+quran-render-db.url
