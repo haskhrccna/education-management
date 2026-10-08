@@ -12,11 +12,18 @@ const INCLUDE = {
 } as const;
 
 async function assertTeacherCanAccessStudent(teacherId: string, studentId: string) {
-  const appointment = await prisma.appointment.findFirst({
-    where: { teacherId, studentId, status: 'ACCEPTED' },
-    select: { id: true },
-  });
-  if (!appointment) throw new AppError(403, 'No accepted appointment with this student');
+  // Matches the other six copies of this guard: an ACCEPTED appointment is not
+  // enough on its own, because a soft-deleted student keeps their appointments.
+  // Deleted teachers are already rejected at auth.middleware.ts, but nothing
+  // stopped a teacher writing against a deleted student through this path.
+  const [appointment, teacher, student] = await Promise.all([
+    prisma.appointment.findFirst({ where: { teacherId, studentId, status: 'ACCEPTED' }, select: { id: true } }),
+    prisma.user.findUnique({ where: { id: teacherId }, select: { deletedAt: true } }),
+    prisma.user.findUnique({ where: { id: studentId }, select: { deletedAt: true } }),
+  ]);
+  if (!appointment || teacher?.deletedAt || student?.deletedAt) {
+    throw new AppError(403, 'No accepted appointment with this student');
+  }
 }
 
 /** Verifies the student has actually completed what this record claims to endorse. */
@@ -101,15 +108,30 @@ export const issueIjazah = async (
   return record;
 };
 
-export const listIjazahs = async (userId: string, userRole: 'STUDENT' | 'TEACHER' | 'ADMIN') => {
+export const listIjazahs = async (userId: string, userRole: string) => {
+  // See getIjazah: explicit per role, deny anything else.
+  if (userRole !== 'ADMIN' && userRole !== 'STUDENT' && userRole !== 'TEACHER') {
+    throw new AppError(403, 'Not allowed to list ijazahs');
+  }
   const where = userRole === 'ADMIN' ? {} : userRole === 'STUDENT' ? { studentId: userId } : { teacherId: userId };
   return prisma.ijazah.findMany({ where, include: INCLUDE, orderBy: { issuedAt: 'desc' } });
 };
 
-export const getIjazah = async (id: string, callerId: string, callerRole: 'STUDENT' | 'TEACHER' | 'ADMIN') => {
+/**
+ * Deny by default. A PARENT used to match neither `if` and receive any
+ * ijazah by id — the record carries the student's name and the issuing
+ * teacher's attestation. Parents see their own children's credentials
+ * through the parent dashboard.
+ */
+export const getIjazah = async (id: string, callerId: string, callerRole: string) => {
   const record = await prisma.ijazah.findUnique({ where: { id }, include: INCLUDE });
   if (!record) throw new AppError(404, 'Ijazah not found');
-  if (callerRole === 'STUDENT' && record.studentId !== callerId) throw new AppError(404, 'Ijazah not found');
-  if (callerRole === 'TEACHER' && record.teacherId !== callerId) throw new AppError(404, 'Ijazah not found');
+  if (callerRole === 'STUDENT') {
+    if (record.studentId !== callerId) throw new AppError(404, 'Ijazah not found');
+  } else if (callerRole === 'TEACHER') {
+    if (record.teacherId !== callerId) throw new AppError(404, 'Ijazah not found');
+  } else if (callerRole !== 'ADMIN') {
+    throw new AppError(403, 'Not allowed to view ijazahs');
+  }
   return record;
 };

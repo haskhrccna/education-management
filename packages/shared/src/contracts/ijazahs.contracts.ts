@@ -48,7 +48,10 @@ export const ijazahsContracts = {
     method: 'GET',
     path: '/api/v1/ijazahs',
     summary: "Own ijazahs (student); a teacher's own issued (teacher); all (admin, for program-wide audit)",
-    access: 'authenticated',
+    // Not 'authenticated': a PARENT used to reach the handler and read any
+    // ijazah by id. Parents see their children's credentials on the parent
+    // dashboard.
+    access: [UserRole.STUDENT, UserRole.TEACHER, UserRole.ADMIN],
     responses: {
       200: z.object({ success: z.literal(true), data: z.array(Ijazah) }),
       401: ErrorEnvelope,
@@ -58,7 +61,7 @@ export const ijazahsContracts = {
     method: 'GET',
     path: '/api/v1/ijazahs/:id',
     summary: 'One ijazah record with its sanad chain',
-    access: 'authenticated',
+    access: [UserRole.STUDENT, UserRole.TEACHER, UserRole.ADMIN],
     request: { params: z.object({ id: z.string() }) },
     responses: {
       200: z.object({ success: z.literal(true), data: Ijazah }),

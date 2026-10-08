@@ -44,7 +44,10 @@ export const curriculumPlansContracts = {
     method: 'GET',
     path: '/api/v1/curriculum-plans',
     summary: "Own plans (student); a teacher's own students' plans (teacher); all (admin) — each with a pace verdict",
-    access: 'authenticated',
+    // Not 'authenticated': a PARENT has no plan view here and used to reach
+    // the handler, where the role fell through every branch. Parents read
+    // their children through the parent dashboard.
+    access: [UserRole.STUDENT, UserRole.TEACHER, UserRole.ADMIN],
     responses: {
       200: z.object({ success: z.literal(true), data: z.array(Plan) }),
       401: ErrorEnvelope,
@@ -54,7 +57,7 @@ export const curriculumPlansContracts = {
     method: 'GET',
     path: '/api/v1/curriculum-plans/:id',
     summary: 'One plan with its items and pace verdict',
-    access: 'authenticated',
+    access: [UserRole.STUDENT, UserRole.TEACHER, UserRole.ADMIN],
     request: { params: z.object({ id: z.string() }) },
     responses: {
       200: z.object({ success: z.literal(true), data: Plan }),

@@ -1,6 +1,5 @@
 import { communicationContracts } from '@quran-review/shared';
 import { listNotifications, markRead, markAllRead, unreadCount } from '../../services/notification.service';
-import { AppError } from '../../middleware/error.middleware';
 import { paginate, PaginatedRequest, paginatedResponse } from '../../middleware/pagination.middleware';
 import { defineRoute, buildContractRouter } from '../../lib/contract-router';
 
@@ -16,16 +15,10 @@ const list = defineRoute(
 );
 
 const markOne = defineRoute(communicationContracts.markNotificationRead, async ({ params, userId }) => {
-  try {
-    const updated = await markRead(String(params.id), userId!);
-    return { status: 200 as const, body: { success: true as const, data: updated } };
-  } catch (e: unknown) {
-    // Service throws plain Error('Notification not found') when id missing or not owned (pinned mapping)
-    if (e instanceof Error && e.message === 'Notification not found') {
-      throw new AppError(404, 'Notification not found');
-    }
-    throw e;
-  }
+  // The service throws AppError(404) itself now; this handler used to catch a
+  // plain Error and re-raise it by matching the message string.
+  const updated = await markRead(String(params.id), userId!);
+  return { status: 200 as const, body: { success: true as const, data: updated } };
 });
 
 const markAll = defineRoute(communicationContracts.markAllNotificationsRead, async ({ userId }) => {

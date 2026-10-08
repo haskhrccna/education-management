@@ -15,28 +15,24 @@ const listRevisions = defineRoute(learningContracts.listRevisions, async ({ quer
   return { status: 200 as const, body: revisions };
 });
 
-const createRevision = defineRoute(learningContracts.createRevision, async ({ userId, req }) => {
-  const { studentId, surahId, scheduledFor } = (req.body ?? {}) as {
-    studentId?: string;
-    surahId?: unknown;
-    scheduledFor?: string;
-  };
-  // Legacy parity: plain Error throws → 500 via errorHandler (pinned quirk).
-  if (!studentId) throw new Error('studentId is required');
-  if (!surahId || typeof surahId !== 'number') throw new Error('surahId is required');
-  if (!scheduledFor) throw new Error('scheduledFor is required');
-  const revision = await revisionService.createRevision(userId!, studentId, surahId, new Date(scheduledFor));
+const createRevision = defineRoute(learningContracts.createRevision, async ({ body, userId }) => {
+  // Shape is guaranteed by the contract's Zod body (validate middleware), so a
+  // malformed request is a 400 from one place instead of a hand-rolled 500.
+  const revision = await revisionService.createRevision(
+    userId!,
+    body.studentId,
+    body.surahId,
+    new Date(body.scheduledFor)
+  );
   return { status: 201 as const, body: revision };
 });
 
-const markRevision = defineRoute(learningContracts.markRevision, async ({ params, userId, userRole, req }) => {
-  const status = (req.body ?? {}).status as RevisionStatus;
-  if (!status) throw new Error('status is required');
+const markRevision = defineRoute(learningContracts.markRevision, async ({ body, params, userId, userRole }) => {
   const revision = await revisionService.updateRevision(
     String(params.id),
     userId!,
     userRole as 'STUDENT' | 'TEACHER' | 'ADMIN',
-    status
+    body.status as RevisionStatus
   );
   return { status: 200 as const, body: revision };
 });

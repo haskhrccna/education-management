@@ -12,12 +12,12 @@ const create = defineRoute(curriculumPlansContracts.create, async ({ body, userI
 });
 
 const list = defineRoute(curriculumPlansContracts.list, async ({ userId, userRole }) => {
-  const data = await planService.listPlans(userId!, userRole as 'STUDENT' | 'TEACHER' | 'ADMIN');
+  const data = await planService.listPlans(userId!, String(userRole));
   return { status: 200 as const, body: { success: true as const, data } };
 });
 
 const get = defineRoute(curriculumPlansContracts.get, async ({ params, userId, userRole }) => {
-  const data = await planService.getPlan(String(params.id), userId!, userRole as 'STUDENT' | 'TEACHER' | 'ADMIN');
+  const data = await planService.getPlan(String(params.id), userId!, String(userRole));
   return { status: 200 as const, body: { success: true as const, data } };
 });
 

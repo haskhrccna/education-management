@@ -2,11 +2,18 @@ import { prisma } from '../prisma/client';
 import { AppError } from '../middleware/error.middleware';
 
 async function assertTeacherCanAccessStudent(teacherId: string, studentId: string) {
-  const appointment = await prisma.appointment.findFirst({
-    where: { teacherId, studentId, status: 'ACCEPTED' },
-    select: { id: true },
-  });
-  if (!appointment) throw new AppError(403, 'No accepted appointment with this student');
+  // Matches the other six copies of this guard: an ACCEPTED appointment is not
+  // enough on its own, because a soft-deleted student keeps their appointments.
+  // Deleted teachers are already rejected at auth.middleware.ts, but nothing
+  // stopped a teacher writing against a deleted student through this path.
+  const [appointment, teacher, student] = await Promise.all([
+    prisma.appointment.findFirst({ where: { teacherId, studentId, status: 'ACCEPTED' }, select: { id: true } }),
+    prisma.user.findUnique({ where: { id: teacherId }, select: { deletedAt: true } }),
+    prisma.user.findUnique({ where: { id: studentId }, select: { deletedAt: true } }),
+  ]);
+  if (!appointment || teacher?.deletedAt || student?.deletedAt) {
+    throw new AppError(403, 'No accepted appointment with this student');
+  }
 }
 
 /**

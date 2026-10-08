@@ -33,8 +33,11 @@ import { useTheme, type ThemeColors } from '@/src/hooks/useTheme';
 import { isTodayDate } from '@/src/utils/date';
 
 type ProgressSummary = {
-  label: string;
-  percent: number | null;
+  /** The progress request failed — the row says so instead of showing zeros. */
+  failed?: boolean;
+  /** Absent when `failed`: there is no summary to show. */
+  label?: string;
+  percent?: number | null;
   /** H1/F6: page-based hifz progress + today's revision load (AC6.2). */
   pagesMemorized?: number;
   dueToday?: number;
@@ -149,20 +152,24 @@ export default function TeacherHomeScreen() {
     }
 
     let mounted = true;
+    // A failed request leaves the number UNDEFINED, never 0. These calls used
+    // to swallow their errors into [] and null, so an API failure rendered as
+    // "0 pages · 0 due today" — indistinguishable from a student who genuinely
+    // has nothing due, and invisible to the teacher deciding whom to chase.
     Promise.all(
       studentIds.map(async (id) => {
         const [entries, pages, queue] = await Promise.all([
-          memorizationApi.getStudentProgress(id),
+          memorizationApi.getStudentProgress(id).catch(() => null),
           // H1 numbers (AC6.2) — guard-denial tolerant.
-          mushafPagesApi.getMyPages(id).catch(() => []),
+          mushafPagesApi.getMyPages(id).catch(() => null),
           revisionQueueApi.getQueue(id).catch(() => null),
         ]);
         return {
           id,
           progress: {
-            ...summarizeProgress(entries, isAr),
-            pagesMemorized: derivePageProgress(pages).memorized,
-            dueToday: queue?.items.length ?? 0,
+            ...(entries ? summarizeProgress(entries, isAr) : { failed: true as const }),
+            pagesMemorized: pages ? derivePageProgress(pages).memorized : undefined,
+            dueToday: queue ? queue.items.length : undefined,
           },
         };
       })
@@ -589,11 +596,16 @@ export default function TeacherHomeScreen() {
                         {progress?.percent != null ? <Text style={styles.percentText}>{progress.percent}%</Text> : null}
                       </View>
                       <Text style={styles.rowMeta}>
-                        {progress?.label ?? (isAr ? 'جار تحميل التقدم' : 'Loading progress')}
+                        {progress?.failed
+                          ? t('progressUnavailable')
+                          : (progress?.label ?? (isAr ? 'جار تحميل التقدم' : 'Loading progress'))}
                       </Text>
-                      {progress?.pagesMemorized != null ? (
+                      {progress &&
+                      !progress.failed &&
+                      (progress.pagesMemorized != null || progress.dueToday != null) ? (
                         <Text style={styles.rowMeta}>
-                          {progress.pagesMemorized}/604 {t('pagesMemorized')} · {progress.dueToday ?? 0} {t('dueToday')}
+                          {progress.pagesMemorized ?? '—'}/604 {t('pagesMemorized')} · {progress.dueToday ?? '—'}{' '}
+                          {t('dueToday')}
                         </Text>
                       ) : null}
                       {progress?.percent != null ? (

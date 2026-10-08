@@ -26,12 +26,12 @@ const issue = defineRoute(ijazahsContracts.issue, async ({ body, userId, req }) 
 });
 
 const list = defineRoute(ijazahsContracts.list, async ({ userId, userRole }) => {
-  const data = await ijazahService.listIjazahs(userId!, userRole as 'STUDENT' | 'TEACHER' | 'ADMIN');
+  const data = await ijazahService.listIjazahs(userId!, String(userRole));
   return { status: 200 as const, body: { success: true as const, data } };
 });
 
 const get = defineRoute(ijazahsContracts.get, async ({ params, userId, userRole }) => {
-  const data = await ijazahService.getIjazah(String(params.id), userId!, userRole as 'STUDENT' | 'TEACHER' | 'ADMIN');
+  const data = await ijazahService.getIjazah(String(params.id), userId!, String(userRole));
   return { status: 200 as const, body: { success: true as const, data } };
 });
 

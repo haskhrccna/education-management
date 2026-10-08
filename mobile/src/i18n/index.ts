@@ -141,6 +141,7 @@ const arTranslations: Record<string, string> = {
   retry: 'إعادة المحاولة',
   back: 'رجوع',
   loginFailed: 'تعذّر تسجيل الدخول',
+  progressUnavailable: 'تعذّر تحميل التقدم',
   serverUnavailable: 'تعذّر الوصول إلى الخادم. لم يتم ربط هذا الموقع بخادم بعد — يرجى مراجعة مسؤول الأكاديمية.',
 
   // Gamification
@@ -679,6 +680,7 @@ const enTranslations: Record<string, string> = {
   retry: 'Retry',
   back: 'Back',
   loginFailed: 'Sign-in failed',
+  progressUnavailable: 'Progress could not be loaded',
   serverUnavailable:
     'Cannot reach the server. This site is not connected to a backend yet — please contact your academy administrator.',
 
