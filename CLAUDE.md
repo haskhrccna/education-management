@@ -31,9 +31,15 @@ npm run build                        # tsc
 npx prisma migrate dev               # run migrations (never db push — verify ledger with packages/server/scripts/verify-migrations.sh)
 npx prisma db seed                   # seed test users
 
-# Mobile (mobile/)
-npm start                            # Expo dev server
+# Mobile — run from mobile/, never from the repo root
+cd mobile && npx expo start -c        # Expo dev server (-c clears the Metro cache)
+npm start                            # from the repo root: forwards to the mobile workspace
 ```
+
+`expo` is hoisted into the root `node_modules`, so `npx expo start` run at the repo
+root resolves the CLI and serves a project with no entry point — a red screen reading
+`Unable to resolve module ../../App`. The root `app.config.js` exists only to throw on
+that mistake; don't give it real configuration.
 
 **Physical device testing:** set `EXPO_PUBLIC_API_URL=http://<LAN-IP>:4000/api/v1` — the default `localhost` only works on the iOS simulator.
 
