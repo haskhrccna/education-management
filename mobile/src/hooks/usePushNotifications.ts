@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { usersApi } from '../api/users';
@@ -9,6 +8,31 @@ import { usersApi } from '../api/users';
 // Push is phone-only: Expo push tokens don't exist on web, and simulators
 // can't receive pushes.
 const PUSH_SUPPORTED = Platform.OS === 'ios' || Platform.OS === 'android';
+
+/**
+ * Whether this is real hardware, asked in a way that cannot crash the app.
+ *
+ * `expo-device` binds its native module at import time, so a top-level
+ * `import * as Device from 'expo-device'` throws while this module is being
+ * evaluated — long before the useEffect below and before the .catch() that is
+ * meant to keep a failed registration from breaking anything — in any runtime
+ * that doesn't ship ExpoDevice. Expo Go is the one that bites: the app opens on
+ * a red screen reading "Cannot find native module 'ExpoDevice'", and nothing in
+ * it suggests the cause is push registration.
+ *
+ * So require it lazily and treat its absence the way src/storage/mmkvStorage.ts
+ * treats a missing MMKV: degrade rather than crash. Answering "not a device"
+ * costs nothing — a runtime without ExpoDevice is a simulator or Expo Go, and
+ * neither can receive a push anyway.
+ */
+function isPhysicalDevice(): boolean {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return (require('expo-device') as typeof import('expo-device')).isDevice === true;
+  } catch {
+    return false;
+  }
+}
 
 if (PUSH_SUPPORTED) {
   Notifications.setNotificationHandler({
@@ -27,7 +51,7 @@ function easProjectId(): string | undefined {
 }
 
 async function registerForPush(): Promise<string | null> {
-  if (!PUSH_SUPPORTED || !Device.isDevice) return null;
+  if (!PUSH_SUPPORTED || !isPhysicalDevice()) return null;
 
   if (Platform.OS === 'android') {
     // Android 13+ asks for permission only after a channel exists.
