@@ -1,0 +1,29 @@
+# LAN / verification variant: same sites, but certificates come from Caddy's
+# internal CA so the stack can be exercised on a machine that does not own the
+# public DNS name (e.g. a lab box). Use with:
+#     CADDY_FILE=Caddyfile.local DOMAIN=api.localhost docker compose -f deploy/docker-compose.prod.yml up -d
+# …then reach the API at https://api.localhost/ (add a hosts-file entry or
+# use curl --resolve). Production MUST use deploy/Caddyfile instead.
+{
+	# No ACME email in the local variant: nothing is issued publicly.
+}
+
+api.{$DOMAIN} {
+	tls internal
+	request_body {
+		max_size 110MB
+	}
+	reverse_proxy api:4000 {
+		header_up X-Real-IP {remote_host}
+	}
+	@metrics path /metrics
+	respond @metrics 404
+	log {
+		output stdout
+	}
+}
+
+# media.{$DOMAIN} {
+# 	tls internal
+# 	reverse_proxy minio:9000
+# }

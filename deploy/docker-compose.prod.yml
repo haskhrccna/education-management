@@ -1,0 +1,228 @@
+# Production stack for مراجعة القرآن (Quran Review).
+#
+# One command on a fresh Linux VM:
+#     cp deploy/.env.example deploy/.env   # then edit EVERY value
+#     docker compose -f deploy/docker-compose.prod.yml up -d
+#
+# Security posture (deliberate):
+#   - ONLY caddy publishes ports (80/443). Postgres, Redis, MinIO and the API
+#     sit on an internal network with no ports: mapping. (The dev compose in
+#     packages/server/ exposes 5432/6379/9000 to the LAN — that pattern must
+#     not reach production.)
+#   - The API image is PULLED from GHCR, never built on this VM
+#     (API_IMAGE_TAG; built by .github/workflows/docker.yml).
+#   - Redis requires a password and runs with AOF persistence.
+#   - Postgres and MinIO take non-default credentials from the environment;
+#     deploy/scripts/check-env.sh refuses the well-known defaults.
+#   - The API applies `prisma migrate deploy` on every boot (docker-entrypoint),
+#     so migrations are serialized by Prisma's advisory lock across replicas.
+#   - Workers: the API process runs BullMQ workers in-process when
+#     ENABLE_WORKERS=true (src/lib/queue.ts). No separate worker service —
+#     one container, one restart policy, one set of limits. Scale by running
+#     more API replicas if queues ever back up; set ENABLE_WORKERS=false on
+#     all but one to split serving from processing.
+#
+# Sizing: limits below assume a small VM (1–4 vCPU, ~6 GB RAM). The API is
+# Node/Express (512 MB is generous), Postgres gets the biggest share, MinIO
+# modest for a small academy's recordings volume. Raise, don't lower.
+
+name: quran-review-prod
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  caddy_data:
+  caddy_config:
+  mushaf_pages:
+  backup_scratch:
+
+services:
+  api:
+    image: ghcr.io/haskhrccna/education-management-api:${API_IMAGE_TAG:-latest}
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-1h}
+      - REFRESH_TOKEN_EXPIRES_IN=${REFRESH_TOKEN_EXPIRES_IN:-7d}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
+      - ENABLE_WORKERS=${ENABLE_WORKERS:-true}
+      # SMTP — required in production (password reset + approval emails).
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT:-587}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+      - EMAIL_FROM=${EMAIL_FROM}
+      # CORS + absolute public URLs.
+      - CLIENT_URL=${CLIENT_URL}
+      - PUBLIC_API_URL=${PUBLIC_API_URL}
+      # Object storage (S3-compatible; MinIO below). STORAGE_ENABLED=1 makes
+      # recordings/reports/certificates live in the bucket and survive
+      # redeploys. The API refuses minioadmin credentials in production.
+      - STORAGE_ENABLED=${STORAGE_ENABLED:-1}
+      - STORAGE_ENDPOINT=minio:9000
+      - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY}
+      - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY}
+      - STORAGE_BUCKET=${STORAGE_BUCKET:-quran-review-media}
+      - STORAGE_PUBLIC_BASE_URL=${STORAGE_PUBLIC_BASE_URL:-}
+      # Firebase/FCM + Expo push (optional until the store build).
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-}
+      - FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL:-}
+      - FIREBASE_PRIVATE_KEY=${FIREBASE_PRIVATE_KEY:-}
+      - EXPO_ACCESS_TOKEN=${EXPO_ACCESS_TOKEN:-}
+      # Mushaf pages: mount them into the named volume (see README) or boot
+      # consciously without the reader.
+      - MUSHAF_PAGES_DIR=/app/mushaf-pages
+      - ALLOW_MISSING_MUSHAF_PAGES=${ALLOW_MISSING_MUSHAF_PAGES:-}
+    volumes:
+      # Read-only: the server only ever reads page images.
+      - mushaf_pages:/app/mushaf-pages:ro
+    networks:
+      - internal
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    mem_limit: 512m
+    cpus: 1.5
+    # Healthcheck ships in the image (wget /api/health as the `node` user);
+    # compose reads it, so caddy's depends_on condition works.
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    mem_limit: 1536m
+    cpus: 1.5
+
+  redis:
+    image: redis:7-alpine
+    # requirepass + AOF: jobs/digests must survive a restart, and Redis is on
+    # the internal network only, but still refuses unauthenticated clients.
+    command:
+      - redis-server
+      - --requirepass
+      - ${REDIS_PASSWORD}
+      - --appendonly
+      - 'yes'
+      - --appendfsync
+      - everysec
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
+    restart: unless-stopped
+    healthcheck:
+      # REDISCLI_AUTH keeps the password out of `ps` output.
+      test: ['CMD-SHELL', 'export REDISCLI_AUTH=$$REDIS_PASSWORD; redis-cli ping | grep -q PONG']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    mem_limit: 512m
+    cpus: 0.5
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ':9001'
+    environment:
+      - MINIO_ROOT_USER=${STORAGE_ACCESS_KEY}
+      - MINIO_ROOT_PASSWORD=${STORAGE_SECRET_KEY}
+    volumes:
+      - minio_data:/data
+    networks:
+      - internal
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    mem_limit: 512m
+    cpus: 0.5
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      # The ONLY published ports in this stack. Point DNS api.<domain> here
+      # and open 80/443 in the cloud firewall; nothing else is reachable.
+      - '80:80'
+      - '443:443'
+    environment:
+      - DOMAIN=${DOMAIN}
+      - ACME_EMAIL=${ACME_EMAIL:-}
+    volumes:
+      - ./${CADDY_FILE:-Caddyfile}:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - internal
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    mem_limit: 256m
+    cpus: 0.25
+
+  backup:
+    # Nightly pg_dump + MinIO bucket mirror, pushed OFF this VM (see
+    # deploy/backup/backup.sh — same-VM copies do not count as backups).
+    # Built from deploy/backup/ on first `up`; the API image itself is pulled.
+    build:
+      context: ./backup
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - STORAGE_ENDPOINT=minio:9000
+      - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY}
+      - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY}
+      - STORAGE_BUCKET=${STORAGE_BUCKET:-quran-review-media}
+      # Off-host target — any S3 endpoint (Backblaze B2, Cloudflare R2, AWS…)
+      - BACKUP_S3_ENDPOINT=${BACKUP_S3_ENDPOINT}
+      - BACKUP_S3_ACCESS_KEY=${BACKUP_S3_ACCESS_KEY}
+      - BACKUP_S3_SECRET_KEY=${BACKUP_S3_SECRET_KEY}
+      - BACKUP_S3_BUCKET=${BACKUP_S3_BUCKET}
+      - BACKUP_S3_PREFIX=${BACKUP_S3_PREFIX:-quran-review}
+      - BACKUP_S3_USE_SSL=${BACKUP_S3_USE_SSL:-true}
+      - BACKUP_INTERVAL_SECONDS=${BACKUP_INTERVAL_SECONDS:-86400}
+      - BACKUP_RUN_ON_START=${BACKUP_RUN_ON_START:-true}
+      - RETAIN_DAILY=${RETAIN_DAILY:-7}
+      - RETAIN_WEEKLY=${RETAIN_WEEKLY:-4}
+    volumes:
+      - backup_scratch:/scratch
+    networks:
+      - internal
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    mem_limit: 256m
+    cpus: 0.25

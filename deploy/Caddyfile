@@ -1,0 +1,51 @@
+# Production reverse proxy. Caddy obtains and renews TLS certificates for
+# api.{$DOMAIN} automatically (Let's Encrypt / ZeroSSL) — ports 80 + 443 must
+# be open in the VM firewall and DNS api.<domain> must point here BEFORE the
+# first `docker compose up`, or issuance will retry-loop.
+
+{
+	# Optional: an ACME account email (recover expiry notices). Leave unset to
+	# use an anonymous ACME account — both work.
+	email {$ACME_EMAIL:}
+}
+
+api.{$DOMAIN} {
+	encode zstd gzip
+
+	# Uploads: the API accepts recordings up to 100 MB (multer limit in
+	# src/modules/recordings), so the proxy must not cut them off first.
+	request_body {
+		max_size 110MB
+	}
+
+	# Socket.io upgrade: reverse_proxy handles WebSocket natively — no
+	# manual Upgrade/Connection header plumbing (that was nginx's problem).
+	reverse_proxy api:4000 {
+		header_up X-Real-IP {remote_host}
+	}
+
+	# Prometheus metrics are UNAUTHENTICATED by design (docs/DEPLOYMENT.md §7b:
+	# scrape over the private network). Never publish them to the internet.
+	@metrics path /metrics
+	respond @metrics 404
+
+	header {
+		# helmet already sets most headers in the API; keep the proxy's minimal
+		# additions, and do not advertise the server.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+
+	log {
+		output stdout
+	}
+}
+
+# Optional public media host — uncomment ONLY if you need STORAGE_PUBLIC_BASE_URL
+# to point directly at MinIO (og:image previews for WhatsApp/Facebook, etc.).
+# The bucket itself stays private; in-app downloads always go through the
+# auth-checked /files routes on the api host.
+#
+# media.{$DOMAIN} {
+# 	reverse_proxy minio:9000
+# }
