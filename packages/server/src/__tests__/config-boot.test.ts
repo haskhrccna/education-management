@@ -10,8 +10,10 @@
  * and the platform-provided URL satisfies them.
  */
 const BASE_ENV = {
-  DATABASE_URL: 'postgresql://user:pass@localhost:5432/db?schema=public',
-  JWT_SECRET: 'a-test-secret-key-that-is-long-enough-32',
+  DATABASE_URL: 'postgresql://user:***@localhost:5432/db?schema=public',
+  // Not one of the publicly-known test fixtures (those are production-blocked
+  // in config/index.ts, and the test below asserts exactly that).
+  JWT_SECRET: 'config-boot-suite-secret-xyz-0123456789-abcdefgh',
 };
 
 const loadConfig = (env: Record<string, string | undefined>) => {
@@ -66,5 +68,25 @@ describe('config boot guards', () => {
         JWT_SECRET: 'super-secret-jwt-key-change-in-production-minimum-32-characters-long',
       })
     ).toThrow(/placeholder/);
+  });
+
+  it('refuses the publicly-known test fixture secrets in production', () => {
+    // These values are committed to a public repo (test suites + the M0 plan
+    // doc) and therefore cannot be trusted as production secrets.
+    const publicFixtures = [
+      'a-test-secret-key-that-is-long-enough-32',
+      'integration-test-secret-0123456789abcdef0123456789abcdef',
+      'test-secret-key-for-ci-only-min-32-characters',
+    ];
+    for (const fixture of publicFixtures) {
+      expect(() =>
+        loadConfig({
+          NODE_ENV: 'production',
+          CLIENT_URL: 'https://example.github.io',
+          RENDER_EXTERNAL_URL: 'https://quran-review-api.onrender.com',
+          JWT_SECRET: fixture,
+        })
+      ).toThrow(/placeholder/);
+    }
   });
 });

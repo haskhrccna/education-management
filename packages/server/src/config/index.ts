@@ -9,6 +9,12 @@ const WEAK_JWT_SECRETS = new Set([
   'super-secret-jwt-key-change-in-production-minimum-32-characters-long',
   'secret',
   'changeme',
+  // Test fixtures committed to this public repo. Inert by design (they only
+  // ever run under NODE_ENV=test), but they are world-readable, so an
+  // operator copy-pasting a test env into production must still be refused.
+  'a-test-secret-key-that-is-long-enough-32',
+  'integration-test-secret-0123456789abcdef0123456789abcdef',
+  'test-secret-key-for-ci-only-min-32-characters',
 ]);
 
 function requireEnv(name: string): string {
