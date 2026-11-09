@@ -41,11 +41,26 @@ api.{$DOMAIN} {
 	}
 }
 
-# Optional public media host — uncomment ONLY if you need STORAGE_PUBLIC_BASE_URL
-# to point directly at MinIO (og:image previews for WhatsApp/Facebook, etc.).
-# The bucket itself stays private; in-app downloads always go through the
-# auth-checked /files routes on the api host.
-#
-# media.{$DOMAIN} {
-# 	reverse_proxy minio:9000
-# }
+# Media host: the S3 endpoint the app uploads recordings to. The API hands the
+# phone a short-lived presigned PUT URL for this host
+# (STORAGE_PRESIGN_ENDPOINT_URL); the bucket itself stays private, so nothing
+# is readable or writable here without a valid signature. Downloads still go
+# through the auth-checked /files routes on the api host.
+# DNS media.<domain> must point here too. Caddy forwards the Host header
+# unchanged, which the request signature depends on.
+media.{$DOMAIN} {
+	request_body {
+		max_size 110MB
+	}
+
+	reverse_proxy minio:9000
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+
+	log {
+		output stdout
+	}
+}

@@ -16,7 +16,8 @@ $EDITOR deploy/.env                      # set EVERY value
 ./deploy/scripts/check-env.sh deploy/.env   # refuses defaults — must print PASS
 
 # 3) DNS + firewall (before first start; see "Prerequisites")
-#    A record api.<DOMAIN> -> this VM's public IP; open TCP 80 + 443 only.
+#    A records api.<DOMAIN> and media.<DOMAIN> -> this VM's public IP;
+#    open TCP 80 + 443 only.
 
 # 4) mushaf pages (the 604 page images are not in git — see §Mushaf below)
 
@@ -29,7 +30,7 @@ curl https://api.<your-domain>/api/health   # {"status":"ok",...}
 
 | What | Detail |
 |---|---|
-| Domain | `api.<DOMAIN>` A record → VM public IP **before** the first `up` (Caddy issues the certificate at boot). Open **only 80/443** in the cloud firewall. |
+| Domain | `api.<DOMAIN>` and `media.<DOMAIN>` A records → VM public IP **before** the first `up` (Caddy issues a certificate for each at boot). Open **only 80/443** in the cloud firewall. |
 | GHCR access | The image is public (`ghcr.io/haskhrccna/education-management-api`). Pull needs no login. |
 | Off-host backup bucket | Backblaze B2 / Cloudflare R2 / any S3 endpoint. MinIO on the same VM is **not** a backup — the backup service refuses to be pointed at the local MinIO (check-env.sh). |
 | SMTP | Real credentials — password reset and admin-approval emails depend on them; the API refuses to boot in production without `EMAIL_HOST`. |
@@ -44,12 +45,32 @@ curl https://api.<your-domain>/api/health   # {"status":"ok",...}
 - **Caddy**: `api.<DOMAIN>` → api:4000 (WebSockets for Socket.io work
   out of the box), 110 MB body limit (the app caps recordings at 100 MB),
   `/metrics` is answered with 404 — the Prometheus endpoint is unauthenticated
-  by design and must never be public. Optional `media.<DOMAIN>` host is
-  commented in the Caddyfile for public share previews.
+  by design and must never be public. `media.<DOMAIN>` → minio:9000 is the
+  host the app uploads recordings to, using short-lived presigned URLs; the
+  bucket is private, so unsigned requests are refused.
 - **Redis**: `requirepass` + AOF. **MinIO**: your credentials from `.env`
   (`minioadmin` is refused at API boot AND by check-env.sh).
 - **Backup**: nightly `pg_dump -Fc` + incremental MinIO bucket mirror to
   `BACKUP_S3_*`, retention 7 daily / 4 weekly (configurable).
+
+## Object storage
+
+Recordings, reports and certificates live in an S3-compatible bucket. The app
+uploads a recording in three steps: the API issues a presigned PUT URL, the
+phone sends the file straight to storage, and the API then records it. That
+URL must name a host the phone can reach, which is why `media.<DOMAIN>`
+exists and why the API signs for it (`STORAGE_PRESIGN_ENDPOINT_URL`).
+
+**MinIO is no longer maintained as a container image.** `minio/minio` was
+removed from Docker Hub and the upstream repository is archived. The compose
+file pins a community build of the last release so the stack still starts,
+but that build will not get security fixes. Two ways forward:
+
+- Point the API at a hosted S3-compatible bucket (Cloudflare R2, Backblaze
+  B2, AWS S3) with `STORAGE_ENDPOINT`, `STORAGE_USE_SSL=true` and its keys,
+  leave `STORAGE_PRESIGN_ENDPOINT_URL` empty, and remove the `minio` service
+  and the `media` host. Use a different bucket or provider from the backups.
+- Keep self-hosting, and replace the image with a maintained S3 server.
 
 ## Mushaf pages
 
@@ -98,10 +119,13 @@ Raise them for bigger academies; do not go lower without measuring.
 ## Local verification (no public DNS)
 
 ```bash
-CADDY_FILE=Caddyfile.local DOMAIN=api.localhost \
+CADDY_FILE=Caddyfile.local DOMAIN=localhost \
   docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env up -d
-curl --resolve api.localhost:443:127.0.0.1 https://api.localhost/api/health
+curl -k --resolve api.localhost:443:127.0.0.1 https://api.localhost/api/health
 ```
+
+`DOMAIN` is the bare domain; the stack serves `api.<DOMAIN>` and
+`media.<DOMAIN>`. Set `PUBLIC_API_URL=https://api.localhost` to match.
 
 `Caddyfile.local` uses Caddy's internal CA (add `--insecure` or trust the
 local root cert). Everything else — auth, uploads, Socket.io — runs the

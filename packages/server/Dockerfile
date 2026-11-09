@@ -12,8 +12,10 @@ COPY packages/shared ./packages/shared
 COPY packages/server ./packages/server
 COPY mobile/package.json ./mobile/
 
-# Install all dependencies (devDeps required for Prisma CLI + tsc)
-RUN npm ci --workspace=@quran-review/server --workspace=@quran-review/shared
+# Install all dependencies (devDeps required for Prisma CLI + tsc).
+# --ignore-scripts: the root postinstall patches the Expo podspec (iOS only)
+# and is not needed for the server image.
+RUN npm ci --ignore-scripts --workspace=@quran-review/server --workspace=@quran-review/shared
 
 # Generate Prisma client and compile server
 RUN cd packages/server && npx prisma generate
@@ -39,7 +41,7 @@ COPY packages/shared/package.json packages/shared/
 COPY packages/server/package.json packages/server/
 COPY mobile/package.json ./mobile/
 
-RUN npm ci --omit=dev --workspace=@quran-review/server --workspace=@quran-review/shared
+RUN npm ci --omit=dev --ignore-scripts --workspace=@quran-review/server --workspace=@quran-review/shared
 
 # Prisma's generated client (default output: node_modules/.prisma/client).
 # Generation needs the prisma CLI and the schema, both present only in the
