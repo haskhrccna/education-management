@@ -62,3 +62,15 @@ mobile/.expo/
 
 # Render Postgres connection string, written by hand during deploy setup
 quran-render-db.url
+
+# Directories/tools excluded from the public repo (never track):
+#   .swarm/        — ruflo swarm runtime databases
+#   .claude-flow/  — ruflo agent framework config
+#   .agents/skills/ruflo/ — ruflo skill definitions
+#   hassan-adam/   — separate Expo project, not part of this repo
+#   ruvector.db    — local vector DB artifact
+.swarm/
+.claude-flow/
+.agents/skills/ruflo/
+hassan-adam/
+ruvector.db
