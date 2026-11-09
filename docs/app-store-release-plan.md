@@ -46,7 +46,7 @@ Everything below the app binary is the real work. The app code itself needs only
 
 ## 3. Phase 0 — Accounts & prerequisites  _(½ day + Apple approval wait)_
 
-- [ ] Enrol in the **Apple Developer Program** ($99/yr). Business entity? Use an Organization account (needs a D-U-N-S number, can take days) vs Individual (faster, shows your personal name as seller).
+- [ ] Enrol in the **Apple Developer Program** ($99/yr) as an **Individual** (decided 2026-11-09): no D-U-N-S number needed, and the seller name shown on the store is your personal name. Risk: App Review guideline 5.1.1(ix) may ask for apps handling minors' data to be submitted by an organization; if Apple rejects for that reason, the fallback is to migrate the app to an Organization account.
 - [ ] In **App Store Connect**, create the app record: name, primary language (Arabic), bundle ID `com.quranreview.app`, SKU.
 - [ ] Capture the three IDs EAS needs and fill `mobile/eas.json` → `submit.production.ios`: `appleId` (your Apple ID email), `appleTeamId` (Membership → Team ID), `ascAppId` (the app's numeric ID in App Store Connect).
 - [ ] Decide the **public domain** (e.g. `api.quranreview.app`) — used by the backend; the deep-link scheme is already `quran-review://` and does not need a domain.

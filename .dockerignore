@@ -21,3 +21,17 @@ packages/server/mushaf-pages
 packages/server/uploads
 packages/server/reports
 packages/server/certificates
+packages/server/.env
+packages/server/.env.*
+# Local secrets never enter the build context.
+.env
+.env.*
+!.env.example
+# Local tool state.
+graphify-out
+ruvector.db
+.agents
+analysis
+agents
+# The image needs mobile's manifest (npm workspace resolution) but nothing else.
+!mobile/package.json

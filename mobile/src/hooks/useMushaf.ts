@@ -3,7 +3,9 @@ import { mushafApi } from '../api/mushaf';
 import type { SurahWithAyahsDTO, MushafPageDTO } from '@quran-review/shared';
 
 export function useMushaf() {
-  const [surahs, setSurahs] = useState<{ id: number; number: number; nameAr: string; nameEn: string; ayahCount: number }[]>([]);
+  const [surahs, setSurahs] = useState<
+    { id: number; number: number; nameAr: string; nameEn: string; ayahCount: number }[]
+  >([]);
   const [page, setPage] = useState<MushafPageDTO | null>(null);
   const [surahDetail, setSurahDetail] = useState<SurahWithAyahsDTO | null>(null);
   const [isLoading, setIsLoading] = useState(false);

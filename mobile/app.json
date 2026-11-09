@@ -5,11 +5,17 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "runtimeVersion": "appVersion",
     "userInterfaceStyle": "light",
     "newArchitecture": true,
     "scheme": "quran-review",
     "experiments": {
       "baseUrl": "/education-management"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/<EXPO_PROJECT_ID>",
+      "enabled": true,
+      "channels": ["preview", "production"]
     },
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -24,9 +30,10 @@
         "UIBackgroundModes": [
           "audio"
         ],
-        "NSFaceIDUsageDescription": "يستخدم التطبيق Face ID لتسجيل الدخول إلى حسابك بأمان.",
-        "NSMicrophoneUsageDescription": "يحتاج التطبيق إلى الميكروفون لتسجيل التلاوة القرآنية.",
-        "NSDocumentsFolderUsageDescription": "يحتاج التطبيق إلى الوصول للملفات لرفع تسجيلات التلاوة.",
+        "NSFaceIDUsageDescription": "يستخدم التطبيق Face ID لتسجيل الدخول إلى حسابك بأمان. / The app uses Face ID to securely sign you into your account.",
+        "NSMicrophoneUsageDescription": "يحتاج التطبيق إلى الميكروفون لتسجيل التلاوة القرآنية. / The app needs the microphone to record your Quran recitation.",
+        "NSDocumentsFolderUsageDescription": "يحتاج التطبيق إلى الوصول للملفات لرفع تسجيلات التلاوة. / The app needs file access to upload recitation recordings.",
+        "ITSAppUsesNonExemptEncryption": false,
         "LSApplicationQueriesSchemes": [
           "whatsapp"
         ]
@@ -39,7 +46,19 @@
         "backgroundColor": "#1B5E20"
       },
       "package": "com.quranreview.app",
-      "usesCleartextTraffic": false
+      "usesCleartextTraffic": false,
+      "permissions": [
+        "RECORD_AUDIO",
+        "POST_NOTIFICATIONS",
+        "USE_BIOMETRIC"
+      ],
+      "blockedPermissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",

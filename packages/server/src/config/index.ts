@@ -9,6 +9,12 @@ const WEAK_JWT_SECRETS = new Set([
   'super-secret-jwt-key-change-in-production-minimum-32-characters-long',
   'secret',
   'changeme',
+  // Test fixtures committed to this public repo. Inert by design (they only
+  // ever run under NODE_ENV=test), but they are world-readable, so an
+  // operator copy-pasting a test env into production must still be refused.
+  'a-test-secret-key-that-is-long-enough-32',
+  'integration-test-secret-0123456789abcdef0123456789abcdef',
+  'test-secret-key-for-ci-only-min-32-characters',
 ]);
 
 function requireEnv(name: string): string {
@@ -83,4 +89,32 @@ if (config.env === 'production' && !config.clientUrl) {
 // Validate PUBLIC_API_URL in production so og:image is never silently relative/wrong
 if (config.env === 'production' && !config.publicApiUrl) {
   throw new Error('Missing required environment variable in production: PUBLIC_API_URL');
+}
+
+// SMTP in production: password reset and admin-approval emails silently
+// no-op without EMAIL_HOST, which strands newly-registered students behind
+// the approval gate. A deploy missing mail config must fail loudly at boot.
+if (config.env === 'production' && !process.env.EMAIL_HOST) {
+  throw new Error(
+    'Missing required environment variable in production: EMAIL_HOST — ' +
+      'password reset and approval notifications depend on SMTP'
+  );
+}
+
+// Object storage in production: with STORAGE_ENABLED=1 the media layer is the
+// system of record for recordings/reports/certificates. Refuse half
+// configuration and the well-known MinIO default credentials, which would
+// put student recordings behind 'minioadmin'.
+if (config.env === 'production' && process.env.STORAGE_ENABLED === '1') {
+  for (const name of ['STORAGE_ENDPOINT', 'STORAGE_ACCESS_KEY', 'STORAGE_SECRET_KEY']) {
+    if (!process.env[name]) {
+      throw new Error(`Missing required environment variable in production (STORAGE_ENABLED=1): ${name}`);
+    }
+  }
+  if (process.env.STORAGE_ACCESS_KEY === 'minioadmin' || process.env.STORAGE_SECRET_KEY === 'minioadmin') {
+    throw new Error(
+      'STORAGE_ACCESS_KEY/STORAGE_SECRET_KEY still use the MinIO default (minioadmin). ' +
+        'Refusing to start in production with default storage credentials.'
+    );
+  }
 }
