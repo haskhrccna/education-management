@@ -17,6 +17,9 @@ import { logger } from '../lib/logger';
  *                           into a browser-playable URL on /files/complete when
  *                           no DB record exists. Without it the canonical
  *                           '/api/v1/files/recordings/:id' URL is used instead.
+ *  STORAGE_PRESIGN_ENDPOINT_URL  optional public origin of the same store
+ *                           (e.g. 'https://media.example.com'), used only to
+ *                           sign upload URLs. See getPresignClient below.
  */
 
 const ENABLED = process.env.STORAGE_ENABLED === '1';
@@ -24,7 +27,12 @@ const BUCKET = process.env.STORAGE_BUCKET || 'quran-review-media';
 
 let client: Minio.Client | null = null;
 
-export const isStorageEnabled = () => ENABLED && client !== null;
+let presignClient: Minio.Client | null = null;
+
+// The client is created lazily, so "enabled" must not depend on it existing:
+// the presign route checks this flag BEFORE anything has built the client,
+// and would otherwise answer 503 forever on a freshly booted server.
+export const isStorageEnabled = () => ENABLED;
 
 const getClient = (): Minio.Client => {
   if (!client) {
@@ -47,6 +55,35 @@ const getClient = (): Minio.Client => {
     });
   }
   return client;
+};
+
+/**
+ * Presigned URLs are used by the CLIENT — the phone PUTs the blob straight to
+ * storage — so they must name a host the client can reach. When the API talks
+ * to storage over a private name (STORAGE_ENDPOINT=minio:9000 inside the
+ * compose network), STORAGE_PRESIGN_ENDPOINT_URL is the public origin of the
+ * same store. Unset, URLs are signed for STORAGE_ENDPOINT, which is correct
+ * when that endpoint is already public (AWS S3, R2, B2).
+ */
+const getPresignClient = (): Minio.Client => {
+  const publicUrl = process.env.STORAGE_PRESIGN_ENDPOINT_URL;
+  if (!publicUrl) return getClient();
+  if (!presignClient) {
+    const url = new URL(publicUrl);
+    const useSSL = url.protocol === 'https:';
+    presignClient = new Minio.Client({
+      endPoint: url.hostname,
+      port: url.port ? parseInt(url.port, 10) : useSSL ? 443 : 80,
+      useSSL,
+      accessKey: process.env.STORAGE_ACCESS_KEY || '',
+      secretKey: process.env.STORAGE_SECRET_KEY || '',
+      // A fixed region keeps signing offline. Without one the SDK asks the
+      // endpoint for the bucket's region first, and the API container cannot
+      // be assumed to reach its own public hostname.
+      region: process.env.STORAGE_REGION || 'us-east-1',
+    });
+  }
+  return presignClient;
 };
 
 const ALLOWED_MIME_PREFIXES = ['audio/', 'video/', 'image/'];
@@ -84,7 +121,7 @@ export const presignUpload = async (
   contentType: string,
   fileSizeBytes?: number
 ): Promise<PresignResult> => {
-  if (!isStorageEnabled() && !ENABLED) throw new AppError(503, 'Object storage is not enabled');
+  if (!ENABLED) throw new AppError(503, 'Object storage is not enabled');
 
   const MAX_PRESIGN_BYTES = 500 * 1024 * 1024;
   if (fileSizeBytes != null && fileSizeBytes > MAX_PRESIGN_BYTES) {
@@ -102,7 +139,7 @@ export const presignUpload = async (
   await ensureBucket();
   const storageKey = sanitizeObjectKey(prefix, fileName);
   const expiry = 15 * 60;
-  const uploadUrl = await getClient().presignedPutObject(BUCKET, storageKey, expiry);
+  const uploadUrl = await getPresignClient().presignedPutObject(BUCKET, storageKey, expiry);
 
   return { storageKey, uploadUrl, headers: undefined, expiresInSeconds: expiry };
 };
@@ -176,5 +213,6 @@ export const assertObjectExists = async (storageKey: string): Promise<void> => {
 
 export const __resetStorageForTests = () => {
   client = null;
+  presignClient = null;
   bucketChecked = false;
 };
