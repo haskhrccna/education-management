@@ -45,6 +45,7 @@ describe('config boot guards', () => {
       NODE_ENV: 'production',
       CLIENT_URL: 'https://example.github.io',
       RENDER_EXTERNAL_URL: 'https://quran-review-api.onrender.com',
+      EMAIL_HOST: 'smtp.example.com',
     });
     expect(config.publicApiUrl).toBe('https://quran-review-api.onrender.com');
   });
@@ -55,6 +56,7 @@ describe('config boot guards', () => {
       CLIENT_URL: 'https://example.github.io',
       PUBLIC_API_URL: 'https://api.quranreview.app',
       RENDER_EXTERNAL_URL: 'https://quran-review-api.onrender.com',
+      EMAIL_HOST: 'smtp.example.com',
     });
     expect(config.publicApiUrl).toBe('https://api.quranreview.app');
   });
@@ -88,5 +90,43 @@ describe('config boot guards', () => {
         })
       ).toThrow(/placeholder/);
     }
+  });
+
+  it('refuses to start in production without EMAIL_HOST (approval emails would strand)', () => {
+    expect(() =>
+      loadConfig({
+        NODE_ENV: 'production',
+        CLIENT_URL: 'https://example.github.io',
+        PUBLIC_API_URL: 'https://api.example.com',
+      })
+    ).toThrow(/EMAIL_HOST/);
+  });
+
+  it('refuses half-configured object storage in production (STORAGE_ENABLED=1)', () => {
+    expect(() =>
+      loadConfig({
+        NODE_ENV: 'production',
+        CLIENT_URL: 'https://example.github.io',
+        PUBLIC_API_URL: 'https://api.example.com',
+        EMAIL_HOST: 'smtp.example.com',
+        STORAGE_ENABLED: '1',
+        STORAGE_ENDPOINT: 'minio:9000',
+      })
+    ).toThrow(/STORAGE_ACCESS_KEY/);
+  });
+
+  it('refuses MinIO default storage credentials in production', () => {
+    expect(() =>
+      loadConfig({
+        NODE_ENV: 'production',
+        CLIENT_URL: 'https://example.github.io',
+        PUBLIC_API_URL: 'https://api.example.com',
+        EMAIL_HOST: 'smtp.example.com',
+        STORAGE_ENABLED: '1',
+        STORAGE_ENDPOINT: 'minio:9000',
+        STORAGE_ACCESS_KEY: 'minioadmin',
+        STORAGE_SECRET_KEY: 'minioadmin',
+      })
+    ).toThrow(/minioadmin/);
   });
 });

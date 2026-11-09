@@ -90,3 +90,31 @@ if (config.env === 'production' && !config.clientUrl) {
 if (config.env === 'production' && !config.publicApiUrl) {
   throw new Error('Missing required environment variable in production: PUBLIC_API_URL');
 }
+
+// SMTP in production: password reset and admin-approval emails silently
+// no-op without EMAIL_HOST, which strands newly-registered students behind
+// the approval gate. A deploy missing mail config must fail loudly at boot.
+if (config.env === 'production' && !process.env.EMAIL_HOST) {
+  throw new Error(
+    'Missing required environment variable in production: EMAIL_HOST — ' +
+      'password reset and approval notifications depend on SMTP'
+  );
+}
+
+// Object storage in production: with STORAGE_ENABLED=1 the media layer is the
+// system of record for recordings/reports/certificates. Refuse half
+// configuration and the well-known MinIO default credentials, which would
+// put student recordings behind 'minioadmin'.
+if (config.env === 'production' && process.env.STORAGE_ENABLED === '1') {
+  for (const name of ['STORAGE_ENDPOINT', 'STORAGE_ACCESS_KEY', 'STORAGE_SECRET_KEY']) {
+    if (!process.env[name]) {
+      throw new Error(`Missing required environment variable in production (STORAGE_ENABLED=1): ${name}`);
+    }
+  }
+  if (process.env.STORAGE_ACCESS_KEY === 'minioadmin' || process.env.STORAGE_SECRET_KEY === 'minioadmin') {
+    throw new Error(
+      'STORAGE_ACCESS_KEY/STORAGE_SECRET_KEY still use the MinIO default (minioadmin). ' +
+        'Refusing to start in production with default storage credentials.'
+    );
+  }
+}
