@@ -28,7 +28,6 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "handlebars": "^4.7.10",
-    "decode-uri-component": "^0.5.1",
     "body-parser": "^1.20.9"
   },
   "version": "1.0.0"

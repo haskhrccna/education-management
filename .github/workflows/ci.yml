@@ -102,6 +102,34 @@ jobs:
           // a 2.x/3.x/4.x patch, or if RN's codegen drops its old minimatch/glob
           // dependency and can take 5.x directly.
           const MOBILE_TOOLCHAIN_EXCEPTIONS = new Set(['postcss', 'brace-expansion']);
+          // 2026-11-09: expo-router (high) — the advisory's fixed versions start
+          // at 58.0.30, which belongs to a future Expo SDK major (this app is on
+          // SDK 54, router 6.0.24, the newest its ~6.0.23 pin allows). Same
+          // treatment as 'expo' below: the real fix is the SDK upgrade, tracked
+          // as separate work, not silently bumped here.
+          MOBILE_TOOLCHAIN_EXCEPTIONS.add('expo-router');
+          // 2026-11-09: SERVER RUNTIME exceptions — the minio S3 client chain.
+          //   decode-uri-component <=0.5.0 (high; GHSA-vcc3-ghjq-m6fr,
+          //   GHSA-qr28-fpjm-wq7f): the only fixed release, 0.5.1, is
+          //   ESM-only, while minio@8 -> query-string@7 loads it with
+          //   require(). Overriding it to ^0.5.1 was TRIED AND REVERTED:
+          //   Jest 30's CJS sandbox cannot load the ESM build ("Must use
+          //   import to load ES Module"), failing 4 unit suites and all 37
+          //   integration suites that import the storage service; a
+          //   require(esm) build is not viable for the test toolchain.
+          //   query-string (high, 5.0.0–9.4.1) and minio (high, >=7.0.30)
+          //   inherit the same finding through this chain (minio also has a
+          //   separate moderate advisory via stream-json). Reachability
+          //   within this repo: the decoder runs on operator-configured
+          //   endpoint URLs and server-generated object keys
+          //   (src/services/storage.service.ts), never on arbitrary
+          //   external input, and the whole object-storage layer is disabled
+          //   unless the operator sets STORAGE_ENABLED=1. Re-review when
+          //   minio ships an ESM-compatible query-string/decode-uri-component
+          //   chain, or when the app drops minio for another S3 client.
+          const SERVER_RUNTIME_EXCEPTIONS = new Set([
+            'decode-uri-component', 'query-string', 'minio', 'stream-json',
+          ]);
           // 2026-09-16: npm audit published new high-severity advisories for
           // build/test-toolchain packages. Each chain below was verified with
           // `npm ls <pkg>` to route ONLY through the Expo/React Native build
@@ -116,6 +144,7 @@ jobs:
           // Re-review this list whenever Expo SDK, Prisma, or jest is upgraded.
           const TOOLCHAIN_EXCEPTIONS = new Set([
             ...MOBILE_TOOLCHAIN_EXCEPTIONS,
+            ...SERVER_RUNTIME_EXCEPTIONS,
             '@expo/metro-config', 'metro-config', 'metro-transform-worker',
             'image-size', 'fast-uri', 'js-yaml', 'deepmerge-ts',
             '@expo/cli', '@expo/metro', '@xmldom/xmldom', '@prisma/config',
