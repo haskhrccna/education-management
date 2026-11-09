@@ -16,7 +16,7 @@ function requirePassword(name: string, value: string | undefined): string {
   if (!value) {
     throw new Error(
       `Missing required env var ${name}. Set it before running seed:review — ` +
-        'review accounts must never use default passwords in production.',
+        'review accounts must never use default passwords in production.'
     );
   }
   return value;
@@ -27,22 +27,10 @@ async function main() {
   await runSeed();
 
   // 2) Production guard: require explicit passwords for every review account.
-  const adminPass = requirePassword(
-    'SEED_REVIEW_ADMIN_PASSWORD',
-    REVIEW_ADMIN_PASSWORD,
-  );
-  const teacherPass = requirePassword(
-    'SEED_REVIEW_TEACHER_PASSWORD',
-    REVIEW_TEACHER_PASSWORD,
-  );
-  const studentPass = requirePassword(
-    'SEED_REVIEW_STUDENT_PASSWORD',
-    REVIEW_STUDENT_PASSWORD,
-  );
-  const parentPass = requirePassword(
-    'SEED_REVIEW_PARENT_PASSWORD',
-    REVIEW_PARENT_PASSWORD,
-  );
+  const adminPass = requirePassword('SEED_REVIEW_ADMIN_PASSWORD', REVIEW_ADMIN_PASSWORD);
+  const teacherPass = requirePassword('SEED_REVIEW_TEACHER_PASSWORD', REVIEW_TEACHER_PASSWORD);
+  const studentPass = requirePassword('SEED_REVIEW_STUDENT_PASSWORD', REVIEW_STUDENT_PASSWORD);
+  const parentPass = requirePassword('SEED_REVIEW_PARENT_PASSWORD', REVIEW_PARENT_PASSWORD);
 
   const hash = (p: string) => bcrypt.hash(p, 10);
 
@@ -139,21 +127,13 @@ async function main() {
   });
 
   console.log('\n🏪 seed:review complete. Review accounts:');
+  console.log(`  review-admin@quran-review.app   | ADMIN   | ${REVIEW_ADMIN_PASSWORD}`);
+  console.log(`  review-teacher@quran-review.app | TEACHER | ${REVIEW_TEACHER_PASSWORD}`);
+  console.log(`  review-student@quran-review.app | STUDENT | ${REVIEW_STUDENT_PASSWORD}`);
   console.log(
-    `  review-admin@quran-review.app   | ADMIN   | ${REVIEW_ADMIN_PASSWORD}`,
+    `  review-parent@quran-review.app  | PARENT  | APPROVED link → review-student | ${REVIEW_PARENT_PASSWORD}`
   );
-  console.log(
-    `  review-teacher@quran-review.app | TEACHER | ${REVIEW_TEACHER_PASSWORD}`,
-  );
-  console.log(
-    `  review-student@quran-review.app | STUDENT | ${REVIEW_STUDENT_PASSWORD}`,
-  );
-  console.log(
-    `  review-parent@quran-review.app  | PARENT  | APPROVED link → review-student | ${REVIEW_PARENT_PASSWORD}`,
-  );
-  console.log(
-    '\nPoint these at the production backend for store review. Rotate passwords after approval.',
-  );
+  console.log('\nPoint these at the production backend for store review. Rotate passwords after approval.');
 }
 
 main()

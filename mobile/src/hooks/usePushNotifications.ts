@@ -61,28 +61,28 @@ async function registerForPush(): Promise<string | null> {
       importance: Notifications.AndroidImportance.DEFAULT,
       vibrationPattern: [0, 250, 250],
       lightColor: '#1B5E20',
-      sound: true,
+      sound: 'default',
     });
     await Notifications.setNotificationChannelAsync('announcements', {
       name: 'إعلانات / Announcements',
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#1B5E20',
-      sound: true,
+      sound: 'default',
     });
     await Notifications.setNotificationChannelAsync('reminders', {
       name: 'تذكيرات / Reminders',
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 500, 250, 500],
       lightColor: '#1B5E20',
-      sound: true,
+      sound: 'default',
     });
     await Notifications.setNotificationChannelAsync('default', {
       name: 'افتراضي / Default',
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#1B5E20',
-      sound: true,
+      sound: 'default',
     });
   }
 
