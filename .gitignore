@@ -74,3 +74,13 @@ quran-render-db.url
 .agents/skills/ruflo/
 hassan-adam/
 ruvector.db
+
+# Env files for the production stack: only the placeholder template is tracked.
+deploy/.env
+deploy/.env.*
+!deploy/.env.example
+
+# Notes from one local Maestro run (machine-specific paths); the maintained
+# E2E docs live in mobile/e2e/.
+E2E_INSTRUCTIONS.md
+E2E_TEST_SCRIPT.sh
