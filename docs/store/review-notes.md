@@ -40,6 +40,24 @@ Provide one pre-approved account per role, pointing at the **production** backen
 
 Passwords are set via environment variables (`SEED_REVIEW_ADMIN_PASSWORD`, etc.) when running the `seed:review` script — **never** hardcode them in the review notes.
 
+On the production stack the script runs inside the API container, from the compiled build (`npm run seed:review` needs `ts-node`, which the production image does not ship). It runs the base seed first, so the three `SEED_*_PASSWORD` variables are required as well — the seed refuses to run in production without them:
+
+```bash
+docker compose -f deploy/docker-compose.prod.yml exec \
+  -e SEED_ADMIN_PASSWORD=… -e SEED_TEACHER_PASSWORD=… -e SEED_STUDENT_PASSWORD=… \
+  -e SEED_REVIEW_ADMIN_PASSWORD=… -e SEED_REVIEW_TEACHER_PASSWORD=… \
+  -e SEED_REVIEW_STUDENT_PASSWORD=… -e SEED_REVIEW_PARENT_PASSWORD=… \
+  api node dist/prisma/seed-review.js
+```
+
+The script prints the review passwords to the terminal when it finishes; clear the scrollback afterwards.
+
+---
+
+## Developer account type
+
+The app is submitted from an **Individual** Apple Developer account. Risk: App Review guideline 5.1.1(ix) may ask for apps handling minors' data to be submitted by an organization. If Apple rejects for that reason, the fallback is to migrate the app to an Organization account later.
+
 ---
 
 ## Account Deletion (Apple 5.1.1(v))
