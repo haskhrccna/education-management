@@ -55,11 +55,34 @@ async function registerForPush(): Promise<string | null> {
 
   if (Platform.OS === 'android') {
     // Android 13+ asks for permission only after a channel exists.
-    await Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
+    // Channels with Arabic-visible names so users can manage them in settings.
+    await Notifications.setNotificationChannelAsync('general', {
+      name: 'عام / General',
+      importance: Notifications.AndroidImportance.DEFAULT,
+      vibrationPattern: [0, 250, 250],
+      lightColor: '#1B5E20',
+      sound: 'default',
+    });
+    await Notifications.setNotificationChannelAsync('announcements', {
+      name: 'إعلانات / Announcements',
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#1B5E20',
+      sound: 'default',
+    });
+    await Notifications.setNotificationChannelAsync('reminders', {
+      name: 'تذكيرات / Reminders',
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 500, 250, 500],
+      lightColor: '#1B5E20',
+      sound: 'default',
+    });
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'افتراضي / Default',
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#1B5E20',
+      sound: 'default',
     });
   }
 

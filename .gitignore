@@ -62,3 +62,25 @@ mobile/.expo/
 
 # Render Postgres connection string, written by hand during deploy setup
 quran-render-db.url
+
+# Directories/tools excluded from the public repo (never track):
+#   .swarm/        — ruflo swarm runtime databases
+#   .claude-flow/  — ruflo agent framework config
+#   .agents/skills/ruflo/ — ruflo skill definitions
+#   hassan-adam/   — separate Expo project, not part of this repo
+#   ruvector.db    — local vector DB artifact
+.swarm/
+.claude-flow/
+.agents/skills/ruflo/
+hassan-adam/
+ruvector.db
+
+# Env files for the production stack: only the placeholder template is tracked.
+deploy/.env
+deploy/.env.*
+!deploy/.env.example
+
+# Notes from one local Maestro run (machine-specific paths); the maintained
+# E2E docs live in mobile/e2e/.
+E2E_INSTRUCTIONS.md
+E2E_TEST_SCRIPT.sh

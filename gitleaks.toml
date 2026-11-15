@@ -1,0 +1,25 @@
+# gitleaks configuration — extends the default ruleset, then allowlists only
+# the deliberately-public test fixtures in this repo. Anything new still
+# fails the scan, in CI and locally (gitleaks detect --source . --config gitleaks.toml).
+#
+# History of the allowlisted values (verified inert, 2026-11-09):
+#   - 'a-test-secret-key-that-is-long-enough-32' — config-boot.test.ts
+#   - 'integration-test-secret-0123456789abcdef0123456789abcdef' —
+#     __integration__/env.ts + quoted in docs/superpowers/plans/2026-07-04-*.md
+#   Both are test-only JWT secrets (NODE_ENV=test), and BOTH are refused by
+#   config/index.ts if ever set in production (see WEAK_JWT_SECRETS).
+#   - graphify-out/ — local tool cache (git-ignored, never tracked).
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public-by-design test fixtures and the local graphify tool cache"
+regexTarget = "secret"
+regexes = [
+  '''a-test-secret-key-that-is-long-enough-32''',
+  '''integration-test-secret-0123456789abcdef0123456789abcdef''',
+]
+paths = [
+  '''graphify-out/''',
+]

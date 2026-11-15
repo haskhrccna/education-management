@@ -1,0 +1,108 @@
+name: Mobile release (EAS builds)
+
+# Manual dispatch (tag or branch) + push to main for preview builds.
+#   gh workflow run mobile.yml --ref main
+#   gh workflow run mobile.yml --ref refs/tags/v1.0.0
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref to build (branch, tag, or SHA)'
+        required: true
+        default: main
+
+permissions:
+  contents: read
+
+jobs:
+  build-preview:
+    # Internal ad-hoc builds for QA (iOS ad-hoc / TestFlight, Android APK).
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/tags/v*'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: EAS login
+        run: npx eas-cli@latest login --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: EAS preview build (iOS + Android)
+        run: |
+          npx eas build --platform all --profile preview --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+  build-production:
+    # Store builds (iOS App Store + Android AAB) — runs on version tags.
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Repository hygiene + prettier
+        run: |
+          npm run check:hygiene
+          npx prettier --check "mobile/**/*.{ts,tsx,json}"
+
+      - name: EAS login
+        run: npx eas-cli@latest login --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: EAS production build (iOS + Android)
+        run: |
+          npx eas build --platform all --profile production --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: EAS submit (iOS) — manual approval gate
+        if: ${{ inputs.submit == 'true' || github.event_name == 'workflow_dispatch' }}
+        run: |
+          npx eas submit --platform ios --profile production --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+  update-preview:
+    # EAS Update (OTA) for JS-only fixes to the preview channel.
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: EAS update (preview channel)
+        run: |
+          npx eas update --branch preview --message "Auto OTA: ${{ github.event.head_commit.message }}"
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}

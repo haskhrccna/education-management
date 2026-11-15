@@ -1,10 +1,7 @@
 import { StateCreator } from 'zustand';
 import { mmkvStorage } from './mmkvStorage';
 
-type SetStateInternal<T> = (
-  partial: T | Partial<T> | ((state: T) => T | Partial<T>),
-  replace?: boolean
-) => void;
+type SetStateInternal<T> = (partial: T | Partial<T> | ((state: T) => T | Partial<T>), replace?: boolean) => void;
 
 export const persist =
   <T extends object>(config: StateCreator<T>, name: string): StateCreator<T> =>

@@ -123,6 +123,15 @@ seed production after real users exist.
 
 ### 3. Docker Deployment
 
+**Production: use `deploy/`** — `deploy/docker-compose.prod.yml` is the
+supported production stack (API + Postgres 17 + Redis 7 + MinIO + Caddy with
+automatic HTTPS + nightly off-host backups, only ports 80/443 published,
+non-root containers, healthchecks). See `deploy/README.md` for the
+fresh-VM walkthrough, upgrades, rollback and restore drills.
+
+The compose file below is the **local development** stack (ports exposed to
+the LAN by design):
+
 ```bash
 cd packages/server
 npx prisma migrate deploy
