@@ -29,8 +29,14 @@ export interface ApiBaseInput {
   hostname?: string;
 }
 
-export function resolveApiBase({ os, env = process.env, hostname }: ApiBaseInput): string {
-  const configured = env.EXPO_PUBLIC_API_URL;
+export function resolveApiBase({ os, env, hostname }: ApiBaseInput): string {
+  // The fallback must be the literal expression `process.env.EXPO_PUBLIC_API_URL`.
+  // Expo replaces that exact text with the value at build time; in a browser
+  // there is no real process.env, so reading the variable off the object
+  // (`env = process.env; env.EXPO_PUBLIC_API_URL`) is always undefined there.
+  // That form shipped once and blanked the hosted site: every page load threw
+  // the "was not set" error below even though the build had the variable.
+  const configured = env ? env.EXPO_PUBLIC_API_URL : process.env.EXPO_PUBLIC_API_URL;
   if (configured) return configured;
 
   if (os === 'web') {

@@ -154,6 +154,20 @@ if (manifestHref && !manifestHref.startsWith(baseHref)) {
   failures.push(`manifest href (${manifestHref}) does not sit under the deploy base path (${baseHref}).`);
 }
 
+// Expo inlines only the literal text `process.env.EXPO_PUBLIC_*`. A function
+// that defaults an `env` parameter to the whole runtime object reads nothing
+// in a browser, so the API URL resolves as unset and the app throws before
+// its first render — a blank page from a build that "succeeded".
+const bundles = fs.existsSync(jsDir) ? fs.readdirSync(jsDir).filter((f) => f.endsWith('.js')) : [];
+for (const bundle of bundles) {
+  if (/\benv:[\w$]+=process\.env\b(?!\.)/.test(fs.readFileSync(path.join(jsDir, bundle), 'utf8'))) {
+    failures.push(
+      `${bundle} reads EXPO_PUBLIC_* from a runtime process.env object (an "env = process.env" default). ` +
+        'Read it as the literal process.env.EXPO_PUBLIC_… so Expo can inline the value (packages/shared/src/api-base.ts).'
+    );
+  }
+}
+
 if (failures.length) {
   console.error('prepare-github-pages: release guard failed:');
   for (const f of failures) console.error(`  - ${f}`);
