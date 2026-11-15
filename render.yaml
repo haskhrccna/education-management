@@ -1,10 +1,12 @@
 # Render blueprint — the API that both the mobile app and the web site talk to.
 #
 # Create it: Render dashboard → New → Blueprint → connect this repo → Apply.
-# Render reads this file and creates the web service and the database together.
+# Render reads this file and creates the web service. The database is hosted
+# on Neon and reaches the service through DATABASE_URL.
 #
-# Two values are deliberately left for you to fill in after the first deploy
+# These values are deliberately left for you to fill in
 # (they are marked `sync: false`, so Render prompts for them):
+#   DATABASE_URL    — the Neon connection string (see the comment on the key).
 #   PUBLIC_API_URL  — the service's own https URL, which does not exist until
 #                     Render has created the service. Paste it, then redeploy.
 #   The STORAGE_*   — your S3-compatible bucket (Cloudflare R2, Backblaze B2,
@@ -36,10 +38,21 @@ services:
         value: production
       - key: PORT
         value: 4000
+      # The database is Neon (https://neon.com), not a Render database: Render's
+      # free Postgres is deleted after 30 days, Neon's free plan does not
+      # expire. Both values come from the Neon console → Connect, and are
+      # entered here by hand (`sync: false`), never committed.
+      #   DATABASE_URL — the POOLED string (host contains "-pooler"). Append
+      #                  &connect_timeout=15: Neon's free compute sleeps after
+      #                  5 idle minutes and the first connection wakes it.
+      #   DIRECT_URL   — the same string WITHOUT "-pooler". Used only for
+      #                  migrations at boot (docker-entrypoint.sh), which need
+      #                  a direct connection. Optional: unset, migrations run
+      #                  over DATABASE_URL.
       - key: DATABASE_URL
-        fromDatabase:
-          name: quran-review-db
-          property: connectionString
+        sync: false
+      - key: DIRECT_URL
+        sync: false
       # Generated once by Render and never shown to anyone. Changing it later
       # invalidates every issued access and refresh token.
       - key: JWT_SECRET
@@ -73,7 +86,8 @@ services:
         value: quran-review-media
       - key: STORAGE_USE_SSL
         value: "true"
-      # SMTP — password reset and approval emails silently no-op without it.
+      # SMTP — REQUIRED: the API refuses to start in production without
+      # EMAIL_HOST (password reset and approval emails depend on it).
       - key: EMAIL_HOST
         sync: false
       - key: EMAIL_PORT
@@ -85,9 +99,5 @@ services:
       - key: EMAIL_FROM
         sync: false
 
-databases:
-  - name: quran-review-db
-    databaseName: quran_review
-    user: quran_review
-    plan: free # Render's free Postgres expires after 30 days — move to Basic before launch
-    region: frankfurt
+# No `databases:` block on purpose — see DATABASE_URL above. Create the Neon
+# project in AWS eu-central-1 (Frankfurt) so it sits next to this service.
