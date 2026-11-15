@@ -29,6 +29,25 @@ only when both are pointed at the same deployed API, which has exactly one
 6. **Verify**: open the web site, log in, upload a recording, download a
    report. Then log in as the same user in the app — the data must match.
 
+### Database: Neon
+
+The production database is a [Neon](https://neon.com) Postgres project, not a
+database on the API's own host. Render's free Postgres is deleted after 30
+days; Neon's free plan does not expire.
+
+1. Create a project in **AWS eu-central-1 (Frankfurt)**, the same region as the
+   API service in `render.yaml`.
+2. From the Neon console → **Connect**, copy two strings:
+   - **Pooled** (host contains `-pooler`) → `DATABASE_URL` on the API. Append
+     `&connect_timeout=15`: the free compute sleeps after 5 idle minutes and
+     the first connection has to wake it.
+   - **Direct** (same host without `-pooler`) → `DIRECT_URL` on the API.
+3. Deploy. The container entrypoint applies migrations over `DIRECT_URL`
+   (a pooled connection breaks the migration lock), then the API serves over
+   `DATABASE_URL`. With `DIRECT_URL` unset, both use `DATABASE_URL`.
+
+Neither string is ever committed; set them in the host's environment settings.
+
 ### Push notifications (phones only)
 
 The app registers an **Expo push token** after sign-in, and the server sends it

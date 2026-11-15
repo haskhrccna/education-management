@@ -11,7 +11,12 @@ echo "==> Applying database migrations (prisma migrate deploy)"
 # Applies committed migrations only. It never generates, resets or drops
 # anything, so it is safe to run on every boot, including multi-instance
 # rollouts (the advisory lock in the migration engine serializes them).
-npx prisma migrate deploy
+#
+# With a pooled DATABASE_URL (Neon's "-pooler" host, PgBouncer), migrations
+# must go over a direct connection instead: the pooler hands out a different
+# backend per transaction, which breaks the engine's advisory lock. Set
+# DIRECT_URL to the non-pooled string for that; unset, DATABASE_URL is used.
+DATABASE_URL="${DIRECT_URL:-$DATABASE_URL}" npx prisma migrate deploy
 
 echo "==> Starting the API"
 # exec: the server becomes PID 1 so the platform's SIGTERM reaches it and the

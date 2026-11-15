@@ -60,8 +60,9 @@ lib/l10n/app_localizations*.dart
 .expo/
 mobile/.expo/
 
-# Render Postgres connection string, written by hand during deploy setup
+# Database connection strings written by hand during deploy setup
 quran-render-db.url
+*.db.url
 
 # Directories/tools excluded from the public repo (never track):
 #   .swarm/        — ruflo swarm runtime databases
